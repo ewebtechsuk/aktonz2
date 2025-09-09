@@ -19,7 +19,7 @@
 .ctaButton {
   margin-top: 1rem;
   display: inline-block;
-  background-color: #006064;
+  background-color: #000;
   color: #fff;
   padding: 0.5rem 1rem;
   text-decoration: none;
@@ -59,7 +59,7 @@
 
 .searchBar button {
   padding: 0.5rem 1rem;
-  background-color: #006064;
+  background-color: #000;
   color: #fff;
   border: none;
 }
@@ -79,7 +79,7 @@
   display: block;
   font-size: 1.5rem;
   font-weight: bold;
-  color: #006064;
+  color: #000;
 }
 
 .features {

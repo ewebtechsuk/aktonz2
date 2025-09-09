@@ -3,8 +3,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem 2rem;
-  background-color: #fff;
-  border-bottom: 1px solid #eaeaea;
+  background-color: #000;
+  border-bottom: 1px solid #333;
   position: relative;
 }
 
@@ -24,6 +24,11 @@
   padding: 0;
 }
 
+.navList a {
+  color: #fff;
+  text-decoration: none;
+}
+
 .navItem {
   position: relative;
 }
@@ -39,11 +44,19 @@
   left: 0;
   width: 400px;
   padding: 1rem;
-  background: #fff;
+  background: #000;
+  color: #fff;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
   z-index: 1000;
+}
+
+.megaMenu a {
+  color: #fff;
+  text-decoration: none;
+  display: block;
+  margin: 0.25rem 0;
 }
 
 .hamburger {
@@ -58,17 +71,23 @@
   width: 25px;
   height: 3px;
   margin: 4px;
-  background-color: #333;
+  background-color: #fff;
 }
 
 .mobileMenu {
   position: absolute;
   top: 100%;
   right: 0;
-  background: #fff;
+  background: #000;
+  color: #fff;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   width: 200px;
   padding: 1rem;
+}
+
+.mobileMenu a {
+  color: #fff;
+  text-decoration: none;
 }
 
 .mobileMenu ul {

@@ -12,7 +12,12 @@ export default function Header() {
     <header className={styles.header}>
       <div className={styles.logo}>
         <Link href="/">
-          <Image src="/aktonz-logo.svg" alt="Aktonz" width={120} height={40} />
+          <Image
+            src="https://aktonz.com/wp-content/uploads/2020/02/Milky-Black-Minimalist-Beauty-Logo-300x300.png"
+            alt="Aktonz"
+            width={60}
+            height={60}
+          />
         </Link>
       </div>
       <nav className={styles.nav}>
