@@ -41,7 +41,8 @@ commit them to the repository:
 Use [Dredd](https://dredd.org/) to verify the API blueprint against the Apex27 service.
 
 ```
-export APEX27_API_KEY=your_key
+export APEX27_API_KEY=b3ccaef8aeecf3c82f2b9da07127cfd1
+
 NODE_OPTIONS=--dns-result-order=ipv4first dredd --config .dredd.yml --dry-run
 ```
 
