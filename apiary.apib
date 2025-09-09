@@ -1,80 +1,39 @@
 FORMAT: 1A
-HOST: https://polls.apiblueprint.org/
+HOST: https://api.apex27.co.uk
 
-# Aktonz2
+# Aktonz2 Listings API
 
-Polls is a simple API allowing consumers to view polls and vote in them.
+# Group Listings
 
-## Questions Collection [/questions]
+## Listings Collection [/listings{?branchId,transactionType,propertyType}]
 
-### List All Questions [GET]
++ Parameters
+    + branchId: `1290` (string, required) - Branch identifier
+    + transactionType: `sale` (string, optional) - Filter by transaction type (`sale` or `rent`)
+    + propertyType: `detached` (string, optional) - Filter by property type
+
+### List Listings [GET]
+Retrieve property listings for the specified branch.
+
++ Request
+    + Headers
+        + X-Api-Key: `b3ccaef8aeecf3c82f2b9da07127cfd1` (string, required)
 
 + Response 200 (application/json)
-
-        [
-            {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
-                    {
-                        "choice": "Swift",
-                        "votes": 2048
-                    }, {
-                        "choice": "Python",
-                        "votes": 1024
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 512
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 256
-                    }
-                ]
-            }
-        ]
-
-### Create a New Question [POST]
-
-You may create your own question using this action. It takes a JSON
-object containing a question and a collection of answers in the
-form of choices.
-
-+ Request (application/json)
-
-        {
-            "question": "Favourite programming language?",
-            "choices": [
-                "Swift",
-                "Python",
-                "Objective-C",
-                "Ruby"
-            ]
-        }
-
-+ Response 201 (application/json)
-
-    + Headers
-
-            Location: /questions/2
-
     + Body
-
             {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
-                    {
-                        "choice": "Swift",
-                        "votes": 0
-                    }, {
-                        "choice": "Python",
-                        "votes": 0
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 0
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 0
-                    }
-                ]
+              "data": [
+                {
+                  "id": 12345,
+                  "address": "10 Downing Street",
+                  "price": 750000
+                }
+              ]
             }
+
+# Data Structures
+
+## Listing (object)
++ id: 12345 (number)
++ address: "10 Downing Street" (string)
++ price: 750000 (number)
