@@ -23,12 +23,12 @@ export default function Header() {
             <div className={styles.megaMenu}>
               <div>
                 <h4>Buy</h4>
-                <Link href="#">Residential</Link>
+                <Link href="/for-sale">Residential</Link>
                 <Link href="#">Commercial</Link>
               </div>
               <div>
                 <h4>Rent</h4>
-                <Link href="#">Residential</Link>
+                <Link href="/to-rent">Residential</Link>
                 <Link href="#">Commercial</Link>
               </div>
             </div>
@@ -45,7 +45,8 @@ export default function Header() {
         <div className={styles.mobileMenu}>
           <ul>
             <li><Link href="/" onClick={closeMobile}>Home</Link></li>
-            <li><Link href="#" onClick={closeMobile}>Properties</Link></li>
+            <li><Link href="/for-sale" onClick={closeMobile}>For Sale</Link></li>
+            <li><Link href="/to-rent" onClick={closeMobile}>To Rent</Link></li>
             <li><Link href="#" onClick={closeMobile}>Contact</Link></li>
           </ul>
         </div>
