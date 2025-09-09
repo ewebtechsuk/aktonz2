@@ -1,0 +1,18 @@
+[
+  {
+    "id": "1",
+    "title": "Sample Flat in London",
+    "description": "Two bedroom flat with garden.",
+    "price": "£500,000",
+    "image": "https://via.placeholder.com/300",
+    "type": "sale"
+  },
+  {
+    "id": "2",
+    "title": "City Centre Apartment",
+    "description": "Modern apartment close to amenities.",
+    "price": "£1,200 pcm",
+    "image": "https://via.placeholder.com/300",
+    "type": "rent"
+  }
+]

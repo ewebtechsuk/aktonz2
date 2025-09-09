@@ -7,6 +7,7 @@
     "test": "echo \"No test specified\"",
     "dev": "next dev",
     "build": "next build",
+    "cache": "node scripts/cacheListings.mjs",
     "start": "next start"
   },
   "keywords": [],
