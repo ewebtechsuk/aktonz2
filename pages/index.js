@@ -10,7 +10,7 @@ export default function Home({ properties }) {
   );
 }
 
-export async function getServerSideProps() {
+export async function getStaticProps() {
   const properties = await fetchProperties();
   return { props: { properties } };
 }
