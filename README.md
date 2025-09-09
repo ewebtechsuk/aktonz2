@@ -11,7 +11,7 @@ npm run dev
 
 ## Environment Variables
 
-Copy `.env.local.example` to `.env.local` and set `APEX27_API_KEY` (and optionally `APEX27_BRANCH_ID` for your branch) to fetch real property data from the Apex27 API. Without these variables, the app displays sample listings.
+Copy `.env.local.example` to `.env.local` and set `APEX27_API_KEY` (and optionally `APEX27_BRANCH_ID` for your branch) to fetch real property data from the Apex27 API. If the key is missing or requests fail, the app falls back to cached or sample listings.
 
 ## Build
 
