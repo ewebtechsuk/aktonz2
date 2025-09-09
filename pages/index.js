@@ -1,11 +1,18 @@
 import PropertyList from '../components/PropertyList';
+import Hero from '../components/Hero';
+import Stats from '../components/Stats';
 import { fetchProperties } from '../lib/apex27';
+import styles from '../styles/Home.module.css';
 
 export default function Home({ properties }) {
   return (
-    <main>
-      <h1>Property Listings</h1>
-      <PropertyList properties={properties} />
+    <main className={styles.main}>
+      <Hero />
+      <Stats />
+      <section className={styles.listings}>
+        <h2>Latest Properties</h2>
+        <PropertyList properties={properties} />
+      </section>
     </main>
   );
 }
