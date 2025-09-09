@@ -35,3 +35,15 @@ commit them to the repository:
    npm run build
    ```
    The static site will be generated in the `out/` directory (e.g. `npx serve out`).
+
+## API Testing
+
+Use [Dredd](https://dredd.org/) to verify the API blueprint against the Apex27 service.
+
+```
+export APEX27_API_KEY=b3ccaef8aeecf3c82f2b9da07127cfd1
+NODE_OPTIONS=--dns-result-order=ipv4first dredd --config .dredd.yml --dry-run
+```
+
+The `--dry-run` flag checks the blueprint syntax without making network requests.
+Remove it to test against the live API.
