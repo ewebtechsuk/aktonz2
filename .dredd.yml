@@ -1,2 +1,6 @@
 blueprint: apiary.apib
 endpoint: https://api.apex27.co.uk
+
+header:
+  - "X-Api-Key: b3ccaef8aeecf3c82f2b9da07127cfd1"
+
