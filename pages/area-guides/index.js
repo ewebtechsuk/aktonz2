@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import Link from 'next/link';
-
 import { fetchSearchRegions } from '../../lib/apex27.mjs';
+import AreaMap from '../../components/AreaMap';
+
 import styles from '../../styles/AreaGuides.module.css';
 
 export default function AreaGuides({ regions }) {
   const [open, setOpen] = useState({});
   const toggle = (id) => setOpen((s) => ({ ...s, [id]: !s[id] }));
 
-
   return (
     <main className={styles.main}>
       <h1>Area Guides</h1>
+      <AreaMap regions={regions} />
+
       {regions.map((region) => (
         <section key={region.id} className={styles.region}>
           <div className={styles.regionHeader}>

@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { fetchSearchRegions } from '../../lib/apex27.mjs';
 import styles from '../../styles/AreaGuides.module.css';
 
@@ -14,6 +16,16 @@ export default function AreaGuide({ region }) {
     <main className={styles.main}>
       <h1>{region.name}</h1>
       {region.description && <p>{region.description}</p>}
+      {region.children && region.children.length > 0 && (
+        <ul className={styles.subAreas}>
+          {region.children.map((sub) => (
+            <li key={sub.id}>
+              <Link href={`/area-guides/${sub.slug}`}>{sub.name}</Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
     </main>
   );
 }
@@ -21,17 +33,16 @@ export default function AreaGuide({ region }) {
 export async function getStaticPaths() {
   const regions = await fetchSearchRegions();
   const paths = [];
-  const traverse = (nodes, isRoot = true) => {
+  const traverse = (nodes) => {
     nodes.forEach((node) => {
-      if (!isRoot) {
-        paths.push({ params: { slug: node.slug } });
-      }
+      paths.push({ params: { slug: node.slug } });
       if (node.children && node.children.length) {
-        traverse(node.children, false);
+        traverse(node.children);
       }
     });
   };
-  traverse(regions, true);
+  traverse(regions);
+
   return { paths, fallback: false };
 }
 
