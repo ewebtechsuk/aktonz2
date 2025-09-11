@@ -5,7 +5,7 @@ export default function PropertyList({ properties }) {
   return (
     <div className="property-list">
       {properties.map((p) => (
-        <Link href={`/property/${p.id}`} key={p.id}>
+        <Link href={`/property/${p.id}`} key={p.id} className="property-link">
           <PropertyCard property={p} />
         </Link>
       ))}
