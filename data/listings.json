@@ -1,0 +1,22 @@
+[
+  {
+    "id": 721665,
+    "displayAddress": "1 Sample Street, Sampletown",
+    "address1": "1 Sample Street",
+    "title": "Charming Sample House",
+    "description": "A charming sample property used for testing.",
+    "summary": "A charming sample property used for testing.",
+    "price": 500000,
+    "priceCurrency": "GBP",
+    "images": [
+      { "url": "https://placehold.co/800x600" }
+    ],
+    "mainFeatures": ["Garden", "Garage"],
+    "propertyType": "House",
+    "receptionRooms": 1,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "status": "available",
+    "featured": true
+  }
+]
