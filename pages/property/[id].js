@@ -51,7 +51,7 @@ export default function Property({ property, recommendations }) {
             </p>
           )}
           <div className={styles.actions}>
-            <OfferDrawer propertyTitle={property.title} />
+            <OfferDrawer propertyId={property.id} propertyTitle={property.title} />
             <ViewingForm propertyTitle={property.title} />
           </div>
         </div>
@@ -91,10 +91,18 @@ export default function Property({ property, recommendations }) {
 }
 
 export async function getStaticPaths() {
-  const properties = await fetchProperties();
+  const [sale, rent] = await Promise.all([
+    fetchProperties({ transactionType: 'sale' }),
+    fetchProperties({ transactionType: 'rent' }),
+  ]);
+  const properties = [...sale, ...rent];
+  const paths = properties
+    .map((p) => p.id ?? p.listingId ?? p.listing_id)
+    .filter(Boolean)
+    .map((id) => ({ params: { id: String(id) } }));
   return {
-    paths: properties.map((p) => ({ params: { id: String(p.id) } })),
-    fallback: false,
+    paths,
+    fallback: 'blocking',
   };
 }
 
@@ -103,7 +111,9 @@ export async function getStaticProps({ params }) {
   let formatted = null;
   if (rawProperty) {
     formatted = {
-      id: String(rawProperty.id),
+      id: String(
+        rawProperty.id ?? rawProperty.listingId ?? rawProperty.listing_id
+      ),
       title:
         rawProperty.displayAddress ||
         rawProperty.address1 ||
