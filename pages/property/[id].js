@@ -1,4 +1,4 @@
-import { fetchPropertyById, fetchProperties } from '../../lib/apex27';
+import { fetchPropertyById, fetchProperties } from '../../lib/apex27.mjs';
 
 export default function Property({ property }) {
   if (!property) return <div>Property not found</div>;
@@ -15,7 +15,7 @@ export default function Property({ property }) {
 export async function getStaticPaths() {
   const properties = await fetchProperties();
   return {
-    paths: properties.map((p) => ({ params: { id: p.id } })),
+    paths: properties.map((p) => ({ params: { id: String(p.id) } })),
     fallback: false,
   };
 }
