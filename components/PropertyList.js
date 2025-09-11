@@ -5,8 +5,10 @@ export default function PropertyList({ properties }) {
   return (
     <div className="property-list">
       {properties.map((p) => (
-        <Link href={`/property/${p.id}`} key={p.id} className="property-link">
-          <PropertyCard property={p} />
+        <Link href={`/property/${p.id}`} key={p.id} legacyBehavior>
+          <a className="property-link">
+            <PropertyCard property={p} />
+          </a>
         </Link>
       ))}
     </div>
