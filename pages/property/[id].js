@@ -96,8 +96,12 @@ export async function getStaticPaths() {
     fetchProperties({ transactionType: 'rent' }),
   ]);
   const properties = [...sale, ...rent];
+  const paths = properties
+    .map((p) => p.id ?? p.listingId ?? p.listing_id)
+    .filter(Boolean)
+    .map((id) => ({ params: { id: String(id) } }));
   return {
-    paths: properties.map((p) => ({ params: { id: String(p.id) } })),
+    paths,
     fallback: 'blocking',
   };
 }
@@ -107,7 +111,9 @@ export async function getStaticProps({ params }) {
   let formatted = null;
   if (rawProperty) {
     formatted = {
-      id: String(rawProperty.id),
+      id: String(
+        rawProperty.id ?? rawProperty.listingId ?? rawProperty.listing_id
+      ),
       title:
         rawProperty.displayAddress ||
         rawProperty.address1 ||
