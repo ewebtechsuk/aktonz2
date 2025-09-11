@@ -6,16 +6,8 @@ export default function PropertyCard({ property }) {
     <div className="property-card">
       <div className="image-wrapper">
         {property.images && property.images.length > 0 ? (
-          <ImageSlider
-            images={property.images}
-            imgStyle={{
-              width: '100%',
-              height: '200px',
-              objectFit: 'cover',
-              display: 'block',
-              border: 0,
-            }}
-          />
+          <ImageSlider images={property.images} />
+
         ) : (
           property.image && <img src={property.image} alt={property.title} />
         )}
