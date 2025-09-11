@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import styles from '../styles/Home.module.css';
 import SearchBar from './SearchBar';
 
@@ -7,11 +8,11 @@ export default function Hero() {
       <nav className={styles.nav}>
         <h1 className={styles.logo}>MyEstate</h1>
         <div className={styles.navLinks}>
-          <a href="#buy">Buy</a>
-          <a href="#rent">Rent</a>
-          <a href="#sell">Sell</a>
+          <Link href="/for-sale">Buy</Link>
+          <Link href="/to-rent">Rent</Link>
+          <Link href="/sell">Sell</Link>
         </div>
-        <a href="#login" className={styles.loginButton}>Login</a>
+        <Link href="/login" className={styles.loginButton}>Login</Link>
       </nav>
       <div className={styles.heroContent}>
         <h2>London's Estate Agent</h2>

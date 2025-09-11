@@ -29,16 +29,18 @@ export default function Header() {
               <div>
                 <h4>Buy</h4>
                 <Link href="/for-sale">Residential</Link>
-                <Link href="#">Commercial</Link>
+                <Link href="/commercial-for-sale">Commercial</Link>
               </div>
               <div>
                 <h4>Rent</h4>
                 <Link href="/to-rent">Residential</Link>
-                <Link href="#">Commercial</Link>
+                <Link href="/commercial-to-rent">Commercial</Link>
               </div>
             </div>
           </li>
-          <li className={styles.navItem}><Link href="#">Contact</Link></li>
+          <li className={styles.navItem}><Link href="/sell">Sell</Link></li>
+          <li className={styles.navItem}><Link href="/contact">Contact</Link></li>
+          <li className={styles.navItem}><Link href="/login">Login</Link></li>
         </ul>
       </nav>
       <button className={styles.hamburger} onClick={toggleMobile} aria-label="Menu">
@@ -51,8 +53,12 @@ export default function Header() {
           <ul>
             <li><Link href="/" onClick={closeMobile}>Home</Link></li>
             <li><Link href="/for-sale" onClick={closeMobile}>For Sale</Link></li>
+            <li><Link href="/commercial-for-sale" onClick={closeMobile}>Commercial For Sale</Link></li>
             <li><Link href="/to-rent" onClick={closeMobile}>To Rent</Link></li>
-            <li><Link href="#" onClick={closeMobile}>Contact</Link></li>
+            <li><Link href="/commercial-to-rent" onClick={closeMobile}>Commercial To Rent</Link></li>
+            <li><Link href="/sell" onClick={closeMobile}>Sell</Link></li>
+            <li><Link href="/contact" onClick={closeMobile}>Contact</Link></li>
+            <li><Link href="/login" onClick={closeMobile}>Login</Link></li>
           </ul>
         </div>
       )}
