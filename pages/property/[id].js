@@ -1,12 +1,14 @@
 import PropertyList from '../../components/PropertyList';
 import ImageSlider from '../../components/ImageSlider';
 import OfferDrawer from '../../components/OfferDrawer';
+import ViewingForm from '../../components/ViewingForm';
 import {
   fetchPropertyById,
   fetchProperties,
   fetchPropertiesByType,
 } from '../../lib/apex27.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
+import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
 
 export default function Property({ property, recommendations }) {
   if (!property) return <div>Property not found</div>;
@@ -22,6 +24,24 @@ export default function Property({ property, recommendations }) {
         )}
         <div className={styles.summary}>
           <h1>{property.title}</h1>
+          {property.type && <p className={styles.type}>{property.type}</p>}
+          <div className={styles.stats}>
+            {property.receptions != null && (
+              <span>
+                <FaCouch /> {property.receptions}
+              </span>
+            )}
+            {property.bedrooms != null && (
+              <span>
+                <FaBed /> {property.bedrooms}
+              </span>
+            )}
+            {property.bathrooms != null && (
+              <span>
+                <FaBath /> {property.bathrooms}
+              </span>
+            )}
+          </div>
           {property.price && <p className={styles.price}>{property.price}</p>}
           <OfferDrawer propertyTitle={property.title} />
         </div>
@@ -47,6 +67,7 @@ export default function Property({ property, recommendations }) {
 
       <section className={styles.contact}>
         <p>Interested in this property?</p>
+        <ViewingForm propertyTitle={property.title} />
         <a href="tel:+441234567890">Call our team</a>
       </section>
 
@@ -96,6 +117,11 @@ export async function getStaticProps({ params }) {
         rawProperty.keyFeatures ||
         rawProperty.features ||
         [],
+      type: rawProperty.propertyType || rawProperty.type || '',
+      receptions:
+        rawProperty.receptionRooms ?? rawProperty.receptions ?? null,
+      bedrooms: rawProperty.bedrooms ?? rawProperty.beds ?? null,
+      bathrooms: rawProperty.bathrooms ?? rawProperty.baths ?? null,
     };
   }
 
