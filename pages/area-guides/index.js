@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { fetchSearchRegions } from '../../lib/apex27.mjs';
 import AreaMap from '../../components/AreaMap';
+
 import styles from '../../styles/AreaGuides.module.css';
 
 export default function AreaGuides({ regions }) {
@@ -12,6 +13,7 @@ export default function AreaGuides({ regions }) {
     <main className={styles.main}>
       <h1>Area Guides</h1>
       <AreaMap regions={regions} />
+
       {regions.map((region) => (
         <section key={region.id} className={styles.region}>
           <div className={styles.regionHeader}>
@@ -32,6 +34,7 @@ export default function AreaGuides({ regions }) {
                 <li key={sub.id}>
                   <Link href={`/area-guides/${sub.slug}`}>{sub.name}</Link>
                 </li>
+
               ))}
             </ul>
           )}

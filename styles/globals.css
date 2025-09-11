@@ -1,9 +1,16 @@
+:root {
+  --color-primary: #000000;
+  --color-accent: #ffe500;
+  --color-background: #ffffff;
+  --color-text: #000000;
+}
+
 body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 1rem;
-  background-color: #fff;
-  color: #000;
+  background-color: var(--color-background);
+  color: var(--color-text);
 }
 
 .property-list {

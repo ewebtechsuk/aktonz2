@@ -1,4 +1,5 @@
 import Link from 'next/link';
+
 import { fetchSearchRegions } from '../../lib/apex27.mjs';
 import styles from '../../styles/AreaGuides.module.css';
 
@@ -24,6 +25,7 @@ export default function AreaGuide({ region }) {
           ))}
         </ul>
       )}
+
     </main>
   );
 }
@@ -40,6 +42,7 @@ export async function getStaticPaths() {
     });
   };
   traverse(regions);
+
   return { paths, fallback: false };
 }
 

@@ -5,8 +5,8 @@ export default function Login() {
   return (
     <div className={styles.container}>
       <div className={styles.brandSection}>
-        <h1>Insight. Information. Control. Wherever you are.</h1>
-        <p>Stay on top of what's happening with your property.</p>
+        <h1>Aktonz</h1>
+        <p>Insight. Information. Control. Wherever you are.</p>
       </div>
       <div className={styles.formSection}>
         <Link href="/">← Back</Link>
@@ -25,7 +25,7 @@ export default function Login() {
           <button type="submit" className={styles.button}>Sign in</button>
         </form>
         <p className={styles.createAccount}>
-          New to My Foxtons? <Link href="#">Create Account</Link>
+          New to Aktonz? <Link href="#">Create Account</Link>
         </p>
         <p className={styles.legal}>
           By signing in you agree to our <Link href="#">privacy policy</Link>.
