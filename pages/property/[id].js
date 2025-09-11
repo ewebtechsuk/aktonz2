@@ -91,10 +91,14 @@ export default function Property({ property, recommendations }) {
 }
 
 export async function getStaticPaths() {
-  const properties = await fetchProperties();
+  const [sale, rent] = await Promise.all([
+    fetchProperties({ transactionType: 'sale' }),
+    fetchProperties({ transactionType: 'rent' }),
+  ]);
+  const properties = [...sale, ...rent];
   return {
     paths: properties.map((p) => ({ params: { id: String(p.id) } })),
-    fallback: false,
+    fallback: 'blocking',
   };
 }
 
