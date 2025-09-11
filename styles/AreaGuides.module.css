@@ -1,0 +1,40 @@
+.main {
+  padding: 2rem 1rem;
+}
+
+.region {
+  margin-bottom: 2rem;
+}
+
+.regionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.regionTitle {
+  margin: 0;
+}
+
+.toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.25rem;
+}
+
+.subAreas {
+  list-style: none;
+  padding-left: 1rem;
+}
+
+.subAreas li {
+  margin: 0.25rem 0;
+}
+
+.subAreas a {
+  color: inherit;
+  text-decoration: none;
+}
