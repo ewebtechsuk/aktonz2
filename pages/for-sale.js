@@ -1,12 +1,24 @@
+import { useRouter } from 'next/router';
 import PropertyList from '../components/PropertyList';
 import { fetchPropertiesByType } from '../lib/apex27.mjs';
 import styles from '../styles/Home.module.css';
 
 export default function ForSale({ properties }) {
+  const router = useRouter();
+  const search = typeof router.query.search === 'string' ? router.query.search : '';
+  const lower = search.toLowerCase();
+  const filtered = search
+    ? properties.filter(
+        (p) =>
+          p.title.toLowerCase().includes(lower) ||
+          (p.description && p.description.toLowerCase().includes(lower))
+      )
+    : properties;
+
   return (
     <main className={styles.main}>
-      <h1>Properties for Sale</h1>
-      <PropertyList properties={properties} />
+      <h1>{search ? `Search results for "${search}"` : 'Properties for Sale'}</h1>
+      <PropertyList properties={filtered} />
     </main>
   );
 }
@@ -18,5 +30,6 @@ export async function getStaticProps() {
   const properties = allSale.filter(
     (p) => p.status && allowed.includes(normalize(p.status))
   );
+
   return { props: { properties } };
 }
