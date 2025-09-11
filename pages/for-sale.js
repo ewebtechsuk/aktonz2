@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react';
 import { useRouter } from 'next/router';
 import PropertyList from '../components/PropertyList';
@@ -7,6 +8,7 @@ import styles from '../styles/Home.module.css';
 export default function ForSale({ properties }) {
   const router = useRouter();
   const search = typeof router.query.search === 'string' ? router.query.search : '';
+
 
   const filtered = useMemo(() => {
     if (!search) return properties;
