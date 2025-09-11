@@ -7,6 +7,7 @@ export default function PropertyCard({ property }) {
       <div className="image-wrapper">
         {property.images && property.images.length > 0 ? (
           <ImageSlider images={property.images} />
+
         ) : (
           property.image && <img src={property.image} alt={property.title} />
         )}

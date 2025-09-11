@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import styles from '../styles/ImageSlider.module.css';
 
-export default function ImageSlider({ images = [] }) {
+export default function ImageSlider({ images = [], imgStyle = {} }) {
   const [index, setIndex] = useState(0);
   if (!images || images.length === 0) return null;
 
@@ -10,7 +10,11 @@ export default function ImageSlider({ images = [] }) {
 
   return (
     <div className={styles.slider}>
-      <img src={images[index]} alt={`Property image ${index + 1}`} />
+      <img
+        src={images[index]}
+        alt={`Property image ${index + 1}`}
+        style={imgStyle}
+      />
       {images.length > 1 && (
         <>
           <button className={styles.prev} onClick={prev} aria-label="Previous image">
