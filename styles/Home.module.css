@@ -93,7 +93,7 @@
 }
 
 .activeTab {
-  background: #006d5b;
+  background: #808080;
   color: #fff;
 }
 
@@ -115,7 +115,7 @@
 
 .searchBar button {
   padding: 0.5rem 1rem;
-  background: #006d5b;
+  background: #808080;
   color: #fff;
   border: none;
 }
