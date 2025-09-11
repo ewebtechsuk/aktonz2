@@ -43,7 +43,10 @@ export default function Property({ property, recommendations }) {
             )}
           </div>
           {property.price && <p className={styles.price}>{property.price}</p>}
-          <OfferDrawer propertyTitle={property.title} />
+          <div className={styles.actions}>
+            <OfferDrawer propertyTitle={property.title} />
+            <ViewingForm propertyTitle={property.title} />
+          </div>
         </div>
       </section>
 
@@ -67,7 +70,6 @@ export default function Property({ property, recommendations }) {
 
       <section className={styles.contact}>
         <p>Interested in this property?</p>
-        <ViewingForm propertyTitle={property.title} />
         <a href="tel:+441234567890">Call our team</a>
       </section>
 
