@@ -12,7 +12,7 @@ export default function Home({ properties }) {
       <Features />
       <Stats />
       <section className={styles.listings} id="listings">
-        <h2>Featured Lettings</h2>
+        <h2>Featured Sales</h2>
         <PropertyList properties={properties} />
       </section>
     </main>
@@ -20,7 +20,12 @@ export default function Home({ properties }) {
 }
 
 export async function getStaticProps() {
-  const allRent = await fetchPropertiesByType('rent');
-  const properties = allRent.filter((p) => p.featured);
+  const allSale = await fetchPropertiesByType('sale');
+  const allowed = ['available', 'under_offer', 'sold'];
+  const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
+  const sale = allSale.filter(
+    (p) => p.status && allowed.includes(normalize(p.status))
+  );
+  const properties = sale.filter((p) => p.featured);
   return { props: { properties } };
 }
