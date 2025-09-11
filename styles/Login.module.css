@@ -1,0 +1,59 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+}
+.brandSection {
+  flex: 1;
+  background: #005c4b;
+  color: #fff;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.brandSection h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+.formSection {
+  flex: 1;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.formSection form {
+  display: flex;
+  flex-direction: column;
+}
+.formSection label {
+  margin-top: 1rem;
+}
+.formSection input {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+}
+.formFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+.button {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #ffd100;
+  border: none;
+  cursor: pointer;
+}
+.createAccount {
+  margin-top: 1rem;
+  text-align: center;
+}
+.legal {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #555;
+  text-align: center;
+}
