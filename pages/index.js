@@ -2,7 +2,7 @@ import PropertyList from '../components/PropertyList';
 import Hero from '../components/Hero';
 import Features from '../components/Features';
 import Stats from '../components/Stats';
-import { fetchProperties } from '../lib/apex27';
+import { fetchPropertiesByType } from '../lib/apex27';
 import styles from '../styles/Home.module.css';
 
 export default function Home({ properties }) {
@@ -12,7 +12,7 @@ export default function Home({ properties }) {
       <Features />
       <Stats />
       <section className={styles.listings} id="listings">
-        <h2>Latest Properties</h2>
+        <h2>Featured Lettings</h2>
         <PropertyList properties={properties} />
       </section>
     </main>
@@ -20,6 +20,7 @@ export default function Home({ properties }) {
 }
 
 export async function getStaticProps() {
-  const properties = await fetchProperties();
+  const allRent = await fetchPropertiesByType('rent');
+  const properties = allRent.filter((p) => p.featured);
   return { props: { properties } };
 }
