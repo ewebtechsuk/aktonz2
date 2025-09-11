@@ -1,6 +1,7 @@
 import PropertyList from '../../components/PropertyList';
 import ImageSlider from '../../components/ImageSlider';
 import OfferDrawer from '../../components/OfferDrawer';
+import ViewingForm from '../../components/ViewingForm';
 import {
   fetchPropertyById,
   fetchProperties,
@@ -66,6 +67,7 @@ export default function Property({ property, recommendations }) {
 
       <section className={styles.contact}>
         <p>Interested in this property?</p>
+        <ViewingForm propertyTitle={property.title} />
         <a href="tel:+441234567890">Call our team</a>
       </section>
 
