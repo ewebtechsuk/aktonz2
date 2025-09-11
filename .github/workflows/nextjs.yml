@@ -28,6 +28,9 @@ jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
+    env:
+      APEX27_API_KEY: ${{ secrets.APEX27_API_KEY }}
+      APEX27_BRANCH_ID: ${{ secrets.APEX27_BRANCH_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -73,6 +76,8 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
+      - name: Cache Apex27 listings
+        run: ${{ steps.detect-package-manager.outputs.manager }} run cache
       - name: Build with Next.js
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
       - name: Upload artifact
