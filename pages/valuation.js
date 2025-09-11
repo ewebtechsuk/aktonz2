@@ -1,10 +1,89 @@
-import styles from '../styles/Home.module.css';
+import styles from '../styles/Valuation.module.css';
 
 export default function Valuation() {
   return (
     <main className={styles.main}>
-      <h1>Free Property Valuation</h1>
-      <p>Get an instant estimate of your property's value.</p>
+      <section className={styles.hero}>
+        <div className={styles.heroContent}>
+          <h1>Book a Property Valuation in London</h1>
+          <ul>
+            <li>Free, no obligation appointment with a local expert</li>
+            <li>Clear marketing strategy for your property</li>
+            <li>14,000 buyers and tenants registered last month</li>
+          </ul>
+        </div>
+        <form className={styles.form}>
+          <h2>Book a free valuation</h2>
+          <label>
+            First name
+            <input type="text" />
+          </label>
+          <label>
+            Last name
+            <input type="text" />
+          </label>
+          <label>
+            Email
+            <input type="email" />
+          </label>
+          <label>
+            Phone
+            <input type="tel" />
+          </label>
+          <label>
+            Property address
+            <input type="text" />
+          </label>
+          <button type="submit">Book now</button>
+        </form>
+      </section>
+
+      <section className={styles.section}>
+        <h2>Why do I need a property valuation?</h2>
+        <ul>
+          <li>Understand how much your home is worth</li>
+          <li>Receive expert marketing advice</li>
+          <li>Plan your next move with confidence</li>
+        </ul>
+      </section>
+
+      <section className={styles.section}>
+        <h2>Why choose Aktonz for my property valuation?</h2>
+        <ul>
+          <li>Local experts across London</li>
+          <li>Thousands of buyers and tenants ready to move</li>
+          <li>No obligation – it's completely free</li>
+        </ul>
+      </section>
+
+      <section className={styles.cta}>
+        <h2>Book a house or flat valuation with Aktonz</h2>
+        <p>Contact our team today and receive a detailed valuation report.</p>
+        <a className={styles.ctaButton} href="/contact">
+          Find your nearest office
+        </a>
+      </section>
+
+      <section className={styles.opening}>
+        <h2>Opening hours</h2>
+        <table>
+          <tbody>
+            <tr>
+              <td>Monday - Friday</td>
+              <td>9am - 7pm</td>
+            </tr>
+            <tr>
+              <td>Saturday</td>
+              <td>10am - 4pm</td>
+            </tr>
+            <tr>
+              <td>Sunday</td>
+              <td>Closed</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
     </main>
   );
 }
+
