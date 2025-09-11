@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Link from 'next/link';
 import styles from '../styles/Home.module.css';
 
 export default function SearchBar() {
@@ -27,9 +28,9 @@ export default function SearchBar() {
           <input type="text" placeholder="Search area or postcode" />
           <button type="submit">Search</button>
         </form>
-        <a href="#valuation" className={styles.valuationButton}>
+        <Link href="/valuation" className={styles.valuationButton}>
           Get a free valuation
-        </a>
+        </Link>
       </div>
     </div>
   );
