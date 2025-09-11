@@ -3,6 +3,35 @@ import styles from '../styles/ViewingForm.module.css';
 
 export default function ViewingForm({ propertyTitle }) {
   const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    date: '',
+    time: '',
+  });
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const res = await fetch('/api/book-viewing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, propertyTitle }),
+      });
+      if (!res.ok) throw new Error('Request failed');
+      setSent(true);
+    } catch (err) {
+      setError('Failed to book viewing');
+    }
+  };
 
   return (
     <>
@@ -24,32 +53,37 @@ export default function ViewingForm({ propertyTitle }) {
               &times;
             </button>
           </div>
-          <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
-            <p className={styles.address}>{propertyTitle}</p>
-            <label>
-              Name
-              <input type="text" name="name" />
-            </label>
-            <label>
-              Email
-              <input type="email" name="email" />
-            </label>
-            <label>
-              Phone
-              <input type="tel" name="phone" />
-            </label>
-            <label>
-              Preferred Date
-              <input type="date" name="date" />
-            </label>
-            <label>
-              Preferred Time
-              <input type="time" name="time" />
-            </label>
-            <button type="submit" className={styles.submit}>
-              Request viewing
-            </button>
-          </form>
+          {sent ? (
+            <p className={styles.success}>Thank you, we'll be in touch soon.</p>
+          ) : (
+            <form className={styles.form} onSubmit={handleSubmit}>
+              <p className={styles.address}>{propertyTitle}</p>
+              <label>
+                Name
+                <input type="text" name="name" value={form.name} onChange={handleChange} />
+              </label>
+              <label>
+                Email
+                <input type="email" name="email" value={form.email} onChange={handleChange} />
+              </label>
+              <label>
+                Phone
+                <input type="tel" name="phone" value={form.phone} onChange={handleChange} />
+              </label>
+              <label>
+                Preferred Date
+                <input type="date" name="date" value={form.date} onChange={handleChange} />
+              </label>
+              <label>
+                Preferred Time
+                <input type="time" name="time" value={form.time} onChange={handleChange} />
+              </label>
+              {error && <p className={styles.error}>{error}</p>}
+              <button type="submit" className={styles.submit}>
+                Request viewing
+              </button>
+            </form>
+          )}
         </div>
       )}
     </>

@@ -60,3 +60,13 @@
   border: none;
   cursor: pointer;
 }
+
+.success {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.error {
+  color: red;
+  font-size: 0.9rem;
+}
