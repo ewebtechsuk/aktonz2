@@ -1,30 +1,29 @@
-import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import styles from '../styles/ImageSlider.module.css';
 
-export default function ImageSlider({ images = [], imgStyle = {} }) {
-  const [index, setIndex] = useState(0);
+const Slider = dynamic(() => import('react-slick'), { ssr: false });
+
+export default function ImageSlider({ images = [] }) {
   if (!images || images.length === 0) return null;
 
-  const prev = () => setIndex((index - 1 + images.length) % images.length);
-  const next = () => setIndex((index + 1) % images.length);
+  const settings = {
+    dots: true,
+    arrows: true,
+    infinite: true,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+  };
 
   return (
     <div className={styles.slider}>
-      <img
-        src={images[index]}
-        alt={`Property image ${index + 1}`}
-        style={imgStyle}
-      />
-      {images.length > 1 && (
-        <>
-          <button className={styles.prev} onClick={prev} aria-label="Previous image">
-            &#10094;
-          </button>
-          <button className={styles.next} onClick={next} aria-label="Next image">
-            &#10095;
-          </button>
-        </>
-      )}
+      <Slider {...settings}>
+        {images.map((src, i) => (
+          <div key={i} className={styles.slide}>
+            <img src={src} alt={`Property image ${i + 1}`} />
+          </div>
+        ))}
+      </Slider>
     </div>
   );
 }
+
