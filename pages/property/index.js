@@ -1,5 +1,5 @@
 import PropertyList from '../../components/PropertyList';
-import { fetchProperties } from '../../lib/apex27.mjs';
+import { fetchPropertiesByType } from '../../lib/apex27.mjs';
 import styles from '../../styles/Home.module.css';
 
 export default function PropertyArchive({ properties }) {
@@ -12,6 +12,17 @@ export default function PropertyArchive({ properties }) {
 }
 
 export async function getStaticProps() {
-  const properties = await fetchProperties();
+  const [sale, rent] = await Promise.all([
+    fetchPropertiesByType('sale'),
+    fetchPropertiesByType('rent'),
+  ]);
+
+  const allowedSale = ['available', 'under_offer', 'sold'];
+  const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
+  const saleFiltered = sale.filter(
+    (p) => p.status && allowedSale.includes(normalize(p.status))
+  );
+
+  const properties = [...saleFiltered, ...rent];
   return { props: { properties } };
 }
