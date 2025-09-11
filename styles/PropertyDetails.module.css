@@ -19,6 +19,25 @@
   flex: 1;
 }
 
+.type {
+  font-size: 1.1rem;
+  margin-top: 0.25rem;
+  color: #555;
+}
+
+.stats {
+  display: flex;
+  gap: 1rem;
+  margin: 0.5rem 0;
+  color: #555;
+}
+
+.stats span {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 .price {
   font-size: 1.5rem;
   font-weight: bold;
