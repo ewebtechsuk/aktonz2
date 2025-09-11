@@ -7,6 +7,7 @@
     "test": "echo \"No test specified\"",
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "mkdir -p out && touch out/.nojekyll",
     "start": "next start",
     "cache": "node scripts/cacheListings.mjs"
   },
@@ -15,6 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "next": "^15.5.2",
+    "nodemailer": "^6.10.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-icons": "^4.12.0",
