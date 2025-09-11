@@ -46,10 +46,21 @@ body {
   border: none;
 }
 
-.property-card .status-badge {
+.property-card .featured-badge {
   position: absolute;
   top: 8px;
   left: 8px;
+  background: #ffe500;
+  color: #000;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+
+.property-card .status-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
   background: #ffe500;
   color: #000;
   padding: 2px 6px;
