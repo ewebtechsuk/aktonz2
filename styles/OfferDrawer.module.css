@@ -1,0 +1,72 @@
+.offerButton {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #0070f3;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  max-width: 100%;
+  height: 100vh;
+  background: #fff;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.drawer.open {
+  transform: translateX(0);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.address {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.submit {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #0070f3;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}

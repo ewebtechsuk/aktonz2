@@ -1,5 +1,11 @@
 import PropertyList from '../../components/PropertyList';
-import { fetchPropertyById, fetchProperties, fetchPropertiesByType } from '../../lib/apex27.mjs';
+import ImageSlider from '../../components/ImageSlider';
+import OfferDrawer from '../../components/OfferDrawer';
+import {
+  fetchPropertyById,
+  fetchProperties,
+  fetchPropertiesByType,
+} from '../../lib/apex27.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
 
 export default function Property({ property, recommendations }) {
@@ -9,12 +15,15 @@ export default function Property({ property, recommendations }) {
   return (
     <main className={styles.main}>
       <section className={styles.hero}>
-        {property.image && (
-          <img className={styles.image} src={property.image} alt={property.title} />
+        {property.images && property.images.length > 0 && (
+          <div className={styles.sliderWrapper}>
+            <ImageSlider images={property.images} />
+          </div>
         )}
         <div className={styles.summary}>
           <h1>{property.title}</h1>
           {property.price && <p className={styles.price}>{property.price}</p>}
+          <OfferDrawer propertyTitle={property.title} />
         </div>
       </section>
 
@@ -81,6 +90,7 @@ export async function getStaticProps({ params }) {
         rawProperty.images && rawProperty.images[0]
           ? rawProperty.images[0].url
           : null,
+      images: rawProperty.images ? rawProperty.images.map((img) => img.url) : [],
       features:
         rawProperty.mainFeatures ||
         rawProperty.keyFeatures ||

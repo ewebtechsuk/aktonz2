@@ -11,11 +11,8 @@
   align-items: flex-start;
 }
 
-.image {
+.sliderWrapper {
   width: 60%;
-  height: auto;
-  object-fit: cover;
-  border: 1px solid #ccc;
 }
 
 .summary {
