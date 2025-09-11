@@ -8,16 +8,17 @@ body {
 
 .property-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, 300px);
   gap: 2rem;
-  align-items: stretch;
+  justify-content: center;
 }
 
 .property-list .property-link {
   text-decoration: none;
   color: inherit;
-  display: flex;
-  height: 100%;
+  display: block;
+  width: 300px;
+  height: 450px;
 }
 
 .property-card {
@@ -28,24 +29,26 @@ body {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  height: 700px;
+  width: 300px;
+  height: 450px;
 }
 
 .property-card .image-wrapper {
   position: relative;
+  width: 100%;
   height: 200px;
 }
 
 .property-card img {
-  width: 100%;
-  height: 100%;
+  width: 300px;
+  height: 200px;
   object-fit: cover;
   display: block;
 }
 
 .property-card .slider img {
-  width: 100%;
-  height: 100%;
+  width: 300px;
+  height: 200px;
   object-fit: cover;
   border: none;
 }
@@ -77,6 +80,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .property-card .title {
