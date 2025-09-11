@@ -4,7 +4,7 @@
 }
 .brandSection {
   flex: 1;
-  background: #005c4b;
+  background: var(--color-primary);
   color: #fff;
   padding: 2rem;
   display: flex;
@@ -43,7 +43,7 @@
 .button {
   margin-top: 1rem;
   padding: 0.75rem;
-  background: #ffd100;
+  background: var(--color-accent);
   border: none;
   cursor: pointer;
 }
