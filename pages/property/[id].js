@@ -9,6 +9,7 @@ import {
 } from '../../lib/apex27.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
+import { formatRentFrequency } from '../../lib/format.mjs';
 
 export default function Property({ property, recommendations }) {
   if (!property) return <div>Property not found</div>;
@@ -42,7 +43,13 @@ export default function Property({ property, recommendations }) {
               </span>
             )}
           </div>
-          {property.price && <p className={styles.price}>{property.price}</p>}
+          {property.price && (
+            <p className={styles.price}>
+              {property.price}
+              {property.rentFrequency &&
+                ` ${formatRentFrequency(property.rentFrequency)}`}
+            </p>
+          )}
           <div className={styles.actions}>
             <OfferDrawer propertyTitle={property.title} />
             <ViewingForm propertyTitle={property.title} />
@@ -109,6 +116,7 @@ export async function getStaticProps({ params }) {
             ? `£${rawProperty.price}`
             : rawProperty.price
           : null,
+      rentFrequency: rawProperty.rentFrequency ?? null,
       image:
         rawProperty.images && rawProperty.images[0]
           ? rawProperty.images[0].url

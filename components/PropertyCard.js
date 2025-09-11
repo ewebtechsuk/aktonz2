@@ -1,4 +1,5 @@
 import ImageSlider from './ImageSlider';
+import { formatRentFrequency } from '../lib/format.mjs';
 
 export default function PropertyCard({ property }) {
   const status = property.status ? property.status.replace(/_/g, ' ') : null;
@@ -18,7 +19,13 @@ export default function PropertyCard({ property }) {
       </div>
       <div className="details">
         <h3 className="title">{property.title}</h3>
-        {property.price && <p className="price">{property.price}</p>}
+        {property.price && (
+          <p className="price">
+            {property.price}
+            {property.rentFrequency &&
+              ` ${formatRentFrequency(property.rentFrequency)}`}
+          </p>
+        )}
         {property.description && (
           <p className="description">{property.description}</p>
         )}
