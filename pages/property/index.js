@@ -1,5 +1,5 @@
 import PropertyList from '../../components/PropertyList';
-import { fetchProperties } from '../../lib/apex27';
+import { fetchProperties } from '../../lib/apex27.mjs';
 import styles from '../../styles/Home.module.css';
 
 export default function PropertyArchive({ properties }) {

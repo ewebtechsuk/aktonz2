@@ -27,7 +27,7 @@ function loadEnvLocal() {
 // Load env before importing fetchProperties
 loadEnvLocal();
 
-const { fetchProperties } = await import('../lib/apex27.js');
+const { fetchProperties } = await import('../lib/apex27.mjs');
 
 async function cacheListings() {
   const properties = await fetchProperties();
