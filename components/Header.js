@@ -102,6 +102,7 @@ export default function Header() {
               Login
             </Link>
           </li>
+
         </ul>
       </nav>
       <button className={styles.hamburger} onClick={toggleMobile} aria-label="Menu">
@@ -188,6 +189,7 @@ export default function Header() {
                 Login
               </Link>
             </li>
+
           </ul>
         </div>
       )}

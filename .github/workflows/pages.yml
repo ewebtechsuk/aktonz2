@@ -17,6 +17,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      APEX27_API_KEY: ${{ secrets.APEX27_API_KEY }}
+      APEX27_BRANCH_ID: ${{ secrets.APEX27_BRANCH_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,6 +27,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Cache Apex27 listings
+        run: npm run cache
       - run: npm run build
       - run: touch out/.nojekyll
 
