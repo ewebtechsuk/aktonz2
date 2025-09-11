@@ -1,0 +1,55 @@
+.main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.hero {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  align-items: flex-start;
+}
+
+.image {
+  width: 60%;
+  height: auto;
+  object-fit: cover;
+  border: 1px solid #ccc;
+}
+
+.summary {
+  flex: 1;
+}
+
+.price {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #0070f3;
+}
+
+.features,
+.description,
+.recommended,
+.contact {
+  margin-bottom: 2rem;
+}
+
+.features ul {
+  padding-left: 1.5rem;
+}
+
+.contact {
+  text-align: center;
+  padding: 1rem;
+  background-color: #f2f2f2;
+}
+
+.contact a {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #0070f3;
+  color: #fff;
+  text-decoration: none;
+}

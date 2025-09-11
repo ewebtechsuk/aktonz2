@@ -1,13 +1,52 @@
-import { fetchPropertyById, fetchProperties } from '../../lib/apex27.mjs';
+import PropertyList from '../../components/PropertyList';
+import { fetchPropertyById, fetchProperties, fetchPropertiesByType } from '../../lib/apex27.mjs';
+import styles from '../../styles/PropertyDetails.module.css';
 
-export default function Property({ property }) {
+export default function Property({ property, recommendations }) {
   if (!property) return <div>Property not found</div>;
+  const features = property.features || [];
+
   return (
-    <main>
-      <h1>{property.title}</h1>
-      {property.image && <img src={property.image} alt={property.title} />}
-      <p>{property.description}</p>
-      <p>{property.price}</p>
+    <main className={styles.main}>
+      <section className={styles.hero}>
+        {property.image && (
+          <img className={styles.image} src={property.image} alt={property.title} />
+        )}
+        <div className={styles.summary}>
+          <h1>{property.title}</h1>
+          {property.price && <p className={styles.price}>{property.price}</p>}
+        </div>
+      </section>
+
+      {features.length > 0 && (
+        <section className={styles.features}>
+          <h2>Key features</h2>
+          <ul>
+            {features.map((f, i) => (
+              <li key={i}>{f}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {property.description && (
+        <section className={styles.description}>
+          <h2>Description</h2>
+          <p>{property.description}</p>
+        </section>
+      )}
+
+      <section className={styles.contact}>
+        <p>Interested in this property?</p>
+        <a href="tel:+441234567890">Call our team</a>
+      </section>
+
+      {recommendations && recommendations.length > 0 && (
+        <section className={styles.recommended}>
+          <h2>You might also be interested in</h2>
+          <PropertyList properties={recommendations} />
+        </section>
+      )}
     </main>
   );
 }
@@ -21,6 +60,39 @@ export async function getStaticPaths() {
 }
 
 export async function getStaticProps({ params }) {
-  const property = await fetchPropertyById(params.id);
-  return { props: { property } };
+  const rawProperty = await fetchPropertyById(params.id);
+  let formatted = null;
+  if (rawProperty) {
+    formatted = {
+      id: String(rawProperty.id),
+      title:
+        rawProperty.displayAddress ||
+        rawProperty.address1 ||
+        rawProperty.title ||
+        '',
+      description: rawProperty.description || rawProperty.summary || '',
+      price:
+        rawProperty.price != null
+          ? rawProperty.priceCurrency === 'GBP'
+            ? `£${rawProperty.price}`
+            : rawProperty.price
+          : null,
+      image:
+        rawProperty.images && rawProperty.images[0]
+          ? rawProperty.images[0].url
+          : null,
+      features:
+        rawProperty.mainFeatures ||
+        rawProperty.keyFeatures ||
+        rawProperty.features ||
+        [],
+    };
+  }
+
+  const allRent = await fetchPropertiesByType('rent');
+  const recommendations = allRent
+    .filter((p) => p.id !== params.id)
+    .slice(0, 4);
+
+  return { props: { property: formatted, recommendations } };
 }
