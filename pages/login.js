@@ -4,7 +4,13 @@ export default function Login() {
   return (
     <main className={styles.main}>
       <h1>Login</h1>
-      <p>Sign in to manage your account.</p>
+      <form>
+        <label htmlFor="email">Email</label>
+        <input id="email" type="email" placeholder="you@example.com" />
+        <label htmlFor="password">Password</label>
+        <input id="password" type="password" placeholder="Password" />
+        <button type="submit">Sign In</button>
+      </form>
     </main>
   );
 }
