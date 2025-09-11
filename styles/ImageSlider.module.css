@@ -1,10 +1,11 @@
 .slider {
   position: relative;
+  height: 300px;
 }
 
 .slide img {
   width: 100%;
-  height: auto;
+  height: 300px;
   display: block;
   object-fit: cover;
   border: 1px solid #ccc;
