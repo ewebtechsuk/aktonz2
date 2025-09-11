@@ -1,33 +1,41 @@
-import Link from 'next/link';
 import styles from '../styles/Home.module.css';
 
 export default function Features() {
   const items = [
     {
-      title: 'Sales',
-      text: 'Browse our latest properties for sale.',
-      href: '/for-sale'
+      icon: '🏠',
+      title: 'Let your property hassle free',
+      text: 'Our team handles everything from tenant search to management.'
     },
     {
-      title: 'Lettings',
-      text: 'Find the perfect home to rent.',
-      href: '/to-rent'
+      icon: '💰',
+      title: "What's your home worth?",
+      text: 'Get an instant online valuation today.'
     },
     {
-      title: 'Smart Search',
-      text: 'Filter by price, location and property type to find your ideal home.'
+      icon: '🔍',
+      title: 'Find the right property for you',
+      text: 'Browse thousands of homes across London.'
+    },
+    {
+      icon: '🤝',
+      title: 'Need help? Ask our experts',
+      text: 'Our local agents are here to support you.'
     }
   ];
 
   return (
-    <section className={styles.features}>
-      {items.map((item) => (
-        <div className={styles.feature} key={item.title}>
-          <h3>{item.title}</h3>
-          <p>{item.text}</p>
-          {item.href && <Link href={item.href}>View {item.title}</Link>}
-        </div>
-      ))}
+    <section className={styles.featuresSection}>
+      <h2>When you need experts</h2>
+      <div className={styles.featuresGrid}>
+        {items.map((item) => (
+          <div className={styles.featureCard} key={item.title}>
+            <div className={styles.featureIcon}>{item.icon}</div>
+            <h3>{item.title}</h3>
+            <p>{item.text}</p>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
