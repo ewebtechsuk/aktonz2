@@ -13,7 +13,7 @@ import { formatRentFrequency } from '../../lib/format.mjs';
 
 export default function Property({ property, recommendations }) {
   if (!property) return <div>Property not found</div>;
-  const features = property.features || [];
+  const features = Array.isArray(property.features) ? property.features : [];
 
   return (
     <main className={styles.main}>
@@ -132,11 +132,22 @@ export async function getStaticProps({ params }) {
           ? rawProperty.images[0].url
           : null,
       images: rawProperty.images ? rawProperty.images.map((img) => img.url) : [],
-      features:
-        rawProperty.mainFeatures ||
-        rawProperty.keyFeatures ||
-        rawProperty.features ||
-        [],
+      features: (() => {
+        const rawFeatures =
+          rawProperty.mainFeatures ||
+          rawProperty.keyFeatures ||
+          rawProperty.features ||
+          rawProperty.bullets ||
+          [];
+        if (Array.isArray(rawFeatures)) return rawFeatures;
+        if (typeof rawFeatures === 'string') {
+          return rawFeatures
+            .split(/\r?\n|,/)
+            .map((f) => f.trim())
+            .filter(Boolean);
+        }
+        return [];
+      })(),
       type: rawProperty.propertyType || rawProperty.type || '',
       receptions:
         rawProperty.receptionRooms ?? rawProperty.receptions ?? null,
