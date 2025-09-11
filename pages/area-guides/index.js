@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
+
 import { fetchSearchRegions } from '../../lib/apex27.mjs';
 import styles from '../../styles/AreaGuides.module.css';
 
 export default function AreaGuides({ regions }) {
   const [open, setOpen] = useState({});
   const toggle = (id) => setOpen((s) => ({ ...s, [id]: !s[id] }));
+
 
   return (
     <main className={styles.main}>
@@ -30,6 +32,7 @@ export default function AreaGuides({ regions }) {
                 <li key={sub.id}>
                   <Link href={`/area-guides/${sub.slug}`}>{sub.name}</Link>
                 </li>
+
               ))}
             </ul>
           )}
