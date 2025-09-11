@@ -12,6 +12,11 @@ export default function ForSale({ properties }) {
 }
 
 export async function getStaticProps() {
-  const properties = await fetchPropertiesByType('sale');
+  const allSale = await fetchPropertiesByType('sale');
+  const allowed = ['available', 'under_offer', 'sold'];
+  const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
+  const properties = allSale.filter(
+    (p) => p.status && allowed.includes(normalize(p.status))
+  );
   return { props: { properties } };
 }
