@@ -11,6 +11,22 @@
   position: relative;
 }
 
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.heroContent {
+  position: relative;
+  max-width: 600px;
+  margin-top: 3rem;
+}
+
 .subtitle {
   margin-top: 0.5rem;
   font-size: 1.2rem;
@@ -25,6 +41,7 @@
   text-decoration: none;
 }
 
+
 .nav {
   display: flex;
   justify-content: space-between;
@@ -36,32 +53,81 @@
   font-size: 1.5rem;
 }
 
+.navLinks {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
 .navLinks a {
-  margin-left: 1rem;
+  margin: 0 1rem;
   color: #fff;
   text-decoration: none;
 }
 
-.heroContent {
-  max-width: 600px;
-  margin-top: 3rem;
+.loginButton {
+  color: #fff;
+  text-decoration: none;
+  margin-left: 1rem;
+}
+
+
+.searchWrapper {
+  margin-top: 1rem;
+  background: #fff;
+  color: #000;
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.tabs {
+  display: flex;
+}
+
+.tabs button {
+  flex: 1;
+  padding: 0.5rem;
+  background: #f5f5f5;
+  border: none;
+  cursor: pointer;
+}
+
+.activeTab {
+  background: #006d5b;
+  color: #fff;
+}
+
+.searchControls {
+  display: flex;
+  margin-top: 0.5rem;
 }
 
 .searchBar {
-  margin-top: 1rem;
+  flex: 1;
   display: flex;
 }
 
 .searchBar input {
   flex: 1;
   padding: 0.5rem;
+  border: 1px solid #ccc;
 }
 
 .searchBar button {
   padding: 0.5rem 1rem;
-  background-color: #000;
+  background: #006d5b;
   color: #fff;
   border: none;
+}
+
+.valuationButton {
+  margin-left: 0.5rem;
+  background: #ffe500;
+  color: #000;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
 }
 
 .stats {
@@ -82,16 +148,32 @@
   color: #000;
 }
 
-.features {
-  display: flex;
-  justify-content: space-around;
+
+.featuresSection {
   padding: 2rem 1rem;
-  background: #fff;
+  background: #f5f5f5;
+  text-align: center;
 }
 
-.feature {
-  max-width: 200px;
+.featuresGrid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.featureCard {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 4px;
+  width: 200px;
   text-align: center;
+}
+
+.featureIcon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 .listings {

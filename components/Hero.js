@@ -11,12 +11,12 @@ export default function Hero() {
           <a href="#rent">Rent</a>
           <a href="#sell">Sell</a>
         </div>
+        <a href="#login" className={styles.loginButton}>Login</a>
       </nav>
       <div className={styles.heroContent}>
-        <h2>Your trusted estate agent</h2>
-        <p className={styles.subtitle}>Find your perfect home to buy or rent</p>
+        <h2>London's Estate Agent</h2>
+        <p className={styles.subtitle}>Get it done with London's number one</p>
         <SearchBar />
-        <a href="#listings" className={styles.ctaButton}>Browse listings</a>
       </div>
     </section>
   );
