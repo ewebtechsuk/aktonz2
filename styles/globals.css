@@ -15,10 +15,9 @@ body {
 
 .property-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 400px);
+  grid-template-columns: 1fr;
   gap: 2rem;
   align-items: stretch;
-
   justify-content: center;
 }
 
@@ -27,7 +26,6 @@ body {
   color: inherit;
   display: flex;
   height: 100%;
-
 }
 
 .property-card {
@@ -39,26 +37,24 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-
 }
 
 .property-card .image-wrapper {
   position: relative;
   width: 100%;
-  height: 400px;
+  height: 260px;
 }
 
 .property-card img {
   width: 100%;
   height: 100%;
-
   object-fit: cover;
   display: block;
 }
 
 .property-card .slider img {
   width: 100%;
-  height: 400px;
+  height: 260px;
   object-fit: cover;
   border: none;
 }
@@ -90,7 +86,6 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-
 }
 
 .property-card .title {
@@ -110,17 +105,24 @@ body {
   color: #555;
 }
 
-@media (max-width: 600px) {
+@media (min-width: 768px) {
   .property-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  .property-card .image-wrapper {
-    height: 400px;
+  .property-card .image-wrapper,
+  .property-card .slider img {
+    height: 320px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .property-list {
+    grid-template-columns: repeat(3, 1fr);
   }
 
+  .property-card .image-wrapper,
   .property-card .slider img {
     height: 400px;
-
   }
 }
