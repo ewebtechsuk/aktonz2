@@ -30,14 +30,13 @@ export default function Favourites({ properties }) {
 }
 
 export async function getStaticProps() {
-  const [sale, rent] = await Promise.all([
-    fetchPropertiesByType('sale', {
-      statuses: ['available', 'under_offer', 'sold'],
-    }),
-    fetchPropertiesByType('rent', {
-      statuses: ['available', 'under_offer', 'let_agreed', 'let'],
-    }),
-  ]);
-  const properties = [...sale, ...rent];
+  const sale = await fetchPropertiesByType('sale', {
+    statuses: ['available', 'under_offer', 'sold'],
+  });
+  await new Promise((res) => setTimeout(res, 200));
+  const rent = await fetchPropertiesByType('rent', {
+    statuses: ['available', 'under_offer', 'let_agreed', 'let'],
+  });
+  const properties = [...sale.slice(0, 20), ...rent.slice(0, 20)];
   return { props: { properties } };
 }
