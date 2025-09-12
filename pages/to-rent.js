@@ -1,29 +1,17 @@
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import PropertyList from '../components/PropertyList';
+import PropertyMap from '../components/PropertyMap';
 import { fetchPropertiesByType } from '../lib/apex27.mjs';
 import styles from '../styles/Home.module.css';
 
 export default function ToRent({ properties }) {
   const router = useRouter();
   const search = typeof router.query.search === 'string' ? router.query.search : '';
-  const minPrice =
-    typeof router.query.minPrice === 'string'
-      ? parseFloat(router.query.minPrice)
-      : null;
-  const maxPrice =
-    typeof router.query.maxPrice === 'string'
-      ? parseFloat(router.query.maxPrice)
-      : null;
-  const bedrooms =
-    typeof router.query.bedrooms === 'string'
-      ? parseInt(router.query.bedrooms, 10)
-      : null;
-  const propertyType =
-    typeof router.query.propertyType === 'string'
-      ? router.query.propertyType.toLowerCase()
-      : '';
+
+  const [viewMode, setViewMode] = useState('list');
+
   const filtered = useMemo(() => {
     let list = properties;
     if (search) {
@@ -63,12 +51,26 @@ export default function ToRent({ properties }) {
   return (
     <main className={styles.main}>
       <h1>{search ? `Search results for "${search}"` : 'Properties to Rent'}</h1>
-      <PropertyList properties={available} />
-      {archived.length > 0 && (
+      <div style={{ marginBottom: '1rem' }}>
+        <button onClick={() => setViewMode('list')} disabled={viewMode === 'list'}>
+          List
+        </button>{' '}
+        <button onClick={() => setViewMode('map')} disabled={viewMode === 'map'}>
+          Map
+        </button>
+      </div>
+      {viewMode === 'list' ? (
         <>
-          <h2>Let Properties</h2>
-          <PropertyList properties={archived} />
+          <PropertyList properties={available} />
+          {archived.length > 0 && (
+            <>
+              <h2>Let Properties</h2>
+              <PropertyList properties={archived} />
+            </>
+          )}
         </>
+      ) : (
+        <PropertyMap properties={available} />
       )}
     </main>
   );
@@ -76,7 +78,8 @@ export default function ToRent({ properties }) {
 
 export async function getStaticProps() {
   const properties = await fetchPropertiesByType('rent', {
-    statuses: ['available', 'under_offer', 'let_agreed', 'let'],
+    statuses: ['available', 'under_offer', 'let_agreed', 'let', 'let_stc', 'let_by'],
+
   });
   return { props: { properties } };
 }
