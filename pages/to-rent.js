@@ -9,22 +9,7 @@ import styles from '../styles/Home.module.css';
 export default function ToRent({ properties }) {
   const router = useRouter();
   const search = typeof router.query.search === 'string' ? router.query.search : '';
-  const minPrice =
-    typeof router.query.minPrice === 'string'
-      ? parseFloat(router.query.minPrice)
-      : null;
-  const maxPrice =
-    typeof router.query.maxPrice === 'string'
-      ? parseFloat(router.query.maxPrice)
-      : null;
-  const bedrooms =
-    typeof router.query.bedrooms === 'string'
-      ? parseInt(router.query.bedrooms, 10)
-      : null;
-  const propertyType =
-    typeof router.query.propertyType === 'string'
-      ? router.query.propertyType.toLowerCase()
-      : '';
+  const [viewMode, setViewMode] = useState('list');
 
   const filtered = useMemo(() => {
     let list = properties;
@@ -66,10 +51,14 @@ export default function ToRent({ properties }) {
     <main className={styles.main}>
       <h1>{search ? `Search results for "${search}"` : 'Properties to Rent'}</h1>
       <div style={{ marginBottom: '1rem' }}>
-        <button onClick={() => setView('list')} disabled={view === 'list'}>List</button>{' '}
-        <button onClick={() => setView('map')} disabled={view === 'map'}>Map</button>
+        <button onClick={() => setViewMode('list')} disabled={viewMode === 'list'}>
+          List
+        </button>{' '}
+        <button onClick={() => setViewMode('map')} disabled={viewMode === 'map'}>
+          Map
+        </button>
       </div>
-      {view === 'list' ? (
+      {viewMode === 'list' ? (
         <>
           <PropertyList properties={available} />
           {archived.length > 0 && (
