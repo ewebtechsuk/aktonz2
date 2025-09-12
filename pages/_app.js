@@ -4,6 +4,7 @@ import 'slick-carousel/slick/slick-theme.css';
 import Head from 'next/head';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import ChatWidget from '../components/ChatWidget';
 
 export default function MyApp({ Component, pageProps }) {
   return (
@@ -14,6 +15,7 @@ export default function MyApp({ Component, pageProps }) {
       <Header />
       <Component {...pageProps} />
       <Footer />
+      <ChatWidget />
     </>
   );
 }
