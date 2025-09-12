@@ -104,6 +104,14 @@ export default function Header() {
           </li>
           <li className={styles.navItem}>
             <Link
+              href="/compare"
+              className={router.pathname === '/compare' ? styles.active : ''}
+            >
+              Compare
+            </Link>
+          </li>
+          <li className={styles.navItem}>
+            <Link
               href="/login"
               className={router.pathname === '/login' ? styles.active : ''}
             >
@@ -195,6 +203,15 @@ export default function Header() {
                 className={router.pathname === '/archive' ? styles.active : ''}
               >
                 Archive
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/compare"
+                onClick={closeMobile}
+                className={router.pathname === '/compare' ? styles.active : ''}
+              >
+                Compare
               </Link>
             </li>
             <li>
