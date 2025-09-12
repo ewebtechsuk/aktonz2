@@ -3,6 +3,9 @@ import 'leaflet/dist/leaflet.css';
 
 export default function PropertyMap({ properties = [], center = [51.5, -0.1], zoom = 12 }) {
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+
     let map;
     async function initMap() {
       const L = (await import('leaflet')).default;
