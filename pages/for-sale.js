@@ -54,6 +54,7 @@ export default function ForSale({ properties }) {
 
       return true;
     });
+
   }, [properties, search, minPrice, maxPrice, bedrooms, propertyType]);
 
   const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
