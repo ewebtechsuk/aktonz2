@@ -4,34 +4,46 @@ import PropertyList from '../components/PropertyList';
 import { fetchPropertiesByType } from '../lib/apex27.mjs';
 import styles from '../styles/Home.module.css';
 
-export default function Archive({ properties }) {
+export default function Archive({ sales, lettings }) {
   const router = useRouter();
   const search = typeof router.query.search === 'string' ? router.query.search : '';
-  const filtered = useMemo(() => {
-    if (!search) return properties;
+
+  const filter = (list) => {
+    if (!search) return list;
     const lower = search.toLowerCase();
-    return properties.filter(
+    return list.filter(
       (p) =>
         p.title.toLowerCase().includes(lower) ||
         (p.description && p.description.toLowerCase().includes(lower))
     );
-  }, [properties, search]);
+  };
+
+  const filteredSales = useMemo(() => filter(sales), [sales, search]);
+  const filteredLettings = useMemo(() => filter(lettings), [lettings, search]);
 
   return (
     <main className={styles.main}>
       <h1>{search ? `Search results for "${search}"` : 'Archived Listings'}</h1>
-      <PropertyList properties={filtered} />
+      {filteredSales.length > 0 && (
+        <>
+          <h2>Sold Properties</h2>
+          <PropertyList properties={filteredSales} />
+        </>
+      )}
+      {filteredLettings.length > 0 && (
+        <>
+          <h2>Let Properties</h2>
+          <PropertyList properties={filteredLettings} />
+        </>
+      )}
     </main>
   );
 }
 
 export async function getStaticProps() {
-  const sale = await fetchPropertiesByType('sale');
-  const rent = await fetchPropertiesByType('rent');
-  const archivedStatuses = ['sold', 'let', 'let_agreed'];
-  const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
-  const properties = [...sale, ...rent].filter(
-    (p) => p.status && archivedStatuses.includes(normalize(p.status))
-  );
-  return { props: { properties } };
+  const [sales, lettings] = await Promise.all([
+    fetchPropertiesByType('sale', { statuses: ['sold'] }),
+    fetchPropertiesByType('rent', { statuses: ['let', 'let_agreed'] }),
+  ]);
+  return { props: { sales, lettings } };
 }

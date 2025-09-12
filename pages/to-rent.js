@@ -41,6 +41,8 @@ export default function ToRent({ properties }) {
 }
 
 export async function getStaticProps() {
-  const properties = await fetchPropertiesByType('rent');
+  const properties = await fetchPropertiesByType('rent', {
+    statuses: ['available', 'under_offer', 'let_agreed', 'let'],
+  });
   return { props: { properties } };
 }

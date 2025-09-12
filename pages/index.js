@@ -37,8 +37,12 @@ export default function Home({ sales, lettings, archiveSales, archiveLettings })
 
 export async function getStaticProps() {
   const [allSale, allRent] = await Promise.all([
-    fetchPropertiesByType('sale'),
-    fetchPropertiesByType('rent'),
+    fetchPropertiesByType('sale', {
+      statuses: ['available', 'under_offer', 'sold'],
+    }),
+    fetchPropertiesByType('rent', {
+      statuses: ['available', 'under_offer', 'let_agreed', 'let'],
+    }),
   ]);
 
   const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
