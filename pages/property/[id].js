@@ -2,6 +2,8 @@ import PropertyList from '../../components/PropertyList';
 import ImageSlider from '../../components/ImageSlider';
 import OfferDrawer from '../../components/OfferDrawer';
 import ViewingForm from '../../components/ViewingForm';
+import MortgageCalculator from '../../components/MortgageCalculator';
+import RentAffordability from '../../components/RentAffordability';
 import {
   fetchPropertyById,
   fetchProperties,
@@ -10,6 +12,26 @@ import {
 import styles from '../../styles/PropertyDetails.module.css';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
 import { formatRentFrequency } from '../../lib/format.mjs';
+
+function parsePriceNumber(value) {
+  return Number(String(value).replace(/[^0-9.]/g, '')) || 0;
+}
+
+function rentToMonthly(price, freq) {
+  const amount = parsePriceNumber(price);
+  switch (freq) {
+    case 'W':
+      return (amount * 52) / 12;
+    case 'M':
+      return amount;
+    case 'Q':
+      return amount / 3;
+    case 'Y':
+      return amount / 12;
+    default:
+      return amount;
+  }
+}
 
 export default function Property({ property, recommendations }) {
   if (!property) return <div>Property not found</div>;
@@ -72,6 +94,22 @@ export default function Property({ property, recommendations }) {
         <section className={styles.description}>
           <h2>Description</h2>
           <p>{property.description}</p>
+        </section>
+      )}
+
+      {!property.rentFrequency && property.price && (
+        <section className={styles.calculatorSection}>
+          <h2>Mortgage Calculator</h2>
+          <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+        </section>
+      )}
+
+      {property.rentFrequency && property.price && (
+        <section className={styles.calculatorSection}>
+          <h2>Rent Affordability</h2>
+          <RentAffordability
+            defaultRent={rentToMonthly(property.price, property.rentFrequency)}
+          />
         </section>
       )}
 
