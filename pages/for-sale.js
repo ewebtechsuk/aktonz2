@@ -1,13 +1,15 @@
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import PropertyList from '../components/PropertyList';
+import PropertyMap from '../components/PropertyMap';
 import { fetchPropertiesByType } from '../lib/apex27.mjs';
 import styles from '../styles/Home.module.css';
 
 export default function ForSale({ properties }) {
   const router = useRouter();
   const search = typeof router.query.search === 'string' ? router.query.search : '';
+  const [view, setView] = useState('list');
 
   const filtered = useMemo(() => {
     if (!search) return properties;
@@ -31,12 +33,22 @@ export default function ForSale({ properties }) {
   return (
     <main className={styles.main}>
       <h1>{search ? `Search results for "${search}"` : 'Properties for Sale'}</h1>
-      <PropertyList properties={available} />
-      {archived.length > 0 && (
+      <div style={{ marginBottom: '1rem' }}>
+        <button onClick={() => setView('list')} disabled={view === 'list'}>List</button>{' '}
+        <button onClick={() => setView('map')} disabled={view === 'map'}>Map</button>
+      </div>
+      {view === 'list' ? (
         <>
-          <h2>Sold Properties</h2>
-          <PropertyList properties={archived} />
+          <PropertyList properties={available} />
+          {archived.length > 0 && (
+            <>
+              <h2>Sold Properties</h2>
+              <PropertyList properties={archived} />
+            </>
+          )}
         </>
+      ) : (
+        <PropertyMap properties={available} />
       )}
     </main>
   );
