@@ -18,10 +18,24 @@ export default function ToRent({ properties }) {
     );
   }, [properties, search]);
 
+  const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
+  const available = filtered.filter(
+    (p) => !p.status || !normalize(p.status).startsWith('let')
+  );
+  const archived = filtered.filter(
+    (p) => p.status && normalize(p.status).startsWith('let')
+  );
+
   return (
     <main className={styles.main}>
       <h1>{search ? `Search results for "${search}"` : 'Properties to Rent'}</h1>
-      <PropertyList properties={filtered} />
+      <PropertyList properties={available} />
+      {archived.length > 0 && (
+        <>
+          <h2>Let Properties</h2>
+          <PropertyList properties={archived} />
+        </>
+      )}
     </main>
   );
 }

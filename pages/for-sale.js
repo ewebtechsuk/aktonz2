@@ -9,7 +9,6 @@ export default function ForSale({ properties }) {
   const router = useRouter();
   const search = typeof router.query.search === 'string' ? router.query.search : '';
 
-
   const filtered = useMemo(() => {
     if (!search) return properties;
     const lower = search.toLowerCase();
@@ -20,10 +19,24 @@ export default function ForSale({ properties }) {
     );
   }, [properties, search]);
 
+  const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
+  const available = filtered.filter(
+    (p) => !p.status || normalize(p.status) !== 'sold'
+  );
+  const archived = filtered.filter(
+    (p) => p.status && normalize(p.status) === 'sold'
+  );
+
   return (
     <main className={styles.main}>
       <h1>{search ? `Search results for "${search}"` : 'Properties for Sale'}</h1>
-      <PropertyList properties={filtered} />
+      <PropertyList properties={available} />
+      {archived.length > 0 && (
+        <>
+          <h2>Sold Properties</h2>
+          <PropertyList properties={archived} />
+        </>
+      )}
     </main>
   );
 }
