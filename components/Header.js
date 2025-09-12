@@ -96,14 +96,6 @@ export default function Header() {
           </li>
           <li className={styles.navItem}>
             <Link
-              href="/archive"
-              className={router.pathname === '/archive' ? styles.active : ''}
-            >
-              Archive
-            </Link>
-          </li>
-          <li className={styles.navItem}>
-            <Link
               href="/login"
               className={router.pathname === '/login' ? styles.active : ''}
             >
@@ -186,15 +178,6 @@ export default function Header() {
                 className={router.pathname === '/contact' ? styles.active : ''}
               >
                 Contact
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/archive"
-                onClick={closeMobile}
-                className={router.pathname === '/archive' ? styles.active : ''}
-              >
-                Archive
               </Link>
             </li>
             <li>
