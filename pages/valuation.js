@@ -1,4 +1,6 @@
 import styles from '../styles/Valuation.module.css';
+import MortgageCalculator from '../components/MortgageCalculator';
+import RentAffordability from '../components/RentAffordability';
 
 export default function Valuation() {
   return (
@@ -54,6 +56,16 @@ export default function Valuation() {
           <li>Thousands of buyers and tenants ready to move</li>
           <li>No obligation – it's completely free</li>
         </ul>
+      </section>
+
+      <section className={styles.section}>
+        <h2>Mortgage Calculator</h2>
+        <MortgageCalculator />
+      </section>
+
+      <section className={styles.section}>
+        <h2>Rent Affordability Calculator</h2>
+        <RentAffordability />
       </section>
 
       <section className={styles.cta}>
