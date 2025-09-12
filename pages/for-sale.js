@@ -20,12 +20,13 @@ export default function ForSale({ properties }) {
   }, [properties, search]);
 
   const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
-  const available = filtered.filter(
-    (p) => !p.status || normalize(p.status) !== 'sold'
-  );
-  const archived = filtered.filter(
-    (p) => p.status && normalize(p.status) === 'sold'
-  );
+  const isSold = (p) => {
+    const status = normalize(p.status || '');
+    return status.includes('sold') || status.includes('sale_agreed');
+  };
+  const available = filtered.filter((p) => !isSold(p));
+  const archived = filtered.filter(isSold);
+
 
   return (
     <main className={styles.main}>
@@ -43,7 +44,8 @@ export default function ForSale({ properties }) {
 
 export async function getStaticProps() {
   const properties = await fetchPropertiesByType('sale', {
-    statuses: ['available', 'under_offer', 'sold'],
+    statuses: ['available', 'under_offer', 'sold', 'sold_stc', 'sale_agreed'],
+
   });
 
   return { props: { properties } };

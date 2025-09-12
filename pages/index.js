@@ -38,16 +38,20 @@ export default function Home({ sales, lettings, archiveSales, archiveLettings })
 export async function getStaticProps() {
   const [allSale, allRent] = await Promise.all([
     fetchPropertiesByType('sale', {
-      statuses: ['available', 'under_offer', 'sold'],
+      statuses: ['available', 'under_offer', 'sold', 'sold_stc', 'sale_agreed'],
     }),
     fetchPropertiesByType('rent', {
-      statuses: ['available', 'under_offer', 'let_agreed', 'let'],
+      statuses: ['available', 'under_offer', 'let_agreed', 'let', 'let_stc', 'let_by'],
+
     }),
   ]);
 
   const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
+  const soldStatuses = ['sold', 'sold_stc', 'sale_agreed'];
   const isAvailable = (p) => p.status && normalize(p.status) === 'available';
-  const isSold = (p) => p.status && normalize(p.status) === 'sold';
+  const isSold = (p) =>
+    p.status && soldStatuses.some((s) => normalize(p.status).includes(s));
+
   const isLet = (p) => p.status && normalize(p.status).startsWith('let');
 
   const sales = allSale
