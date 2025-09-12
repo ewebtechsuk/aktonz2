@@ -40,3 +40,13 @@
 .button:hover {
   background-color: #333;
 }
+
+.success {
+  margin-top: 1rem;
+  color: green;
+}
+
+.error {
+  margin-top: 1rem;
+  color: red;
+}

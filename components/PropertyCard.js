@@ -4,7 +4,11 @@ import { formatRentFrequency } from '../lib/format.mjs';
 export default function PropertyCard({ property }) {
   const rawStatus = property.status ? property.status.replace(/_/g, ' ') : null;
   const normalized = rawStatus ? rawStatus.toLowerCase() : '';
-  const isArchived = normalized === 'sold' || normalized.startsWith('let');
+  const isArchived =
+    normalized.startsWith('sold') ||
+    normalized.includes('sale agreed') ||
+    normalized.startsWith('let');
+
 
   return (
     <div className={`property-card${isArchived ? ' archived' : ''}`}>
