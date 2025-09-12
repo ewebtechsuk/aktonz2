@@ -2,6 +2,7 @@ import PropertyList from '../../components/PropertyList';
 import ImageSlider from '../../components/ImageSlider';
 import OfferDrawer from '../../components/OfferDrawer';
 import ViewingForm from '../../components/ViewingForm';
+import NeighborhoodInfo from '../../components/NeighborhoodInfo';
 import {
   fetchPropertyById,
   fetchProperties,
@@ -74,6 +75,8 @@ export default function Property({ property, recommendations }) {
           <p>{property.description}</p>
         </section>
       )}
+
+      <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
 
       <section className={styles.contact}>
         <p>Interested in this property?</p>
@@ -153,6 +156,8 @@ export async function getStaticProps({ params }) {
         rawProperty.receptionRooms ?? rawProperty.receptions ?? null,
       bedrooms: rawProperty.bedrooms ?? rawProperty.beds ?? null,
       bathrooms: rawProperty.bathrooms ?? rawProperty.baths ?? null,
+      latitude: rawProperty.latitude ?? null,
+      longitude: rawProperty.longitude ?? null,
     };
   }
 
