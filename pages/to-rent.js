@@ -9,16 +9,51 @@ import styles from '../styles/Home.module.css';
 export default function ToRent({ properties }) {
   const router = useRouter();
   const search = typeof router.query.search === 'string' ? router.query.search : '';
-  const [view, setView] = useState('list');
+  const minPrice =
+    router.query.minPrice && !Array.isArray(router.query.minPrice)
+      ? Number(router.query.minPrice)
+      : null;
+  const maxPrice =
+    router.query.maxPrice && !Array.isArray(router.query.maxPrice)
+      ? Number(router.query.maxPrice)
+      : null;
+  const bedrooms =
+    router.query.bedrooms && !Array.isArray(router.query.bedrooms)
+      ? Number(router.query.bedrooms)
+      : null;
+  const propertyType =
+    router.query.propertyType && !Array.isArray(router.query.propertyType)
+      ? router.query.propertyType.toLowerCase()
+      : null;
+  const [viewMode, setViewMode] = useState('list');
   const filtered = useMemo(() => {
-    if (!search) return properties;
-    const lower = search.toLowerCase();
-    return properties.filter(
-      (p) =>
-        p.title.toLowerCase().includes(lower) ||
-        (p.description && p.description.toLowerCase().includes(lower))
-    );
-  }, [properties, search]);
+    return properties.filter((p) => {
+      if (search) {
+        const lower = search.toLowerCase();
+        if (
+          !p.title.toLowerCase().includes(lower) &&
+          !(p.description && p.description.toLowerCase().includes(lower))
+        ) {
+          return false;
+        }
+      }
+
+      const price = p.price ?? 0;
+      if (minPrice !== null && price < minPrice) return false;
+      if (maxPrice !== null && price > maxPrice) return false;
+
+      const beds = Number(p.bedrooms || 0);
+      if (bedrooms !== null && beds < bedrooms) return false;
+
+      if (
+        propertyType &&
+        (p.propertyType || '').toLowerCase() !== propertyType
+      )
+        return false;
+
+      return true;
+    });
+  }, [properties, search, minPrice, maxPrice, bedrooms, propertyType]);
 
   const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
   const available = filtered.filter(
@@ -32,10 +67,14 @@ export default function ToRent({ properties }) {
     <main className={styles.main}>
       <h1>{search ? `Search results for "${search}"` : 'Properties to Rent'}</h1>
       <div style={{ marginBottom: '1rem' }}>
-        <button onClick={() => setView('list')} disabled={view === 'list'}>List</button>{' '}
-        <button onClick={() => setView('map')} disabled={view === 'map'}>Map</button>
+        <button onClick={() => setViewMode('list')} disabled={viewMode === 'list'}>
+          List
+        </button>{' '}
+        <button onClick={() => setViewMode('map')} disabled={viewMode === 'map'}>
+          Map
+        </button>
       </div>
-      {view === 'list' ? (
+      {viewMode === 'list' ? (
         <>
           <PropertyList properties={available} />
           {archived.length > 0 && (
