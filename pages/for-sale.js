@@ -9,36 +9,52 @@ import styles from '../styles/Home.module.css';
 export default function ForSale({ properties }) {
   const router = useRouter();
   const search = typeof router.query.search === 'string' ? router.query.search : '';
-
+  const minPrice =
+    router.query.minPrice && !Array.isArray(router.query.minPrice)
+      ? Number(router.query.minPrice)
+      : null;
+  const maxPrice =
+    router.query.maxPrice && !Array.isArray(router.query.maxPrice)
+      ? Number(router.query.maxPrice)
+      : null;
+  const bedrooms =
+    router.query.bedrooms && !Array.isArray(router.query.bedrooms)
+      ? Number(router.query.bedrooms)
+      : null;
+  const propertyType =
+    router.query.propertyType && !Array.isArray(router.query.propertyType)
+      ? router.query.propertyType.toLowerCase()
+      : null;
   const [viewMode, setViewMode] = useState('list');
 
-
   const filtered = useMemo(() => {
-    let list = properties;
-    if (search) {
-      const lower = search.toLowerCase();
-      list = list.filter(
-        (p) =>
-          p.title.toLowerCase().includes(lower) ||
-          (p.description && p.description.toLowerCase().includes(lower))
-      );
-    }
-    if (minPrice != null) {
-      list = list.filter((p) => p.priceValue != null && p.priceValue >= minPrice);
-    }
-    if (maxPrice != null) {
-      list = list.filter((p) => p.priceValue != null && p.priceValue <= maxPrice);
-    }
-    if (bedrooms != null) {
-      list = list.filter((p) => p.bedrooms != null && p.bedrooms >= bedrooms);
-    }
-    if (propertyType) {
-      list = list.filter(
-        (p) =>
-          p.propertyType && p.propertyType.toLowerCase() === propertyType
-      );
-    }
-    return list;
+    return properties.filter((p) => {
+      if (search) {
+        const lower = search.toLowerCase();
+        if (
+          !p.title.toLowerCase().includes(lower) &&
+          !(p.description && p.description.toLowerCase().includes(lower))
+        ) {
+          return false;
+        }
+      }
+
+      const price = p.price ?? 0;
+      if (minPrice !== null && price < minPrice) return false;
+      if (maxPrice !== null && price > maxPrice) return false;
+
+      const beds = Number(p.bedrooms || 0);
+      if (bedrooms !== null && beds < bedrooms) return false;
+
+      if (
+        propertyType &&
+        (p.propertyType || '').toLowerCase() !== propertyType
+      )
+        return false;
+
+      return true;
+    });
+
   }, [properties, search, minPrice, maxPrice, bedrooms, propertyType]);
 
   const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');

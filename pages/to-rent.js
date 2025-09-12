@@ -9,7 +9,6 @@ import styles from '../styles/Home.module.css';
 export default function ToRent({ properties }) {
   const router = useRouter();
   const search = typeof router.query.search === 'string' ? router.query.search : '';
-
   const [viewMode, setViewMode] = useState('list');
 
   const filtered = useMemo(() => {
