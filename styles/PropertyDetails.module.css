@@ -75,3 +75,30 @@
   color: #fff;
   text-decoration: none;
 }
+
+@media (max-width: 768px) {
+  .hero {
+    flex-direction: column;
+  }
+
+  .sliderWrapper {
+    width: 100%;
+  }
+
+  .summary {
+    width: 100%;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
+
+  .stats {
+    gap: 0.5rem;
+  }
+}
