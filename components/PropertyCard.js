@@ -1,4 +1,6 @@
 import ImageSlider from './ImageSlider';
+import CompareButton from './CompareButton';
+import Link from 'next/link';
 import { formatRentFrequency } from '../lib/format.mjs';
 
 export default function PropertyCard({ property }) {
@@ -41,6 +43,8 @@ export default function PropertyCard({ property }) {
         {property.description && (
           <p className="description">{property.description}</p>
         )}
+        <CompareButton propertyId={property.id} />
+        <Link href="/compare">View Comparison</Link>
       </div>
     </div>
   );
