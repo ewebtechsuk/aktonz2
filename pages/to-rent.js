@@ -18,15 +18,31 @@ export default function ToRent({ properties }) {
     );
   }, [properties, search]);
 
+  const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
+  const available = filtered.filter(
+    (p) => !p.status || !normalize(p.status).startsWith('let')
+  );
+  const archived = filtered.filter(
+    (p) => p.status && normalize(p.status).startsWith('let')
+  );
+
   return (
     <main className={styles.main}>
       <h1>{search ? `Search results for "${search}"` : 'Properties to Rent'}</h1>
-      <PropertyList properties={filtered} />
+      <PropertyList properties={available} />
+      {archived.length > 0 && (
+        <>
+          <h2>Let Properties</h2>
+          <PropertyList properties={archived} />
+        </>
+      )}
     </main>
   );
 }
 
 export async function getStaticProps() {
-  const properties = await fetchPropertiesByType('rent');
+  const properties = await fetchPropertiesByType('rent', {
+    statuses: ['available', 'under_offer', 'let_agreed', 'let', 'let_stc', 'let_by'],
+  });
   return { props: { properties } };
 }
