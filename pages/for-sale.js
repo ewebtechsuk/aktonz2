@@ -3,10 +3,12 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import PropertyList from '../components/PropertyList';
 import PropertyMap from '../components/PropertyMap';
+import AgentCard from '../components/AgentCard';
 import { fetchPropertiesByType } from '../lib/apex27.mjs';
+import agentsData from '../data/agents.json';
 import styles from '../styles/Home.module.css';
 
-export default function ForSale({ properties }) {
+export default function ForSale({ properties, agents }) {
   const router = useRouter();
   const search = typeof router.query.search === 'string' ? router.query.search : '';
   const minPrice =
@@ -90,6 +92,17 @@ export default function ForSale({ properties }) {
       ) : (
         <PropertyMap properties={available} />
       )}
+
+      {agents && agents.length > 0 && (
+        <section>
+          <h2>Our Agents</h2>
+          <div className="agent-list">
+            {agents.map((agent) => (
+              <AgentCard key={agent.id} agent={agent} />
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   );
 }
@@ -100,5 +113,7 @@ export async function getStaticProps() {
 
   });
 
-  return { props: { properties } };
+  const agents = agentsData;
+
+  return { props: { properties, agents } };
 }
