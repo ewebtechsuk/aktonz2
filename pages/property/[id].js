@@ -1,5 +1,5 @@
 import PropertyList from '../../components/PropertyList';
-import ImageSlider from '../../components/ImageSlider';
+import MediaGallery from '../../components/MediaGallery';
 import OfferDrawer from '../../components/OfferDrawer';
 import ViewingForm from '../../components/ViewingForm';
 import MortgageCalculator from '../../components/MortgageCalculator';
@@ -8,6 +8,7 @@ import {
   fetchPropertyById,
   fetchProperties,
   fetchPropertiesByType,
+  extractMedia,
 } from '../../lib/apex27.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
@@ -40,9 +41,9 @@ export default function Property({ property, recommendations }) {
   return (
     <main className={styles.main}>
       <section className={styles.hero}>
-        {property.images && property.images.length > 0 && (
+        {(property.images?.length > 0 || property.media?.length > 0) && (
           <div className={styles.sliderWrapper}>
-            <ImageSlider images={property.images} />
+            <MediaGallery images={property.images} media={property.media} />
           </div>
         )}
         <div className={styles.summary}>
@@ -170,6 +171,7 @@ export async function getStaticProps({ params }) {
           ? rawProperty.images[0].url
           : null,
       images: rawProperty.images ? rawProperty.images.map((img) => img.url) : [],
+      media: extractMedia(rawProperty),
       features: (() => {
         const rawFeatures =
           rawProperty.mainFeatures ||
