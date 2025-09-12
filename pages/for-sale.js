@@ -11,15 +11,34 @@ export default function ForSale({ properties }) {
   const search = typeof router.query.search === 'string' ? router.query.search : '';
   const [viewMode, setViewMode] = useState('list');
 
+
   const filtered = useMemo(() => {
-    if (!search) return properties;
-    const lower = search.toLowerCase();
-    return properties.filter(
-      (p) =>
-        p.title.toLowerCase().includes(lower) ||
-        (p.description && p.description.toLowerCase().includes(lower))
-    );
-  }, [properties, search]);
+    let list = properties;
+    if (search) {
+      const lower = search.toLowerCase();
+      list = list.filter(
+        (p) =>
+          p.title.toLowerCase().includes(lower) ||
+          (p.description && p.description.toLowerCase().includes(lower))
+      );
+    }
+    if (minPrice != null) {
+      list = list.filter((p) => p.priceValue != null && p.priceValue >= minPrice);
+    }
+    if (maxPrice != null) {
+      list = list.filter((p) => p.priceValue != null && p.priceValue <= maxPrice);
+    }
+    if (bedrooms != null) {
+      list = list.filter((p) => p.bedrooms != null && p.bedrooms >= bedrooms);
+    }
+    if (propertyType) {
+      list = list.filter(
+        (p) =>
+          p.propertyType && p.propertyType.toLowerCase() === propertyType
+      );
+    }
+    return list;
+  }, [properties, search, minPrice, maxPrice, bedrooms, propertyType]);
 
   const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
   const isSold = (p) => {
