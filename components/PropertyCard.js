@@ -1,4 +1,5 @@
 import ImageSlider from './ImageSlider';
+import FavoriteButton from './FavoriteButton';
 import { formatRentFrequency } from '../lib/format.mjs';
 
 export default function PropertyCard({ property }) {
@@ -40,6 +41,9 @@ export default function PropertyCard({ property }) {
         )}
         {property.description && (
           <p className="description">{property.description}</p>
+        )}
+        {property.id && (
+          <FavoriteButton propertyId={property.id} />
         )}
       </div>
     </div>
