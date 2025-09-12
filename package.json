@@ -9,7 +9,8 @@
     "build": "next build",
     "postbuild": "mkdir -p out && touch out/.nojekyll",
     "start": "next start",
-    "cache": "node scripts/cacheListings.mjs"
+    "cache": "node scripts/cacheListings.mjs",
+    "monitor": "node scripts/monitor-prices.js"
   },
   "keywords": [],
   "author": "",
