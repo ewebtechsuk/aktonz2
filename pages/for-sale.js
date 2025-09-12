@@ -27,6 +27,7 @@ export default function ForSale({ properties }) {
   const available = filtered.filter((p) => !isSold(p));
   const archived = filtered.filter(isSold);
 
+
   return (
     <main className={styles.main}>
       <h1>{search ? `Search results for "${search}"` : 'Properties for Sale'}</h1>
@@ -44,6 +45,7 @@ export default function ForSale({ properties }) {
 export async function getStaticProps() {
   const properties = await fetchPropertiesByType('sale', {
     statuses: ['available', 'under_offer', 'sold', 'sold_stc', 'sale_agreed'],
+
   });
 
   return { props: { properties } };

@@ -42,6 +42,7 @@ export async function getStaticProps() {
     }),
     fetchPropertiesByType('rent', {
       statuses: ['available', 'under_offer', 'let_agreed', 'let', 'let_stc', 'let_by'],
+
     }),
   ]);
 
@@ -50,6 +51,7 @@ export async function getStaticProps() {
   const isAvailable = (p) => p.status && normalize(p.status) === 'available';
   const isSold = (p) =>
     p.status && soldStatuses.some((s) => normalize(p.status).includes(s));
+
   const isLet = (p) => p.status && normalize(p.status).startsWith('let');
 
   const sales = allSale

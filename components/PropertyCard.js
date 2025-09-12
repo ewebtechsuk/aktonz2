@@ -9,6 +9,7 @@ export default function PropertyCard({ property }) {
     normalized.includes('sale agreed') ||
     normalized.startsWith('let');
 
+
   return (
     <div className={`property-card${isArchived ? ' archived' : ''}`}>
       <div className="image-wrapper">

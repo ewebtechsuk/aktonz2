@@ -42,35 +42,6 @@
 }
 
 
-.nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  margin: 0;
-  font-size: 1.5rem;
-}
-
-.navLinks {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-
-.navLinks a {
-  margin: 0 1rem;
-  color: #fff;
-  text-decoration: none;
-}
-
-.loginButton {
-  color: #fff;
-  text-decoration: none;
-  margin-left: 1rem;
-}
-
 
 .searchWrapper {
   margin-top: 1rem;
