@@ -13,6 +13,9 @@ import {
 import styles from '../../styles/PropertyDetails.module.css';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
 import { formatRentFrequency } from '../../lib/format.mjs';
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import nextI18NextConfig from '../../next-i18next.config.mjs';
 
 function parsePriceNumber(value) {
   return Number(String(value).replace(/[^0-9.]/g, '')) || 0;
@@ -35,7 +38,8 @@ function rentToMonthly(price, freq) {
 }
 
 export default function Property({ property, recommendations }) {
-  if (!property) return <div>Property not found</div>;
+  const { t } = useTranslation();
+  if (!property) return <div>{t('propertyNotFound')}</div>;
   const features = Array.isArray(property.features) ? property.features : [];
 
   return (
@@ -82,7 +86,7 @@ export default function Property({ property, recommendations }) {
 
       {features.length > 0 && (
         <section className={styles.features}>
-          <h2>Key features</h2>
+          <h2>{t('keyFeatures')}</h2>
           <ul>
             {features.map((f, i) => (
               <li key={i}>{f}</li>
@@ -93,21 +97,21 @@ export default function Property({ property, recommendations }) {
 
       {property.description && (
         <section className={styles.description}>
-          <h2>Description</h2>
+          <h2>{t('description')}</h2>
           <p>{property.description}</p>
         </section>
       )}
 
       {!property.rentFrequency && property.price && (
         <section className={styles.calculatorSection}>
-          <h2>Mortgage Calculator</h2>
+          <h2>{t('mortgageCalculator')}</h2>
           <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
         </section>
       )}
 
       {property.rentFrequency && property.price && (
         <section className={styles.calculatorSection}>
-          <h2>Rent Affordability</h2>
+          <h2>{t('rentAffordability')}</h2>
           <RentAffordability
             defaultRent={rentToMonthly(property.price, property.rentFrequency)}
           />
@@ -115,13 +119,13 @@ export default function Property({ property, recommendations }) {
       )}
 
       <section className={styles.contact}>
-        <p>Interested in this property?</p>
-        <a href="tel:+441234567890">Call our team</a>
+        <p>{t('interestedInProperty')}</p>
+        <a href="tel:+441234567890">{t('callOurTeam')}</a>
       </section>
 
       {recommendations && recommendations.length > 0 && (
         <section className={styles.recommended}>
-          <h2>You might also be interested in</h2>
+          <h2>{t('youMightAlsoBeInterested')}</h2>
           <PropertyList properties={recommendations} />
         </section>
       )}
@@ -145,7 +149,7 @@ export async function getStaticPaths() {
   };
 }
 
-export async function getStaticProps({ params }) {
+export async function getStaticProps({ params, locale }) {
   const rawProperty = await fetchPropertyById(params.id);
   let formatted = null;
   if (rawProperty) {
@@ -201,5 +205,11 @@ export async function getStaticProps({ params }) {
     .filter((p) => p.id !== params.id)
     .slice(0, 4);
 
-  return { props: { property: formatted, recommendations } };
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common'], nextI18NextConfig)),
+      property: formatted,
+      recommendations,
+    },
+  };
 }
