@@ -47,12 +47,16 @@ export default function SearchBar() {
         <form className={styles.searchBar} onSubmit={handleSubmit}>
           <input
             type="text"
+            id="search"
+            name="search"
             placeholder="Search area or postcode"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
           <input
             type="number"
+            id="minPrice"
+            name="minPrice"
             placeholder="Min price"
             value={minPrice}
             onChange={(e) => setMinPrice(e.target.value)}
@@ -60,6 +64,8 @@ export default function SearchBar() {
           />
           <input
             type="number"
+            id="maxPrice"
+            name="maxPrice"
             placeholder="Max price"
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value)}
@@ -67,6 +73,8 @@ export default function SearchBar() {
           />
           <input
             type="number"
+            id="bedrooms"
+            name="bedrooms"
             placeholder="Bedrooms"
             value={bedrooms}
             onChange={(e) => setBedrooms(e.target.value)}
@@ -74,6 +82,8 @@ export default function SearchBar() {
           />
           <input
             type="text"
+            id="propertyType"
+            name="propertyType"
             placeholder="Property type"
             value={propertyType}
             onChange={(e) => setPropertyType(e.target.value)}
