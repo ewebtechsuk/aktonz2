@@ -19,6 +19,7 @@ export default function AreaGuides({ regions }) {
           <div className={styles.regionHeader}>
             {region.children && region.children.length > 0 && (
               <button
+                type="button"
                 aria-label={open[region.id] ? 'Collapse' : 'Expand'}
                 className={styles.toggle}
                 onClick={() => toggle(region.id)}

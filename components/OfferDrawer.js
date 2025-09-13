@@ -49,7 +49,11 @@ export default function OfferDrawer({ propertyTitle, propertyId }) {
 
   return (
     <>
-      <button className={styles.offerButton} onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className={styles.offerButton}
+        onClick={() => setOpen(true)}
+      >
         Make an offer
       </button>
       {open && (
@@ -70,7 +74,12 @@ export default function OfferDrawer({ propertyTitle, propertyId }) {
       <aside className={`${styles.drawer} ${open ? styles.open : ''}`}>
         <div className={styles.header}>
           <h2>Make an offer</h2>
-          <button className={styles.close} onClick={handleClose} aria-label="Close">
+          <button
+            type="button"
+            className={styles.close}
+            onClick={handleClose}
+            aria-label="Close"
+          >
             &times;
           </button>
         </div>

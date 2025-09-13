@@ -44,7 +44,11 @@ export default function ViewingForm({ propertyTitle }) {
 
   return (
     <>
-      <button className={styles.viewingButton} onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className={styles.viewingButton}
+        onClick={() => setOpen(true)}
+      >
         Book a viewing
       </button>
       {open && (
@@ -67,6 +71,7 @@ export default function ViewingForm({ propertyTitle }) {
           <div className={styles.header}>
             <h2>Book a viewing</h2>
             <button
+              type="button"
               className={styles.close}
               onClick={handleClose}
               aria-label="Close"
