@@ -35,5 +35,5 @@ export default function PropertyMap({ properties = [], center = [51.5, -0.1], zo
     };
   }, [properties, center, zoom]);
 
-  return <div id="property-map" style={{ height: '500px', width: '100%' }} />;
+  return <div id="property-map" style={{ height: 'var(--map-height)', width: '100%' }} />;
 }

@@ -9,7 +9,8 @@
     "build": "next build",
     "postbuild": "mkdir -p out && touch out/.nojekyll",
     "start": "next start",
-    "cache": "node scripts/cacheListings.mjs"
+    "cache": "node scripts/cacheListings.mjs",
+    "monitor": "node scripts/monitor-prices.js"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +22,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-icons": "^4.12.0",
+    "react-responsive-carousel": "^3.2.23",
     "react-slick": "^0.31.0",
     "slick-carousel": "^1.8.1"
   }

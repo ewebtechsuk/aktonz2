@@ -1,6 +1,5 @@
 .slider {
   position: relative;
-  height: 400px;
 }
 
 .slide img,
@@ -9,7 +8,7 @@
   width: 100%;
   height: 400px;
   display: block;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
   object-fit: cover;
 }
 
@@ -42,7 +41,7 @@
 .slider :global(.slick-next:before) {
   font-size: 24px;
   line-height: 1;
-  color: #fff;
+  color: var(--color-background);
 }
 
 .slider :global(.slick-dots) {
@@ -50,7 +49,7 @@
 }
 
 .slider :global(.slick-dots li button:before) {
-  color: #fff;
+  color: var(--color-background);
   opacity: 0.5;
 }
 
@@ -58,14 +57,41 @@
   opacity: 1;
 }
 
-@media (max-width: 768px) {
-  .slider {
-    height: 250px;
-  }
+.thumbs {
+  list-style: none;
+  display: flex;
+  padding: 0;
+  margin: 10px 0 0;
+  overflow-x: auto;
+}
 
+.thumbs li {
+  margin-right: 0.5rem;
+}
+
+.thumbButton {
+  background: none;
+  border: 2px solid transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.thumbButton img {
+  display: block;
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+}
+
+.activeThumb .thumbButton {
+  border-color: var(--color-primary);
+}
+
+@media (max-width: 768px) {
   .slide img,
   .slide iframe,
   .slide video {
     height: 250px;
   }
 }
+

@@ -4,6 +4,7 @@ import styles from '../styles/ViewingForm.module.css';
 
 export default function ViewingForm({ propertyTitle }) {
   const router = useRouter();
+
   const initialForm = {
     name: '',
     email: '',
@@ -46,15 +47,21 @@ export default function ViewingForm({ propertyTitle }) {
 
   return (
     <>
-      <button className={styles.viewingButton} onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className={styles.viewingButton}
+        onClick={() => setOpen(true)}
+      >
         Book a viewing
       </button>
       {open && <div className={styles.overlay} onClick={handleClose}></div>}
+
       {open && (
         <div className={styles.modal}>
           <div className={styles.header}>
             <h2>Book a viewing</h2>
             <button
+              type="button"
               className={styles.close}
               onClick={handleClose}
               aria-label="Close"

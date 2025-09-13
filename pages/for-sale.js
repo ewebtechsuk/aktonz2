@@ -3,10 +3,12 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import PropertyList from '../components/PropertyList';
 import PropertyMap from '../components/PropertyMap';
+import AgentCard from '../components/AgentCard';
 import { fetchPropertiesByType } from '../lib/apex27.mjs';
+import agentsData from '../data/agents.json';
 import styles from '../styles/Home.module.css';
 
-export default function ForSale({ properties }) {
+export default function ForSale({ properties, agents }) {
   const router = useRouter();
   const search = typeof router.query.search === 'string' ? router.query.search : '';
   const minPrice =
@@ -69,11 +71,19 @@ export default function ForSale({ properties }) {
   return (
     <main className={styles.main}>
       <h1>{search ? `Search results for "${search}"` : 'Properties for Sale'}</h1>
-      <div style={{ marginBottom: '1rem' }}>
-        <button onClick={() => setViewMode('list')} disabled={viewMode === 'list'}>
+      <div style={{ marginBottom: 'var(--spacing-md)' }}>
+        <button
+          type="button"
+          onClick={() => setViewMode('list')}
+          disabled={viewMode === 'list'}
+        >
           List
         </button>{' '}
-        <button onClick={() => setViewMode('map')} disabled={viewMode === 'map'}>
+        <button
+          type="button"
+          onClick={() => setViewMode('map')}
+          disabled={viewMode === 'map'}
+        >
           Map
         </button>
       </div>
@@ -90,15 +100,34 @@ export default function ForSale({ properties }) {
       ) : (
         <PropertyMap properties={available} />
       )}
+
+      {agents && agents.length > 0 && (
+        <section>
+          <h2>Our Agents</h2>
+          <div className="agent-list">
+            {agents.map((agent) => (
+              <AgentCard key={agent.id} agent={agent} />
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   );
 }
 
 export async function getStaticProps() {
-  const properties = await fetchPropertiesByType('sale', {
+  const raw = await fetchPropertiesByType('sale', {
     statuses: ['available', 'under_offer', 'sold', 'sold_stc', 'sale_agreed'],
 
   });
 
-  return { props: { properties } };
+  const properties = raw.slice(0, 50).map((p) => ({
+    ...p,
+    images: (p.images || []).slice(0, 3),
+    description: p.description ? p.description.slice(0, 200) : '',
+  }));
+
+  const agents = agentsData;
+
+  return { props: { properties, agents } };
 }

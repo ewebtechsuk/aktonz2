@@ -1,7 +1,11 @@
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import styles from '../styles/MediaGallery.module.css';
 
-const Slider = dynamic(() => import('react-slick'), { ssr: false });
+const Carousel = dynamic(
+  () => import('react-responsive-carousel').then((m) => m.Carousel),
+  { ssr: false }
+);
 
 function normalizeYouTube(url) {
   try {
@@ -64,26 +68,66 @@ function renderMedia(url, index) {
   }
   return (
     <div key={index} className={styles.slide}>
-      <img src={url} alt={`Media ${index + 1}`} />
+      <img
+        src={url}
+        alt={`Property media item ${index + 1}`}
+        loading={index === 0 ? 'eager' : 'lazy'}
+      />
     </div>
   );
 }
 
 export default function MediaGallery({ images = [], media = [] }) {
   const items = [...media, ...images];
+  const [current, setCurrent] = useState(0);
+  const imageOffset = media.length;
   if (items.length === 0) return null;
 
-  const settings = {
-    dots: true,
-    arrows: true,
-    infinite: true,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-  };
+  const renderIndicator = (onClickHandler, isSelected, index, label) => (
+    <li key={index} className={isSelected ? 'selected' : ''}>
+      <button
+        type="button"
+        onClick={onClickHandler}
+        aria-label={`${label} ${index + 1}`}
+      />
+    </li>
+  );
 
   return (
     <div className={styles.slider}>
-      <Slider {...settings}>{items.map((url, i) => renderMedia(url, i))}</Slider>
+      <Carousel
+        showThumbs={false}
+        showArrows
+        swipeable
+        emulateTouch
+        useKeyboardArrows
+        selectedItem={current}
+        onChange={setCurrent}
+        renderIndicator={renderIndicator}
+      >
+        {items.map((url, i) => renderMedia(url, i))}
+      </Carousel>
+      {images.length > 0 && (
+        <ul className={styles.thumbs}>
+          {images.map((src, i) => (
+            <li
+              key={i}
+              className={
+                current === imageOffset + i ? styles.activeThumb : undefined
+              }
+            >
+              <button
+                type="button"
+                onClick={() => setCurrent(imageOffset + i)}
+                aria-label={`Show slide ${imageOffset + i + 1}`}
+                className={styles.thumbButton}
+              >
+                <img src={src} alt={`Thumbnail ${i + 1}`} loading="lazy" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

@@ -51,7 +51,11 @@ export default function OfferDrawer({ propertyTitle, propertyId }) {
 
   return (
     <>
-      <button className={styles.offerButton} onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className={styles.offerButton}
+        onClick={() => setOpen(true)}
+      >
         Make an offer
       </button>
       {open && <div className={styles.overlay} onClick={handleClose}></div>}
@@ -59,6 +63,7 @@ export default function OfferDrawer({ propertyTitle, propertyId }) {
         <div className={styles.header}>
           <h2>Make an offer</h2>
           <button className={styles.close} onClick={handleClose} aria-label="Close">
+
             &times;
           </button>
         </div>
