@@ -39,7 +39,7 @@ function renderMedia(url, index, title) {
           src={url}
           controls
           playsInline
-          title={`${title || 'Property'} video ${index + 1}`}
+          aria-label={`${title || 'Property'} video ${index + 1}`}
         />
       </div>
     );
@@ -86,7 +86,7 @@ function renderMedia(url, index, title) {
     <div key={index} className={styles.slide}>
       <img
         src={url}
-        alt={`${title || 'Property'} image ${index + 1}`}
+        alt={title ? `${title} - image ${index + 1}` : `Property image ${index + 1}`}
       />
     </div>
   );
