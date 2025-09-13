@@ -72,10 +72,18 @@ export default function ForSale({ properties, agents }) {
     <main className={styles.main}>
       <h1>{search ? `Search results for "${search}"` : 'Properties for Sale'}</h1>
       <div style={{ marginBottom: 'var(--spacing-md)' }}>
-        <button onClick={() => setViewMode('list')} disabled={viewMode === 'list'}>
+        <button
+          type="button"
+          onClick={() => setViewMode('list')}
+          disabled={viewMode === 'list'}
+        >
           List
         </button>{' '}
-        <button onClick={() => setViewMode('map')} disabled={viewMode === 'map'}>
+        <button
+          type="button"
+          onClick={() => setViewMode('map')}
+          disabled={viewMode === 'map'}
+        >
           Map
         </button>
       </div>
@@ -110,6 +118,7 @@ export default function ForSale({ properties, agents }) {
 export async function getStaticProps() {
   const raw = await fetchPropertiesByType('sale', {
     statuses: ['available', 'under_offer', 'sold', 'sold_stc', 'sale_agreed'],
+
   });
 
   const properties = raw.slice(0, 50).map((p) => ({

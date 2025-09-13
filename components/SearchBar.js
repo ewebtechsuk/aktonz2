@@ -47,36 +47,47 @@ export default function SearchBar() {
         <form className={styles.searchBar} onSubmit={handleSubmit}>
           <input
             type="text"
+            name="query"
+
             placeholder="Search area or postcode"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            autoComplete="street-address"
           />
           <input
             type="number"
+            name="minPrice"
             placeholder="Min price"
             value={minPrice}
             onChange={(e) => setMinPrice(e.target.value)}
             min="0"
+            autoComplete="off"
           />
           <input
             type="number"
+            name="maxPrice"
             placeholder="Max price"
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value)}
             min="0"
+            autoComplete="off"
           />
           <input
             type="number"
+            name="bedrooms"
             placeholder="Bedrooms"
             value={bedrooms}
             onChange={(e) => setBedrooms(e.target.value)}
             min="0"
+            autoComplete="off"
           />
           <input
             type="text"
+            name="propertyType"
             placeholder="Property type"
             value={propertyType}
             onChange={(e) => setPropertyType(e.target.value)}
+            autoComplete="off"
           />
           <button type="submit">Search</button>
         </form>

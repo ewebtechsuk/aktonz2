@@ -67,11 +67,19 @@ export default function ToRent({ properties }) {
   return (
     <main className={styles.main}>
       <h1>{search ? `Search results for "${search}"` : 'Properties to Rent'}</h1>
-      <div style={{ marginBottom: 'var(--spacing-md)' }}>
-        <button onClick={() => setViewMode('list')} disabled={viewMode === 'list'}>
+      <div className={styles.viewModeControls}>
+        <button
+          type="button"
+          onClick={() => setViewMode('list')}
+          disabled={viewMode === 'list'}
+        >
           List
         </button>{' '}
-        <button onClick={() => setViewMode('map')} disabled={viewMode === 'map'}>
+        <button
+          type="button"
+          onClick={() => setViewMode('map')}
+          disabled={viewMode === 'map'}
+        >
           Map
         </button>
       </div>
@@ -95,6 +103,7 @@ export default function ToRent({ properties }) {
 export async function getStaticProps() {
   const raw = await fetchPropertiesByType('rent', {
     statuses: ['available', 'under_offer', 'let_agreed', 'let', 'let_stc', 'let_by'],
+
   });
 
   const properties = raw.slice(0, 50).map((p) => ({

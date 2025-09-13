@@ -45,7 +45,9 @@ export default function SavedSearchesPage() {
         {searches.map((s) => (
           <li key={s.id}>
             <code>{JSON.stringify(s.params)}</code>
-            <button onClick={() => handleDelete(s.id)}>Delete</button>
+            <button type="button" onClick={() => handleDelete(s.id)}>
+              Delete
+            </button>
           </li>
         ))}
       </ul>

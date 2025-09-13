@@ -16,25 +16,50 @@ export default function Valuation() {
         </div>
         <form className={styles.form}>
           <h2>Book a free valuation</h2>
-          <label>
+          <label htmlFor="firstName">
             First name
-            <input type="text" />
+            <input
+              id="firstName"
+              name="firstName"
+              type="text"
+              autoComplete="given-name"
+            />
           </label>
-          <label>
+          <label htmlFor="lastName">
             Last name
-            <input type="text" />
+            <input
+              id="lastName"
+              name="lastName"
+              type="text"
+              autoComplete="family-name"
+            />
           </label>
-          <label>
+          <label htmlFor="email">
             Email
-            <input type="email" />
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+            />
           </label>
-          <label>
+          <label htmlFor="phone">
             Phone
-            <input type="tel" />
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              autoComplete="tel"
+            />
           </label>
-          <label>
+          <label htmlFor="address">
             Property address
-            <input type="text" />
+            <input
+              id="address"
+              name="address"
+              type="text"
+              autoComplete="street-address"
+            />
           </label>
           <button type="submit">Book now</button>
         </form>
