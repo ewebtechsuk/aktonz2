@@ -13,9 +13,14 @@ export default function Login() {
         <h2>Sign in</h2>
         <form>
           <label htmlFor="email">Email address</label>
-          <input id="email" type="email" />
+          <input id="email" name="email" type="email" autoComplete="email" />
           <label htmlFor="password">Password</label>
-          <input id="password" type="password" />
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+          />
           <div className={styles.formFooter}>
             <label>
               <input type="checkbox" /> Stay signed in
