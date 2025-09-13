@@ -19,36 +19,48 @@ export default function MortgageCalculator({ defaultPrice = 0 }) {
 
   return (
     <div className={styles.calculator}>
-      <label>
+      <label htmlFor="propertyPrice">
         Property price
         <input
+          id="propertyPrice"
+          name="propertyPrice"
           type="number"
           value={price}
           onChange={(e) => setPrice(Number(e.target.value))}
+          autoComplete="off"
         />
       </label>
-      <label>
+      <label htmlFor="depositAmount">
         Deposit
         <input
+          id="depositAmount"
+          name="depositAmount"
           type="number"
           value={deposit}
           onChange={(e) => setDeposit(Number(e.target.value))}
+          autoComplete="off"
         />
       </label>
-      <label>
+      <label htmlFor="interestRate">
         Interest rate (%)
         <input
+          id="interestRate"
+          name="interestRate"
           type="number"
           value={rate}
           onChange={(e) => setRate(Number(e.target.value))}
+          autoComplete="off"
         />
       </label>
-      <label>
+      <label htmlFor="termYears">
         Term (years)
         <input
+          id="termYears"
+          name="termYears"
           type="number"
           value={term}
           onChange={(e) => setTerm(Number(e.target.value))}
+          autoComplete="off"
         />
       </label>
       <div className={styles.result}>

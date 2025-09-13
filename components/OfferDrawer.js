@@ -85,44 +85,44 @@ export default function OfferDrawer({ propertyTitle, propertyId }) {
         </div>
         <form className={styles.form} onSubmit={handleSubmit}>
           <p className={styles.address}>{propertyTitle}</p>
-          <label>
-            Offer price
-            <input
-              type="number"
-              name="price"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-            />
-          </label>
-          <label>
-            Frequency
-            <select
-              name="frequency"
-              value={frequency}
-              onChange={(e) => setFrequency(e.target.value)}
-            >
-              <option value="pw">Per week</option>
-              <option value="pcm">Per month</option>
-            </select>
-          </label>
-          <label>
-            Name
-            <input
-              type="text"
-              name="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </label>
-          <label>
-            Email
-            <input
-              type="email"
-              name="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </label>
+          <label htmlFor="offer-price">Offer price</label>
+          <input
+            id="offer-price"
+            type="number"
+            name="price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            autoComplete="off"
+          />
+          <label htmlFor="offer-frequency">Frequency</label>
+          <select
+            id="offer-frequency"
+            name="frequency"
+            value={frequency}
+            onChange={(e) => setFrequency(e.target.value)}
+            autoComplete="off"
+          >
+            <option value="pw">Per week</option>
+            <option value="pcm">Per month</option>
+          </select>
+          <label htmlFor="offer-name">Name</label>
+          <input
+            id="offer-name"
+            type="text"
+            name="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoComplete="name"
+          />
+          <label htmlFor="offer-email">Email</label>
+          <input
+            id="offer-email"
+            type="email"
+            name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+          />
           <button type="submit" className={styles.submit}>
             Make an offer
           </button>

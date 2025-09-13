@@ -14,7 +14,12 @@ export default function AgentPage({ agent, listings }) {
   return (
     <main>
       {agent.photo && (
-        <img src={agent.photo} alt={agent.name} style={{ maxWidth: 'var(--size-avatar)' }} />
+        <img
+          src={agent.photo}
+          alt={agent.name}
+          style={{ maxWidth: 'var(--size-avatar)' }}
+          crossOrigin="anonymous"
+        />
       )}
       <h1>{agent.name}</h1>
       {agent.bio && <p>{agent.bio}</p>}
