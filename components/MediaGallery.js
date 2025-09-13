@@ -1,7 +1,10 @@
 import dynamic from 'next/dynamic';
 import styles from '../styles/MediaGallery.module.css';
 
-const Slider = dynamic(() => import('react-slick'), { ssr: false });
+const Carousel = dynamic(
+  () => import('react-responsive-carousel').then((m) => m.Carousel),
+  { ssr: false }
+);
 
 function normalizeYouTube(url) {
   try {
@@ -73,17 +76,21 @@ export default function MediaGallery({ images = [], media = [] }) {
   const items = [...media, ...images];
   if (items.length === 0) return null;
 
-  const settings = {
-    dots: true,
-    arrows: true,
-    infinite: true,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-  };
+  const renderThumbs = () =>
+    images.map((src, i) => <img key={i} src={src} alt={`Thumbnail ${i + 1}`} />);
 
   return (
     <div className={styles.slider}>
-      <Slider {...settings}>{items.map((url, i) => renderMedia(url, i))}</Slider>
+      <Carousel
+        showThumbs
+        showArrows
+        swipeable
+        emulateTouch
+        useKeyboardArrows
+        renderThumbs={renderThumbs}
+      >
+        {items.map((url, i) => renderMedia(url, i))}
+      </Carousel>
     </div>
   );
 }

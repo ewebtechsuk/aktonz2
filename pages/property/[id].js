@@ -10,6 +10,7 @@ import {
   fetchProperties,
   fetchPropertiesByType,
   extractMedia,
+  normalizeImages,
 } from '../../lib/apex27.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
@@ -155,6 +156,7 @@ export async function getStaticProps({ params }) {
   const rawProperty = await fetchPropertyById(params.id);
   let formatted = null;
   if (rawProperty) {
+    const imgList = normalizeImages(rawProperty.images || []);
     formatted = {
       id: String(
         rawProperty.id ?? rawProperty.listingId ?? rawProperty.listing_id
@@ -172,11 +174,8 @@ export async function getStaticProps({ params }) {
             : rawProperty.price
           : null,
       rentFrequency: rawProperty.rentFrequency ?? null,
-      image:
-        rawProperty.images && rawProperty.images[0]
-          ? rawProperty.images[0].url
-          : null,
-      images: rawProperty.images ? rawProperty.images.map((img) => img.url) : [],
+      image: imgList[0] || null,
+      images: imgList,
       media: extractMedia(rawProperty),
       features: (() => {
         const rawFeatures =
