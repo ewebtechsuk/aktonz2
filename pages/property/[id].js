@@ -1,29 +1,59 @@
 import PropertyList from '../../components/PropertyList';
-import ImageSlider from '../../components/ImageSlider';
+import MediaGallery from '../../components/MediaGallery';
 import OfferDrawer from '../../components/OfferDrawer';
 import ViewingForm from '../../components/ViewingForm';
 import NeighborhoodInfo from '../../components/NeighborhoodInfo';
+
+import MortgageCalculator from '../../components/MortgageCalculator';
+import RentAffordability from '../../components/RentAffordability';
+import Head from 'next/head';
 import {
   fetchPropertyById,
   fetchProperties,
   fetchPropertiesByType,
+  extractMedia,
+  normalizeImages,
 } from '../../lib/apex27.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
 import { formatRentFrequency } from '../../lib/format.mjs';
+
+function parsePriceNumber(value) {
+  return Number(String(value).replace(/[^0-9.]/g, '')) || 0;
+}
+
+function rentToMonthly(price, freq) {
+  const amount = parsePriceNumber(price);
+  switch (freq) {
+    case 'W':
+      return (amount * 52) / 12;
+    case 'M':
+      return amount;
+    case 'Q':
+      return amount / 3;
+    case 'Y':
+      return amount / 12;
+    default:
+      return amount;
+  }
+}
 
 export default function Property({ property, recommendations }) {
   if (!property) return <div>Property not found</div>;
   const features = Array.isArray(property.features) ? property.features : [];
 
   return (
-    <main className={styles.main}>
-      <section className={styles.hero}>
-        {property.images && property.images.length > 0 && (
-          <div className={styles.sliderWrapper}>
-            <ImageSlider images={property.images} />
-          </div>
-        )}
+    <>
+      <Head>
+        <title>{property.title ? `${property.title} | Aktonz` : 'Property details'}</title>
+      </Head>
+      <main className={styles.main}>
+        <section className={styles.hero}>
+          {(property.images?.length > 0 || property.media?.length > 0) && (
+            <div className={styles.sliderWrapper}>
+              <MediaGallery images={property.images} media={property.media} />
+            </div>
+          )}
         <div className={styles.summary}>
           <h1>{property.title}</h1>
           {property.type && <p className={styles.type}>{property.type}</p>}
@@ -77,6 +107,21 @@ export default function Property({ property, recommendations }) {
       )}
 
       <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
+      {!property.rentFrequency && property.price && (
+        <section className={styles.calculatorSection}>
+          <h2>Mortgage Calculator</h2>
+          <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+        </section>
+      )}
+
+      {property.rentFrequency && property.price && (
+        <section className={styles.calculatorSection}>
+          <h2>Rent Affordability</h2>
+          <RentAffordability
+            defaultRent={rentToMonthly(property.price, property.rentFrequency)}
+          />
+        </section>
+      )}
 
       <section className={styles.contact}>
         <p>Interested in this property?</p>
@@ -89,7 +134,8 @@ export default function Property({ property, recommendations }) {
           <PropertyList properties={recommendations} />
         </section>
       )}
-    </main>
+      </main>
+    </>
   );
 }
 
@@ -113,6 +159,7 @@ export async function getStaticProps({ params }) {
   const rawProperty = await fetchPropertyById(params.id);
   let formatted = null;
   if (rawProperty) {
+    const imgList = normalizeImages(rawProperty.images || []);
     formatted = {
       id: String(
         rawProperty.id ?? rawProperty.listingId ?? rawProperty.listing_id
@@ -130,11 +177,9 @@ export async function getStaticProps({ params }) {
             : rawProperty.price
           : null,
       rentFrequency: rawProperty.rentFrequency ?? null,
-      image:
-        rawProperty.images && rawProperty.images[0]
-          ? rawProperty.images[0].url
-          : null,
-      images: rawProperty.images ? rawProperty.images.map((img) => img.url) : [],
+      image: imgList[0] || null,
+      images: imgList,
+      media: extractMedia(rawProperty),
       features: (() => {
         const rawFeatures =
           rawProperty.mainFeatures ||

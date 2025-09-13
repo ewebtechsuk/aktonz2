@@ -2,19 +2,27 @@ import { useState } from 'react';
 import styles from '../styles/ViewingForm.module.css';
 
 export default function ViewingForm({ propertyTitle }) {
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({
+  const initialForm = {
     name: '',
     email: '',
     phone: '',
     date: '',
     time: '',
-  });
+  };
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(initialForm);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setForm(initialForm);
+    setSent(false);
+    setError('');
   };
 
   const handleSubmit = async (e) => {
@@ -28,6 +36,7 @@ export default function ViewingForm({ propertyTitle }) {
       });
       if (!res.ok) throw new Error('Request failed');
       setSent(true);
+      setForm(initialForm);
     } catch (err) {
       setError('Failed to book viewing');
     }
@@ -39,7 +48,19 @@ export default function ViewingForm({ propertyTitle }) {
         Book a viewing
       </button>
       {open && (
-        <div className={styles.overlay} onClick={() => setOpen(false)}></div>
+        <div
+          className={styles.overlay}
+          role="button"
+          tabIndex={0}
+          aria-label="Close modal"
+          onClick={handleClose}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleClose();
+            }
+          }}
+        ></div>
       )}
       {open && (
         <div className={styles.modal}>
@@ -47,7 +68,7 @@ export default function ViewingForm({ propertyTitle }) {
             <h2>Book a viewing</h2>
             <button
               className={styles.close}
-              onClick={() => setOpen(false)}
+              onClick={handleClose}
               aria-label="Close"
             >
               &times;
@@ -89,4 +110,3 @@ export default function ViewingForm({ propertyTitle }) {
     </>
   );
 }
-
