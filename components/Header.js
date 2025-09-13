@@ -6,9 +6,8 @@ export default function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.logo}>
-        <Link href="/" className={styles.logoText}>
-          Aktonz
-        </Link>
+        <Link href="/">Aktonz</Link>
+
       </div>
       <nav className={styles.nav}>
         <Link href="/for-sale" className={styles.navLink}>

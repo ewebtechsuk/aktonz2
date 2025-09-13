@@ -5,62 +5,56 @@ const shouldExport = process.env.NEXT_EXPORT !== 'false';
 /** @type {import('next').NextConfig} */
 const staticHeaders = [
   {
-    source: '/_next/static/(.*)',
+    source: '/_next/static/:buildId/_buildManifest.js',
     headers: [
       {
-        source: '/_next/static/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-
+        key: 'Cache-Control',
+        value: 'no-store',
       },
     ],
   },
   {
-    source: '/images/(.*)',
+    source: '/_next/static/:buildId/_ssgManifest.js',
     headers: [
       {
-        source: '/images/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-
+        key: 'Cache-Control',
+        value: 'no-store',
       },
     ],
   },
   {
-    source: '/fonts/(.*)',
+    source: '/_next/static/:path*',
     headers: [
       {
-        source: '/fonts/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-
+        key: 'Cache-Control',
+        value: 'public, max-age=31536000, immutable',
       },
     ],
   },
   {
-    source: '/static/(.*)',
+    source: '/images/:path*',
     headers: [
       {
-        source: '/static/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-
+        key: 'Cache-Control',
+        value: 'public, max-age=31536000, immutable',
+      },
+    ],
+  },
+  {
+    source: '/fonts/:path*',
+    headers: [
+      {
+        key: 'Cache-Control',
+        value: 'public, max-age=31536000, immutable',
+      },
+    ],
+  },
+  {
+    source: '/static/:path*',
+    headers: [
+      {
+        key: 'Cache-Control',
+        value: 'public, max-age=31536000, immutable',
       },
     ],
   },
@@ -68,14 +62,8 @@ const staticHeaders = [
     source: '/property/:path*',
     headers: [
       {
-        source: '/property/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-store',
-          },
-        ],
-
+        key: 'Cache-Control',
+        value: 'no-store',
       },
     ],
   },
