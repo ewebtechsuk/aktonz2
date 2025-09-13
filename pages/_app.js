@@ -5,8 +5,10 @@ import Head from 'next/head';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ChatWidget from '../components/ChatWidget';
+import { appWithTranslation } from 'next-i18next';
+import nextI18NextConfig from '../next-i18next.config.mjs';
 
-export default function MyApp({ Component, pageProps }) {
+function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
@@ -19,3 +21,5 @@ export default function MyApp({ Component, pageProps }) {
     </>
   );
 }
+
+export default appWithTranslation(MyApp, nextI18NextConfig);
