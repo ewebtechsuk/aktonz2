@@ -20,16 +20,13 @@ export default function PropertyCard({ property }) {
 
         ) : (
           property.image && (
-            <img
-              src={property.image}
-              alt={`Image of ${property.title}`}
-
-              loading="lazy"
-              crossOrigin="anonymous"
-
-            />
-          )
-        )}
+              <img
+                src={property.image}
+                alt={`Image of ${property.title}`}
+                loading="lazy"
+              />
+            )
+          )}
         {property.featured && (
           <span className="featured-badge">Featured</span>
         )}

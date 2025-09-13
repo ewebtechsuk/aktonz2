@@ -72,8 +72,6 @@ function renderMedia(url, index) {
         src={url}
         alt={`Property media item ${index + 1}`}
         loading={index === 0 ? 'eager' : 'lazy'}
-        crossOrigin="anonymous"
-
       />
     </div>
   );
@@ -124,8 +122,7 @@ export default function MediaGallery({ images = [], media = [] }) {
                 aria-label={`Show slide ${imageOffset + i + 1}`}
                 className={styles.thumbButton}
               >
-                <img src={src} alt={`Thumbnail ${i + 1}`} loading="lazy" crossOrigin="anonymous" />
-
+                <img src={src} alt={`Thumbnail ${i + 1}`} loading="lazy" />
               </button>
             </li>
           ))}

@@ -9,7 +9,6 @@ export default function AgentCard({ agent }) {
           src={agent.photo}
           alt={agent.name}
           className="agent-photo"
-          crossOrigin="anonymous"
         />
       )}
       <h3>
