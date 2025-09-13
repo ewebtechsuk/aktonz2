@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import { useRouter } from 'next/router';
 import styles from '../styles/ViewingForm.module.css';
 
 export default function ViewingForm({ propertyTitle }) {
+  const router = useRouter();
+
   const initialForm = {
     name: '',
     email: '',
@@ -29,7 +32,7 @@ export default function ViewingForm({ propertyTitle }) {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch('/api/book-viewing', {
+      const res = await fetch(`${router.basePath}/api/book-viewing`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, propertyTitle }),
@@ -51,21 +54,8 @@ export default function ViewingForm({ propertyTitle }) {
       >
         Book a viewing
       </button>
-      {open && (
-        <div
-          className={styles.overlay}
-          role="button"
-          tabIndex={0}
-          aria-label="Close modal"
-          onClick={handleClose}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleClose();
-            }
-          }}
-        ></div>
-      )}
+      {open && <div className={styles.overlay} onClick={handleClose}></div>}
+
       {open && (
         <div className={styles.modal}>
           <div className={styles.header}>
