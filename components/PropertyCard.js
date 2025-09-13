@@ -15,10 +15,12 @@ export default function PropertyCard({ property }) {
     <div className={`property-card${isArchived ? ' archived' : ''}`}>
       <div className="image-wrapper">
         {property.images && property.images.length > 0 ? (
-          <ImageSlider images={property.images} />
+          <ImageSlider images={property.images} title={property.title} />
 
         ) : (
-          property.image && <img src={property.image} alt={property.title} />
+          property.image && (
+            <img src={property.image} alt={`Image of ${property.title}`} />
+          )
         )}
         {property.featured && (
           <span className="featured-badge">Featured</span>

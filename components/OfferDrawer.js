@@ -52,7 +52,21 @@ export default function OfferDrawer({ propertyTitle, propertyId }) {
       <button className={styles.offerButton} onClick={() => setOpen(true)}>
         Make an offer
       </button>
-      {open && <div className={styles.overlay} onClick={handleClose}></div>}
+      {open && (
+        <div
+          className={styles.overlay}
+          role="button"
+          tabIndex={0}
+          aria-label="Close drawer"
+          onClick={handleClose}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleClose();
+            }
+          }}
+        ></div>
+      )}
       <aside className={`${styles.drawer} ${open ? styles.open : ''}`}>
         <div className={styles.header}>
           <h2>Make an offer</h2>
