@@ -71,7 +71,7 @@ function renderMedia(url, index) {
       <img
         src={url}
         alt={`Property media item ${index + 1}`}
-        loading={index === 0 ? 'eager' : 'lazy'}
+
         referrerPolicy="no-referrer"
       />
     </div>
@@ -126,7 +126,7 @@ export default function MediaGallery({ images = [], media = [] }) {
                 <img
                   src={src}
                   alt={`Thumbnail ${i + 1}`}
-                  loading="lazy"
+
                   referrerPolicy="no-referrer"
                 />
 

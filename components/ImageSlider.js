@@ -22,7 +22,7 @@ export default function ImageSlider({ images = [], title = '' }) {
             <img
               src={src}
               alt={`${title || 'Property'} image ${i + 1}`}
-              loading={i === 0 ? 'eager' : 'lazy'}
+
               referrerPolicy="no-referrer"
             />
           </div>
