@@ -61,6 +61,13 @@
   margin-bottom: var(--spacing-lg);
 }
 
+.neighborhood {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+}
+
 .features ul {
   padding-left: calc(var(--spacing-md) * 1.5);
 }
