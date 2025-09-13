@@ -3,7 +3,7 @@ import styles from '../styles/ImageSlider.module.css';
 
 const Slider = dynamic(() => import('react-slick'), { ssr: false });
 
-export default function ImageSlider({ images = [] }) {
+export default function ImageSlider({ images = [], title = '' }) {
   if (!images || images.length === 0) return null;
 
   const settings = {
@@ -19,7 +19,10 @@ export default function ImageSlider({ images = [] }) {
       <Slider {...settings}>
         {images.map((src, i) => (
           <div key={i} className={styles.slide}>
-            <img src={src} alt={`Property image ${i + 1}`} />
+            <img
+              src={src}
+              alt={`${title || 'Property'} image ${i + 1}`}
+            />
           </div>
         ))}
       </Slider>

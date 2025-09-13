@@ -47,7 +47,21 @@ export default function ViewingForm({ propertyTitle }) {
       <button className={styles.viewingButton} onClick={() => setOpen(true)}>
         Book a viewing
       </button>
-      {open && <div className={styles.overlay} onClick={handleClose}></div>}
+      {open && (
+        <div
+          className={styles.overlay}
+          role="button"
+          tabIndex={0}
+          aria-label="Close modal"
+          onClick={handleClose}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleClose();
+            }
+          }}
+        ></div>
+      )}
       {open && (
         <div className={styles.modal}>
           <div className={styles.header}>
