@@ -68,10 +68,18 @@ export default function ToRent({ properties }) {
     <main className={styles.main}>
       <h1>{search ? `Search results for "${search}"` : 'Properties to Rent'}</h1>
       <div className={styles.viewModeControls}>
-        <button onClick={() => setViewMode('list')} disabled={viewMode === 'list'}>
+        <button
+          type="button"
+          onClick={() => setViewMode('list')}
+          disabled={viewMode === 'list'}
+        >
           List
         </button>{' '}
-        <button onClick={() => setViewMode('map')} disabled={viewMode === 'map'}>
+        <button
+          type="button"
+          onClick={() => setViewMode('map')}
+          disabled={viewMode === 'map'}
+        >
           Map
         </button>
       </div>
