@@ -67,7 +67,7 @@ export default function ToRent({ properties }) {
   return (
     <main className={styles.main}>
       <h1>{search ? `Search results for "${search}"` : 'Properties to Rent'}</h1>
-      <div style={{ marginBottom: 'var(--spacing-md)' }}>
+      <div className={styles.viewModeControls}>
         <button onClick={() => setViewMode('list')} disabled={viewMode === 'list'}>
           List
         </button>{' '}
@@ -95,7 +95,8 @@ export default function ToRent({ properties }) {
 export async function getStaticProps() {
   const properties = await fetchPropertiesByType('rent', {
     statuses: ['available', 'under_offer', 'let_agreed', 'let', 'let_stc', 'let_by'],
-
+    limit: 40,
+    maxImages: 5,
   });
   return { props: { properties } };
 }

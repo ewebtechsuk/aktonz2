@@ -157,6 +157,10 @@
   padding: var(--spacing-lg) var(--spacing-md);
 }
 
+.viewModeControls {
+  margin-bottom: var(--spacing-md);
+}
+
 @media (min-width: 768px) {
   .searchControls {
     flex-direction: row;
