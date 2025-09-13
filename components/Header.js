@@ -12,7 +12,9 @@ export default function Header() {
             alt="Aktonz"
             width={40}
             height={40}
+
             crossOrigin="anonymous"
+
 
           />
         </Link>
