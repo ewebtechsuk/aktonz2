@@ -1,4 +1,3 @@
-import ImageSlider from './ImageSlider';
 import FavoriteButton from './FavoriteButton';
 import { formatRentFrequency } from '../lib/format.mjs';
 import { FaBed, FaBath } from 'react-icons/fa';
@@ -11,20 +10,16 @@ export default function PropertyCard({ property }) {
     normalized.includes('sale agreed') ||
     normalized.startsWith('let');
 
-
   return (
     <div className={`property-card${isArchived ? ' archived' : ''}`}>
       <div className="image-wrapper">
         {property.images && property.images.length > 0 ? (
-          isArchived ? (
-            <img
-              src={property.images[0]}
-              alt={`Image of ${property.title}`}
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <ImageSlider images={property.images} title={property.title} />
-          )
+          <img
+            src={property.images[0]}
+            alt={`Image of ${property.title}`}
+            referrerPolicy="no-referrer"
+          />
+
         ) : (
           property.image && (
             <img
@@ -73,9 +68,7 @@ export default function PropertyCard({ property }) {
         {property.description && (
           <p className="description">{property.description}</p>
         )}
-        {property.id && (
-          <FavoriteButton propertyId={property.id} />
-        )}
+        {property.id && <FavoriteButton propertyId={property.id} />}
       </div>
     </div>
   );
