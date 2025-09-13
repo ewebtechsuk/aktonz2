@@ -25,6 +25,7 @@ export default function PropertyCard({ property }) {
               alt={`Image of ${property.title}`}
               loading="lazy"
               crossOrigin="anonymous"
+
             />
           )
         )}

@@ -13,6 +13,7 @@ export default function Header() {
             width={40}
             height={40}
             crossOrigin="anonymous"
+
           />
         </Link>
       </div>
