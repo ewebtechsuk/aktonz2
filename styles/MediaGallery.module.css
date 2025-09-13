@@ -1,6 +1,5 @@
 .slider {
   position: relative;
-  height: 400px;
 }
 
 .slide img,
@@ -58,11 +57,8 @@
   opacity: 1;
 }
 
-@media (max-width: 768px) {
-  .slider {
-    height: 250px;
-  }
 
+@media (max-width: 768px) {
   .slide img,
   .slide iframe,
   .slide video {
