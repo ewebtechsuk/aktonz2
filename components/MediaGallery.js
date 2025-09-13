@@ -77,7 +77,21 @@ export default function MediaGallery({ images = [], media = [] }) {
   if (items.length === 0) return null;
 
   const renderThumbs = () =>
-    images.map((src, i) => <img key={i} src={src} alt={`Thumbnail ${i + 1}`} />);
+    images.map((src, i) => (
+      <li key={i}>
+        <img src={src} alt={`Thumbnail ${i + 1}`} />
+      </li>
+    ));
+
+  const renderIndicator = (onClickHandler, isSelected, index, label) => (
+    <li key={index} className={isSelected ? 'selected' : ''}>
+      <button
+        type="button"
+        onClick={onClickHandler}
+        aria-label={`${label} ${index + 1}`}
+      />
+    </li>
+  );
 
   return (
     <div className={styles.slider}>
@@ -88,6 +102,7 @@ export default function MediaGallery({ images = [], media = [] }) {
         emulateTouch
         useKeyboardArrows
         renderThumbs={renderThumbs}
+        renderIndicator={renderIndicator}
       >
         {items.map((url, i) => renderMedia(url, i))}
       </Carousel>
