@@ -26,29 +26,30 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { name, email, phone, date, time, propertyTitle } = req.body || {};
-  if (!email || !propertyTitle) {
+  const {
+    name,
+    email,
+    phone,
+    date,
+    time,
+    propertyId,
+    propertyTitle,
+  } = req.body || {};
+  if (!email || !propertyId) {
     res.status(400).json({ error: 'Missing required fields' });
     return;
   }
 
   try {
     if (process.env.APEX27_API_KEY) {
-      await fetch('https://api.apex27.co.uk/viewings', {
+      await fetch(`https://api.apex27.co.uk/listings/${propertyId}/viewings`, {
         method: 'POST',
         headers: {
           'x-api-key': process.env.APEX27_API_KEY,
           'Content-Type': 'application/json',
           accept: 'application/json',
         },
-        body: JSON.stringify({
-          name,
-          email,
-          phone,
-          property: propertyTitle,
-          date,
-          time,
-        }),
+        body: JSON.stringify({ name, email, phone, date, time }),
       });
     }
 

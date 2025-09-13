@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import styles from '../styles/ViewingForm.module.css';
 
-export default function ViewingForm({ propertyTitle }) {
+export default function ViewingForm({ propertyId, propertyTitle }) {
   const router = useRouter();
 
   const initialForm = {
@@ -32,10 +32,13 @@ export default function ViewingForm({ propertyTitle }) {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch(`${router.basePath}/api/book-viewing`, {
+      const endpoint = process.env.NEXT_PUBLIC_BOOK_VIEWING_API
+        ? `${process.env.NEXT_PUBLIC_BOOK_VIEWING_API.replace(/\/$/, '')}/${propertyId}/viewings`
+        : `${router.basePath}/api/book-viewing`;
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, propertyTitle }),
+        body: JSON.stringify({ ...form, propertyId, propertyTitle }),
       });
       if (!res.ok) throw new Error('Request failed');
       setSent(true);

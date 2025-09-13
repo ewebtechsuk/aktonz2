@@ -13,6 +13,11 @@ npm run dev
 
 Create a `.env.local` file and set `APEX27_API_KEY` (and optionally `APEX27_BRANCH_ID` for your branch) to fetch real property data from the Apex27 API. Without these variables, no listings will be shown.
 
+If the site is deployed to a static host where Next.js API routes are not
+available, set `NEXT_PUBLIC_BOOK_VIEWING_API` to the base listings URL for
+viewing requests (e.g. `https://api.apex27.co.uk/listings`). The property ID and
+`/viewings` path will be appended automatically.
+
 ## Build
 
 ```
