@@ -23,6 +23,7 @@ export default function PropertyCard({ property }) {
             <img
               src={property.image}
               alt={`Image of ${property.title}`}
+
               referrerPolicy="no-referrer"
             />
           )
