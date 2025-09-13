@@ -67,7 +67,7 @@ export default function ToRent({ properties }) {
   return (
     <main className={styles.main}>
       <h1>{search ? `Search results for "${search}"` : 'Properties to Rent'}</h1>
-      <div style={{ marginBottom: 'var(--spacing-md)' }}>
+      <div className={styles.viewModeControls}>
         <button onClick={() => setViewMode('list')} disabled={viewMode === 'list'}>
           List
         </button>{' '}
