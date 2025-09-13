@@ -171,14 +171,16 @@ body {
 
 /* Compatibility fixes for third-party library styles */
 .leaflet-overlay-pane svg {
-  -moz-user-select: none;
   -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
   user-select: none;
 }
 
 .carousel .slider-wrapper.axis-horizontal .slider,
 .carousel .slider-wrapper.axis-vertical {
   -webkit-box-orient: horizontal;
+  box-orient: horizontal;
 }
 
 .leaflet-oldie .leaflet-popup-content-wrapper {
