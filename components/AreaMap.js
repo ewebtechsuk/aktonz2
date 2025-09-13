@@ -27,6 +27,15 @@ export default function AreaMap({ regions }) {
             key={s.name}
             className={styles.mapRegion}
             onClick={() => router.push(`/area-guides/${slug}`)}
+            role="button"
+            tabIndex={0}
+            aria-label={`View listings for ${s.name}`}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                router.push(`/area-guides/${slug}`);
+              }
+            }}
           >
             <rect x={s.x} y={s.y} width={s.w} height={s.h} />
             <text

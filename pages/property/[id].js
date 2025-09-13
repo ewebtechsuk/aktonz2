@@ -4,6 +4,7 @@ import OfferDrawer from '../../components/OfferDrawer';
 import ViewingForm from '../../components/ViewingForm';
 import MortgageCalculator from '../../components/MortgageCalculator';
 import RentAffordability from '../../components/RentAffordability';
+import Head from 'next/head';
 import {
   fetchPropertyById,
   fetchProperties,
@@ -39,13 +40,17 @@ export default function Property({ property, recommendations }) {
   const features = Array.isArray(property.features) ? property.features : [];
 
   return (
-    <main className={styles.main}>
-      <section className={styles.hero}>
-        {(property.images?.length > 0 || property.media?.length > 0) && (
-          <div className={styles.sliderWrapper}>
-            <MediaGallery images={property.images} media={property.media} />
-          </div>
-        )}
+    <>
+      <Head>
+        <title>{property.title ? `${property.title} | Aktonz` : 'Property details'}</title>
+      </Head>
+      <main className={styles.main}>
+        <section className={styles.hero}>
+          {(property.images?.length > 0 || property.media?.length > 0) && (
+            <div className={styles.sliderWrapper}>
+              <MediaGallery images={property.images} media={property.media} />
+            </div>
+          )}
         <div className={styles.summary}>
           <h1>{property.title}</h1>
           {property.type && <p className={styles.type}>{property.type}</p>}
@@ -125,7 +130,8 @@ export default function Property({ property, recommendations }) {
           <PropertyList properties={recommendations} />
         </section>
       )}
-    </main>
+      </main>
+    </>
   );
 }
 

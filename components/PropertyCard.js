@@ -1,6 +1,7 @@
 import ImageSlider from './ImageSlider';
 import FavoriteButton from './FavoriteButton';
 import { formatRentFrequency } from '../lib/format.mjs';
+import { FaBed, FaBath } from 'react-icons/fa';
 
 export default function PropertyCard({ property }) {
   const rawStatus = property.status ? property.status.replace(/_/g, ' ') : null;
@@ -15,10 +16,12 @@ export default function PropertyCard({ property }) {
     <div className={`property-card${isArchived ? ' archived' : ''}`}>
       <div className="image-wrapper">
         {property.images && property.images.length > 0 ? (
-          <ImageSlider images={property.images} />
+          <ImageSlider images={property.images} title={property.title} />
 
         ) : (
-          property.image && <img src={property.image} alt={property.title} />
+          property.image && (
+            <img src={property.image} alt={`Image of ${property.title}`} />
+          )
         )}
         {property.featured && (
           <span className="featured-badge">Featured</span>
@@ -38,6 +41,22 @@ export default function PropertyCard({ property }) {
             {property.rentFrequency &&
               ` ${formatRentFrequency(property.rentFrequency)}`}
           </p>
+        )}
+        {(property.bedrooms != null || property.bathrooms != null) && (
+          <div className="features">
+            {property.bedrooms != null && (
+              <span className="feature">
+                <FaBed aria-hidden="true" />
+                {property.bedrooms}
+              </span>
+            )}
+            {property.bathrooms != null && (
+              <span className="feature">
+                <FaBath aria-hidden="true" />
+                {property.bathrooms}
+              </span>
+            )}
+          </div>
         )}
         {property.description && (
           <p className="description">{property.description}</p>

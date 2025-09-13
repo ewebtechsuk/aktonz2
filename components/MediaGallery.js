@@ -64,7 +64,7 @@ function renderMedia(url, index) {
   }
   return (
     <div key={index} className={styles.slide}>
-      <img src={url} alt={`Media ${index + 1}`} />
+      <img src={url} alt={`Property media item ${index + 1}`} />
     </div>
   );
 }
