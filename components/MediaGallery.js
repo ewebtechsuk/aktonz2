@@ -71,6 +71,7 @@ function renderMedia(url, index) {
       <img
         src={url}
         alt={`Property media item ${index + 1}`}
+
         referrerPolicy="no-referrer"
       />
     </div>
@@ -125,6 +126,7 @@ export default function MediaGallery({ images = [], media = [] }) {
                 <img
                   src={src}
                   alt={`Thumbnail ${i + 1}`}
+
                   referrerPolicy="no-referrer"
                 />
 

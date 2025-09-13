@@ -22,6 +22,7 @@ export default function ImageSlider({ images = [], title = '' }) {
             <img
               src={src}
               alt={`${title || 'Property'} image ${i + 1}`}
+
               referrerPolicy="no-referrer"
             />
           </div>
