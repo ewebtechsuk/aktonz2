@@ -72,9 +72,7 @@ function renderMedia(url, index) {
         src={url}
         alt={`Property media item ${index + 1}`}
         loading={index === 0 ? 'eager' : 'lazy'}
-        crossOrigin="anonymous"
         referrerPolicy="no-referrer"
-
       />
     </div>
   );
@@ -129,7 +127,6 @@ export default function MediaGallery({ images = [], media = [] }) {
                   src={src}
                   alt={`Thumbnail ${i + 1}`}
                   loading="lazy"
-                  crossOrigin="anonymous"
                   referrerPolicy="no-referrer"
                 />
 
