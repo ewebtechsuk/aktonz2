@@ -32,7 +32,10 @@ export default function ViewingForm({ propertyTitle }) {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch(`${router.basePath}/api/book-viewing`, {
+      const endpoint =
+        process.env.NEXT_PUBLIC_BOOK_VIEWING_API ||
+        `${router.basePath}/api/book-viewing`;
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, propertyTitle }),
