@@ -176,9 +176,11 @@ body {
   user-select: none;
 }
 
-.carousel .slider-wrapper.axis-horizontal .slider,
-.carousel .slider-wrapper.axis-vertical {
+.carousel .slider-wrapper.axis-horizontal .slider {
   -webkit-box-orient: horizontal;
+}
+.carousel .slider-wrapper.axis-vertical {
+  -webkit-box-orient: vertical;
 }
 
 .leaflet-oldie .leaflet-popup-content-wrapper {
@@ -191,4 +193,6 @@ body {
 .leaflet-tile {
   -webkit-user-drag: none;
   user-drag: none;
+  -moz-user-select: none;
+  user-select: none;
 }
