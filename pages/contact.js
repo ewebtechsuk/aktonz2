@@ -36,10 +36,12 @@ export default function Contact() {
             <label htmlFor="name">Name</label>
             <input
               id="name"
+              name="name"
               type="text"
               placeholder="Your name"
               value={form.name}
               onChange={handleChange}
+              autoComplete="name"
               required
             />
           </div>
@@ -47,10 +49,12 @@ export default function Contact() {
             <label htmlFor="email">Email</label>
             <input
               id="email"
+              name="email"
               type="email"
               placeholder="you@example.com"
               value={form.email}
               onChange={handleChange}
+              autoComplete="email"
               required
             />
           </div>
