@@ -23,7 +23,8 @@ export default function PropertyCard({ property }) {
             <img
               src={property.image}
               alt={`Image of ${property.title}`}
-              loading="eager"
+              loading="lazy"
+
             />
           )
         )}
