@@ -5,8 +5,8 @@
 .brandSection {
   flex: 1;
   background: var(--color-primary);
-  color: #fff;
-  padding: 2rem;
+  color: var(--color-background);
+  padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -14,11 +14,11 @@
 .brandSection h1 {
   font-size: 2rem;
   line-height: 1.2;
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-md);
 }
 .formSection {
   flex: 1;
-  padding: 2rem;
+  padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -28,32 +28,32 @@
   flex-direction: column;
 }
 .formSection label {
-  margin-top: 1rem;
+  margin-top: var(--spacing-md);
 }
 .formSection input {
-  margin-top: 0.5rem;
-  padding: 0.5rem;
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm);
 }
 .formFooter {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 1rem;
+  margin-top: var(--spacing-md);
 }
 .button {
-  margin-top: 1rem;
-  padding: 0.75rem;
+  margin-top: var(--spacing-md);
+  padding: calc(var(--spacing-sm) * 1.5);
   background: var(--color-accent);
   border: none;
   cursor: pointer;
 }
 .createAccount {
-  margin-top: 1rem;
+  margin-top: var(--spacing-md);
   text-align: center;
 }
 .legal {
-  margin-top: 0.5rem;
+  margin-top: var(--spacing-sm);
   font-size: 0.8rem;
-  color: #555;
+  color: var(--color-muted-text);
   text-align: center;
 }

@@ -1,7 +1,7 @@
 .viewingButton {
-  padding: 0.5rem 1rem;
-  background-color: #0070f3;
-  color: #fff;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-secondary);
+  color: var(--color-background);
   border: none;
   cursor: pointer;
 }
@@ -20,8 +20,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: #fff;
-  padding: 1rem;
+  background: var(--color-background);
+  padding: var(--spacing-md);
   width: 90%;
   max-width: 400px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -31,7 +31,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-md);
 }
 
 .close {
@@ -44,29 +44,29 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
 }
 
 .address {
   font-weight: bold;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--spacing-sm);
 }
 
 .submit {
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  background-color: #0070f3;
-  color: #fff;
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-secondary);
+  color: var(--color-background);
   border: none;
   cursor: pointer;
 }
 
 .success {
   text-align: center;
-  padding: 1rem 0;
+  padding: var(--spacing-md) 0;
 }
 
 .error {
-  color: red;
+  color: var(--color-error);
   font-size: 0.9rem;
 }

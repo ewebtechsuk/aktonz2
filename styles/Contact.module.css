@@ -1,7 +1,7 @@
 .container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: var(--spacing-lg);
 }
 
 .form {
@@ -12,41 +12,41 @@
 .field {
   display: flex;
   flex-direction: column;
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-md);
 }
 
 .field label {
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--spacing-sm);
 }
 
 .field input,
 .field textarea {
-  padding: 0.75rem;
-  border: 1px solid #ccc;
+  padding: calc(var(--spacing-sm) * 1.5);
+  border: 1px solid var(--color-border);
   border-radius: 4px;
   font-size: 1rem;
 }
 
 .button {
   align-self: flex-start;
-  padding: 0.75rem 1.5rem;
-  background-color: #000;
-  color: #fff;
+  padding: calc(var(--spacing-sm) * 1.5) calc(var(--spacing-md) * 1.5);
+  background-color: var(--color-primary);
+  color: var(--color-background);
   border: none;
   border-radius: 4px;
   cursor: pointer;
 }
 
 .button:hover {
-  background-color: #333;
+  background-color: var(--color-border-dark);
 }
 
 .success {
-  margin-top: 1rem;
-  color: green;
+  margin-top: var(--spacing-md);
+  color: var(--color-success);
 }
 
 .error {
-  margin-top: 1rem;
-  color: red;
+  margin-top: var(--spacing-md);
+  color: var(--color-error);
 }
