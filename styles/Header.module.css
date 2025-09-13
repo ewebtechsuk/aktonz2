@@ -20,6 +20,13 @@
   display: block;
 }
 
+.logoText {
+  display: block;
+  color: var(--color-background);
+  font-weight: bold;
+  font-size: 1.25rem;
+}
+
 .nav {
   display: flex;
   gap: 1.5rem;

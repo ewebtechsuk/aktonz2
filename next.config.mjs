@@ -79,6 +79,21 @@ const staticHeaders = [
       },
     ],
   },
+  {
+    source: '/to-rent',
+    headers: [
+      {
+        source: '/to-rent',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store',
+          },
+        ],
+
+      },
+    ],
+  },
 ];
 
 const nextConfig = {
