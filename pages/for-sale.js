@@ -116,11 +116,16 @@ export default function ForSale({ properties, agents }) {
 }
 
 export async function getStaticProps() {
-  const properties = await fetchPropertiesByType('sale', {
+  const raw = await fetchPropertiesByType('sale', {
     statuses: ['available', 'under_offer', 'sold', 'sold_stc', 'sale_agreed'],
-    limit: 40,
-    maxImages: 5,
+
   });
+
+  const properties = raw.slice(0, 50).map((p) => ({
+    ...p,
+    images: (p.images || []).slice(0, 3),
+    description: p.description ? p.description.slice(0, 200) : '',
+  }));
 
   const agents = agentsData;
 

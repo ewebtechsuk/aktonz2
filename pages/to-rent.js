@@ -101,10 +101,16 @@ export default function ToRent({ properties }) {
 }
 
 export async function getStaticProps() {
-  const properties = await fetchPropertiesByType('rent', {
+  const raw = await fetchPropertiesByType('rent', {
     statuses: ['available', 'under_offer', 'let_agreed', 'let', 'let_stc', 'let_by'],
-    limit: 40,
-    maxImages: 5,
+
   });
+
+  const properties = raw.slice(0, 50).map((p) => ({
+    ...p,
+    images: (p.images || []).slice(0, 3),
+    description: p.description ? p.description.slice(0, 200) : '',
+  }));
+
   return { props: { properties } };
 }
