@@ -15,6 +15,7 @@ export default function Header() {
             crossOrigin="anonymous"
             referrerPolicy="no-referrer"
           />
+
         </Link>
       </div>
       <nav className={styles.nav}>

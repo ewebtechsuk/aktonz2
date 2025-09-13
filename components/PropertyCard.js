@@ -29,6 +29,7 @@ export default function PropertyCard({ property }) {
             />
           )
         )}
+
         {property.featured && (
           <span className="featured-badge">Featured</span>
         )}

@@ -11,6 +11,7 @@ export default function AgentCard({ agent }) {
           className="agent-photo"
           crossOrigin="anonymous"
           referrerPolicy="no-referrer"
+
         />
       )}
       <h3>

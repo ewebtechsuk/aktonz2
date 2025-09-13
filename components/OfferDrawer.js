@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useRouter } from 'next/router';
 import styles from '../styles/OfferDrawer.module.css';
 
 export default function OfferDrawer({ propertyTitle, propertyId }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [price, setPrice] = useState('');
   const [frequency, setFrequency] = useState('pw');
@@ -26,7 +28,7 @@ export default function OfferDrawer({ propertyTitle, propertyId }) {
     e.preventDefault();
     setStatus('');
     try {
-      const res = await fetch('/api/offers', {
+      const res = await fetch(`${router.basePath}/api/offers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -56,30 +58,12 @@ export default function OfferDrawer({ propertyTitle, propertyId }) {
       >
         Make an offer
       </button>
-      {open && (
-        <div
-          className={styles.overlay}
-          role="button"
-          tabIndex={0}
-          aria-label="Close drawer"
-          onClick={handleClose}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleClose();
-            }
-          }}
-        ></div>
-      )}
+      {open && <div className={styles.overlay} onClick={handleClose}></div>}
       <aside className={`${styles.drawer} ${open ? styles.open : ''}`}>
         <div className={styles.header}>
           <h2>Make an offer</h2>
-          <button
-            type="button"
-            className={styles.close}
-            onClick={handleClose}
-            aria-label="Close"
-          >
+          <button className={styles.close} onClick={handleClose} aria-label="Close">
+
             &times;
           </button>
         </div>

@@ -25,6 +25,7 @@ export default function ImageSlider({ images = [], title = '' }) {
               loading={i === 0 ? 'eager' : 'lazy'}
               crossOrigin="anonymous"
               referrerPolicy="no-referrer"
+
             />
           </div>
         ))}

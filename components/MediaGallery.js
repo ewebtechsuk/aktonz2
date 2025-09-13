@@ -74,6 +74,7 @@ function renderMedia(url, index) {
         loading={index === 0 ? 'eager' : 'lazy'}
         crossOrigin="anonymous"
         referrerPolicy="no-referrer"
+
       />
     </div>
   );
@@ -131,6 +132,7 @@ export default function MediaGallery({ images = [], media = [] }) {
                   crossOrigin="anonymous"
                   referrerPolicy="no-referrer"
                 />
+
               </button>
             </li>
           ))}
