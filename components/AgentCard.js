@@ -5,7 +5,13 @@ export default function AgentCard({ agent }) {
   return (
     <div className="agent-card">
       {agent.photo && (
-        <img src={agent.photo} alt={agent.name} className="agent-photo" />
+        <img
+          src={agent.photo}
+          alt={agent.name}
+          className="agent-photo"
+          crossOrigin="anonymous"
+          referrerPolicy="no-referrer"
+        />
       )}
       <h3>
         <Link href={`/agents/${agent.id}`}>{agent.name}</Link>

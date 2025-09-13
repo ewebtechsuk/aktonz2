@@ -15,7 +15,7 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/_next/static/(.*)',
+        source: '/_next/static/:path*',
         headers: [
           {
             key: 'Cache-Control',
@@ -24,7 +24,7 @@ const nextConfig = {
         ],
       },
       {
-        source: '/images/(.*)',
+        source: '/images/:path*',
         headers: [
           {
             key: 'Cache-Control',
@@ -33,7 +33,7 @@ const nextConfig = {
         ],
       },
       {
-        source: '/fonts/(.*)',
+        source: '/fonts/:path*',
         headers: [
           {
             key: 'Cache-Control',
@@ -42,7 +42,7 @@ const nextConfig = {
         ],
       },
       {
-        source: '/static/(.*)',
+        source: '/static/:path*',
         headers: [
           {
             key: 'Cache-Control',
@@ -51,19 +51,16 @@ const nextConfig = {
         ],
       },
       {
-        source: '/:path*',
+        source: '/property/:path*',
         headers: [
-          { key: 'x-xss-protection', value: '' },
-          { key: 'content-security-policy', value: '' },
+          {
+            key: 'Cache-Control',
+            value: 'no-store',
+          },
         ],
       },
     ];
   },
 };
-
-// Custom HTTP headers such as Cache-Control cannot be configured via
-// `next.config.js` when using `output: 'export'`. They must be applied by the
-// hosting environment instead. The previous header configuration was removed to
-// avoid build-time warnings from Next.js.
 
 export default nextConfig;

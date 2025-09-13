@@ -22,8 +22,8 @@ export default function Login() {
             autoComplete="current-password"
           />
           <div className={styles.formFooter}>
-            <label>
-              <input type="checkbox" /> Stay signed in
+            <label htmlFor="staySignedIn">
+              <input id="staySignedIn" name="staySignedIn" type="checkbox" /> Stay signed in
             </label>
             <Link href="#">Forgot Password?</Link>
           </div>
