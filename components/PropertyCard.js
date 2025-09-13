@@ -19,6 +19,7 @@ export default function PropertyCard({ property }) {
             alt={`Image of ${property.title}`}
             referrerPolicy="no-referrer"
           />
+
         ) : (
           property.image && (
             <img

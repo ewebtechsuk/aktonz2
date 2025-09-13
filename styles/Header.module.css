@@ -16,8 +16,12 @@
 
 }
 
-.logo img {
+.logo a {
   display: block;
+  color: var(--color-background);
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.25rem;
 }
 
 .logoText {
