@@ -1,15 +1,15 @@
 .main {
-  padding: 2rem 1rem;
+  padding: var(--spacing-lg) var(--spacing-md);
 }
 
 .region {
-  margin-bottom: 2rem;
+  margin-bottom: var(--spacing-lg);
 }
 
 .regionHeader {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
 }
 
 .regionTitle {
@@ -22,17 +22,17 @@
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
-  padding: 0 0.25rem;
+  padding: 0 var(--spacing-xs);
 
 }
 
 .subAreas {
   list-style: none;
-  padding-left: 1rem;
+  padding-left: var(--spacing-md);
 }
 
 .subAreas li {
-  margin: 0.25rem 0;
+  margin: var(--spacing-xs) 0;
 }
 
 .subAreas a {
@@ -41,19 +41,19 @@
 }
 .map {
   max-width: 600px;
-  margin: 0 auto 2rem;
+  margin: 0 auto var(--spacing-lg);
   display: block;
 }
 
 .mapRegion {
-  fill: #e0e0e0;
-  stroke: #ffffff;
+  fill: var(--color-neutral);
+  stroke: var(--color-background);
   cursor: pointer;
   transition: fill 0.2s;
 }
 
 .mapRegion:hover {
-  fill: #cfcfcf;
+  fill: var(--color-border);
 }
 
 .mapLabel {

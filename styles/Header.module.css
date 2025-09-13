@@ -2,9 +2,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 2rem;
-  background-color: #000;
-  border-bottom: 1px solid #333;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--color-primary);
+  border-bottom: 1px solid var(--color-border-dark);
   position: relative;
 }
 
@@ -25,7 +25,7 @@
 }
 
 .navList a {
-  color: #fff;
+  color: var(--color-background);
   text-decoration: none;
 }
 
@@ -33,7 +33,7 @@
 .megaMenu a.active,
 .mobileMenu a.active,
 .navItem .active {
-  color: #ff0;
+  color: var(--color-accent);
 }
 
 .navItem {
@@ -50,20 +50,20 @@
   top: 100%;
   left: 0;
   width: 400px;
-  padding: 1rem;
-  background: #000;
-  color: #fff;
+  padding: var(--spacing-md);
+  background: var(--color-primary);
+  color: var(--color-background);
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+  gap: var(--spacing-md);
   z-index: 1000;
 }
 
 .megaMenu a {
-  color: #fff;
+  color: var(--color-background);
   text-decoration: none;
   display: block;
-  margin: 0.25rem 0;
+  margin: var(--spacing-xs) 0;
 }
 
 .hamburger {
@@ -78,22 +78,22 @@
   width: 25px;
   height: 3px;
   margin: 4px;
-  background-color: #fff;
+  background-color: var(--color-background);
 }
 
 .mobileMenu {
   position: absolute;
   top: 100%;
   right: 0;
-  background: #000;
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-background);
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   width: 200px;
-  padding: 1rem;
+  padding: var(--spacing-md);
 }
 
 .mobileMenu a {
-  color: #fff;
+  color: var(--color-background);
   text-decoration: none;
 }
 
@@ -104,7 +104,7 @@
 }
 
 .mobileMenu li {
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--spacing-sm);
 }
 
 @media (min-width: 768px) {

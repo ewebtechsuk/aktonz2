@@ -71,7 +71,7 @@ export default function ForSale({ properties, agents }) {
   return (
     <main className={styles.main}>
       <h1>{search ? `Search results for "${search}"` : 'Properties for Sale'}</h1>
-      <div style={{ marginBottom: '1rem' }}>
+      <div style={{ marginBottom: 'var(--spacing-md)' }}>
         <button onClick={() => setViewMode('list')} disabled={viewMode === 'list'}>
           List
         </button>{' '}

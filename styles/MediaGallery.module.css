@@ -9,7 +9,7 @@
   width: 100%;
   height: 400px;
   display: block;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
   object-fit: cover;
 }
 
@@ -42,7 +42,7 @@
 .slider :global(.slick-next:before) {
   font-size: 24px;
   line-height: 1;
-  color: #fff;
+  color: var(--color-background);
 }
 
 .slider :global(.slick-dots) {
@@ -50,7 +50,7 @@
 }
 
 .slider :global(.slick-dots li button:before) {
-  color: #fff;
+  color: var(--color-background);
   opacity: 0.5;
 }
 
