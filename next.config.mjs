@@ -50,13 +50,6 @@ const nextConfig = {
           },
         ],
       },
-      {
-        source: '/:path*',
-        headers: [
-          { key: 'x-xss-protection', value: '' },
-          { key: 'content-security-policy', value: '' },
-        ],
-      },
     ];
   },
 };
