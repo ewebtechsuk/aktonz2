@@ -29,20 +29,30 @@ function normalizeVimeo(url) {
   return url;
 }
 
-function renderMedia(url, index) {
+function renderMedia(url, index, title) {
   if (!url) return null;
   const lower = url.toLowerCase();
   if (lower.match(/\.(mp4|webm|ogg)$/)) {
     return (
       <div key={index} className={styles.slide}>
-        <video src={url} controls playsInline />
+        <video
+          src={url}
+          controls
+          playsInline
+          aria-label={`${title || 'Property'} video ${index + 1}`}
+        />
       </div>
     );
   }
   if (lower.includes('matterport.com')) {
     return (
       <div key={index} className={styles.slide}>
-        <iframe src={url} allow="fullscreen; vr" allowFullScreen />
+        <iframe
+          src={url}
+          allow="fullscreen; vr"
+          allowFullScreen
+          title={`${title || 'Property'} 3D tour ${index + 1}`}
+        />
       </div>
     );
   }
@@ -50,7 +60,12 @@ function renderMedia(url, index) {
     const src = normalizeYouTube(url);
     return (
       <div key={index} className={styles.slide}>
-        <iframe src={src} allow="fullscreen" allowFullScreen />
+        <iframe
+          src={src}
+          allow="fullscreen"
+          allowFullScreen
+          title={`${title || 'Property'} video ${index + 1}`}
+        />
       </div>
     );
   }
@@ -58,18 +73,26 @@ function renderMedia(url, index) {
     const src = normalizeVimeo(url);
     return (
       <div key={index} className={styles.slide}>
-        <iframe src={src} allow="fullscreen" allowFullScreen />
+        <iframe
+          src={src}
+          allow="fullscreen"
+          allowFullScreen
+          title={`${title || 'Property'} video ${index + 1}`}
+        />
       </div>
     );
   }
   return (
     <div key={index} className={styles.slide}>
-      <img src={url} alt={`Property media item ${index + 1}`} />
+      <img
+        src={url}
+        alt={title ? `${title} - image ${index + 1}` : `Property image ${index + 1}`}
+      />
     </div>
   );
 }
 
-export default function MediaGallery({ images = [], media = [] }) {
+export default function MediaGallery({ images = [], media = [], title = '' }) {
   const items = [...media, ...images];
   if (items.length === 0) return null;
 
@@ -83,7 +106,9 @@ export default function MediaGallery({ images = [], media = [] }) {
 
   return (
     <div className={styles.slider}>
-      <Slider {...settings}>{items.map((url, i) => renderMedia(url, i))}</Slider>
+      <Slider {...settings}>
+        {items.map((url, i) => renderMedia(url, i, title))}
+      </Slider>
     </div>
   );
 }

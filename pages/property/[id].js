@@ -48,7 +48,11 @@ export default function Property({ property, recommendations }) {
         <section className={styles.hero}>
           {(property.images?.length > 0 || property.media?.length > 0) && (
             <div className={styles.sliderWrapper}>
-              <MediaGallery images={property.images} media={property.media} />
+              <MediaGallery
+                images={property.images}
+                media={property.media}
+                title={property.title}
+              />
             </div>
           )}
         <div className={styles.summary}>

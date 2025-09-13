@@ -20,7 +20,10 @@ export default function PropertyCard({ property }) {
 
         ) : (
           property.image && (
-            <img src={property.image} alt={`Image of ${property.title}`} />
+            <img
+              src={property.image}
+              alt={property.title || 'Property image'}
+            />
           )
         )}
         {property.featured && (
