@@ -18,6 +18,8 @@ export default function AgentPage({ agent, listings }) {
           src={agent.photo}
           alt={agent.name}
           style={{ maxWidth: 'var(--size-avatar)' }}
+          crossOrigin="anonymous"
+
         />
       )}
       <h1>{agent.name}</h1>
