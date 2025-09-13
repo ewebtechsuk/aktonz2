@@ -48,6 +48,7 @@ export default function SearchBar() {
           <input
             type="text"
             name="query"
+
             placeholder="Search area or postcode"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
