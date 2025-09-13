@@ -1,4 +1,5 @@
 
+import Head from 'next/head';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import PropertyList from '../components/PropertyList';
@@ -65,9 +66,14 @@ export default function ToRent({ properties }) {
   );
 
   return (
-    <main className={styles.main}>
-      <h1>{search ? `Search results for "${search}"` : 'Properties to Rent'}</h1>
-      <div className={styles.viewModeControls}>
+    <>
+      <Head>
+        <title>Properties to Rent</title>
+        <meta httpEquiv="Cache-Control" content="no-store, max-age=0" />
+      </Head>
+      <main className={styles.main}>
+        <h1>{search ? `Search results for "${search}"` : 'Properties to Rent'}</h1>
+        <div className={styles.viewModeControls}>
         <button
           type="button"
           onClick={() => setViewMode('list')}
@@ -96,7 +102,8 @@ export default function ToRent({ properties }) {
       ) : (
         <PropertyMap properties={available} />
       )}
-    </main>
+      </main>
+    </>
   );
 }
 
