@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import { useRouter } from 'next/router';
 import styles from '../styles/ViewingForm.module.css';
 
 export default function ViewingForm({ propertyTitle }) {
+  const router = useRouter();
+
   const initialForm = {
     name: '',
     email: '',
@@ -29,7 +32,7 @@ export default function ViewingForm({ propertyTitle }) {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch('/api/book-viewing', {
+      const res = await fetch(`${router.basePath}/api/book-viewing`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, propertyTitle }),
@@ -51,21 +54,8 @@ export default function ViewingForm({ propertyTitle }) {
       >
         Book a viewing
       </button>
-      {open && (
-        <div
-          className={styles.overlay}
-          role="button"
-          tabIndex={0}
-          aria-label="Close modal"
-          onClick={handleClose}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleClose();
-            }
-          }}
-        ></div>
-      )}
+      {open && <div className={styles.overlay} onClick={handleClose}></div>}
+
       {open && (
         <div className={styles.modal}>
           <div className={styles.header}>
@@ -84,26 +74,51 @@ export default function ViewingForm({ propertyTitle }) {
           ) : (
             <form className={styles.form} onSubmit={handleSubmit}>
               <p className={styles.address}>{propertyTitle}</p>
-              <label>
-                Name
-                <input type="text" name="name" value={form.name} onChange={handleChange} />
-              </label>
-              <label>
-                Email
-                <input type="email" name="email" value={form.email} onChange={handleChange} />
-              </label>
-              <label>
-                Phone
-                <input type="tel" name="phone" value={form.phone} onChange={handleChange} />
-              </label>
-              <label>
-                Preferred Date
-                <input type="date" name="date" value={form.date} onChange={handleChange} />
-              </label>
-              <label>
-                Preferred Time
-                <input type="time" name="time" value={form.time} onChange={handleChange} />
-              </label>
+              <label htmlFor="viewing-name">Name</label>
+              <input
+                id="viewing-name"
+                type="text"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                autoComplete="name"
+              />
+              <label htmlFor="viewing-email">Email</label>
+              <input
+                id="viewing-email"
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                autoComplete="email"
+              />
+              <label htmlFor="viewing-phone">Phone</label>
+              <input
+                id="viewing-phone"
+                type="tel"
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                autoComplete="tel"
+              />
+              <label htmlFor="viewing-date">Preferred Date</label>
+              <input
+                id="viewing-date"
+                type="date"
+                name="date"
+                value={form.date}
+                onChange={handleChange}
+                autoComplete="off"
+              />
+              <label htmlFor="viewing-time">Preferred Time</label>
+              <input
+                id="viewing-time"
+                type="time"
+                name="time"
+                value={form.time}
+                onChange={handleChange}
+                autoComplete="off"
+              />
               {error && <p className={styles.error}>{error}</p>}
               <button type="submit" className={styles.submit}>
                 Request viewing

@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { FaHome, FaKey, FaHeart, FaUser } from 'react-icons/fa';
 import styles from '../styles/Header.module.css';
 
@@ -8,12 +7,15 @@ export default function Header() {
     <header className={styles.header}>
       <div className={styles.logo}>
         <Link href="/">
-          <Image
+          <img
             src="https://aktonz.com/wp-content/uploads/2020/02/Milky-Black-Minimalist-Beauty-Logo-300x300.png"
             alt="Aktonz"
             width={40}
             height={40}
-            priority
+
+            crossOrigin="anonymous"
+
+
           />
         </Link>
       </div>

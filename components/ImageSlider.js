@@ -22,7 +22,10 @@ export default function ImageSlider({ images = [], title = '' }) {
             <img
               src={src}
               alt={`${title || 'Property'} image ${i + 1}`}
-              loading="eager"
+
+              loading={i === 0 ? 'eager' : 'lazy'}
+              crossOrigin="anonymous"
+
             />
           </div>
         ))}

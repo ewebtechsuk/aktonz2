@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useRouter } from 'next/router';
 import styles from '../styles/OfferDrawer.module.css';
 
 export default function OfferDrawer({ propertyTitle, propertyId }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [price, setPrice] = useState('');
   const [frequency, setFrequency] = useState('pw');
@@ -26,7 +28,7 @@ export default function OfferDrawer({ propertyTitle, propertyId }) {
     e.preventDefault();
     setStatus('');
     try {
-      const res = await fetch('/api/offers', {
+      const res = await fetch(`${router.basePath}/api/offers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -56,73 +58,55 @@ export default function OfferDrawer({ propertyTitle, propertyId }) {
       >
         Make an offer
       </button>
-      {open && (
-        <div
-          className={styles.overlay}
-          role="button"
-          tabIndex={0}
-          aria-label="Close drawer"
-          onClick={handleClose}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleClose();
-            }
-          }}
-        ></div>
-      )}
+      {open && <div className={styles.overlay} onClick={handleClose}></div>}
       <aside className={`${styles.drawer} ${open ? styles.open : ''}`}>
         <div className={styles.header}>
           <h2>Make an offer</h2>
-          <button
-            type="button"
-            className={styles.close}
-            onClick={handleClose}
-            aria-label="Close"
-          >
+          <button className={styles.close} onClick={handleClose} aria-label="Close">
+
             &times;
           </button>
         </div>
         <form className={styles.form} onSubmit={handleSubmit}>
           <p className={styles.address}>{propertyTitle}</p>
-          <label>
-            Offer price
-            <input
-              type="number"
-              name="price"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-            />
-          </label>
-          <label>
-            Frequency
-            <select
-              name="frequency"
-              value={frequency}
-              onChange={(e) => setFrequency(e.target.value)}
-            >
-              <option value="pw">Per week</option>
-              <option value="pcm">Per month</option>
-            </select>
-          </label>
-          <label>
-            Name
-            <input
-              type="text"
-              name="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </label>
-          <label>
-            Email
-            <input
-              type="email"
-              name="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </label>
+          <label htmlFor="offer-price">Offer price</label>
+          <input
+            id="offer-price"
+            type="number"
+            name="price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            autoComplete="off"
+          />
+          <label htmlFor="offer-frequency">Frequency</label>
+          <select
+            id="offer-frequency"
+            name="frequency"
+            value={frequency}
+            onChange={(e) => setFrequency(e.target.value)}
+            autoComplete="off"
+          >
+            <option value="pw">Per week</option>
+            <option value="pcm">Per month</option>
+          </select>
+          <label htmlFor="offer-name">Name</label>
+          <input
+            id="offer-name"
+            type="text"
+            name="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoComplete="name"
+          />
+          <label htmlFor="offer-email">Email</label>
+          <input
+            id="offer-email"
+            type="email"
+            name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+          />
           <button type="submit" className={styles.submit}>
             Make an offer
           </button>
