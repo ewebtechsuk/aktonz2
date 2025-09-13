@@ -7,23 +7,11 @@ const nextConfig = {
   images: { unoptimized: true },
   basePath: isProd && repo ? `/${repo}` : undefined,
   assetPrefix: isProd && repo ? `/${repo}/` : undefined,
-  async headers() {
-    return [
-      {
-        source: '/:all*(svg|jpg|jpeg|png|gif|ico|css|js)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-        ],
-      },
-    ];
-  },
 };
+
+// Custom HTTP headers such as Cache-Control cannot be configured via
+// `next.config.js` when using `output: 'export'`. They must be applied by the
+// hosting environment instead. The previous header configuration was removed to
+// avoid build-time warnings from Next.js.
 
 export default nextConfig;

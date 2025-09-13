@@ -110,7 +110,8 @@ export default function ForSale({ properties, agents }) {
 export async function getStaticProps() {
   const properties = await fetchPropertiesByType('sale', {
     statuses: ['available', 'under_offer', 'sold', 'sold_stc', 'sale_agreed'],
-
+    limit: 40,
+    maxImages: 5,
   });
 
   const agents = agentsData;
