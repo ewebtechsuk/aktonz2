@@ -50,6 +50,16 @@ const nextConfig = {
           },
         ],
       },
+      {
+        source: '/property/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store',
+          },
+        ],
+      },
+
     ];
   },
 };

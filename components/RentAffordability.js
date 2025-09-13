@@ -10,20 +10,26 @@ export default function RentAffordability({ defaultRent = 0 }) {
 
   return (
     <div className={styles.calculator}>
-      <label>
+      <label htmlFor="monthlyIncome">
         Monthly income
         <input
+          id="monthlyIncome"
+          name="monthlyIncome"
           type="number"
           value={income}
           onChange={(e) => setIncome(Number(e.target.value))}
+          autoComplete="off"
         />
       </label>
-      <label>
+      <label htmlFor="monthlyRent">
         Monthly rent
         <input
+          id="monthlyRent"
+          name="monthlyRent"
           type="number"
           value={rent}
           onChange={(e) => setRent(Number(e.target.value))}
+          autoComplete="off"
         />
       </label>
       {income > 0 && (
