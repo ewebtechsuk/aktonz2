@@ -6,7 +6,7 @@ import Stats from '../components/Stats';
 import { fetchPropertiesByType } from '../lib/apex27.mjs';
 import styles from '../styles/Home.module.css';
 
-export default function Home({ sales, lettings, archiveSales, archiveLettings }) {
+export default function Home({ sales, lettings, archiveSales }) {
   return (
     <>
       <Head>
@@ -30,12 +30,6 @@ export default function Home({ sales, lettings, archiveSales, archiveLettings })
             <PropertyList properties={archiveSales} />
           </section>
         )}
-        {archiveLettings.length > 0 && (
-          <section className={styles.listings}>
-            <h2>Archive Lettings</h2>
-            <PropertyList properties={archiveLettings} />
-          </section>
-        )}
       </main>
     </>
   );
@@ -44,21 +38,16 @@ export default function Home({ sales, lettings, archiveSales, archiveLettings })
 export async function getStaticProps() {
   const [allSale, allRent] = await Promise.all([
     fetchPropertiesByType('sale', {
-      statuses: ['available', 'under_offer', 'sold', 'sold_stc', 'sale_agreed'],
+      statuses: ['available', 'under_offer', 'sold'],
     }),
     fetchPropertiesByType('rent', {
-      statuses: ['available', 'under_offer', 'let_agreed', 'let', 'let_stc', 'let_by'],
-
+      statuses: ['available', 'under_offer'],
     }),
   ]);
 
   const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
-  const soldStatuses = ['sold', 'sold_stc', 'sale_agreed'];
   const isAvailable = (p) => p.status && normalize(p.status) === 'available';
-  const isSold = (p) =>
-    p.status && soldStatuses.some((s) => normalize(p.status).includes(s));
-
-  const isLet = (p) => p.status && normalize(p.status).startsWith('let');
+  const isSold = (p) => p.status && normalize(p.status) === 'sold';
 
   const sales = allSale
     .filter((p) => isAvailable(p) && p.featured)
@@ -69,7 +58,6 @@ export async function getStaticProps() {
     .slice(0, 4);
 
   const archiveSales = allSale.filter(isSold).slice(0, 4);
-  const archiveLettings = allRent.filter(isLet).slice(0, 4);
 
-  return { props: { sales, lettings, archiveSales, archiveLettings } };
+  return { props: { sales, lettings, archiveSales } };
 }

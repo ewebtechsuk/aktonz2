@@ -62,7 +62,7 @@ export default function ForSale({ properties, agents }) {
   const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
   const isSold = (p) => {
     const status = normalize(p.status || '');
-    return status.includes('sold') || status.includes('sale_agreed');
+    return status === 'sold';
   };
   const available = filtered.filter((p) => !isSold(p));
   const archived = filtered.filter(isSold);
@@ -117,8 +117,7 @@ export default function ForSale({ properties, agents }) {
 
 export async function getStaticProps() {
   const raw = await fetchPropertiesByType('sale', {
-    statuses: ['available', 'under_offer', 'sold', 'sold_stc', 'sale_agreed'],
-
+    statuses: ['available', 'under_offer', 'sold'],
   });
 
   const properties = raw.slice(0, 50).map((p) => ({
