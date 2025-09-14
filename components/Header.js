@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import Link from 'next/link';
-import { FaHome, FaKey, FaHeart, FaUser } from 'react-icons/fa';
 import styles from '../styles/Header.module.css';
 
 export default function Header() {
@@ -12,46 +11,72 @@ export default function Header() {
   const navLinks = (
     <>
       <Link href="/for-sale" className={styles.navLink} onClick={closeMenu}>
-        <FaHome className={styles.icon} />
-        <span className={styles.label}>Buy</span>
+        Buy
       </Link>
       <Link href="/to-rent" className={styles.navLink} onClick={closeMenu}>
-        <FaKey className={styles.icon} />
-        <span className={styles.label}>Rent</span>
+        Rent
       </Link>
-      <Link href="/favourites" className={styles.navLink} onClick={closeMenu}>
-        <FaHeart className={styles.icon} />
-        <span className={styles.label}>Favourites</span>
+      <Link href="/landlords" className={styles.navLink} onClick={closeMenu}>
+        Landlords
       </Link>
-      <Link href="/account" className={styles.navLink} onClick={closeMenu}>
-        <FaUser className={styles.icon} />
-        <span className={styles.label}>Account</span>
+      <Link href="/sell" className={styles.navLink} onClick={closeMenu}>
+        Sell
+      </Link>
+      <Link href="/discover" className={styles.navLink} onClick={closeMenu}>
+        Discover
+      </Link>
+      <Link href="/contact" className={styles.navLink} onClick={closeMenu}>
+        Contact
+      </Link>
+    </>
+  );
+
+  const actionLinks = (
+    <>
+      <Link
+        href="/valuation"
+        className={styles.cta}
+        onClick={closeMenu}
+      >
+        Get a valuation
+      </Link>
+      <Link href="/login" className={styles.login} onClick={closeMenu}>
+        Login
+
       </Link>
     </>
   );
 
   return (
     <header className={styles.header}>
-      <div className={styles.logo}>
-        <Link href="/">Aktonz</Link>
+      <div className={styles.container}>
+        <div className={styles.logo}>
+          <Link href="/">Aktonz</Link>
+        </div>
+
+        <nav className={styles.nav}>{navLinks}</nav>
+
+        <div className={styles.actions}>
+          {actionLinks}
+          <button
+            className={styles.hamburger}
+            onClick={toggleMenu}
+            aria-label="Toggle menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
       </div>
 
-      <nav className={styles.nav}>{navLinks}</nav>
-
-      <button
-        className={styles.hamburger}
-        onClick={toggleMenu}
-        aria-label="Toggle menu"
-      >
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
 
       <nav
         className={`${styles.mobileMenu} ${menuOpen ? styles.menuOpen : ''}`}
       >
         {navLinks}
+        {actionLinks}
+
       </nav>
     </header>
   );
