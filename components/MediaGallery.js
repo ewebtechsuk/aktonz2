@@ -83,17 +83,6 @@ export default function MediaGallery({ images = [], media = [] }) {
   const [current, setCurrent] = useState(0);
   const imageOffset = media.length;
   if (items.length === 0) return null;
-
-  const renderIndicator = (onClickHandler, isSelected, index, label) => (
-    <li key={index} className={isSelected ? 'selected' : ''}>
-      <button
-        type="button"
-        onClick={onClickHandler}
-        aria-label={`${label} ${index + 1}`}
-      />
-    </li>
-  );
-
   return (
     <div className={styles.slider}>
       <Carousel
@@ -102,9 +91,9 @@ export default function MediaGallery({ images = [], media = [] }) {
         swipeable
         emulateTouch
         useKeyboardArrows
+        showIndicators={false}
         selectedItem={current}
         onChange={setCurrent}
-        renderIndicator={renderIndicator}
       >
         {items.map((url, i) => renderMedia(url, i))}
       </Carousel>
