@@ -35,6 +35,7 @@ export default function ViewingForm({ propertyId, propertyTitle }) {
       const endpoint = process.env.NEXT_PUBLIC_BOOK_VIEWING_API
         ? `${process.env.NEXT_PUBLIC_BOOK_VIEWING_API.replace(/\/$/, '')}/${propertyId}/viewings`
         : `${router.basePath}/api/book-viewing`;
+
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

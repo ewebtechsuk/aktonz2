@@ -18,6 +18,7 @@ available, set `NEXT_PUBLIC_BOOK_VIEWING_API` to the base listings URL for
 viewing requests (e.g. `https://api.apex27.co.uk/listings`). The property ID and
 `/viewings` path will be appended automatically.
 
+
 ## Build
 
 ```
