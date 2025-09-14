@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { formatRentFrequency } from '../lib/format.mjs';
 
 export default function PropertyMap({
@@ -6,6 +7,8 @@ export default function PropertyMap({
   center = [51.5, -0.1],
   zoom = 12,
 }) {
+  const router = useRouter();
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -39,28 +42,29 @@ export default function PropertyMap({
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
-      properties.forEach((p) => {
-        if (typeof p.lat === 'number' && typeof p.lng === 'number') {
-          const marker = L.marker([p.lat, p.lng], {
-            icon: getIcon(p.propertyType),
-          }).addTo(map);
+        properties.forEach((p) => {
+          if (typeof p.lat === 'number' && typeof p.lng === 'number') {
+            const marker = L.marker([p.lat, p.lng], {
+              icon: getIcon(p.propertyType),
+            }).addTo(map);
 
-          const priceText = p.price
-            ? p.rentFrequency
-              ? `${p.price} ${formatRentFrequency(p.rentFrequency)}`
-              : p.tenure
-              ? `${p.price} ${p.tenure}`
-              : p.price
-            : '';
+            const priceText = p.price
+              ? p.rentFrequency
+                ? `${p.price} ${formatRentFrequency(p.rentFrequency)}`
+                : p.tenure
+                ? `${p.price} ${p.tenure}`
+                : p.price
+              : '';
 
-          const imgHtml = p.image
-            ? `<img src="${p.image}" alt="${p.title}" style="width:100px;height:auto;display:block;"/>`
-            : '';
+            const imgHtml = p.image
+              ? `<img src="${p.image}" alt="${p.title}" style="width:100px;height:auto;display:block;"/>`
+              : '';
 
-          const popupHtml = `<a href="/property/${p.id}" style="text-decoration:none;">${imgHtml}<strong>${p.title}</strong><br/>${priceText}</a>`;
-          marker.bindPopup(popupHtml);
-        }
-      });
+            const popupHtml = `<a href="${router.basePath}/property/${p.id}" style="text-decoration:none;">${imgHtml}<strong>${p.title}</strong><br/>${priceText}</a>`;
+            marker.bindPopup(popupHtml);
+          }
+        });
+
     }
 
     initMap();
@@ -68,7 +72,7 @@ export default function PropertyMap({
     return () => {
       if (map) map.remove();
     };
-  }, [properties, center, zoom]);
+  }, [properties, center, zoom, router.basePath]);
 
   return (
     <div id="property-map" style={{ height: 'var(--map-height)', width: '100%' }} />
