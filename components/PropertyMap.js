@@ -8,6 +8,7 @@ export default function PropertyMap({
   zoom = 12,
 }) {
   const router = useRouter();
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -63,6 +64,7 @@ export default function PropertyMap({
             marker.bindPopup(popupHtml);
           }
         });
+
     }
 
     initMap();
