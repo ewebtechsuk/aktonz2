@@ -1,83 +1,43 @@
 .header {
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
   width: 100%;
-  z-index: 1000;
   background: var(--color-background);
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--color-border-mid);
+  z-index: 1000;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-md) var(--spacing-lg);
-  background-color: var(--color-primary);
-  border-bottom: 1px solid var(--color-border-dark);
-  position: relative;
-
 }
 
 .logo a {
-  display: block;
-  color: var(--color-background);
+  color: var(--color-primary);
   text-decoration: none;
-  font-weight: bold;
-  font-size: 1.25rem;
-}
-
-.logoText {
-  display: block;
-  color: var(--color-background);
   font-weight: bold;
   font-size: 1.25rem;
 }
 
 .nav {
-  display: flex;
-  gap: 1.5rem;
-  margin: 0;
-  padding: 0;
-}
-
-.navList a {
-  color: var(--color-background);
-  text-decoration: none;
-}
-
-.navList a.active,
-.megaMenu a.active,
-.mobileMenu a.active,
-.navItem .active {
-  color: var(--color-accent);
-}
-
-.navItem {
-  position: relative;
-}
-
-.hasMega:hover .megaMenu {
-  display: grid;
-}
-
-.megaMenu {
   display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 400px;
-  padding: var(--spacing-md);
-  background: var(--color-primary);
-  color: var(--color-background);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-md);
-  z-index: 1000;
+  gap: var(--spacing-lg);
 }
 
-.megaMenu a {
-  color: var(--color-background);
+.navLink {
   text-decoration: none;
-  display: block;
-  margin: var(--spacing-xs) 0;
+  color: var(--color-primary);
+  font-size: 1rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
 }
 
 .hamburger {
@@ -91,49 +51,76 @@
   display: block;
   width: 25px;
   height: 3px;
-  margin: 4px;
-  background-color: var(--color-background);
+  margin: 4px 0;
+  background-color: var(--color-primary);
+}
+
+.cta {
+  background: var(--color-success);
+  color: var(--color-background);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.login {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.actions .cta,
+.actions .login {
+  display: none;
 }
 
 .mobileMenu {
-  position: absolute;
-  top: 100%;
+  position: fixed;
+  top: 0;
   right: 0;
-  background: var(--color-primary);
-  color: var(--color-background);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  height: 100vh;
   width: 200px;
-  padding: var(--spacing-md);
+  background: var(--color-background);
+  color: var(--color-primary);
+  box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+  padding: var(--spacing-lg) var(--spacing-md);
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  z-index: 1000;
+}
+
+.menuOpen {
+  transform: translateX(0);
 }
 
 .mobileMenu a {
-  color: var(--color-background);
-
+  color: var(--color-primary);
   text-decoration: none;
-  font-size: 0.75rem;
+  font-size: 1rem;
 }
 
-.icon {
-  font-size: 1.25rem;
-}
-
-.mobileMenu li {
-  margin-bottom: var(--spacing-sm);
-
+.mobileMenu .cta,
+.mobileMenu .login {
+  display: block;
 }
 
 @media (min-width: 768px) {
-  .navLink {
-    flex-direction: row;
-    font-size: 1rem;
+  .nav {
+    display: flex;
   }
 
-  .icon {
-    margin-right: 0.5rem;
+  .actions .cta,
+  .actions .login {
+    display: inline-block;
   }
 
-  .label {
-    margin-top: 0;
+  .hamburger {
+    display: none;
+  }
+
+  .mobileMenu {
+    display: none;
   }
 }
-
