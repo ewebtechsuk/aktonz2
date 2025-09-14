@@ -83,7 +83,10 @@ export default function Property({ property, recommendations }) {
           )}
           <div className={styles.actions}>
             <OfferDrawer propertyId={property.id} propertyTitle={property.title} />
-            <ViewingForm propertyTitle={property.title} />
+            <ViewingForm
+              propertyId={property.id}
+              propertyTitle={property.title}
+            />
           </div>
         </div>
       </section>

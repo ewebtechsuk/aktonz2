@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import styles from '../styles/ViewingForm.module.css';
 
-export default function ViewingForm({ propertyTitle }) {
+export default function ViewingForm({ propertyId, propertyTitle }) {
   const router = useRouter();
 
   const initialForm = {
@@ -32,10 +32,13 @@ export default function ViewingForm({ propertyTitle }) {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch(`${router.basePath}/api/book-viewing`, {
+      const endpoint = process.env.NEXT_PUBLIC_BOOK_VIEWING_API
+        ? `${process.env.NEXT_PUBLIC_BOOK_VIEWING_API.replace(/\/$/, '')}/${propertyId}/viewings`
+        : `${router.basePath}/api/book-viewing`;
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, propertyTitle }),
+        body: JSON.stringify({ ...form, propertyId, propertyTitle }),
       });
       if (!res.ok) throw new Error('Request failed');
       setSent(true);
@@ -56,77 +59,75 @@ export default function ViewingForm({ propertyTitle }) {
       </button>
       {open && <div className={styles.overlay} onClick={handleClose}></div>}
 
-      {open && (
-        <div className={styles.modal}>
-          <div className={styles.header}>
-            <h2>Book a viewing</h2>
-            <button
-              type="button"
-              className={styles.close}
-              onClick={handleClose}
-              aria-label="Close"
-            >
-              &times;
-            </button>
-          </div>
-          {sent ? (
-            <p className={styles.success}>Thank you, we'll be in touch soon.</p>
-          ) : (
-            <form className={styles.form} onSubmit={handleSubmit}>
-              <p className={styles.address}>{propertyTitle}</p>
-              <label htmlFor="viewing-name">Name</label>
-              <input
-                id="viewing-name"
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                autoComplete="name"
-              />
-              <label htmlFor="viewing-email">Email</label>
-              <input
-                id="viewing-email"
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                autoComplete="email"
-              />
-              <label htmlFor="viewing-phone">Phone</label>
-              <input
-                id="viewing-phone"
-                type="tel"
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-                autoComplete="tel"
-              />
-              <label htmlFor="viewing-date">Preferred Date</label>
-              <input
-                id="viewing-date"
-                type="date"
-                name="date"
-                value={form.date}
-                onChange={handleChange}
-                autoComplete="off"
-              />
-              <label htmlFor="viewing-time">Preferred Time</label>
-              <input
-                id="viewing-time"
-                type="time"
-                name="time"
-                value={form.time}
-                onChange={handleChange}
-                autoComplete="off"
-              />
-              {error && <p className={styles.error}>{error}</p>}
-              <button type="submit" className={styles.submit}>
-                Request viewing
-              </button>
-            </form>
-          )}
+      <aside className={`${styles.drawer} ${open ? styles.open : ''}`}>
+        <div className={styles.header}>
+          <h2>Book a viewing</h2>
+          <button
+            type="button"
+            className={styles.close}
+            onClick={handleClose}
+            aria-label="Close"
+          >
+            &times;
+          </button>
         </div>
-      )}
+        {sent ? (
+          <p className={styles.success}>Thank you, we'll be in touch soon.</p>
+        ) : (
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <p className={styles.address}>{propertyTitle}</p>
+            <label htmlFor="viewing-name">Name</label>
+            <input
+              id="viewing-name"
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              autoComplete="name"
+            />
+            <label htmlFor="viewing-email">Email</label>
+            <input
+              id="viewing-email"
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              autoComplete="email"
+            />
+            <label htmlFor="viewing-phone">Phone</label>
+            <input
+              id="viewing-phone"
+              type="tel"
+              name="phone"
+              value={form.phone}
+              onChange={handleChange}
+              autoComplete="tel"
+            />
+            <label htmlFor="viewing-date">Preferred Date</label>
+            <input
+              id="viewing-date"
+              type="date"
+              name="date"
+              value={form.date}
+              onChange={handleChange}
+              autoComplete="off"
+            />
+            <label htmlFor="viewing-time">Preferred Time</label>
+            <input
+              id="viewing-time"
+              type="time"
+              name="time"
+              value={form.time}
+              onChange={handleChange}
+              autoComplete="off"
+            />
+            {error && <p className={styles.error}>{error}</p>}
+            <button type="submit" className={styles.submit}>
+              Request viewing
+            </button>
+          </form>
+        )}
+      </aside>
     </>
   );
 }
