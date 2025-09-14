@@ -42,6 +42,7 @@ export default function Header() {
       </Link>
       <Link href="/login" className={styles.login} onClick={closeMenu}>
         Login
+
       </Link>
     </>
   );
@@ -69,11 +70,13 @@ export default function Header() {
         </div>
       </div>
 
+
       <nav
         className={`${styles.mobileMenu} ${menuOpen ? styles.menuOpen : ''}`}
       >
         {navLinks}
         {actionLinks}
+
       </nav>
     </header>
   );

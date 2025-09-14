@@ -26,6 +26,7 @@
 .nav {
   display: none;
   gap: var(--spacing-lg);
+
 }
 
 .navLink {
@@ -65,6 +66,7 @@
 
 .login {
   color: var(--color-primary);
+
   text-decoration: none;
 }
 
@@ -104,11 +106,13 @@
 .mobileMenu .cta,
 .mobileMenu .login {
   display: block;
+
 }
 
 @media (min-width: 768px) {
   .nav {
     display: flex;
+
   }
 
   .actions .cta,
