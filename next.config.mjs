@@ -21,6 +21,7 @@ const staticHeaders = [
         value: 'no-store',
       },
     ]),
+
   },
   {
     source: '/_next/static/:buildId/_ssgManifest.js',
@@ -30,6 +31,7 @@ const staticHeaders = [
         value: 'no-store',
       },
     ]),
+
   },
   {
     source: '/_next/static/:path*',
@@ -39,6 +41,7 @@ const staticHeaders = [
         value: 'public, max-age=31536000, immutable',
       },
     ]),
+
   },
   {
     source: '/images/:path*',
@@ -48,6 +51,7 @@ const staticHeaders = [
         value: 'public, max-age=31536000, immutable',
       },
     ]),
+
   },
   {
     source: '/fonts/:path*',
@@ -57,6 +61,7 @@ const staticHeaders = [
         value: 'public, max-age=31536000, immutable',
       },
     ]),
+
   },
   {
     source: '/static/:path*',
@@ -66,6 +71,7 @@ const staticHeaders = [
         value: 'public, max-age=31536000, immutable',
       },
     ]),
+
   },
   {
     source: '/property/:path*',
@@ -75,6 +81,7 @@ const staticHeaders = [
         value: 'no-store',
       },
     ]),
+
   },
   {
     source: '/to-rent',
@@ -84,6 +91,7 @@ const staticHeaders = [
         value: 'no-store',
       },
     ]),
+
   },
 ];
 

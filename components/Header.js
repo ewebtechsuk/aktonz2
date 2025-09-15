@@ -19,6 +19,7 @@ export default function Header() {
       onMouseLeave={() => setLandlordOpen(false)}
     >
       <button
+        type="button"
         className={`${styles.navLink} ${styles.navButton}`}
         onClick={() => setLandlordOpen((prev) => !prev)}
       >
@@ -102,6 +103,7 @@ export default function Header() {
         <div className={styles.actions}>
           {actionLinks}
           <button
+            type="button"
             className={styles.hamburger}
             onClick={toggleMenu}
             aria-label="Toggle menu"

@@ -8,6 +8,14 @@ import { fetchPropertiesByType } from '../lib/apex27.mjs';
 import agentsData from '../data/agents.json';
 import styles from '../styles/Home.module.css';
 
+const ALLOWED_STATUSES = [
+  'available',
+  'under_offer',
+  'sale_agreed',
+  'sold_stc',
+  'sold',
+];
+
 export default function ForSale({ properties, agents }) {
   const router = useRouter();
   const search = typeof router.query.search === 'string' ? router.query.search : '';
@@ -58,16 +66,17 @@ export default function ForSale({ properties, agents }) {
       const status = normalize(p.status || '');
       if (status.includes('pending')) return false;
 
+
       return true;
     });
-
   }, [properties, search, minPrice, maxPrice, bedrooms, propertyType]);
   const isSold = (p) => {
     const status = normalize(p.status || '');
-    return status === 'sold';
+    return status.includes('sold') || status.includes('sale_agreed');
   };
   const available = filtered.filter((p) => !isSold(p));
   const archived = filtered.filter(isSold);
+
 
 
   return (
