@@ -20,6 +20,7 @@ export default function Register() {
     const apiKey = process.env.NEXT_PUBLIC_APEX27_API_KEY;
     const branchId = process.env.NEXT_PUBLIC_APEX27_BRANCH_ID;
 
+
     const body = { email };
     if (branchId) {
       body.branchId = branchId;
@@ -57,6 +58,7 @@ export default function Register() {
 
       if (res?.ok) {
         setStatus('Registration successful');
+
       } else {
         let data = {};
         try {
@@ -65,6 +67,7 @@ export default function Register() {
           // Non-JSON response or no response
         }
         setStatus(data?.error || data?.message || 'Registration failed');
+
       }
     } catch (err) {
       console.error('Registration error', err);

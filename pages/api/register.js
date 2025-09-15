@@ -28,6 +28,7 @@ export default async function handler(req, res) {
     if (!apiKey) {
       res.status(500).json({ error: 'No Apex27 API key configured' });
       return;
+
     }
 
     const body = { email };
