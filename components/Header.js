@@ -4,9 +4,54 @@ import styles from '../styles/Header.module.css';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [landlordOpen, setLandlordOpen] = useState(false);
 
   const toggleMenu = () => setMenuOpen((prev) => !prev);
-  const closeMenu = () => setMenuOpen(false);
+  const closeMenu = () => {
+    setMenuOpen(false);
+    setLandlordOpen(false);
+  };
+
+  const landlordMenu = (
+    <div
+      className={styles.dropdown}
+      onMouseEnter={() => setLandlordOpen(true)}
+      onMouseLeave={() => setLandlordOpen(false)}
+    >
+      <button
+        className={`${styles.navLink} ${styles.navButton}`}
+        onClick={() => setLandlordOpen((prev) => !prev)}
+      >
+        Landlords
+      </button>
+      <div
+        className={`${styles.dropdownMenu} ${landlordOpen ? styles.show : ''}`}
+      >
+        <Link href="/valuation" onClick={closeMenu}>
+          Get a valuation
+        </Link>
+        <Link href="/about" onClick={closeMenu}>
+          Why use Aktonz
+        </Link>
+        <Link href="/property-management" onClick={closeMenu}>
+          Property management
+        </Link>
+        <Link href="/landlords/rent-protection" onClick={closeMenu}>
+          Rent protection
+        </Link>
+        <Link
+          href="/landlords/help"
+          className={styles.arrow}
+          onClick={closeMenu}
+        >
+          Help for Landlords
+        </Link>
+        <Link href="/landlords/legal-compliance" onClick={closeMenu}>
+          Legal & Compliance
+        </Link>
+      </div>
+    </div>
+  );
 
   const navLinks = (
     <>
@@ -16,9 +61,7 @@ export default function Header() {
       <Link href="/to-rent" className={styles.navLink} onClick={closeMenu}>
         Rent
       </Link>
-      <Link href="/landlords" className={styles.navLink} onClick={closeMenu}>
-        Landlords
-      </Link>
+      {landlordMenu}
       <Link href="/sell" className={styles.navLink} onClick={closeMenu}>
         Sell
       </Link>
