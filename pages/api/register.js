@@ -26,9 +26,7 @@ export default async function handler(req, res) {
     const apiKey = process.env.APEX27_API_KEY || process.env.NEXT_PUBLIC_APEX27_API_KEY;
     const branchId = process.env.APEX27_BRANCH_ID || process.env.NEXT_PUBLIC_APEX27_BRANCH_ID;
     if (!apiKey) {
-      // In environments without a configured API key we treat registration as
-      // successful to avoid server errors on static deployments.
-      res.status(200).json({ ok: true });
+      res.status(500).json({ error: 'Apex27 API key not configured' });
       return;
     }
 

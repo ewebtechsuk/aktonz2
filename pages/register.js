@@ -66,12 +66,11 @@ export default function Register() {
         } catch (_) {
           // Non-JSON response or no response
         }
-        // Without any API key we cannot persist the contact, but avoid
-        // user-facing errors on static deployments.
+        // Surface meaningful errors, including missing API keys.
         setStatus(
           data?.error ||
             data?.message ||
-            (apiKey ? 'Registration failed' : 'Registration successful')
+            (apiKey ? 'Registration failed' : 'Apex27 API key not configured')
         );
       }
     } catch (err) {
