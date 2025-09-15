@@ -28,7 +28,20 @@ export default function Register() {
     try {
       let res;
 
-      if (apiKey) {
+      // Try the backend endpoint first when available.
+      try {
+        res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+      } catch (_) {
+        // Network failures fall through to the Apex27 fallback logic.
+      }
+
+      // If the backend fails, fall back to the public Apex27 API when a
+      // client-side API key is configured.
+      if (!res?.ok && apiKey) {
         try {
           res = await fetch('https://api.apex27.co.uk/contacts', {
             method: 'POST',
@@ -40,24 +53,26 @@ export default function Register() {
             body: JSON.stringify(body),
           });
         } catch (_) {
-          // Network failures fall through to generic error handling
+          // Ignore network errors and handle failure below.
         }
+      }
 
-        if (res?.ok) {
-          setStatus('Registration successful');
-        } else {
-          let data = {};
-          try {
-            data = await res?.json();
-          } catch (_) {
-            // Non-JSON response or no response
-          }
-          setStatus(data?.error || data?.message || 'Registration failed');
-        }
-      } else {
-        // Without an API key we cannot persist the contact, but avoid
-        // user-facing errors on static deployments.
+      if (res?.ok) {
         setStatus('Registration successful');
+      } else {
+        let data = {};
+        try {
+          data = await res?.json();
+        } catch (_) {
+          // Non-JSON response or no response
+        }
+        // Without any API key we cannot persist the contact, but avoid
+        // user-facing errors on static deployments.
+        setStatus(
+          data?.error ||
+            data?.message ||
+            (apiKey ? 'Registration failed' : 'Registration successful')
+        );
       }
     } catch (err) {
       console.error('Registration error', err);
