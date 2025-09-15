@@ -55,6 +55,7 @@ export default function PropertyManagement() {
               <td></td>
             </tr>
             <tr>
+
               <td>Professional photography</td>
               <td>✓</td>
               <td></td>
@@ -80,6 +81,7 @@ export default function PropertyManagement() {
               <td></td>
             </tr>
             <tr>
+
               <td>24/7 emergency line</td>
               <td>✓</td>
               <td></td>
@@ -101,6 +103,7 @@ export default function PropertyManagement() {
             </tr>
             <tr>
               <td>Renewal negotiation</td>
+
               <td>✓</td>
               <td></td>
             </tr>
