@@ -1,10 +1,12 @@
 import Link from 'next/link';
+
 import styles from '../../styles/Account.module.css';
 
 export default function AccountDashboard() {
   return (
     <main className={styles.main}>
       <h1 className={styles.heading}>Welcome to Aktonz</h1>
+
       <p className={styles.subtitle}>Insights. Information. Control.</p>
       <h2 className={styles.prompt}>Are you looking to...</h2>
       <div className={styles.grid}>
@@ -14,6 +16,7 @@ export default function AccountDashboard() {
           <Link href="/landlords" className={styles.button}>
             Get started now
           </Link>
+
         </div>
         <div className={styles.card}>
           <h3>SELL</h3>
@@ -21,6 +24,7 @@ export default function AccountDashboard() {
           <Link href="/sell" className={styles.button}>
             Get started now
           </Link>
+
         </div>
         <div className={styles.card}>
           <h3>RENT</h3>
@@ -28,6 +32,7 @@ export default function AccountDashboard() {
           <Link href="/to-rent" className={styles.button}>
             Get started now
           </Link>
+
         </div>
         <div className={styles.card}>
           <h3>BUY</h3>
@@ -35,6 +40,7 @@ export default function AccountDashboard() {
           <Link href="/for-sale" className={styles.button}>
             Get started now
           </Link>
+
         </div>
       </div>
     </main>
