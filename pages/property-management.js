@@ -50,17 +50,60 @@ export default function PropertyManagement() {
           </thead>
           <tbody>
             <tr>
+              <td>Marketing on major portals</td>
+              <td>✓</td>
+              <td></td>
+            </tr>
+            <tr>
+
               <td>Professional photography</td>
               <td>✓</td>
               <td></td>
             </tr>
             <tr>
-              <td>24/7 emergency line</td>
+              <td>Tenant referencing</td>
+              <td>✓</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Tenancy agreement drafting</td>
+              <td>✓</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Deposit registration</td>
               <td>✓</td>
               <td></td>
             </tr>
             <tr>
               <td>Rent collection</td>
+              <td>✓</td>
+              <td></td>
+            </tr>
+            <tr>
+
+              <td>24/7 emergency line</td>
+              <td>✓</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Maintenance coordination</td>
+              <td>✓</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Routine inspections</td>
+              <td>✓</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Compliance tracking</td>
+              <td>✓</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Renewal negotiation</td>
+
               <td>✓</td>
               <td></td>
             </tr>
