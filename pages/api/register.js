@@ -61,6 +61,7 @@ export default async function handler(req, res) {
       return;
     }
 
+
     res.status(200).json({ ok: true });
   } catch (err) {
     console.error('Failed to register contact', err);

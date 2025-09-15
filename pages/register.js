@@ -20,6 +20,7 @@ export default function Register() {
     const apiKey = process.env.NEXT_PUBLIC_APEX27_API_KEY;
     const branchId = process.env.NEXT_PUBLIC_APEX27_BRANCH_ID;
 
+
     const body = { email };
     if (branchId) {
       body.branchId = branchId;
@@ -41,6 +42,7 @@ export default function Register() {
 
       // If the backend fails, fall back to the public Apex27 API when a
       // client-side API key is configured.
+
       if (!res?.ok && apiKey) {
         try {
           res = await fetch('https://api.apex27.co.uk/contacts', {
@@ -54,11 +56,13 @@ export default function Register() {
           });
         } catch (_) {
           // Ignore network errors and handle failure below.
+
         }
       }
 
       if (res?.ok) {
         setStatus('Registration successful');
+
       } else {
         let data = {};
         try {
@@ -72,6 +76,7 @@ export default function Register() {
             data?.message ||
             (apiKey ? 'Registration failed' : 'Apex27 API key not configured')
         );
+
       }
     } catch (err) {
       console.error('Registration error', err);
