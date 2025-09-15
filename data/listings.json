@@ -9196,5 +9196,21 @@
     "upsellNames": [],
     "matchingSearchRegions": [],
     "metadata": []
+  },
+  {
+    "id": 690037,
+    "reference": "690037",
+    "transactionType": "rent",
+    "price": "1000.00",
+    "priceCurrency": "GBP",
+    "status": "available",
+    "displayAddress": "Placeholder Address, London",
+    "summary": "Sample placeholder property for ID 690037.",
+    "description": "Sample placeholder property for ID 690037.",
+    "images": [],
+    "featured": true,
+    "rentFrequency": "M",
+    "bedrooms": 0,
+    "propertyType": "flat"
   }
 ]
