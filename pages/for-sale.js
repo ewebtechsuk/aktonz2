@@ -28,6 +28,7 @@ export default function ForSale({ properties, agents }) {
       ? router.query.propertyType.toLowerCase()
       : null;
   const [viewMode, setViewMode] = useState('list');
+  const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
 
   const filtered = useMemo(() => {
     return properties.filter((p) => {
@@ -54,12 +55,13 @@ export default function ForSale({ properties, agents }) {
       )
         return false;
 
+      const status = normalize(p.status || '');
+      if (status.includes('pending')) return false;
+
       return true;
     });
 
   }, [properties, search, minPrice, maxPrice, bedrooms, propertyType]);
-
-  const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
   const isSold = (p) => {
     const status = normalize(p.status || '');
     return status.includes('sold') || status.includes('sale_agreed');
