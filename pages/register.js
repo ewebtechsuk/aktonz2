@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import styles from '../styles/Register.module.css';
 
 export default function Register() {
   const [status, setStatus] = useState('');
+  const router = useRouter();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -46,13 +48,12 @@ export default function Register() {
       }
 
       if (!res && !apiKey) {
-        // No backend configured, silently succeed so the form doesn't appear broken
-        setStatus('Registration successful');
+        router.push('/account/profile');
         return;
       }
 
       if (res?.ok) {
-        setStatus('Registration successful');
+        router.push('/account/profile');
       } else {
         let data = {};
         try {
