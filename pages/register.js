@@ -7,6 +7,7 @@ export default function Register() {
   const [status, setStatus] = useState('');
   const router = useRouter();
 
+
   async function handleSubmit(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -19,6 +20,7 @@ export default function Register() {
     }
     try {
       const res = await fetch(`${router.basePath}/api/register`, {
+
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -32,6 +34,7 @@ export default function Register() {
         } catch (_) {
           // Non-JSON response (e.g., 404/405 HTML)
         }
+
         setStatus(data.error || 'Registration failed');
       }
     } catch (err) {
@@ -39,6 +42,7 @@ export default function Register() {
       setStatus('Registration failed');
     }
   }
+
 
   return (
     <div className={styles.container}>
@@ -51,6 +55,7 @@ export default function Register() {
         <Link href="/">← Back</Link>
         <h2>Create an account</h2>
         <form onSubmit={handleSubmit}>
+
           <label htmlFor="email">Email address *</label>
           <input id="email" name="email" type="email" autoComplete="email" required />
           <label htmlFor="password">Password *</label>
@@ -60,6 +65,7 @@ export default function Register() {
           <button type="submit" className={styles.button}>Register</button>
         </form>
         {status && <p className={styles.status}>{status}</p>}
+
         <p className={styles.signIn}>
           Already have an account? <Link href="/login">Sign in</Link>
         </p>
