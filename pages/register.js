@@ -1,10 +1,13 @@
 import { useState } from 'react';
-
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+
 import styles from '../styles/Register.module.css';
 
 export default function Register() {
   const [status, setStatus] = useState('');
+  const router = useRouter();
+
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -17,7 +20,8 @@ export default function Register() {
       return;
     }
     try {
-      const res = await fetch('/api/register', {
+      const res = await fetch(`${router.basePath}/api/register`, {
+
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -25,7 +29,13 @@ export default function Register() {
       if (res.ok) {
         setStatus('Registration successful');
       } else {
-        const data = await res.json();
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (_) {
+          // Non-JSON response (e.g., 404/405 HTML)
+        }
+
         setStatus(data.error || 'Registration failed');
       }
     } catch (err) {

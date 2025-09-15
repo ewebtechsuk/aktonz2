@@ -1,6 +1,8 @@
 const repo = process.env.GITHUB_REPOSITORY?.split('/')[1] || '';
 const isProd = process.env.NODE_ENV === 'production';
-const shouldExport = process.env.NEXT_EXPORT !== 'false';
+// Default to a serverful build so API routes like /api/register work.
+// Use NEXT_EXPORT=true if a static export is explicitly required.
+const shouldExport = process.env.NEXT_EXPORT === 'true';
 
 /** @type {import('next').NextConfig} */
 const staticHeaders = [
