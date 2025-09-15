@@ -1,0 +1,66 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+}
+.brandSection {
+  flex: 1;
+  background: var(--color-primary);
+  color: var(--color-background);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.brandSection h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+  margin-bottom: var(--spacing-md);
+}
+.brandSection p {
+  margin-top: var(--spacing-md);
+}
+.subtitle {
+  margin-top: var(--spacing-md);
+}
+.formSection {
+  flex: 1;
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.formSection form {
+  display: flex;
+  flex-direction: column;
+}
+.formSection label {
+  margin-top: var(--spacing-md);
+}
+.formSection input {
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm);
+}
+.button {
+  margin-top: var(--spacing-md);
+  padding: calc(var(--spacing-sm) * 1.5);
+  background: var(--color-accent);
+  border: none;
+  cursor: pointer;
+}
+.signIn {
+  margin-top: var(--spacing-md);
+  text-align: center;
+}
+.legal {
+  margin-top: var(--spacing-sm);
+  font-size: 0.8rem;
+  color: var(--color-muted-text);
+  text-align: center;
+}
+
+.status {
+  margin-top: var(--spacing-md);
+  text-align: center;
+  color: var(--color-accent);
+}
+

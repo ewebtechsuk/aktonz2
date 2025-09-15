@@ -44,6 +44,7 @@ export default function AreaMap({ regions = [] }) {
       return areas;
     };
 
+
     async function initMap() {
       const L = (await import('leaflet')).default;
 
@@ -74,6 +75,7 @@ export default function AreaMap({ regions = [] }) {
             [51.56, 0.0],
             [51.56, -0.15],
             [51.6, -0.25],
+
           ],
         },
         {
@@ -84,6 +86,7 @@ export default function AreaMap({ regions = [] }) {
             [51.68, -0.2],
             [51.6, -0.25],
             [51.56, -0.33],
+
             [51.56, -0.5],
           ],
         },
@@ -97,6 +100,7 @@ export default function AreaMap({ regions = [] }) {
             [51.5, -0.25],
             [51.48, -0.35],
             [51.48, -0.5],
+
           ],
         },
         {
@@ -112,6 +116,7 @@ export default function AreaMap({ regions = [] }) {
             [51.36, -0.33],
             [51.35, -0.4],
             [51.38, -0.5],
+
           ],
         },
         {
@@ -126,11 +131,13 @@ export default function AreaMap({ regions = [] }) {
             [51.35, 0.0],
             [51.35, -0.1],
             [51.42, -0.1],
+
           ],
         },
         {
           name: 'East London',
           slug: 'east-london',
+
           coords: [
             [51.56, -0.07],
             [51.6, -0.02],
@@ -141,16 +148,19 @@ export default function AreaMap({ regions = [] }) {
             [51.56, 0.35],
             [51.52, 0.35],
             [51.49, 0.3],
+
             [51.49, 0.05],
             [51.5, -0.03],
             [51.51, -0.05],
             [51.53, -0.07],
             [51.56, -0.07],
+
           ],
         },
         {
           name: 'Central London',
           slug: 'central-london',
+
           coords: [
             [51.52, -0.15],
             [51.52, 0.05],
@@ -268,6 +278,7 @@ export default function AreaMap({ regions = [] }) {
       };
 
       drawMain();
+
     }
 
     initMap();
