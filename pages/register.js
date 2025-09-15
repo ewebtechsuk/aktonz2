@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import Link from 'next/link';
 import styles from '../styles/Register.module.css';
 
@@ -33,6 +34,7 @@ export default function Register() {
     }
   }
 
+
   return (
     <div className={styles.container}>
       <div className={styles.brandSection}>
@@ -44,6 +46,7 @@ export default function Register() {
         <Link href="/">← Back</Link>
         <h2>Create an account</h2>
         <form onSubmit={handleSubmit}>
+
           <label htmlFor="email">Email address *</label>
           <input id="email" name="email" type="email" autoComplete="email" required />
           <label htmlFor="password">Password *</label>
@@ -53,6 +56,7 @@ export default function Register() {
           <button type="submit" className={styles.button}>Register</button>
         </form>
         {status && <p className={styles.status}>{status}</p>}
+
         <p className={styles.signIn}>
           Already have an account? <Link href="/login">Sign in</Link>
         </p>
