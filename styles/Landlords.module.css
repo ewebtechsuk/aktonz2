@@ -1,0 +1,98 @@
+.main {
+  padding: 0;
+}
+
+.hero {
+  background: url('https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1500&q=80') no-repeat center/cover;
+  color: var(--color-background);
+  padding: var(--spacing-xl) var(--spacing-md);
+  text-align: center;
+  position: relative;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.hero h1 {
+  margin: 0;
+  position: relative;
+}
+
+.intro {
+  padding: var(--spacing-lg) var(--spacing-md);
+  text-align: center;
+}
+
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-md);
+  justify-content: center;
+}
+
+.feature {
+  flex: 1;
+  min-width: 250px;
+}
+
+.included {
+  background: var(--color-surface);
+  padding: var(--spacing-lg) var(--spacing-md);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: var(--spacing-md);
+}
+
+.table th,
+.table td {
+  border: 1px solid var(--color-border-light);
+  padding: var(--spacing-sm);
+  text-align: center;
+}
+
+.table th:first-child,
+.table td:first-child {
+  text-align: left;
+}
+
+.testimonial {
+  padding: var(--spacing-lg) var(--spacing-md);
+  background: var(--color-surface-alt);
+  text-align: center;
+}
+
+.testimonial blockquote {
+  margin: 0;
+  font-style: italic;
+}
+
+.cite {
+  margin-top: var(--spacing-sm);
+  font-weight: bold;
+}
+
+.cta {
+  text-align: center;
+  padding: var(--spacing-lg) var(--spacing-md);
+  background: var(--color-surface-dark);
+}
+
+.ctaButton {
+  display: inline-block;
+  margin-top: var(--spacing-md);
+  background: var(--color-success);
+  color: var(--color-background);
+  padding: calc(var(--spacing-sm) * 1.5) calc(var(--spacing-md) * 1.5);
+  text-decoration: none;
+}
