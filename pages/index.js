@@ -41,7 +41,7 @@ export async function getStaticProps() {
       statuses: ['available', 'under_offer', 'sold'],
     }),
     fetchPropertiesByType('rent', {
-      statuses: ['available', 'under_offer'],
+      statuses: ['available'],
     }),
   ]);
 
