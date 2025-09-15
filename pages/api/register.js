@@ -26,15 +26,15 @@ export default async function handler(req, res) {
     const apiKey = process.env.APEX27_API_KEY || process.env.NEXT_PUBLIC_APEX27_API_KEY;
     const branchId = process.env.APEX27_BRANCH_ID || process.env.NEXT_PUBLIC_APEX27_BRANCH_ID;
     if (!apiKey) {
-      res.status(500).json({ error: 'No Apex27 API key configured' });
+      res.status(500).json({ error: 'Apex27 API key not configured' });
       return;
-
     }
 
     const body = { email };
     if (branchId) {
       body.branchId = branchId;
     }
+
 
     const response = await fetch('https://api.apex27.co.uk/contacts', {
       method: 'POST',

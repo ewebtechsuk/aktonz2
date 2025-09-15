@@ -28,17 +28,20 @@ export default function Register() {
 
     try {
       let res;
+
+      // Try the backend endpoint first when available.
       try {
         res = await fetch('/api/register', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
         });
       } catch (_) {
-        // Network failures fall through to direct API fallback
+        // Network failures fall through to the Apex27 fallback logic.
       }
+
+      // If the backend fails, fall back to the public Apex27 API when a
+      // client-side API key is configured.
 
       if (!res?.ok && apiKey) {
         try {
@@ -52,7 +55,8 @@ export default function Register() {
             body: JSON.stringify(body),
           });
         } catch (_) {
-          // Network failures fall through to generic error handling
+          // Ignore network errors and handle failure below.
+
         }
       }
 
@@ -66,7 +70,12 @@ export default function Register() {
         } catch (_) {
           // Non-JSON response or no response
         }
-        setStatus(data?.error || data?.message || 'Registration failed');
+        // Surface meaningful errors, including missing API keys.
+        setStatus(
+          data?.error ||
+            data?.message ||
+            (apiKey ? 'Registration failed' : 'Apex27 API key not configured')
+        );
 
       }
     } catch (err) {

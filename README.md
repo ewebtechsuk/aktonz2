@@ -13,6 +13,12 @@ npm run dev
 
 Create a `.env.local` file and set `APEX27_API_KEY` (and optionally `APEX27_BRANCH_ID` for your branch) to fetch real property data from the Apex27 API. Without these variables, no listings will be shown.
 
+To allow the registration form to create contacts when the app is statically
+deployed, also set the public equivalents
+`NEXT_PUBLIC_APEX27_API_KEY` and `NEXT_PUBLIC_APEX27_BRANCH_ID`. These values
+are embedded at build time and used by the client-side fallback when no backend
+is available.
+
 If the site is deployed to a static host where Next.js API routes are not
 available, set `NEXT_PUBLIC_BOOK_VIEWING_API` to the base listings URL for
 viewing requests (e.g. `https://api.apex27.co.uk/listings`). The property ID and
