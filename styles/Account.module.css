@@ -8,9 +8,6 @@
   margin-bottom: var(--spacing-sm);
 }
 
-.user {
-  color: var(--color-secondary);
-}
 
 .subtitle {
   color: var(--color-muted-text);
