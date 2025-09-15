@@ -39,7 +39,18 @@ function rentToMonthly(price, freq) {
 }
 
 export default function Property({ property, recommendations }) {
-  if (!property) return <div>Property not found</div>;
+  if (!property) {
+    return (
+      <>
+        <Head>
+          <title>Property not found | Aktonz</title>
+        </Head>
+        <main className={styles.main}>
+          <h1>Property not found</h1>
+        </main>
+      </>
+    );
+  }
   const features = Array.isArray(property.features) ? property.features : [];
 
   return (

@@ -35,6 +35,7 @@ export default async function handler(req, res) {
       body.branchId = branchId;
     }
 
+
     const response = await fetch('https://api.apex27.co.uk/contacts', {
       method: 'POST',
       headers: {
