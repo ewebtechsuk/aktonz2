@@ -30,7 +30,7 @@ export default function Login() {
           <button type="submit" className={styles.button}>Sign in</button>
         </form>
         <p className={styles.createAccount}>
-          New to Aktonz? <Link href="#">Create Account</Link>
+          New to Aktonz? <Link href="/register">Create Account</Link>
         </p>
         <p className={styles.legal}>
           By signing in you agree to our <Link href="#">privacy policy</Link>.
