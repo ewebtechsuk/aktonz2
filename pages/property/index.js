@@ -13,7 +13,9 @@ export default function PropertyArchive({ properties }) {
 
 export async function getStaticProps() {
   const [sale, rent] = await Promise.all([
-    fetchPropertiesByType('sale'),
+    fetchPropertiesByType('sale', {
+      statuses: ['available', 'under_offer', 'sold'],
+    }),
     fetchPropertiesByType('rent'),
   ]);
 

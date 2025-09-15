@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
+
 import { useRouter } from 'next/router';
 import styles from '../styles/Register.module.css';
 
@@ -47,6 +48,7 @@ export default function Register() {
       }
 
       if (res?.ok) {
+
         setStatus('Registration successful');
       } else {
         let data = {};
@@ -55,6 +57,7 @@ export default function Register() {
         } catch (_) {
           // Non-JSON response (e.g., 404/405 HTML)
         }
+
         setStatus(data.error || 'Registration failed');
       }
     } catch (err) {
