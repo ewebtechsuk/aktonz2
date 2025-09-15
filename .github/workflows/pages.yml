@@ -20,6 +20,7 @@ jobs:
     env:
       APEX27_API_KEY: ${{ secrets.APEX27_API_KEY }}
       APEX27_BRANCH_ID: ${{ secrets.APEX27_BRANCH_ID }}
+      NEXT_EXPORT: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
