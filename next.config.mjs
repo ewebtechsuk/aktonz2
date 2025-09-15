@@ -13,6 +13,10 @@ const staticHeaders = [
         key: 'Cache-Control',
         value: 'no-store',
       },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+      },
     ],
   },
   {
@@ -21,6 +25,10 @@ const staticHeaders = [
       {
         key: 'Cache-Control',
         value: 'no-store',
+      },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
       },
     ],
   },
@@ -31,6 +39,10 @@ const staticHeaders = [
         key: 'Cache-Control',
         value: 'public, max-age=31536000, immutable',
       },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+      },
     ],
   },
   {
@@ -39,6 +51,10 @@ const staticHeaders = [
       {
         key: 'Cache-Control',
         value: 'public, max-age=31536000, immutable',
+      },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
       },
     ],
   },
@@ -49,6 +65,10 @@ const staticHeaders = [
         key: 'Cache-Control',
         value: 'public, max-age=31536000, immutable',
       },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+      },
     ],
   },
   {
@@ -57,6 +77,10 @@ const staticHeaders = [
       {
         key: 'Cache-Control',
         value: 'public, max-age=31536000, immutable',
+      },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
       },
     ],
   },
@@ -67,6 +91,10 @@ const staticHeaders = [
         key: 'Cache-Control',
         value: 'no-store',
       },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+      },
     ],
   },
   {
@@ -75,6 +103,11 @@ const staticHeaders = [
       {
         key: 'Cache-Control',
         value: 'no-store',
+      },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+
       },
     ],
   },

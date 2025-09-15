@@ -64,12 +64,14 @@ export default function ForSale({ properties, agents }) {
         return false;
 
       const status = normalize(p.status || '');
+
       if (!ALLOWED_STATUSES.includes(status)) return false;
 
 
       return true;
     });
   }, [properties, search, minPrice, maxPrice, bedrooms, propertyType]);
+
   const isSold = (p) => normalize(p.status || '') === 'sold';
   const sortFeatured = (list) =>
     list.slice().sort((a, b) => Number(b.featured) - Number(a.featured));
