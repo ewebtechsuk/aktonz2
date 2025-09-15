@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-
 import styles from '../styles/Register.module.css';
 
 export default function Register() {

@@ -66,6 +66,7 @@ export default function ForSale({ properties, agents }) {
       const status = normalize(p.status || '');
       if (!ALLOWED_STATUSES.includes(status)) return false;
 
+
       return true;
     });
   }, [properties, search, minPrice, maxPrice, bedrooms, propertyType]);
@@ -74,6 +75,7 @@ export default function ForSale({ properties, agents }) {
     list.slice().sort((a, b) => Number(b.featured) - Number(a.featured));
   const available = sortFeatured(filtered.filter((p) => !isSold(p)));
   const archived = sortFeatured(filtered.filter(isSold));
+
 
 
   return (
@@ -125,8 +127,7 @@ export default function ForSale({ properties, agents }) {
 
 export async function getStaticProps() {
   const raw = await fetchPropertiesByType('sale', {
-    statuses: ['available', 'under_offer', 'sold', 'sold_stc', 'sale_agreed'],
-
+    statuses: ['available', 'under_offer', 'sold'],
   });
 
   const properties = raw.slice(0, 50).map((p) => ({
