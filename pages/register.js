@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
-import { useRouter } from 'next/router';
 import styles from '../styles/Register.module.css';
 
 export default function Register() {
   const [status, setStatus] = useState('');
-  const router = useRouter();
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -19,10 +17,9 @@ export default function Register() {
       return;
     }
 
-    const apiKey =
-      process.env.NEXT_PUBLIC_APEX27_API_KEY || process.env.APEX27_API_KEY;
-    const branchId =
-      process.env.NEXT_PUBLIC_APEX27_BRANCH_ID || process.env.APEX27_BRANCH_ID;
+    const apiKey = process.env.NEXT_PUBLIC_APEX27_API_KEY;
+    const branchId = process.env.NEXT_PUBLIC_APEX27_BRANCH_ID;
+
 
     const body = { email };
     if (branchId) {
@@ -31,7 +28,19 @@ export default function Register() {
 
     try {
       let res;
-      if (apiKey) {
+      try {
+        res = await fetch('/api/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email }),
+        });
+      } catch (_) {
+        // Network failures fall through to direct API fallback
+      }
+
+      if (!res?.ok && apiKey) {
         try {
           res = await fetch('https://api.apex27.co.uk/contacts', {
             method: 'POST',
@@ -47,21 +56,18 @@ export default function Register() {
         }
       }
 
-      if (!res && !apiKey) {
-        router.push('/account/profile');
-        return;
-      }
-
       if (res?.ok) {
-        router.push('/account/profile');
+        setStatus('Registration successful');
+
       } else {
         let data = {};
         try {
-          data = await res.json();
+          data = await res?.json();
         } catch (_) {
-          // Non-JSON response
+          // Non-JSON response or no response
         }
-        setStatus(data.error || data.message || 'Registration failed');
+        setStatus(data?.error || data?.message || 'Registration failed');
+
       }
     } catch (err) {
       console.error('Registration error', err);
