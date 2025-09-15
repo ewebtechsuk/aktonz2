@@ -5,78 +5,85 @@ const isProd = process.env.NODE_ENV === 'production';
 const shouldExport = process.env.NEXT_EXPORT === 'true';
 
 /** @type {import('next').NextConfig} */
+function withNoSniff(headers) {
+  return [
+    ...headers,
+    { key: 'X-Content-Type-Options', value: 'nosniff' },
+  ];
+}
+
 const staticHeaders = [
   {
     source: '/_next/static/:buildId/_buildManifest.js',
-    headers: [
+    headers: withNoSniff([
       {
         key: 'Cache-Control',
         value: 'no-store',
       },
-    ],
+    ]),
   },
   {
     source: '/_next/static/:buildId/_ssgManifest.js',
-    headers: [
+    headers: withNoSniff([
       {
         key: 'Cache-Control',
         value: 'no-store',
       },
-    ],
+    ]),
   },
   {
     source: '/_next/static/:path*',
-    headers: [
+    headers: withNoSniff([
       {
         key: 'Cache-Control',
         value: 'public, max-age=31536000, immutable',
       },
-    ],
+    ]),
   },
   {
     source: '/images/:path*',
-    headers: [
+    headers: withNoSniff([
       {
         key: 'Cache-Control',
         value: 'public, max-age=31536000, immutable',
       },
-    ],
+    ]),
   },
   {
     source: '/fonts/:path*',
-    headers: [
+    headers: withNoSniff([
       {
         key: 'Cache-Control',
         value: 'public, max-age=31536000, immutable',
       },
-    ],
+    ]),
   },
   {
     source: '/static/:path*',
-    headers: [
+    headers: withNoSniff([
       {
         key: 'Cache-Control',
         value: 'public, max-age=31536000, immutable',
       },
-    ],
+    ]),
   },
   {
     source: '/property/:path*',
-    headers: [
+    headers: withNoSniff([
       {
         key: 'Cache-Control',
         value: 'no-store',
       },
-    ],
+    ]),
   },
   {
     source: '/to-rent',
-    headers: [
+    headers: withNoSniff([
       {
         key: 'Cache-Control',
         value: 'no-store',
       },
-    ],
+    ]),
   },
 ];
 
