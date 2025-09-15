@@ -56,6 +56,7 @@ const staticHeaders = [
         key: 'X-Content-Type-Options',
         value: 'nosniff',
       },
+
     ],
   },
   {
@@ -120,6 +121,7 @@ const staticHeaders = [
       {
         key: 'X-Content-Type-Options',
         value: 'nosniff',
+
       },
     ],
   },

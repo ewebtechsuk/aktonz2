@@ -47,6 +47,7 @@ export default function Register() {
       }
 
       if (res?.ok) {
+
         setStatus('Registration successful');
       } else {
         let data = {};
@@ -55,6 +56,7 @@ export default function Register() {
         } catch (_) {
           // Non-JSON response (e.g., 404/405 HTML)
         }
+
         setStatus(data.error || 'Registration failed');
       }
     } catch (err) {
