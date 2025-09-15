@@ -80,7 +80,11 @@ export default function Footer() {
           <div className={styles.column}>
             <h4>Property intelligence</h4>
             <ul>
-              <li><Link href="/area-guides">Area guides</Link></li>
+              <li>
+                <Link href="/area-guides" prefetch={false}>
+                  Area guides
+                </Link>
+              </li>
               <li><Link href="/house-price-reports">House price reports</Link></li>
               <li><Link href="/rental-reports">Rental reports</Link></li>
               <li><Link href="/valuation">Home valuation service</Link></li>
