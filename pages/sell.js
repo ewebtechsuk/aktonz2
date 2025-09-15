@@ -13,7 +13,9 @@ export default function Sell({ properties }) {
 }
 
 export async function getStaticProps() {
-  const allSale = await fetchPropertiesByType('sale');
+  const allSale = await fetchPropertiesByType('sale', {
+    statuses: ['available', 'under_offer', 'sold'],
+  });
   const allowed = ['available', 'under_offer', 'sold'];
   const normalize = (s) => s.toLowerCase().replace(/\s+/g, '_');
   const properties = allSale.filter(
