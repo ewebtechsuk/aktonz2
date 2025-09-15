@@ -40,7 +40,7 @@ export default function AreaMap({ regions = [] }) {
       const shapes = [
         {
           name: 'North London',
-          slug: 'north-london',
+
           coords: [
             [51.7, -0.45],
             [51.7, 0.1],
@@ -51,6 +51,7 @@ export default function AreaMap({ regions = [] }) {
         {
           name: 'South London',
           slug: 'south-london',
+
           coords: [
             [51.56, -0.4],
             [51.56, 0.1],
@@ -61,6 +62,7 @@ export default function AreaMap({ regions = [] }) {
         {
           name: 'East London',
           slug: 'east-london',
+
           coords: [
             [51.56, -0.07],
             [51.6, -0.02],
@@ -76,11 +78,13 @@ export default function AreaMap({ regions = [] }) {
             [51.51, -0.05],
             [51.53, -0.07],
             [51.56, -0.07],
+
           ],
         },
         {
           name: 'West London',
           slug: 'west-london',
+
           coords: [
             [51.56, -0.5],
             [51.56, -0.2],
@@ -91,6 +95,7 @@ export default function AreaMap({ regions = [] }) {
         {
           name: 'Central London',
           slug: 'central-london',
+
           coords: [
             [51.52, -0.15],
             [51.52, 0.05],
@@ -102,6 +107,7 @@ export default function AreaMap({ regions = [] }) {
 
       shapes.forEach((s) => {
         const slug = findSlug(s.name) || s.slug;
+
         if (!slug) return;
 
         const polygon = L.polygon(s.coords, {
