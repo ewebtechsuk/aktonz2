@@ -1,6 +1,8 @@
 const repo = process.env.GITHUB_REPOSITORY?.split('/')[1] || '';
 const isProd = process.env.NODE_ENV === 'production';
-const shouldExport = process.env.NEXT_EXPORT !== 'false';
+// Default to a serverful build so API routes like /api/register work.
+// Use NEXT_EXPORT=true if a static export is explicitly required.
+const shouldExport = process.env.NEXT_EXPORT === 'true';
 
 /** @type {import('next').NextConfig} */
 const staticHeaders = [
@@ -11,6 +13,10 @@ const staticHeaders = [
         key: 'Cache-Control',
         value: 'no-store',
       },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+      },
     ],
   },
   {
@@ -19,6 +25,10 @@ const staticHeaders = [
       {
         key: 'Cache-Control',
         value: 'no-store',
+      },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
       },
     ],
   },
@@ -29,6 +39,23 @@ const staticHeaders = [
         key: 'Cache-Control',
         value: 'public, max-age=31536000, immutable',
       },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+      },
+    ],
+  },
+  {
+    source: '/_next/data/:path*',
+    headers: [
+      {
+        key: 'Cache-Control',
+        value: 'no-store',
+      },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+      },
     ],
   },
   {
@@ -37,6 +64,10 @@ const staticHeaders = [
       {
         key: 'Cache-Control',
         value: 'public, max-age=31536000, immutable',
+      },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
       },
     ],
   },
@@ -47,6 +78,10 @@ const staticHeaders = [
         key: 'Cache-Control',
         value: 'public, max-age=31536000, immutable',
       },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+      },
     ],
   },
   {
@@ -55,6 +90,10 @@ const staticHeaders = [
       {
         key: 'Cache-Control',
         value: 'public, max-age=31536000, immutable',
+      },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
       },
     ],
   },
@@ -65,20 +104,22 @@ const staticHeaders = [
         key: 'Cache-Control',
         value: 'no-store',
       },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+      },
     ],
   },
   {
     source: '/to-rent',
     headers: [
       {
-        source: '/to-rent',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-store',
-          },
-        ],
-
+        key: 'Cache-Control',
+        value: 'no-store',
+      },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
       },
     ],
   },
