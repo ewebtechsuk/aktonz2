@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
-
 import { useRouter } from 'next/router';
 import styles from '../styles/Register.module.css';
 

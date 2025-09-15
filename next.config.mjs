@@ -46,6 +46,20 @@ const staticHeaders = [
     ],
   },
   {
+    source: '/_next/data/:path*',
+    headers: [
+      {
+        key: 'Cache-Control',
+        value: 'no-store',
+      },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+      },
+
+    ],
+  },
+  {
     source: '/images/:path*',
     headers: [
       {

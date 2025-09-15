@@ -64,19 +64,18 @@ export default function ForSale({ properties, agents }) {
         return false;
 
       const status = normalize(p.status || '');
-
-      if (!ALLOWED_STATUSES.includes(status)) return false;
+      if (status.includes('pending')) return false;
 
 
       return true;
     });
   }, [properties, search, minPrice, maxPrice, bedrooms, propertyType]);
-
-  const isSold = (p) => normalize(p.status || '') === 'sold';
-  const sortFeatured = (list) =>
-    list.slice().sort((a, b) => Number(b.featured) - Number(a.featured));
-  const available = sortFeatured(filtered.filter((p) => !isSold(p)));
-  const archived = sortFeatured(filtered.filter(isSold));
+  const isSold = (p) => {
+    const status = normalize(p.status || '');
+    return status.includes('sold') || status.includes('sale_agreed');
+  };
+  const available = filtered.filter((p) => !isSold(p));
+  const archived = filtered.filter(isSold);
 
 
 
