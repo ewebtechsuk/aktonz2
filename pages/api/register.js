@@ -23,15 +23,17 @@ export default async function handler(req, res) {
   }
 
   try {
-    if (process.env.APEX27_API_KEY) {
+    const apiKey = process.env.APEX27_API_KEY || process.env.NEXT_PUBLIC_APEX27_API_KEY;
+    const branchId = process.env.APEX27_BRANCH_ID || process.env.NEXT_PUBLIC_APEX27_BRANCH_ID;
+    if (apiKey) {
       const body = { email };
-      if (process.env.APEX27_BRANCH_ID) {
-        body.branchId = process.env.APEX27_BRANCH_ID;
+      if (branchId) {
+        body.branchId = branchId;
       }
       await fetch('https://api.apex27.co.uk/contacts', {
         method: 'POST',
         headers: {
-          'x-api-key': process.env.APEX27_API_KEY,
+          'x-api-key': apiKey,
           accept: 'application/json',
           'Content-Type': 'application/json',
         },
