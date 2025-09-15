@@ -60,6 +60,7 @@ export default function AreaMap({ regions }) {
             [51.6, 0.35],
             [51.35, 0.35],
             [51.35, -0.1],
+
           ],
         },
         {
