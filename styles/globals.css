@@ -55,11 +55,63 @@ body {
   height: 260px;
 }
 
+.property-card .property-card-slider,
+.property-card .property-card-slider .slick-slider,
+.property-card .property-card-slider .slick-list,
+.property-card .property-card-slider .slick-track,
+.property-card .property-card-slider .slick-slide,
+.property-card .property-card-slider .slick-slide > div {
+  height: 100%;
+}
+
+.property-card .property-card-slider .slick-slide > div {
+  display: flex;
+}
+
 .property-card img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.property-card .property-card-slider .slick-prev,
+.property-card .property-card-slider .slick-next {
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.property-card .property-card-slider .slick-prev {
+  left: 8px;
+}
+
+.property-card .property-card-slider .slick-next {
+  right: 8px;
+}
+
+.property-card .property-card-slider .slick-prev:before,
+.property-card .property-card-slider .slick-next:before {
+  font-size: 18px;
+  color: var(--color-background);
+}
+
+.property-card .property-card-slider .slick-dots {
+  bottom: 8px;
+}
+
+.property-card .property-card-slider .slick-dots li button:before {
+  color: var(--color-background);
+  opacity: 0.5;
+}
+
+.property-card .property-card-slider .slick-dots li.slick-active button:before {
+  opacity: 1;
 }
 
 
