@@ -55,63 +55,88 @@ body {
   height: 260px;
 }
 
-.property-card .property-card-slider,
-.property-card .property-card-slider .slick-slider,
-.property-card .property-card-slider .slick-list,
-.property-card .property-card-slider .slick-track,
-.property-card .property-card-slider .slick-slide,
-.property-card .property-card-slider .slick-slide > div {
+.property-card .property-card-gallery {
+  position: relative;
+  width: 100%;
   height: 100%;
+  background: var(--color-surface);
 }
 
-.property-card .property-card-slider .slick-slide > div {
-  display: flex;
-}
-
-.property-card img {
+.property-card .property-card-gallery img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.property-card .property-card-slider .slick-prev,
-.property-card .property-card-slider .slick-next {
-  z-index: 1;
+.property-card .gallery-control {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   width: 32px;
   height: 32px;
   border-radius: 50%;
+  border: none;
   background: rgba(0, 0, 0, 0.4);
-  display: flex !important;
+  color: var(--color-background);
+  cursor: pointer;
+  display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.5rem;
 }
 
-.property-card .property-card-slider .slick-prev {
+.property-card .gallery-control.prev {
   left: 8px;
 }
 
-.property-card .property-card-slider .slick-next {
+.property-card .gallery-control.next {
   right: 8px;
 }
 
-.property-card .property-card-slider .slick-prev:before,
-.property-card .property-card-slider .slick-next:before {
-  font-size: 18px;
-  color: var(--color-background);
+.property-card .gallery-control:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
-.property-card .property-card-slider .slick-dots {
+.property-card .gallery-dots {
+  position: absolute;
+  left: 50%;
   bottom: 8px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
 }
 
-.property-card .property-card-slider .slick-dots li button:before {
+.property-card .gallery-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+}
+
+.property-card .gallery-dot.active {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.property-card .gallery-dot:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.property-card .image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-muted-bg);
   color: var(--color-background);
-  opacity: 0.5;
-}
-
-.property-card .property-card-slider .slick-dots li.slick-active button:before {
-  opacity: 1;
+  height: 100%;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
 }
 
 
