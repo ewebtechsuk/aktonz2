@@ -3,8 +3,6 @@ import FavoriteButton from './FavoriteButton';
 import { formatRentFrequency } from '../lib/format.mjs';
 import { FaBed, FaBath } from 'react-icons/fa';
 
-let SliderModule = null;
-
 export default function PropertyCard({ property }) {
   const rawStatus = property.status ? property.status.replace(/_/g, ' ') : null;
   const normalized = rawStatus ? rawStatus.toLowerCase() : '';
@@ -16,25 +14,6 @@ export default function PropertyCard({ property }) {
   const title = property.title || 'Property';
   const sliderKeyPrefix =
     property.id || property.listingId || property.listing_id || title;
-
-  const [Slider, setSlider] = useState(() => SliderModule);
-  useEffect(() => {
-    let mounted = true;
-    if (!SliderModule) {
-      import('react-slick').then((mod) => {
-        const LoadedSlider = mod.default || mod;
-        SliderModule = LoadedSlider;
-        if (mounted) {
-          setSlider(() => LoadedSlider);
-        }
-      });
-    } else {
-      setSlider(() => SliderModule);
-    }
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   const galleryImages = Array.isArray(property.images)
     ? property.images.filter(Boolean)
@@ -49,41 +28,88 @@ export default function PropertyCard({ property }) {
 
   const hasMultipleImages = images.length > 1;
   const hasImages = images.length > 0;
+  const [currentImage, setCurrentImage] = useState(0);
 
-  const sliderSettings = {
-    dots: hasMultipleImages,
-    arrows: hasMultipleImages,
-    infinite: hasMultipleImages,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    adaptiveHeight: false,
+  useEffect(() => {
+    setCurrentImage(0);
+  }, [sliderKeyPrefix, images.length]);
+
+  const showPreviousImage = (event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (!hasMultipleImages) return;
+    setCurrentImage((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
+
+  const showNextImage = (event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (!hasMultipleImages) return;
+    setCurrentImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleDotClick = (event, index) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (!hasImages) return;
+    setCurrentImage(index);
+  };
+
+  const activeImage = hasImages ? images[currentImage] : null;
 
   return (
     <div className={`property-card${isArchived ? ' archived' : ''}`}>
       <div className="image-wrapper">
-        {hasImages && (
-          <div className="property-card-slider">
-            {Slider ? (
-              <Slider {...sliderSettings}>
-                {images.map((src, index) => (
-                  <div key={`${sliderKeyPrefix}-${index}`}>
-                    <img
-                      src={src}
-                      alt={`${title} image ${index + 1}`}
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-                ))}
-              </Slider>
-            ) : (
+        {hasImages ? (
+          <div className={`property-card-gallery${hasMultipleImages ? '' : ' single'}`}>
+            {activeImage && (
               <img
-                src={images[0]}
-                alt={`Image of ${title}`}
+                src={activeImage}
+                alt={`${title} image ${currentImage + 1}`}
                 referrerPolicy="no-referrer"
               />
             )}
+            {hasMultipleImages && (
+              <>
+                <button
+                  type="button"
+                  className="gallery-control prev"
+                  onClick={showPreviousImage}
+                  aria-label="View previous image"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  className="gallery-control next"
+                  onClick={showNextImage}
+                  aria-label="View next image"
+                >
+                  ›
+                </button>
+                <div className="gallery-dots" role="tablist" aria-label={`${title} gallery`}>
+                  {images.map((_, index) => (
+                    <button
+                      type="button"
+                      key={`${sliderKeyPrefix}-dot-${index}`}
+                      className={`gallery-dot${index === currentImage ? ' active' : ''}`}
+                      onClick={(event) => handleDotClick(event, index)}
+                      aria-label={`View image ${index + 1}`}
+                      aria-current={index === currentImage ? 'true' : undefined}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
+        ) : (
+          <div className="image-placeholder">Image coming soon</div>
         )}
 
         {property.featured && (
