@@ -13,6 +13,7 @@ import {
   fetchPropertiesByType,
   extractMedia,
   normalizeImages,
+  normalizeListingDescription,
 } from '../../lib/apex27.mjs';
 import {
   resolvePropertyIdentifier,
@@ -182,7 +183,7 @@ export async function getStaticProps({ params }) {
         rawProperty.address1 ||
         rawProperty.title ||
         '',
-      description: rawProperty.description || rawProperty.summary || '',
+      description: normalizeListingDescription(rawProperty),
       price:
         rawProperty.price != null
           ? rawProperty.priceCurrency === 'GBP'
