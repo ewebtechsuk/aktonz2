@@ -11,7 +11,6 @@ export default function PropertyList({ properties }) {
           return null;
         }
         const propertyId = resolvePropertyIdentifier(property);
-
         const cardProps =
           propertyId && property?.id !== propertyId
             ? { ...property, id: propertyId }
