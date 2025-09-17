@@ -30,9 +30,11 @@ export default function PropertyCard({ property }) {
   const hasImages = images.length > 0;
   const [currentImage, setCurrentImage] = useState(0);
 
+  
   useEffect(() => {
     setCurrentImage(0);
   }, [sliderKeyPrefix, images.length]);
+
 
   const showPreviousImage = (event) => {
     if (event) {
@@ -51,6 +53,7 @@ export default function PropertyCard({ property }) {
     if (!hasMultipleImages) return;
     setCurrentImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
+
 
   const handleDotClick = (event, index) => {
     if (event) {

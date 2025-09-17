@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import PropertyCard from './PropertyCard';
+import { resolvePropertyIdentifier } from '../lib/property-id.mjs';
 
 function resolvePropertyId(property) {
   if (!property || typeof property !== 'object') return null;
@@ -14,7 +15,8 @@ export default function PropertyList({ properties }) {
         if (!property) {
           return null;
         }
-        const propertyId = resolvePropertyId(property);
+        const propertyId = resolvePropertyIdentifier(property);
+
         const cardProps =
           propertyId && property?.id !== propertyId
             ? { ...property, id: propertyId }
