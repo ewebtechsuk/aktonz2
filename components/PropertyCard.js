@@ -30,11 +30,9 @@ export default function PropertyCard({ property }) {
   const hasImages = images.length > 0;
   const [currentImage, setCurrentImage] = useState(0);
 
-  
   useEffect(() => {
     setCurrentImage(0);
   }, [sliderKeyPrefix, images.length]);
-
 
   const showPreviousImage = (event) => {
     if (event) {
