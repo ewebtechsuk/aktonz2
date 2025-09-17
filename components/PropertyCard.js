@@ -45,11 +45,10 @@ export default function PropertyCard({ property }) {
       .trimEnd()}…`;
   }
 
-  
+
   useEffect(() => {
     setCurrentImage(0);
   }, [sliderKeyPrefix, images.length]);
-
 
   const showPreviousImage = (event) => {
     if (event) {

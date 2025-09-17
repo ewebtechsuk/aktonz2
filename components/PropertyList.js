@@ -2,11 +2,6 @@ import Link from 'next/link';
 import PropertyCard from './PropertyCard';
 import { resolvePropertyIdentifier } from '../lib/property-id.mjs';
 
-function resolvePropertyId(property) {
-  if (!property || typeof property !== 'object') return null;
-  const rawId = property.id ?? property.listingId ?? property.listing_id;
-  return rawId != null ? String(rawId) : null;
-}
 
 export default function PropertyList({ properties }) {
   return (
