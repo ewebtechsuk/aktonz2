@@ -61,7 +61,6 @@ export default function PropertyCard({ property }) {
     setCurrentImage(index);
   };
 
-
   const activeImage = hasImages ? images[currentImage] : null;
 
   return (
