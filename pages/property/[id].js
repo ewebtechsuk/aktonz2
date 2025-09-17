@@ -178,7 +178,6 @@ export async function getStaticProps({ params }) {
   const rawProperty = await fetchPropertyById(params.id);
   let formatted = null;
   if (rawProperty) {
-    const normalizedDescription = normalizeListingDescription(rawProperty);
     const imgList = normalizeImages(rawProperty.images || []);
     formatted = {
       id: resolvePropertyIdentifier(rawProperty) ?? String(params.id),
@@ -187,7 +186,7 @@ export async function getStaticProps({ params }) {
         rawProperty.address1 ||
         rawProperty.title ||
         '',
-      description: normalizedDescription,
+      description: normalizeListingDescription(rawProperty),
       price:
         rawProperty.price != null
           ? rawProperty.priceCurrency === 'GBP'
