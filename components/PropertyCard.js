@@ -30,6 +30,22 @@ export default function PropertyCard({ property }) {
   const hasImages = images.length > 0;
   const [currentImage, setCurrentImage] = useState(0);
 
+  const normalizedDescription =
+    typeof property.description === 'string'
+      ? property.description.replace(/\s+/g, ' ').trim()
+      : '';
+
+  let truncatedDescription = normalizedDescription;
+
+  if (normalizedDescription.length > 160) {
+    const boundary = normalizedDescription.lastIndexOf(' ', 160);
+    const sliceIndex = boundary > 0 ? boundary : 160;
+    truncatedDescription = `${normalizedDescription
+      .slice(0, sliceIndex)
+      .trimEnd()}…`;
+  }
+
+
   useEffect(() => {
     setCurrentImage(0);
   }, [sliderKeyPrefix, images.length]);
@@ -150,8 +166,8 @@ export default function PropertyCard({ property }) {
             )}
           </div>
         )}
-        {property.description && (
-          <p className="description">{property.description}</p>
+        {normalizedDescription && (
+          <p className="description">{truncatedDescription}</p>
         )}
         {property.id && <FavoriteButton propertyId={property.id} />}
       </div>
