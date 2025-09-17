@@ -34,17 +34,30 @@ export default function PropertyCard({ property }) {
     setCurrentImage(0);
   }, [sliderKeyPrefix, images.length]);
 
-  const showPreviousImage = () => {
+  const showPreviousImage = (event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     if (!hasMultipleImages) return;
     setCurrentImage((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
-  const showNextImage = () => {
+  const showNextImage = (event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     if (!hasMultipleImages) return;
     setCurrentImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
-  const handleDotClick = (index) => {
+  const handleDotClick = (event, index) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
     if (!hasImages) return;
     setCurrentImage(index);
   };
@@ -87,7 +100,8 @@ export default function PropertyCard({ property }) {
                       type="button"
                       key={`${sliderKeyPrefix}-dot-${index}`}
                       className={`gallery-dot${index === currentImage ? ' active' : ''}`}
-                      onClick={() => handleDotClick(index)}
+                      onClick={(event) => handleDotClick(event, index)}
+
                       aria-label={`View image ${index + 1}`}
                       aria-current={index === currentImage ? 'true' : undefined}
                     />
