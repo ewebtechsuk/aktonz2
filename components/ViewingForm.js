@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import PropertyActionDrawer from './PropertyActionDrawer';
 import styles from '../styles/ViewingForm.module.css';
 
-export default function ViewingForm({ propertyId, propertyTitle }) {
+export default function ViewingForm({ property }) {
   const router = useRouter();
 
   const initialForm = {
@@ -16,6 +17,10 @@ export default function ViewingForm({ propertyId, propertyTitle }) {
   const [form, setForm] = useState(initialForm);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const propertyId = property?.id;
+  const propertyTitle = property?.title || '';
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -26,11 +31,20 @@ export default function ViewingForm({ propertyId, propertyTitle }) {
     setForm(initialForm);
     setSent(false);
     setError('');
+    setSubmitting(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (!propertyId) {
+      setError('Missing property reference.');
+      return;
+    }
+
+    if (submitting) return;
+    setSubmitting(true);
     try {
       const endpoint = process.env.NEXT_PUBLIC_BOOK_VIEWING_API
         ? `${process.env.NEXT_PUBLIC_BOOK_VIEWING_API.replace(/\/$/, '')}/${propertyId}/viewings`
@@ -45,90 +59,107 @@ export default function ViewingForm({ propertyId, propertyTitle }) {
       setSent(true);
       setForm(initialForm);
     } catch (err) {
-      setError('Failed to book viewing');
+      setError('Failed to book viewing. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
     <>
-      <button
-        type="button"
-        className={styles.viewingButton}
-        onClick={() => setOpen(true)}
-      >
+        <button
+          type="button"
+          className={styles.trigger}
+          onClick={() => setOpen(true)}
+        >
         Book a viewing
       </button>
-      {open && <div className={styles.overlay} onClick={handleClose}></div>}
-
-      <aside className={`${styles.drawer} ${open ? styles.open : ''}`}>
-        <div className={styles.header}>
-          <h2>Book a viewing</h2>
-          <button
-            type="button"
-            className={styles.close}
-            onClick={handleClose}
-            aria-label="Close"
-          >
-            &times;
-          </button>
-        </div>
+      <PropertyActionDrawer
+        open={open}
+        onClose={handleClose}
+        title="Book a viewing"
+        description="Let us know when you'd like to see this home and we'll confirm the appointment."
+        property={property}
+      >
         {sent ? (
-          <p className={styles.success}>Thank you, we'll be in touch soon.</p>
+          <div className={styles.feedback}>
+            <h3>Request received</h3>
+            <p>Thank you, we'll be in touch soon to confirm the viewing.</p>
+            <button type="button" className={styles.feedbackButton} onClick={handleClose}>
+              Close
+            </button>
+          </div>
         ) : (
           <form className={styles.form} onSubmit={handleSubmit}>
-            <p className={styles.address}>{propertyTitle}</p>
-            <label htmlFor="viewing-name">Name</label>
-            <input
-              id="viewing-name"
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              autoComplete="name"
-            />
-            <label htmlFor="viewing-email">Email</label>
-            <input
-              id="viewing-email"
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              autoComplete="email"
-            />
-            <label htmlFor="viewing-phone">Phone</label>
-            <input
-              id="viewing-phone"
-              type="tel"
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              autoComplete="tel"
-            />
-            <label htmlFor="viewing-date">Preferred Date</label>
-            <input
-              id="viewing-date"
-              type="date"
-              name="date"
-              value={form.date}
-              onChange={handleChange}
-              autoComplete="off"
-            />
-            <label htmlFor="viewing-time">Preferred Time</label>
-            <input
-              id="viewing-time"
-              type="time"
-              name="time"
-              value={form.time}
-              onChange={handleChange}
-              autoComplete="off"
-            />
+            <div className={styles.fieldRow}>
+              <div className={styles.field}>
+                <label htmlFor="viewing-name">Full name</label>
+                <input
+                  id="viewing-name"
+                  type="text"
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  autoComplete="name"
+                  required
+                />
+              </div>
+              <div className={styles.field}>
+                <label htmlFor="viewing-email">Email address</label>
+                <input
+                  id="viewing-email"
+                  type="email"
+                  name="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  autoComplete="email"
+                  required
+                />
+              </div>
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="viewing-phone">Phone number</label>
+              <input
+                id="viewing-phone"
+                type="tel"
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                autoComplete="tel"
+                required
+              />
+            </div>
+            <div className={styles.fieldRow}>
+              <div className={styles.field}>
+                <label htmlFor="viewing-date">Preferred date</label>
+                <input
+                  id="viewing-date"
+                  type="date"
+                  name="date"
+                  value={form.date}
+                  onChange={handleChange}
+                  autoComplete="off"
+                />
+              </div>
+              <div className={styles.field}>
+                <label htmlFor="viewing-time">Preferred time</label>
+                <input
+                  id="viewing-time"
+                  type="time"
+                  name="time"
+                  value={form.time}
+                  onChange={handleChange}
+                  autoComplete="off"
+                />
+              </div>
+            </div>
             {error && <p className={styles.error}>{error}</p>}
-            <button type="submit" className={styles.submit}>
-              Request viewing
+            <button type="submit" className={styles.submit} disabled={submitting}>
+              {submitting ? 'Sending request…' : 'Request viewing'}
             </button>
           </form>
         )}
-      </aside>
+      </PropertyActionDrawer>
     </>
   );
 }
