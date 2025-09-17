@@ -13,7 +13,12 @@ import {
   fetchPropertiesByType,
   extractMedia,
   normalizeImages,
+  normalizeListingDescription,
 } from '../../lib/apex27.mjs';
+import {
+  resolvePropertyIdentifier,
+  propertyMatchesIdentifier,
+} from '../../lib/property-id.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
 import { formatRentFrequency } from '../../lib/format.mjs';
@@ -160,7 +165,7 @@ export async function getStaticPaths() {
   ]);
   const properties = [...sale, ...rent];
   const paths = properties
-    .map((p) => p.id ?? p.listingId ?? p.listing_id)
+    .map((property) => resolvePropertyIdentifier(property))
     .filter(Boolean)
     .map((id) => ({ params: { id: String(id) } }));
   return {
@@ -173,17 +178,16 @@ export async function getStaticProps({ params }) {
   const rawProperty = await fetchPropertyById(params.id);
   let formatted = null;
   if (rawProperty) {
+    const normalizedDescription = normalizeListingDescription(rawProperty);
     const imgList = normalizeImages(rawProperty.images || []);
     formatted = {
-      id: String(
-        rawProperty.id ?? rawProperty.listingId ?? rawProperty.listing_id
-      ),
+      id: resolvePropertyIdentifier(rawProperty) ?? String(params.id),
       title:
         rawProperty.displayAddress ||
         rawProperty.address1 ||
         rawProperty.title ||
         '',
-      description: rawProperty.description || rawProperty.summary || '',
+      description: normalizedDescription,
       price:
         rawProperty.price != null
           ? rawProperty.priceCurrency === 'GBP'
@@ -222,7 +226,7 @@ export async function getStaticProps({ params }) {
 
   const allRent = await fetchPropertiesByType('rent');
   const recommendations = allRent
-    .filter((p) => p.id !== params.id)
+    .filter((p) => !propertyMatchesIdentifier(p, params.id))
     .slice(0, 4);
 
   return { props: { property: formatted, recommendations } };
