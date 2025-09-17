@@ -61,6 +61,7 @@ export default function PropertyCard({ property }) {
     setCurrentImage(index);
   };
 
+
   const activeImage = hasImages ? images[currentImage] : null;
 
   return (
@@ -100,6 +101,7 @@ export default function PropertyCard({ property }) {
                       key={`${sliderKeyPrefix}-dot-${index}`}
                       className={`gallery-dot${index === currentImage ? ' active' : ''}`}
                       onClick={(event) => handleDotClick(event, index)}
+
                       aria-label={`View image ${index + 1}`}
                       aria-current={index === currentImage ? 'true' : undefined}
                     />
@@ -147,8 +149,8 @@ export default function PropertyCard({ property }) {
             )}
           </div>
         )}
-        {property.description && (
-          <p className="description">{property.description}</p>
+        {normalizedDescription && (
+          <p className="description">{truncatedDescription}</p>
         )}
         {property.id && <FavoriteButton propertyId={property.id} />}
       </div>

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import PropertyCard from './PropertyCard';
 import { resolvePropertyIdentifier } from '../lib/property-id.mjs';
 
+
 export default function PropertyList({ properties }) {
   return (
     <div className="property-list">
