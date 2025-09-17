@@ -1,18 +1,39 @@
 import Link from 'next/link';
 import PropertyCard from './PropertyCard';
+import { resolvePropertyIdentifier } from '../lib/property-id.mjs';
 
 export default function PropertyList({ properties }) {
   return (
     <div className="property-list">
-      {properties.map((p) => (
-        <Link
-          href={`/property/${p.id}`}
-          key={p.id}
-          className="property-link"
-        >
-          <PropertyCard property={p} />
-        </Link>
-      ))}
+      {properties.map((property, index) => {
+        if (!property) {
+          return null;
+        }
+        const propertyId = resolvePropertyIdentifier(property);
+        const cardProps =
+          propertyId && property?.id !== propertyId
+            ? { ...property, id: propertyId }
+            : property;
+        const key = propertyId ?? `${property?.title ?? 'property'}-${index}`;
+
+        if (!propertyId) {
+          return (
+            <div key={key} className="property-link property-card-wrapper">
+              <PropertyCard property={cardProps} />
+            </div>
+          );
+        }
+
+        return (
+          <Link
+            href={`/property/${encodeURIComponent(propertyId)}`}
+            key={key}
+            className="property-link"
+          >
+            <PropertyCard property={cardProps} />
+          </Link>
+        );
+      })}
     </div>
   );
 }
