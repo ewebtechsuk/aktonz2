@@ -1,10 +1,17 @@
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import styles from '../styles/Header.module.css';
 
 export default function Header() {
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [landlordOpen, setLandlordOpen] = useState(false);
+
+  const isPathActive = (href) => router.pathname === href;
+  const isSectionActive = (href) =>
+    router.pathname === href || router.pathname.startsWith(`${href}/`);
+  const isLandlordsActive = isSectionActive('/landlords');
 
   const toggleMenu = () => setMenuOpen((prev) => !prev);
   const closeMenu = () => {
@@ -20,7 +27,9 @@ export default function Header() {
     >
       <button
         type="button"
-        className={`${styles.navLink} ${styles.navButton}`}
+        className={`${styles.navLink} ${styles.navButton} ${
+          isLandlordsActive ? styles.active : ''
+        }`}
         onClick={() => setLandlordOpen((prev) => !prev)}
       >
         Landlords
@@ -56,20 +65,55 @@ export default function Header() {
 
   const navLinks = (
     <>
-      <Link href="/for-sale" className={styles.navLink} onClick={closeMenu}>
+      <Link
+        href="/for-sale"
+        className={`${styles.navLink} ${
+          isPathActive('/for-sale') ? styles.active : ''
+        }`}
+        onClick={closeMenu}
+        aria-current={isPathActive('/for-sale') ? 'page' : undefined}
+      >
         Buy
       </Link>
-      <Link href="/to-rent" className={styles.navLink} onClick={closeMenu}>
+      <Link
+        href="/to-rent"
+        className={`${styles.navLink} ${
+          isPathActive('/to-rent') ? styles.active : ''
+        }`}
+        onClick={closeMenu}
+        aria-current={isPathActive('/to-rent') ? 'page' : undefined}
+      >
         Rent
       </Link>
-      {landlordMenu}
-      <Link href="/sell" className={styles.navLink} onClick={closeMenu}>
+      <Link
+        href="/sell"
+        className={`${styles.navLink} ${
+          isPathActive('/sell') ? styles.active : ''
+        }`}
+        onClick={closeMenu}
+        aria-current={isPathActive('/sell') ? 'page' : undefined}
+      >
         Sell
       </Link>
-      <Link href="/discover" className={styles.navLink} onClick={closeMenu}>
-        Discover
+      {landlordMenu}
+      <Link
+        href="/about"
+        className={`${styles.navLink} ${
+          isPathActive('/about') ? styles.active : ''
+        }`}
+        onClick={closeMenu}
+        aria-current={isPathActive('/about') ? 'page' : undefined}
+      >
+        About
       </Link>
-      <Link href="/contact" className={styles.navLink} onClick={closeMenu}>
+      <Link
+        href="/contact"
+        className={`${styles.navLink} ${
+          isPathActive('/contact') ? styles.active : ''
+        }`}
+        onClick={closeMenu}
+        aria-current={isPathActive('/contact') ? 'page' : undefined}
+      >
         Contact
       </Link>
     </>

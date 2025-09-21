@@ -33,6 +33,8 @@
   text-decoration: none;
   color: var(--color-primary);
   font-size: 1rem;
+  position: relative;
+  padding-bottom: var(--spacing-xs);
 }
 
 .navButton {
@@ -41,6 +43,23 @@
   cursor: pointer;
   font: inherit;
   padding: 0;
+  position: relative;
+}
+
+.active {
+  color: #0b6b67;
+  font-weight: 600;
+}
+
+.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 3px;
+  border-radius: 999px;
+  background: #0b6b67;
 }
 
 .dropdown {
