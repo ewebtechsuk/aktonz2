@@ -20,7 +20,7 @@ import {
 } from '../../lib/property-id.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
-import { formatRentFrequency } from '../../lib/format.mjs';
+import { formatRentFrequency, formatPriceGBP } from '../../lib/format.mjs';
 
 function parsePriceNumber(value) {
   return Number(String(value).replace(/[^0-9.]/g, '')) || 0;
@@ -175,6 +175,7 @@ export async function getStaticProps({ params }) {
   let formatted = null;
   if (rawProperty) {
     const imgList = normalizeImages(rawProperty.images || []);
+    const isSalePrice = rawProperty.rentFrequency == null;
     formatted = {
       id: resolvePropertyIdentifier(rawProperty) ?? String(params.id),
       title:
@@ -186,7 +187,7 @@ export async function getStaticProps({ params }) {
       price:
         rawProperty.price != null
           ? rawProperty.priceCurrency === 'GBP'
-            ? `£${rawProperty.price}`
+            ? formatPriceGBP(rawProperty.price, { isSale: isSalePrice })
             : rawProperty.price
           : null,
       rentFrequency: rawProperty.rentFrequency ?? null,
