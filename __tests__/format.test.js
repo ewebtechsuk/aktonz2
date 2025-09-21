@@ -1,7 +1,8 @@
 let formatRentFrequency;
+let formatPriceGBP;
 
 beforeAll(async () => {
-  ({ formatRentFrequency } = await import('../lib/format.mjs'));
+  ({ formatRentFrequency, formatPriceGBP } = await import('../lib/format.mjs'));
 });
 
 describe('formatRentFrequency', () => {
@@ -18,5 +19,20 @@ describe('formatRentFrequency', () => {
 
   test('returns empty string for falsy input', () => {
     expect(formatRentFrequency()).toBe('');
+  });
+});
+
+describe('formatPriceGBP', () => {
+  test('rounds up to the nearest pound for rent prices', () => {
+    expect(formatPriceGBP('950.10')).toBe('£951');
+  });
+
+  test('adds thousand separators for sale prices', () => {
+    expect(formatPriceGBP('450000.01', { isSale: true })).toBe('£450,001');
+  });
+
+  test('returns empty string for invalid values', () => {
+    expect(formatPriceGBP(null)).toBe('');
+    expect(formatPriceGBP('')).toBe('');
   });
 });
