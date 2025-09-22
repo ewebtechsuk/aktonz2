@@ -1,0 +1,318 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-xl) var(--spacing-md);
+  background: linear-gradient(180deg, #f8f8f8 0%, var(--color-background) 100%);
+}
+
+.hero {
+  display: grid;
+  gap: var(--spacing-lg);
+  background: var(--color-background);
+  border-radius: 12px;
+  padding: var(--spacing-lg);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(0, 112, 243, 0.12), transparent 55%);
+  pointer-events: none;
+}
+
+.heroContent {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  max-width: 720px;
+}
+
+.eyebrow {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-muted-text);
+  font-weight: 600;
+}
+
+.heroTitle {
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  line-height: 1.1;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.heroSubtitle {
+  font-size: 1.15rem;
+  color: var(--color-muted-text);
+  max-width: 620px;
+}
+
+.heroHighlights {
+  position: relative;
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.highlightCard {
+  border: 1px solid var(--color-border-light);
+  border-radius: 10px;
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+}
+
+.highlightTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+}
+
+.highlightDescription {
+  color: var(--color-muted-text);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.metrics {
+  display: grid;
+  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.metric {
+  background: var(--color-background);
+  border-radius: 12px;
+  padding: var(--spacing-lg) var(--spacing-md);
+  text-align: center;
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+}
+
+.metricNumber {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.metricLabel {
+  margin-top: var(--spacing-xs);
+  color: var(--color-muted-text);
+  font-size: 0.95rem;
+}
+
+.twoColumn {
+  display: grid;
+  gap: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  align-items: start;
+}
+
+.sectionTitle {
+  font-size: 2rem;
+  margin: 0 0 var(--spacing-sm);
+}
+
+.sectionSubtitle {
+  color: var(--color-muted-text);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.cardList {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.card {
+  background: var(--color-background);
+  padding: var(--spacing-lg) var(--spacing-md);
+  border-radius: 10px;
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.04);
+}
+
+.cardTitle {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 1.1rem;
+}
+
+.cardDescription {
+  margin: 0;
+  color: var(--color-muted-text);
+  line-height: 1.5;
+}
+
+.values {
+  background: var(--color-background);
+  border-radius: 12px;
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border-light);
+}
+
+.valueGrid {
+  display: grid;
+  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-top: var(--spacing-lg);
+}
+
+.valueCard {
+  padding: var(--spacing-md);
+  border-radius: 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+}
+
+.valueTitle {
+  margin: 0 0 var(--spacing-xs);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.valueDescription {
+  margin: 0;
+  color: var(--color-muted-text);
+  line-height: 1.6;
+}
+
+.timeline {
+  background: var(--color-background);
+  border-radius: 12px;
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border-light);
+}
+
+.timelineList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.timelineItem {
+  display: grid;
+  gap: var(--spacing-sm);
+  grid-template-columns: minmax(60px, auto) 1fr;
+  align-items: start;
+}
+
+.timelineYear {
+  font-weight: 700;
+  color: var(--color-primary);
+  font-size: 1.1rem;
+}
+
+.timelineContent {
+  background: var(--color-surface);
+  padding: var(--spacing-md);
+  border-radius: 10px;
+  border: 1px solid var(--color-border-light);
+  line-height: 1.5;
+  color: var(--color-muted-text);
+}
+
+.services {
+  background: var(--color-background);
+  border-radius: 12px;
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border-light);
+}
+
+.serviceGrid {
+  display: grid;
+  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-top: var(--spacing-lg);
+}
+
+.serviceCard {
+  padding: var(--spacing-md);
+  border-radius: 10px;
+  border: 1px solid var(--color-border-light);
+  background: var(--color-surface);
+}
+
+.cta {
+  background: var(--color-primary);
+  color: var(--color-background);
+  border-radius: 16px;
+  padding: calc(var(--spacing-lg) * 1.2) var(--spacing-lg);
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.ctaTitle {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.ctaDescription {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  max-width: 640px;
+}
+
+.ctaActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.primaryButton,
+.secondaryButton {
+  border-radius: 999px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.primaryButton {
+  background: var(--color-accent);
+  color: var(--color-text);
+}
+
+.secondaryButton {
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--color-background);
+}
+
+@media (min-width: 960px) {
+  .hero {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .heroHighlights {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .main {
+    padding: var(--spacing-lg) var(--spacing-sm);
+  }
+
+  .hero {
+    padding: var(--spacing-md);
+  }
+
+  .metric {
+    padding: var(--spacing-md);
+  }
+
+  .timelineItem {
+    grid-template-columns: 1fr;
+  }
+}
