@@ -37,6 +37,7 @@ body {
   transition: box-shadow 0.2s, transform 0.2s;
   width: 323px;
   height: auto;
+
 }
 
 .property-list .property-link:hover .property-card,
