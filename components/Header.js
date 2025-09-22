@@ -147,6 +147,16 @@ export default function Header() {
         About
       </Link>
       <Link
+        href="/jobs"
+        className={`${styles.navLink} ${
+          isPathActive('/jobs') ? styles.active : ''
+        }`}
+        onClick={closeMenu}
+        aria-current={isPathActive('/jobs') ? 'page' : undefined}
+      >
+        Careers
+      </Link>
+      <Link
         href="/contact"
         className={`${styles.navLink} ${
           isPathActive('/contact') ? styles.active : ''
