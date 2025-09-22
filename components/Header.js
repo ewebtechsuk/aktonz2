@@ -6,18 +6,64 @@ import styles from '../styles/Header.module.css';
 export default function Header() {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sellOpen, setSellOpen] = useState(false);
   const [landlordOpen, setLandlordOpen] = useState(false);
 
   const isPathActive = (href) => router.pathname === href;
   const isSectionActive = (href) =>
     router.pathname === href || router.pathname.startsWith(`${href}/`);
+  const isSellActive = isSectionActive('/sell');
   const isLandlordsActive = isSectionActive('/landlords');
 
   const toggleMenu = () => setMenuOpen((prev) => !prev);
   const closeMenu = () => {
     setMenuOpen(false);
+    setSellOpen(false);
     setLandlordOpen(false);
   };
+
+  const sellMenu = (
+    <div
+      className={styles.dropdown}
+      onMouseEnter={() => setSellOpen(true)}
+      onMouseLeave={() => setSellOpen(false)}
+    >
+      <button
+        type="button"
+        className={`${styles.navLink} ${styles.navButton} ${
+          isSellActive ? styles.active : ''
+        }`}
+        onClick={() => setSellOpen((prev) => !prev)}
+        aria-haspopup="true"
+        aria-expanded={sellOpen}
+        aria-current={isSellActive ? 'page' : undefined}
+      >
+        Sell
+      </button>
+      <div
+        className={`${styles.dropdownMenu} ${styles.sellDropdownMenu} ${
+          sellOpen ? styles.show : ''
+        }`}
+      >
+        <Link href="/valuation" onClick={closeMenu}>
+          Get a valuation
+        </Link>
+        <Link href="/sell" onClick={closeMenu}>
+          Sell your home
+        </Link>
+        <Link href="/sell#auctions" onClick={closeMenu}>
+          Auctions
+        </Link>
+        <Link
+          href="/sell#seller-help"
+          className={`${styles.arrow} ${styles.sellArrow}`}
+          onClick={closeMenu}
+        >
+          Help for sellers
+        </Link>
+      </div>
+    </div>
+  );
 
   const landlordMenu = (
     <div
@@ -31,6 +77,9 @@ export default function Header() {
           isLandlordsActive ? styles.active : ''
         }`}
         onClick={() => setLandlordOpen((prev) => !prev)}
+        aria-haspopup="true"
+        aria-expanded={landlordOpen}
+        aria-current={isLandlordsActive ? 'page' : undefined}
       >
         Landlords
       </button>
@@ -85,16 +134,7 @@ export default function Header() {
       >
         Rent
       </Link>
-      <Link
-        href="/sell"
-        className={`${styles.navLink} ${
-          isPathActive('/sell') ? styles.active : ''
-        }`}
-        onClick={closeMenu}
-        aria-current={isPathActive('/sell') ? 'page' : undefined}
-      >
-        Sell
-      </Link>
+      {sellMenu}
       {landlordMenu}
       <Link
         href="/about"
