@@ -35,8 +35,8 @@ body {
   display: flex;
   flex-direction: column;
   transition: box-shadow 0.2s, transform 0.2s;
-  width: 100%;
-  height: 100%;
+  width: 323px;
+  height: auto;
 }
 
 .property-list .property-link:hover .property-card,
