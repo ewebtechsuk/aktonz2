@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import styles from '../styles/ListingFilters.module.css';
 
-const PRICE_OPTIONS = [
+const DEFAULT_MIN_PRICE_OPTIONS = [
   { label: 'No minimum', value: '' },
   { label: '£100,000', value: '100000' },
   { label: '£250,000', value: '250000' },
@@ -12,7 +12,7 @@ const PRICE_OPTIONS = [
   { label: '£1,500,000', value: '1500000' },
 ];
 
-const MAX_PRICE_OPTIONS = [
+const DEFAULT_MAX_PRICE_OPTIONS = [
   { label: 'No maximum', value: '' },
   { label: '£350,000', value: '350000' },
   { label: '£500,000', value: '500000' },
@@ -22,7 +22,7 @@ const MAX_PRICE_OPTIONS = [
   { label: '£2,000,000', value: '2000000' },
 ];
 
-const BEDROOM_OPTIONS = [
+const DEFAULT_BEDROOM_OPTIONS = [
   { label: 'Any beds', value: '' },
   { label: '1+', value: '1' },
   { label: '2+', value: '2' },
@@ -58,6 +58,19 @@ export default function ListingFilters({
   sortOrder = 'recommended',
   onSortChange,
   propertyTypes,
+  priceOptions = DEFAULT_MIN_PRICE_OPTIONS,
+  maxPriceOptions = DEFAULT_MAX_PRICE_OPTIONS,
+  bedroomOptions = DEFAULT_BEDROOM_OPTIONS,
+  resultNoun = 'home',
+  resultPluralNoun = 'homes',
+  submitLabel = 'Show homes',
+  searchPlaceholder = 'e.g. Canary Wharf, garden',
+  sortLabel = 'Sort by',
+  searchLabel = 'Search location or keyword',
+  minPriceLabel = 'Min price',
+  maxPriceLabel = 'Max price',
+  bedroomsLabel = 'Bedrooms',
+  propertyTypeLabel = 'Property type',
 }) {
   const [formState, setFormState] = useState(() => ({
     search: initialFilters?.search ?? '',
@@ -114,10 +127,10 @@ export default function ListingFilters({
       <div className={styles.headerRow}>
         <p className={styles.resultCount}>
           <strong>{totalResults}</strong>{' '}
-          {totalResults === 1 ? 'home' : 'homes'} available
+          {totalResults === 1 ? resultNoun : resultPluralNoun} available
         </p>
         <label className={styles.sortControl}>
-          <span>Sort by</span>
+          <span>{sortLabel}</span>
           <select
             name="sortOrder"
             value={sortOrder}
@@ -134,20 +147,20 @@ export default function ListingFilters({
 
       <div className={styles.controls}>
         <label className={styles.control}>
-          <span>Search location or keyword</span>
+          <span>{searchLabel}</span>
           <input
             type="search"
             name="search"
-            placeholder="e.g. Canary Wharf, garden"
+            placeholder={searchPlaceholder}
             value={formState.search}
             onChange={handleChange}
           />
         </label>
 
         <label className={styles.control}>
-          <span>Min price</span>
+          <span>{minPriceLabel}</span>
           <select name="minPrice" value={formState.minPrice} onChange={handleChange}>
-            {PRICE_OPTIONS.map((option) => (
+            {priceOptions.map((option) => (
               <option key={option.label} value={option.value}>
                 {option.label}
               </option>
@@ -156,9 +169,9 @@ export default function ListingFilters({
         </label>
 
         <label className={styles.control}>
-          <span>Max price</span>
+          <span>{maxPriceLabel}</span>
           <select name="maxPrice" value={formState.maxPrice} onChange={handleChange}>
-            {MAX_PRICE_OPTIONS.map((option) => (
+            {maxPriceOptions.map((option) => (
               <option key={option.label} value={option.value}>
                 {option.label}
               </option>
@@ -167,9 +180,9 @@ export default function ListingFilters({
         </label>
 
         <label className={styles.control}>
-          <span>Bedrooms</span>
+          <span>{bedroomsLabel}</span>
           <select name="bedrooms" value={formState.bedrooms} onChange={handleChange}>
-            {BEDROOM_OPTIONS.map((option) => (
+            {bedroomOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -178,7 +191,7 @@ export default function ListingFilters({
         </label>
 
         <label className={styles.control}>
-          <span>Property type</span>
+          <span>{propertyTypeLabel}</span>
           <select
             name="propertyType"
             value={formState.propertyType}
@@ -195,7 +208,7 @@ export default function ListingFilters({
 
       <div className={styles.actions}>
         <button type="submit" className={styles.applyButton}>
-          Show homes
+          {submitLabel}
         </button>
         <button type="button" className={styles.resetButton} onClick={handleReset}>
           Reset filters
