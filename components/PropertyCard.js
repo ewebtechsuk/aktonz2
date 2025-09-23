@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { formatRentFrequency } from '../lib/format.mjs';
+import { formatRentFrequency, formatPricePrefix } from '../lib/format.mjs';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
 import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
 
@@ -102,6 +102,11 @@ export default function PropertyCard({ property }) {
     property.typeLabel ??
     formatPropertyTypeLabel(property.propertyType ?? property.type ?? null);
 
+  const pricePrefixLabel =
+    !property.rentFrequency && property.pricePrefix
+      ? formatPricePrefix(property.pricePrefix)
+      : '';
+
   return (
     <div className={`property-card${isArchived ? ' archived' : ''}`}>
       <div className="image-wrapper">
@@ -169,6 +174,7 @@ export default function PropertyCard({ property }) {
         {property.price && (
           <p className="price">
             {property.price}
+            {pricePrefixLabel && ` ${pricePrefixLabel}`}
             {property.rentFrequency &&
               ` ${formatRentFrequency(property.rentFrequency)}`}
           </p>
