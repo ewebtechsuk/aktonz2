@@ -298,6 +298,7 @@ export async function getStaticProps({ params }) {
             : rawProperty.price
           : null,
       pricePrefix: extractPricePrefix(rawProperty) ?? null,
+
       rentFrequency: rawProperty.rentFrequency ?? null,
       image: imgList[0] || null,
       images: imgList,
