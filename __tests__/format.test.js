@@ -1,8 +1,11 @@
 let formatRentFrequency;
 let formatPriceGBP;
+let formatPricePrefix;
 
 beforeAll(async () => {
-  ({ formatRentFrequency, formatPriceGBP } = await import('../lib/format.mjs'));
+  ({ formatRentFrequency, formatPriceGBP, formatPricePrefix } = await import(
+    '../lib/format.mjs'
+  ));
 });
 
 describe('formatRentFrequency', () => {
@@ -34,5 +37,20 @@ describe('formatPriceGBP', () => {
   test('returns empty string for invalid values', () => {
     expect(formatPriceGBP(null)).toBe('');
     expect(formatPriceGBP('')).toBe('');
+  });
+});
+
+describe('formatPricePrefix', () => {
+  test('maps known prefixes', () => {
+    expect(formatPricePrefix('offers_invited')).toBe('Offers invited');
+    expect(formatPricePrefix('oiro')).toBe('OIRO');
+  });
+
+  test('formats unknown prefixes', () => {
+    expect(formatPricePrefix('best_and_final')).toBe('Best And Final');
+  });
+
+  test('returns empty string for falsy input', () => {
+    expect(formatPricePrefix(null)).toBe('');
   });
 });
