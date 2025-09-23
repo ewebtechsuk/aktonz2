@@ -10,7 +10,8 @@
     "postbuild": "mkdir -p out && touch out/.nojekyll",
     "start": "next start",
     "cache": "node scripts/cacheListings.mjs",
-    "monitor": "node scripts/monitor-prices.js"
+    "monitor": "node scripts/monitor-prices.js",
+    "sync:scraye": "node scripts/syncScraye.mjs"
   },
   "keywords": [],
   "author": "",
@@ -19,12 +20,14 @@
     "leaflet": "^1.9.4",
     "next": "^15.5.2",
     "nodemailer": "^6.9.11",
+    "playwright": "^1.49.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-icons": "^4.12.0",
     "react-responsive-carousel": "^3.2.23",
     "react-slick": "^0.31.0",
-    "slick-carousel": "^1.8.1"
+    "slick-carousel": "^1.8.1",
+    "undici": "^6.19.5"
   },
   "devDependencies": {
     "@turf/turf": "^7.2.0",

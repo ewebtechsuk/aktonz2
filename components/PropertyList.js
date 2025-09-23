@@ -18,11 +18,39 @@ export default function PropertyList({ properties }) {
             : property;
         const key = propertyId ?? `${property?.title ?? 'property'}-${index}`;
 
+        const externalUrl = property.externalUrl;
         if (!propertyId) {
+          if (externalUrl) {
+            return (
+              <a
+                key={key}
+                href={externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="property-link property-card-wrapper"
+              >
+                <PropertyCard property={cardProps} />
+              </a>
+            );
+          }
           return (
             <div key={key} className="property-link property-card-wrapper">
               <PropertyCard property={cardProps} />
             </div>
+          );
+        }
+
+        if (externalUrl && property.source === 'scraye') {
+          return (
+            <a
+              key={key}
+              href={externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="property-link property-card-wrapper"
+            >
+              <PropertyCard property={cardProps} />
+            </a>
           );
         }
 

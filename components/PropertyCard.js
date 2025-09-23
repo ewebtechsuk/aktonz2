@@ -16,7 +16,15 @@ export default function PropertyCard({ property }) {
     property.id || property.listingId || property.listing_id || title;
 
   const galleryImages = Array.isArray(property.images)
-    ? property.images.filter(Boolean)
+    ? property.images
+        .map((img) => {
+          if (!img) return null;
+          if (typeof img === 'string') return img;
+          if (img.url) return img.url;
+          if (img.thumbnailUrl) return img.thumbnailUrl;
+          return null;
+        })
+        .filter(Boolean)
     : [];
 
   const images =
