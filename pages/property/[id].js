@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import PropertyList from '../../components/PropertyList';
 import MediaGallery from '../../components/MediaGallery';
 import OfferDrawer from '../../components/OfferDrawer';
@@ -6,6 +7,7 @@ import NeighborhoodInfo from '../../components/NeighborhoodInfo';
 
 import MortgageCalculator from '../../components/MortgageCalculator';
 import RentAffordability from '../../components/RentAffordability';
+import PropertyMap from '../../components/PropertyMap';
 import Head from 'next/head';
 import {
   fetchPropertyById,
@@ -56,6 +58,38 @@ export default function Property({ property, recommendations }) {
     );
   }
   const features = Array.isArray(property.features) ? property.features : [];
+  const hasLocation =
+    property.latitude != null && property.longitude != null;
+  const mapProperties = useMemo(
+    () => {
+      if (!hasLocation) return [];
+      return [
+        {
+          id: property.id,
+          title: property.title,
+          price: property.price,
+          rentFrequency: property.rentFrequency,
+          tenure: property.tenure ?? null,
+          image: property.image ?? null,
+          propertyType: property.type ?? null,
+          lat: property.latitude,
+          lng: property.longitude,
+        },
+      ];
+    },
+    [
+      hasLocation,
+      property.id,
+      property.image,
+      property.latitude,
+      property.longitude,
+      property.price,
+      property.rentFrequency,
+      property.tenure,
+      property.title,
+      property.type,
+    ]
+  );
 
   return (
     <>
@@ -102,6 +136,20 @@ export default function Property({ property, recommendations }) {
           </div>
         </div>
       </section>
+
+      {hasLocation && (
+        <section className={styles.mapSection}>
+          <h2>Location</h2>
+          <div className={styles.mapContainer}>
+            <PropertyMap
+              mapId="property-details-map"
+              center={[property.latitude, property.longitude]}
+              zoom={16}
+              properties={mapProperties}
+            />
+          </div>
+        </section>
+      )}
 
       {features.length > 0 && (
         <section className={styles.features}>
@@ -176,6 +224,27 @@ export async function getStaticProps({ params }) {
   if (rawProperty) {
     const imgList = normalizeImages(rawProperty.images || []);
     const isSalePrice = rawProperty.rentFrequency == null;
+    const rawOutcode =
+      rawProperty.outcode ??
+      rawProperty.postcode ??
+      rawProperty.postCode ??
+      rawProperty.address?.postcode ??
+      null;
+    const normalizedOutcode =
+      typeof rawOutcode === 'string' && rawOutcode.trim()
+        ? rawOutcode.trim().split(/\s+/)[0]
+        : null;
+    const cityCandidates = [
+      rawProperty.city,
+      rawProperty.town,
+      rawProperty.locality,
+      rawProperty.area,
+      rawProperty._scraye?.placeName,
+    ];
+    const normalizedCity =
+      cityCandidates.find(
+        (value) => typeof value === 'string' && value.trim()
+      )?.trim() ?? null;
     formatted = {
       id: resolvePropertyIdentifier(rawProperty) ?? String(params.id),
       title:
@@ -194,6 +263,7 @@ export async function getStaticProps({ params }) {
       image: imgList[0] || null,
       images: imgList,
       media: extractMedia(rawProperty),
+      tenure: rawProperty.tenure ?? null,
       features: (() => {
         const rawFeatures =
           rawProperty.mainFeatures ||
@@ -217,6 +287,8 @@ export async function getStaticProps({ params }) {
       bathrooms: rawProperty.bathrooms ?? rawProperty.baths ?? null,
       latitude: rawProperty.latitude ?? null,
       longitude: rawProperty.longitude ?? null,
+      city: normalizedCity,
+      outcode: normalizedOutcode,
     };
   }
 

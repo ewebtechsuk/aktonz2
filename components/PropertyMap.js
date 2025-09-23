@@ -6,8 +6,23 @@ export default function PropertyMap({
   properties = [],
   center = [51.5, -0.1],
   zoom = 12,
+  mapId = 'property-map',
 }) {
   const router = useRouter();
+  const centerKey = Array.isArray(center) ? center.join(',') : '';
+  const propertiesKey = JSON.stringify(
+    properties.map((p) => ({
+      id: p.id,
+      lat: p.lat,
+      lng: p.lng,
+      price: p.price,
+      rentFrequency: p.rentFrequency,
+      tenure: p.tenure,
+      image: p.image,
+      title: p.title,
+      propertyType: p.propertyType,
+    }))
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -18,8 +33,7 @@ export default function PropertyMap({
 
       // Configure default icon paths so markers appear correctly
       L.Icon.Default.mergeOptions({
-        iconRetinaUrl:
-          'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
         iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
         shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
       });
@@ -36,35 +50,39 @@ export default function PropertyMap({
         });
       };
 
-      map = L.map('property-map').setView(center, zoom);
+      const container = document.getElementById(mapId);
+      if (!container) {
+        return;
+      }
+
+      map = L.map(mapId).setView(center, zoom);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
-        properties.forEach((p) => {
-          if (typeof p.lat === 'number' && typeof p.lng === 'number') {
-            const marker = L.marker([p.lat, p.lng], {
-              icon: getIcon(p.propertyType),
-            }).addTo(map);
+      properties.forEach((p) => {
+        if (typeof p.lat === 'number' && typeof p.lng === 'number') {
+          const marker = L.marker([p.lat, p.lng], {
+            icon: getIcon(p.propertyType),
+          }).addTo(map);
 
-            const priceText = p.price
-              ? p.rentFrequency
-                ? `${p.price} ${formatRentFrequency(p.rentFrequency)}`
-                : p.tenure
-                ? `${p.price} ${p.tenure}`
-                : p.price
-              : '';
+          const priceText = p.price
+            ? p.rentFrequency
+              ? `${p.price} ${formatRentFrequency(p.rentFrequency)}`
+              : p.tenure
+              ? `${p.price} ${p.tenure}`
+              : p.price
+            : '';
 
-            const imgHtml = p.image
-              ? `<img src="${p.image}" alt="${p.title}" style="width:100px;height:auto;display:block;"/>`
-              : '';
+          const imgHtml = p.image
+            ? `<img src="${p.image}" alt="${p.title}" style="width:100px;height:auto;display:block;"/>`
+            : '';
 
-            const popupHtml = `<a href="${router.basePath}/property/${p.id}" style="text-decoration:none;">${imgHtml}<strong>${p.title}</strong><br/>${priceText}</a>`;
-            marker.bindPopup(popupHtml);
-          }
-        });
-
+          const popupHtml = `<a href="${router.basePath}/property/${p.id}" style="text-decoration:none;">${imgHtml}<strong>${p.title}</strong><br/>${priceText}</a>`;
+          marker.bindPopup(popupHtml);
+        }
+      });
     }
 
     initMap();
@@ -72,9 +90,7 @@ export default function PropertyMap({
     return () => {
       if (map) map.remove();
     };
-  }, [properties, center, zoom, router.basePath]);
+  }, [propertiesKey, centerKey, zoom, router.basePath, mapId]);
 
-  return (
-    <div id="property-map" style={{ height: 'var(--map-height)', width: '100%' }} />
-  );
+  return <div id={mapId} style={{ height: 'var(--map-height)', width: '100%' }} />;
 }

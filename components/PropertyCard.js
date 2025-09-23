@@ -72,6 +72,31 @@ export default function PropertyCard({ property }) {
   };
 
   const activeImage = hasImages ? images[currentImage] : null;
+  const townCandidate =
+    property.city ??
+    property.town ??
+    property.locality ??
+    property.area ??
+    property._scraye?.placeName ??
+    null;
+  const town =
+    typeof townCandidate === 'string' && townCandidate.trim()
+      ? townCandidate.trim()
+      : null;
+  const postcodeCandidate =
+    property.outcode ??
+    property.postcode ??
+    property.postCode ??
+    property._scraye?.outcode ??
+    null;
+  const postcode =
+    typeof postcodeCandidate === 'string' && postcodeCandidate.trim()
+      ? postcodeCandidate.trim().split(/\s+/)[0]
+      : null;
+  const locationParts = [];
+  if (town) locationParts.push(town);
+  if (postcode) locationParts.push(postcode);
+  const locationText = locationParts.join(' · ');
 
   return (
     <div className={`property-card${isArchived ? ' archived' : ''}`}>
@@ -135,6 +160,7 @@ export default function PropertyCard({ property }) {
       </div>
       <div className="details">
         <h3 className="title">{property.title}</h3>
+        {locationText && <p className="location">{locationText}</p>}
         {property.price && (
           <p className="price">
             {property.price}
