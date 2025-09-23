@@ -16,6 +16,7 @@ import {
   fetchPropertiesByType,
   extractMedia,
   normalizeImages,
+  extractPricePrefix,
 } from '../../lib/apex27.mjs';
 import {
   resolvePropertyIdentifier,
@@ -27,7 +28,11 @@ import {
 } from '../../lib/property-type.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
-import { formatRentFrequency, formatPriceGBP } from '../../lib/format.mjs';
+import {
+  formatRentFrequency,
+  formatPriceGBP,
+  formatPricePrefix,
+} from '../../lib/format.mjs';
 
 function parsePriceNumber(value) {
   return Number(String(value).replace(/[^0-9.]/g, '')) || 0;
@@ -69,6 +74,10 @@ export default function Property({ property, recommendations }) {
     formatPropertyTypeLabel(property.propertyType ?? property.type ?? null);
   const hasLocation =
     property.latitude != null && property.longitude != null;
+  const pricePrefixLabel =
+    !property.rentFrequency && property.pricePrefix
+      ? formatPricePrefix(property.pricePrefix)
+      : '';
   const mapProperties = useMemo(
     () => {
       if (!hasLocation) return [];
@@ -145,6 +154,7 @@ export default function Property({ property, recommendations }) {
           {property.price && (
             <p className={styles.price}>
               {property.price}
+              {pricePrefixLabel && ` ${pricePrefixLabel}`}
               {property.rentFrequency &&
                 ` ${formatRentFrequency(property.rentFrequency)}`}
             </p>
@@ -287,6 +297,7 @@ export async function getStaticProps({ params }) {
             ? formatPriceGBP(rawProperty.price, { isSale: isSalePrice })
             : rawProperty.price
           : null,
+      pricePrefix: extractPricePrefix(rawProperty) ?? null,
       rentFrequency: rawProperty.rentFrequency ?? null,
       image: imgList[0] || null,
       images: imgList,
