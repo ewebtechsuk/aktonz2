@@ -1,3 +1,6 @@
+import { loginPortalAccount, registerPortalAccount } from '../../lib/apex27-portal.js';
+import { clearSession, writeSession } from '../../lib/session.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
@@ -16,57 +19,49 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { email } = req.body || {};
+  const { email, password } = req.body || {};
   if (!email) {
     res.status(400).json({ error: 'Missing email' });
     return;
   }
+  if (!password) {
+    res.status(400).json({ error: 'Missing password' });
+    return;
+  }
 
   try {
-    const apiKey =
-      process.env.APEX27_API_KEY || process.env.NEXT_PUBLIC_APEX27_API_KEY;
-    const branchId =
-      process.env.APEX27_BRANCH_ID || process.env.NEXT_PUBLIC_APEX27_BRANCH_ID;
-    if (!apiKey) {
-      // Missing configuration is a client error rather than a server fault.
-      res.status(400).json({ error: 'Apex27 API key not configured' });
-      return;
-    }
+    const registration = await registerPortalAccount({ email, password });
 
-    const body = { email };
-    if (branchId) {
-      body.branchId = branchId;
-    }
+    let token = null;
+    let contact = null;
 
-    const response = await fetch('https://api.apex27.co.uk/contacts', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-      let data = {};
-      try {
-        data = await response.json();
-      } catch (_) {
-        // Non-JSON responses fall through with a generic message.
+    try {
+      const loginResult = await loginPortalAccount({ email, password });
+      token = loginResult?.token || loginResult?.data?.token || null;
+      contact = loginResult?.contact || loginResult?.data?.contact || registration?.contact || null;
+      if (!contact) {
+        contact = registration?.contact || registration || null;
       }
-      res
-        .status(response.status)
-        .json({ error: data.error || data.message || 'Failed to register' });
-      return;
+    } catch (loginError) {
+      // Registration succeeded but login failed. We still create a session with minimal context.
+      contact = registration?.contact || registration || null;
+      console.warn('Registration succeeded but login failed', loginError);
     }
 
+    if (contact?.id || contact?.contactId) {
+      const contactId = contact.id || contact.contactId;
+      try {
+        writeSession(res, { contactId, token: token || null, email });
+      } catch (sessionError) {
+        console.error('Failed to persist session after registration', sessionError);
+        clearSession(res);
+      }
+    }
 
-    res.status(200).json({ ok: true });
+    res.status(200).json({ ok: true, contact: contact || null, token: token || null });
   } catch (err) {
     console.error('Failed to register contact', err);
     const message = err instanceof Error ? err.message : 'Failed to register';
-    // Treat upstream failures as a bad gateway to avoid generic 500 errors.
     res.status(502).json({ error: message });
   }
 }

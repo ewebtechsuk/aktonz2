@@ -57,3 +57,9 @@
   color: var(--color-muted-text);
   text-align: center;
 }
+
+.status {
+  margin-top: var(--spacing-md);
+  text-align: center;
+  color: var(--color-accent);
+}

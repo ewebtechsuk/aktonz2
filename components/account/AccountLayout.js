@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 import styles from '../../styles/AccountLayout.module.css';
+import { useSession } from '../SessionProvider';
 
 const PRIMARY_NAV_ITEMS = [
   {
@@ -59,6 +60,21 @@ export default function AccountLayout({
   children,
 }) {
   const router = useRouter();
+  const { user, email, loading } = useSession();
+
+  const displayName = user
+    ? [user.firstName, user.surname].filter(Boolean).join(' ').trim()
+    : null;
+  const fallbackName = email || 'Guest user';
+  const userName = displayName || fallbackName;
+
+  const initialsSource = displayName || email || 'A';
+  const userInitial = initialsSource
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('') || 'A';
 
   function isActive(path) {
     if (!path) return false;
@@ -107,10 +123,12 @@ export default function AccountLayout({
           </nav>
 
           <div className={styles.userMenu}>
-            <span className={styles.userInitial}>JT</span>
+            <span className={styles.userInitial}>{userInitial}</span>
             <div className={styles.userDetails}>
-              <span className={styles.userName}>Juliet Taphouse</span>
-              <span className={styles.userStatus}>Logged in</span>
+              <span className={styles.userName}>{userName}</span>
+              <span className={styles.userStatus}>
+                {loading ? 'Loading account…' : user ? 'Logged in' : 'Not signed in'}
+              </span>
             </div>
             <button type="button" className={styles.userCaret} aria-label="Account menu" />
           </div>
