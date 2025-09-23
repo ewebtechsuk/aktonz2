@@ -8,7 +8,7 @@ import styles from '../styles/Register.module.css';
 
 export default function Register() {
   const router = useRouter();
-  const { refresh } = useSession();
+  const { refresh, setSession, clearSession } = useSession();
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -39,27 +39,35 @@ export default function Register() {
         credentials: 'include',
         body: JSON.stringify(body),
       });
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (parseError) {
+        data = {};
+      }
 
-      if (res.ok) {
-        setStatus('Registration successful. Redirecting...');
-        try {
-          await refresh();
-        } catch (refreshError) {
-          console.warn('Failed to refresh session after registration', refreshError);
-        }
-        router.push('/account');
-      } else {
-        let data = {};
-        try {
-          data = await res.json();
-        } catch (_) {
-          // Ignore JSON parsing issues
-        }
+      if (!res.ok) {
         setStatus(data?.error || data?.message || 'Registration failed');
         setLoading(false);
+        return;
       }
+
+      try {
+        setSession({ contact: data?.contact || null, email: data?.email || email || null });
+      } catch (sessionError) {
+        console.warn('Failed to apply session from registration response', sessionError);
+      }
+
+      setStatus('Registration successful. Redirecting...');
+      try {
+        await refresh();
+      } catch (refreshError) {
+        console.warn('Failed to refresh session after registration', refreshError);
+      }
+      router.push('/account');
     } catch (err) {
       console.error('Registration error', err);
+      clearSession();
       setStatus('Registration failed');
       setLoading(false);
     }
