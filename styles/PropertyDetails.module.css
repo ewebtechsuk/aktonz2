@@ -19,6 +19,21 @@
   flex: 1;
 }
 
+.summaryHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.summaryHeader h1 {
+  flex: 1;
+  margin: 0;
+}
+
+.favoriteButton {
+  flex-shrink: 0;
+}
+
 .actions {
   display: flex;
   gap: var(--spacing-md);

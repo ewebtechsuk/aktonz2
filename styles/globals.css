@@ -221,7 +221,57 @@ body {
   color: var(--color-muted-text);
 }
 
-@media (min-width: 640px) {
+.favorite-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background-color: var(--color-accent);
+  color: var(--color-primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.favorite-button:hover {
+  background-color: #ffd633;
+}
+
+.favorite-button:focus-visible {
+  background-color: #ffd633;
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 2px;
+}
+
+.favorite-button.active {
+  background-color: var(--color-secondary);
+  color: var(--color-background);
+}
+
+.favorite-button.icon-only {
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-muted-text);
+  font-size: 1.75rem;
+  transition: color 0.2s ease;
+}
+
+.favorite-button.icon-only:hover,
+.favorite-button.icon-only:focus-visible {
+  color: var(--color-secondary);
+  background: transparent;
+}
+
+.favorite-button.icon-only.active {
+  color: var(--color-error);
+}
+
+@media (min-width: 768px) {
+
   .property-list {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }

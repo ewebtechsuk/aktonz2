@@ -3,6 +3,7 @@ import MediaGallery from '../../components/MediaGallery';
 import OfferDrawer from '../../components/OfferDrawer';
 import ViewingForm from '../../components/ViewingForm';
 import NeighborhoodInfo from '../../components/NeighborhoodInfo';
+import FavoriteButton from '../../components/FavoriteButton';
 
 import MortgageCalculator from '../../components/MortgageCalculator';
 import RentAffordability from '../../components/RentAffordability';
@@ -70,7 +71,16 @@ export default function Property({ property, recommendations }) {
             </div>
           )}
         <div className={styles.summary}>
-          <h1>{property.title}</h1>
+          <div className={styles.summaryHeader}>
+            <h1>{property.title}</h1>
+            {property.id && (
+              <FavoriteButton
+                propertyId={property.id}
+                iconOnly
+                className={styles.favoriteButton}
+              />
+            )}
+          </div>
           {property.type && <p className={styles.type}>{property.type}</p>}
           <div className={styles.stats}>
             {property.receptions != null && (
