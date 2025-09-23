@@ -5,6 +5,7 @@ export default function handler(req, res) {
   applyApiHeaders(req, res, { methods: ['POST'] });
 
   if (handlePreflight(req, res)) {
+
     return;
   }
 

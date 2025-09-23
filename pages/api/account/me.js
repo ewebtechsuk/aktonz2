@@ -6,6 +6,7 @@ export default async function handler(req, res) {
   applyApiHeaders(req, res, { methods: ['GET'] });
 
   if (handlePreflight(req, res)) {
+
     return;
   }
 

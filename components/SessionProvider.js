@@ -9,6 +9,7 @@ async function fetchSession() {
     return { contact: null, email: null };
   }
 
+
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
     throw new Error(error?.error || 'Unable to load account');
@@ -31,6 +32,7 @@ export function SessionProvider({ children }) {
         error: null,
         email: data?.email || data?.contact?.email || null,
       });
+
     } catch (err) {
       setState({ user: null, loading: false, error: err instanceof Error ? err.message : 'Unable to load account', email: null });
     }

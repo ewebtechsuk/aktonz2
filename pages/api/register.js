@@ -56,6 +56,7 @@ export default async function handler(req, res) {
       null;
 
     if (contactId) {
+
       try {
         writeSession(res, { contactId, token: token || null, email });
       } catch (sessionError) {
@@ -66,6 +67,7 @@ export default async function handler(req, res) {
 
     const responseContact = contact || (contactId ? { contactId } : null);
     res.status(200).json({ ok: true, contact: responseContact, token: token || null });
+
   } catch (err) {
     console.error('Failed to register contact', err);
     const message = err instanceof Error ? err.message : 'Failed to register';

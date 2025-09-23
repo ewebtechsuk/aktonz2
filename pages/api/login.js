@@ -6,6 +6,7 @@ export default async function handler(req, res) {
   applyApiHeaders(req, res, { methods: ['POST'] });
 
   if (handlePreflight(req, res)) {
+
     return;
   }
 
@@ -42,6 +43,7 @@ export default async function handler(req, res) {
     }
 
     if (!contactId) {
+
       res.status(502).json({ error: 'Login failed' });
       return;
     }
@@ -51,6 +53,7 @@ export default async function handler(req, res) {
     } catch (sessionError) {
       console.error('Failed to persist session during login', sessionError);
       clearSession(res);
+
     }
 
     res.status(200).json({ ok: true, contact, token: token || null });

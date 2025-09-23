@@ -24,6 +24,7 @@ export default function Register() {
     }
 
     const branchId = process.env.NEXT_PUBLIC_APEX27_BRANCH_ID;
+
     const body = { email, password };
     if (branchId) {
       body.branchId = branchId;
@@ -47,6 +48,7 @@ export default function Register() {
         } catch (refreshError) {
           console.warn('Failed to refresh session after registration', refreshError);
         }
+
         router.push('/account');
       } else {
         let data = {};
@@ -56,6 +58,7 @@ export default function Register() {
           // Ignore JSON parsing issues
         }
         setStatus(data?.error || data?.message || 'Registration failed');
+
         setLoading(false);
       }
     } catch (err) {
