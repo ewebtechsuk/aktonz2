@@ -9,6 +9,7 @@ import styles from '../styles/Register.module.css';
 export default function Register() {
   const router = useRouter();
   const { refresh, setSession, clearSession } = useSession();
+
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -24,6 +25,7 @@ export default function Register() {
     }
 
     const branchId = process.env.NEXT_PUBLIC_APEX27_BRANCH_ID;
+
     const body = { email, password };
     if (branchId) {
       body.branchId = branchId;
@@ -63,6 +65,7 @@ export default function Register() {
         await refresh();
       } catch (refreshError) {
         console.warn('Failed to refresh session after registration', refreshError);
+
       }
       router.push('/account');
     } catch (err) {

@@ -1,4 +1,5 @@
 import { resolvePortalContact } from '../../../lib/apex27-portal.js';
+
 import { applyApiHeaders, handlePreflight } from '../../../lib/api-helpers.js';
 import { readSession } from '../../../lib/session.js';
 
@@ -6,6 +7,7 @@ export default async function handler(req, res) {
   applyApiHeaders(req, res, { methods: ['GET'] });
 
   if (handlePreflight(req, res)) {
+
     return;
   }
 
@@ -32,6 +34,7 @@ export default async function handler(req, res) {
     const email = resolved.email || session.email || contact?.email || null;
 
     res.status(200).json({ contact, email });
+
   } catch (err) {
     console.error('Failed to load Apex27 profile', err);
     const message = err instanceof Error ? err.message : 'Failed to load profile';

@@ -1,4 +1,5 @@
 import { loginPortalAccount, registerPortalAccount, resolvePortalContact } from '../../lib/apex27-portal.js';
+
 import { applyApiHeaders, handlePreflight } from '../../lib/api-helpers.js';
 import { clearSession, writeSession } from '../../lib/session.js';
 
@@ -49,6 +50,7 @@ export default async function handler(req, res) {
       if (loginResult?.email) {
         aggregate.email = loginResult.email;
       }
+
     } catch (loginError) {
       console.warn('Registration succeeded but login failed', loginError);
     }
@@ -74,6 +76,7 @@ export default async function handler(req, res) {
     }
 
     res.status(200).json({ ok: true, contact: responseContact, token: aggregate.token || null, email: sessionEmail });
+
   } catch (err) {
     console.error('Failed to register contact', err);
     const message = err instanceof Error ? err.message : 'Failed to register';

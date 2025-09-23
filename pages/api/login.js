@@ -1,4 +1,5 @@
 import { loginPortalAccount, resolvePortalContact } from '../../lib/apex27-portal.js';
+
 import { applyApiHeaders, handlePreflight } from '../../lib/api-helpers.js';
 import { clearSession, writeSession } from '../../lib/session.js';
 
@@ -6,6 +7,7 @@ export default async function handler(req, res) {
   applyApiHeaders(req, res, { methods: ['POST'] });
 
   if (handlePreflight(req, res)) {
+
     return;
   }
 
@@ -32,6 +34,7 @@ export default async function handler(req, res) {
 
     const contactId = resolved.contactId || auth?.contactId || null;
     if (!contactId) {
+
       res.status(502).json({ error: 'Login failed' });
       return;
     }
@@ -49,6 +52,7 @@ export default async function handler(req, res) {
     }
 
     res.status(200).json({ ok: true, contact: responseContact, token: auth?.token || null, email: sessionEmail });
+
   } catch (err) {
     console.error('Failed to authenticate contact', err);
     const message = err instanceof Error ? err.message : 'Login failed';

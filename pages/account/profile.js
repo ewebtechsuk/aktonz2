@@ -35,6 +35,7 @@ export default function Profile() {
         return;
       }
 
+
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data?.error || 'Unable to load contact details');
@@ -83,6 +84,7 @@ export default function Profile() {
         setSaving(false);
         return;
       }
+
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));

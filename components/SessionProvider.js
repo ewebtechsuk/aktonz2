@@ -10,12 +10,14 @@ const SessionContext = createContext({
   clearSession: () => {},
 });
 
+
 async function fetchSession() {
   const res = await fetch('/api/account/me', { credentials: 'include' });
 
   if (res.status === 401) {
     return { contact: null, email: null };
   }
+
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));

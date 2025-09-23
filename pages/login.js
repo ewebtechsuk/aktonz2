@@ -9,6 +9,7 @@ import styles from '../styles/Login.module.css';
 export default function Login() {
   const router = useRouter();
   const { refresh, setSession, clearSession } = useSession();
+
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -48,6 +49,7 @@ export default function Login() {
         setSession({ contact: data?.contact || null, email: data?.email || email || null });
       } catch (sessionError) {
         console.warn('Failed to apply session from login response', sessionError);
+
       }
 
       try {
@@ -59,6 +61,7 @@ export default function Login() {
     } catch (err) {
       console.error('Login failed', err);
       clearSession();
+
       setStatus(err instanceof Error ? err.message : 'Unable to sign in');
       setLoading(false);
     }
