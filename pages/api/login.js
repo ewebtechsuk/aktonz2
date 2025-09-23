@@ -1,15 +1,12 @@
 import { loginPortalAccount } from '../../lib/apex27-portal.js';
+import { applyApiHeaders, handlePreflight } from '../../lib/api-helpers.js';
 import { clearSession, writeSession } from '../../lib/session.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
+  applyApiHeaders(req, res, { methods: ['POST'] });
 
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
+  if (handlePreflight(req, res)) {
+
     return;
   }
 
@@ -28,21 +25,35 @@ export default async function handler(req, res) {
   try {
     const result = await loginPortalAccount({ email, password });
     const token = result?.token || result?.data?.token || null;
-    const contact = result?.contact || result?.data?.contact || result?.data || null;
+    let contact = result?.contact || result?.data?.contact || result?.data || null;
 
-    if (!contact) {
+    const contactId =
+      contact?.id ||
+      contact?.contactId ||
+      contact?.contactID ||
+      result?.contactId ||
+      result?.contactID ||
+      result?.id ||
+      result?.data?.contactId ||
+      result?.data?.contactID ||
+      null;
+
+    if (!contact && contactId) {
+      contact = { contactId };
+    }
+
+    if (!contactId) {
+
       res.status(502).json({ error: 'Login failed' });
       return;
     }
 
-    const contactId = contact.id || contact.contactId || contact.contactID || null;
-    if (contactId) {
-      try {
-        writeSession(res, { contactId, token: token || null, email });
-      } catch (sessionError) {
-        console.error('Failed to persist session during login', sessionError);
-        clearSession(res);
-      }
+    try {
+      writeSession(res, { contactId, token: token || null, email });
+    } catch (sessionError) {
+      console.error('Failed to persist session during login', sessionError);
+      clearSession(res);
+
     }
 
     res.status(200).json({ ok: true, contact, token: token || null });

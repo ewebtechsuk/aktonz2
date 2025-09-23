@@ -1,14 +1,11 @@
+import { applyApiHeaders, handlePreflight } from '../../lib/api-helpers.js';
 import { clearSession } from '../../lib/session.js';
 
 export default function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
+  applyApiHeaders(req, res, { methods: ['POST'] });
 
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
+  if (handlePreflight(req, res)) {
+
     return;
   }
 

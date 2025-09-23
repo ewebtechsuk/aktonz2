@@ -23,7 +23,6 @@ export default function Register() {
       return;
     }
 
-    const apiKey = process.env.NEXT_PUBLIC_APEX27_API_KEY;
     const branchId = process.env.NEXT_PUBLIC_APEX27_BRANCH_ID;
 
     const body = { email, password };
@@ -35,54 +34,31 @@ export default function Register() {
     setStatus('Creating your account...');
 
     try {
-      let res;
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(body),
+      });
 
-      try {
-        res = await fetch('/api/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-      } catch (_) {
-        // Fall back to the public API if we cannot reach our backend.
-      }
-
-      if (!res?.ok && apiKey) {
-        try {
-          res = await fetch('https://api.apex27.co.uk/contacts', {
-            method: 'POST',
-            headers: {
-              'x-api-key': apiKey,
-              accept: 'application/json',
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(body),
-          });
-        } catch (error) {
-          console.error('Fallback registration failed', error);
-        }
-      }
-
-      if (res?.ok) {
+      if (res.ok) {
         setStatus('Registration successful. Redirecting...');
         try {
           await refresh();
         } catch (refreshError) {
           console.warn('Failed to refresh session after registration', refreshError);
         }
+
         router.push('/account');
       } else {
         let data = {};
         try {
-          data = await res?.json();
+          data = await res.json();
         } catch (_) {
           // Ignore JSON parsing issues
         }
-        setStatus(
-          data?.error ||
-            data?.message ||
-            (apiKey ? 'Registration failed' : 'Apex27 API key not configured')
-        );
+        setStatus(data?.error || data?.message || 'Registration failed');
+
         setLoading(false);
       }
     } catch (err) {

@@ -1,15 +1,12 @@
 import { fetchPortalProfile, updatePortalProfile } from '../../../lib/apex27-portal.js';
+import { applyApiHeaders, handlePreflight } from '../../../lib/api-helpers.js';
 import { readSession, writeSession } from '../../../lib/session.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
+  applyApiHeaders(req, res, { methods: ['GET', 'PUT'] });
 
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
+  if (handlePreflight(req, res)) {
+
     return;
   }
 

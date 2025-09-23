@@ -28,7 +28,14 @@ export default function Profile() {
     setLoading(true);
     setStatus('');
     try {
-      const res = await fetch('/api/account/profile');
+      const res = await fetch('/api/account/profile', { credentials: 'include' });
+      if (res.status === 401) {
+        setForm(INITIAL_FORM);
+        setStatus('Please sign in to view your contact details.');
+        return;
+      }
+
+
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data?.error || 'Unable to load contact details');
@@ -68,8 +75,16 @@ export default function Profile() {
       const res = await fetch('/api/account/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(form),
       });
+
+      if (res.status === 401) {
+        setStatus('Please sign in to update your contact details.');
+        setSaving(false);
+        return;
+      }
+
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
