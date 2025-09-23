@@ -1,543 +1,1067 @@
 {
-  "generatedAt": "2025-09-22T12:00:00.000Z",
+  "generatedAt": "2025-09-23T23:45:37Z",
   "rent": [
     {
-      "id": "scraye-910001",
-      "sourceId": "910001",
+      "id": "scraye-950001",
+      "sourceId": "950001",
       "source": "scraye",
       "transactionType": "rent",
-      "title": "Stylish Two Bedroom Apartment, Camden NW1",
-      "description": "Key features: Private balcony, Concierge, Residents gym",
-      "price": "£2750",
-      "priceValue": 2750,
-      "priceCurrency": "GBP",
-      "priceQualifier": null,
-      "rentFrequency": "M",
-      "bedrooms": 2,
-      "bathrooms": 2,
-      "receptions": null,
-      "propertyType": "APARTMENT",
-      "status": "AVAILABLE",
-      "features": [
-        "Private Balcony",
-        "Concierge",
-        "Residents Gym"
-      ],
-      "furnishedState": "FURNISHED",
-      "image": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80",
-      "images": [
-        {
-          "id": "camden-1",
-          "url": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80",
-          "altText": "Open-plan living area"
-        },
-        {
-          "id": "camden-2",
-          "url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
-          "altText": "Modern kitchen"
-        }
-      ],
-      "media": [],
-      "latitude": 51.5402,
-      "longitude": -0.1436,
-      "lat": 51.5402,
-      "lng": -0.1436,
-      "city": "London",
-      "county": null,
-      "matchingRegions": [
-        "London",
-        "NW1"
-      ],
-      "createdAt": "2025-07-01T10:00:00.000Z",
-      "updatedAt": "2025-08-15T12:00:00.000Z",
-      "availableAt": "2025-09-01T00:00:00.000Z",
-      "depositType": "FIVE_WEEKS_RENT",
-      "size": 82,
-      "allowedTenancyDurations": [
-        {
-          "min": 6,
-          "max": 36
-        }
-      ],
-      "instantViewingsEnabled": true,
-      "verified": true,
-      "outcode": "NW1",
-      "url": "https://www.scraye.com/listings/910001",
-      "externalUrl": "https://www.scraye.com/listings/910001",
-      "provider": "Scraye",
-      "_scraye": {
-        "placeId": "MA",
-        "placeName": "London",
-        "slug": "london/camden",
-        "longitude": -0.1436,
-        "latitude": 51.5402,
-        "listTimestamp": "2025-07-01T10:00:00.000Z"
-      }
-    },
-    {
-      "id": "scraye-910002",
-      "sourceId": "910002",
-      "source": "scraye",
-      "transactionType": "rent",
-      "title": "Loft-Style One Bedroom, Shoreditch E1",
-      "description": "Key features: Exposed brick, Roof terrace, Secure entry",
-      "price": "£2350",
-      "priceValue": 2350,
-      "priceCurrency": "GBP",
-      "priceQualifier": null,
-      "rentFrequency": "M",
-      "bedrooms": 1,
-      "bathrooms": 1,
-      "receptions": null,
-      "propertyType": "APARTMENT",
-      "status": "AVAILABLE",
-      "features": [
-        "Exposed Brick",
-        "Roof Terrace",
-        "Secure Entry"
-      ],
-      "furnishedState": "PART_FURNISHED",
-      "image": "https://images.unsplash.com/photo-1449247709967-d4461a6a6103?auto=format&fit=crop&w=1200&q=80",
-      "images": [
-        {
-          "id": "shoreditch-1",
-          "url": "https://images.unsplash.com/photo-1449247709967-d4461a6a6103?auto=format&fit=crop&w=1200&q=80",
-          "altText": "Warehouse conversion reception"
-        },
-        {
-          "id": "shoreditch-2",
-          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
-          "altText": "Loft bedroom"
-        }
-      ],
-      "media": [],
-      "latitude": 51.5255,
-      "longitude": -0.0785,
-      "lat": 51.5255,
-      "lng": -0.0785,
-      "city": "London",
-      "county": null,
-      "matchingRegions": [
-        "London",
-        "E1"
-      ],
-      "createdAt": "2025-06-20T09:30:00.000Z",
-      "updatedAt": "2025-08-05T08:45:00.000Z",
-      "availableAt": "2025-08-25T00:00:00.000Z",
-      "depositType": "FIVE_WEEKS_RENT",
-      "size": 68,
-      "allowedTenancyDurations": [
-        {
-          "min": 12,
-          "max": 24
-        }
-      ],
-      "instantViewingsEnabled": false,
-      "verified": true,
-      "outcode": "E1",
-      "url": "https://www.scraye.com/listings/910002",
-      "externalUrl": "https://www.scraye.com/listings/910002",
-      "provider": "Scraye",
-      "_scraye": {
-        "placeId": "MA",
-        "placeName": "London",
-        "slug": "london/shoreditch",
-        "longitude": -0.0785,
-        "latitude": 51.5255,
-        "listTimestamp": "2025-06-20T09:30:00.000Z"
-      }
-    },
-    {
-      "id": "scraye-910003",
-      "sourceId": "910003",
-      "source": "scraye",
-      "transactionType": "rent",
-      "title": "Three Bedroom Duplex, Canary Wharf E14",
-      "description": "Key features: River views, 24hr concierge, Underground parking",
-      "price": "£3850",
-      "priceValue": 3850,
-      "priceCurrency": "GBP",
-      "priceQualifier": null,
-      "rentFrequency": "M",
-      "bedrooms": 3,
-      "bathrooms": 2,
-      "receptions": null,
-      "propertyType": "APARTMENT",
-      "status": "AVAILABLE",
-      "features": [
-        "River Views",
-        "24hr Concierge",
-        "Underground Parking"
-      ],
-      "furnishedState": "FURNISHED",
-      "image": "https://images.unsplash.com/photo-1515263487990-61b07816b324?auto=format&fit=crop&w=1200&q=80",
-      "images": [
-        {
-          "id": "canary-1",
-          "url": "https://images.unsplash.com/photo-1515263487990-61b07816b324?auto=format&fit=crop&w=1200&q=80",
-          "altText": "Riverside apartment view"
-        },
-        {
-          "id": "canary-2",
-          "url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
-          "altText": "Bedroom with skyline outlook"
-        }
-      ],
-      "media": [],
-      "latitude": 51.5054,
-      "longitude": -0.0195,
-      "lat": 51.5054,
-      "lng": -0.0195,
-      "city": "London",
-      "county": null,
-      "matchingRegions": [
-        "London",
-        "E14"
-      ],
-      "createdAt": "2025-07-10T14:15:00.000Z",
-      "updatedAt": "2025-08-18T16:40:00.000Z",
-      "availableAt": "2025-09-10T00:00:00.000Z",
-      "depositType": "SIX_WEEKS_RENT",
-      "size": 105,
-      "allowedTenancyDurations": [
-        {
-          "min": 12,
-          "max": 36
-        }
-      ],
-      "instantViewingsEnabled": true,
-      "verified": true,
-      "outcode": "E14",
-      "url": "https://www.scraye.com/listings/910003",
-      "externalUrl": "https://www.scraye.com/listings/910003",
-      "provider": "Scraye",
-      "_scraye": {
-        "placeId": "MA",
-        "placeName": "London",
-        "slug": "london/canary-wharf",
-        "longitude": -0.0195,
-        "latitude": 51.5054,
-        "listTimestamp": "2025-07-10T14:15:00.000Z"
-      }
-    },
-    {
-      "id": "scraye-910004",
-      "sourceId": "910004",
-      "source": "scraye",
-      "transactionType": "rent",
-      "title": "Elegant Period Apartment, Notting Hill W11",
-      "description": "Key features: High ceilings, Communal garden, Resident porter",
-      "price": "£3450",
-      "priceValue": 3450,
-      "priceCurrency": "GBP",
-      "priceQualifier": null,
-      "rentFrequency": "M",
-      "bedrooms": 2,
-      "bathrooms": 2,
-      "receptions": null,
-      "propertyType": "APARTMENT",
-      "status": "AVAILABLE",
-      "features": [
-        "High Ceilings",
-        "Communal Garden",
-        "Resident Porter"
-      ],
-      "furnishedState": "FURNISHED",
-      "image": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
-      "images": [
-        {
-          "id": "notting-1",
-          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
-          "altText": "Period townhouse exterior"
-        },
-        {
-          "id": "notting-2",
-          "url": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80",
-          "altText": "Bright reception room"
-        }
-      ],
-      "media": [],
-      "latitude": 51.5118,
-      "longitude": -0.2055,
-      "lat": 51.5118,
-      "lng": -0.2055,
-      "city": "London",
-      "county": null,
-      "matchingRegions": [
-        "London",
-        "W11"
-      ],
-      "createdAt": "2025-07-18T11:00:00.000Z",
-      "updatedAt": "2025-08-22T09:30:00.000Z",
-      "availableAt": "2025-09-15T00:00:00.000Z",
-      "depositType": "FIVE_WEEKS_RENT",
-      "size": 94,
-      "allowedTenancyDurations": [
-        {
-          "min": 6,
-          "max": 24
-        }
-      ],
-      "instantViewingsEnabled": false,
-      "verified": true,
-      "outcode": "W11",
-      "url": "https://www.scraye.com/listings/910004",
-      "externalUrl": "https://www.scraye.com/listings/910004",
-      "provider": "Scraye",
-      "_scraye": {
-        "placeId": "MA",
-        "placeName": "London",
-        "slug": "london/notting-hill",
-        "longitude": -0.2055,
-        "latitude": 51.5118,
-        "listTimestamp": "2025-07-18T11:00:00.000Z"
-      }
-    },
-    {
-      "id": "scraye-910005",
-      "sourceId": "910005",
-      "source": "scraye",
-      "transactionType": "rent",
-      "title": "Family House with Garden, Clapham SW4",
-      "description": "Key features: South-facing garden, Home office, Residents parking",
-      "price": "£4250",
-      "priceValue": 4250,
+      "title": "Boutique Four Bedroom Maisonette, Fitzrovia W1T",
+      "description": "Boutique 4-bedroom maisonette in Fitzrovia offering pet friendly, roof terrace and private balcony.",
+      "price": "\u00a32275",
+      "priceValue": 2275,
       "priceCurrency": "GBP",
       "priceQualifier": null,
       "rentFrequency": "M",
       "bedrooms": 4,
       "bathrooms": 3,
-      "receptions": null,
-      "propertyType": "HOUSE",
+      "receptions": 1,
+      "propertyType": "MAISONETTE",
       "status": "AVAILABLE",
       "features": [
-        "South-Facing Garden",
-        "Home Office",
-        "Residents Parking"
+        "Pet Friendly",
+        "Roof Terrace",
+        "Private Balcony"
       ],
-      "furnishedState": "UNFURNISHED",
-      "image": "https://images.unsplash.com/photo-1513584684374-8bab748fbf90?auto=format&fit=crop&w=1200&q=80",
+      "furnishedState": "PART_FURNISHED",
+      "image": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
       "images": [
         {
-          "id": "clapham-1",
-          "url": "https://images.unsplash.com/photo-1513584684374-8bab748fbf90?auto=format&fit=crop&w=1200&q=80",
-          "altText": "Family kitchen"
+          "id": "fitzrovia-950001-1",
+          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bright living room"
         },
         {
-          "id": "clapham-2",
-          "url": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80",
-          "altText": "Garden terrace"
+          "id": "fitzrovia-950001-2",
+          "url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Sleek contemporary kitchen"
+        },
+        {
+          "id": "fitzrovia-950001-3",
+          "url": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Serene double bedroom"
         }
       ],
       "media": [],
-      "latitude": 51.4607,
-      "longitude": -0.1384,
-      "lat": 51.4607,
-      "lng": -0.1384,
+      "latitude": 51.5207,
+      "longitude": -0.1359,
+      "lat": 51.5207,
+      "lng": -0.1359,
       "city": "London",
-      "county": null,
+      "county": "Greater London",
       "matchingRegions": [
         "London",
-        "SW4"
+        "Fitzrovia",
+        "W1T"
       ],
-      "createdAt": "2025-06-30T13:45:00.000Z",
-      "updatedAt": "2025-08-12T10:20:00.000Z",
-      "availableAt": "2025-09-05T00:00:00.000Z",
-      "depositType": "SIX_WEEKS_RENT",
-      "size": 148,
+      "createdAt": "2025-02-15T11:00:00Z",
+      "updatedAt": "2025-03-07T16:00:00Z",
+      "availableAt": "2025-04-10T16:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 66,
       "allowedTenancyDurations": [
         {
           "min": 12,
+          "max": 24
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "W1T",
+      "url": "https://www.scraye.com/listings/950001",
+      "externalUrl": "https://www.scraye.com/listings/950001",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "W1T",
+        "placeName": "Fitzrovia",
+        "slug": "london/fitzrovia",
+        "longitude": -0.1359,
+        "latitude": 51.5207,
+        "listTimestamp": "2025-02-15T11:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950002",
+      "sourceId": "950002",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Stylish Four Bedroom Apartment, Shoreditch E2",
+      "description": "Stylish 4-bedroom apartment in Shoreditch offering residents gym, smart home controls and city skyline views.",
+      "price": "\u00a31750",
+      "priceValue": 1750,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 4,
+      "bathrooms": 4,
+      "receptions": 1,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Residents Gym",
+        "Smart Home Controls",
+        "City Skyline Views"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "shoreditch-950002-1",
+          "url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Sleek contemporary kitchen"
+        },
+        {
+          "id": "shoreditch-950002-2",
+          "url": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Serene double bedroom"
+        },
+        {
+          "id": "shoreditch-950002-3",
+          "url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Designer bathroom with marble finishes"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5246,
+      "longitude": -0.0755,
+      "lat": 51.5246,
+      "lng": -0.0755,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Shoreditch",
+        "E2"
+      ],
+      "createdAt": "2025-01-22T10:00:00Z",
+      "updatedAt": "2025-02-21T14:00:00Z",
+      "availableAt": "2025-03-23T14:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 124,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 18
+        }
+      ],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "E2",
+      "url": "https://www.scraye.com/listings/950002",
+      "externalUrl": "https://www.scraye.com/listings/950002",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "E2",
+        "placeName": "Shoreditch",
+        "slug": "london/shoreditch",
+        "longitude": -0.0755,
+        "latitude": 51.5246,
+        "listTimestamp": "2025-01-22T10:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950003",
+      "sourceId": "950003",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Elegant Three Bedroom Duplex, Highbury N5",
+      "description": "Elegant 3-bedroom duplex in Highbury offering private balcony, underfloor heating and roof terrace.",
+      "price": "\u00a31550",
+      "priceValue": 1550,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "receptions": 2,
+      "propertyType": "DUPLEX",
+      "status": "AVAILABLE",
+      "features": [
+        "Private Balcony",
+        "Underfloor Heating",
+        "Roof Terrace"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "highbury-950003-1",
+          "url": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Serene double bedroom"
+        },
+        {
+          "id": "highbury-950003-2",
+          "url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Designer bathroom with marble finishes"
+        },
+        {
+          "id": "highbury-950003-3",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Open-plan living space"
+        }
+      ],
+      "media": [],
+      "latitude": 51.552,
+      "longitude": -0.1026,
+      "lat": 51.552,
+      "lng": -0.1026,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Highbury",
+        "N5"
+      ],
+      "createdAt": "2025-02-05T15:00:00Z",
+      "updatedAt": "2025-02-28T21:00:00Z",
+      "availableAt": "2025-03-11T21:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 73,
+      "allowedTenancyDurations": [
+        {
+          "min": 9,
+          "max": 12
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "N5",
+      "url": "https://www.scraye.com/listings/950003",
+      "externalUrl": "https://www.scraye.com/listings/950003",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "N5",
+        "placeName": "Highbury",
+        "slug": "london/highbury",
+        "longitude": -0.1026,
+        "latitude": 51.552,
+        "listTimestamp": "2025-02-05T15:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950004",
+      "sourceId": "950004",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Modern Four Bedroom Duplex, Farringdon EC1M",
+      "description": "Modern 4-bedroom duplex in Farringdon offering cycle storage, residents gym and on-site concierge.",
+      "price": "\u00a32000",
+      "priceValue": 2000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "receptions": 1,
+      "propertyType": "DUPLEX",
+      "status": "AVAILABLE",
+      "features": [
+        "Cycle Storage",
+        "Residents Gym",
+        "On-site Concierge"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "farringdon-950004-1",
+          "url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Designer bathroom with marble finishes"
+        },
+        {
+          "id": "farringdon-950004-2",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Open-plan living space"
+        },
+        {
+          "id": "farringdon-950004-3",
+          "url": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Private balcony with city views"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5201,
+      "longitude": -0.1041,
+      "lat": 51.5201,
+      "lng": -0.1041,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Farringdon",
+        "EC1M"
+      ],
+      "createdAt": "2025-01-10T09:00:00Z",
+      "updatedAt": "2025-02-01T13:00:00Z",
+      "availableAt": "2025-02-21T13:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 51,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 36
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "EC1M",
+      "url": "https://www.scraye.com/listings/950004",
+      "externalUrl": "https://www.scraye.com/listings/950004",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "EC1M",
+        "placeName": "Farringdon",
+        "slug": "london/farringdon",
+        "longitude": -0.1041,
+        "latitude": 51.5201,
+        "listTimestamp": "2025-01-10T09:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950005",
+      "sourceId": "950005",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Elegant Four Bedroom Duplex, Tufnell Park N7",
+      "description": "Elegant 4-bedroom duplex in Tufnell Park offering underfloor heating, residents gym and secure parking.",
+      "price": "\u00a32750",
+      "priceValue": 2750,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "receptions": 2,
+      "propertyType": "DUPLEX",
+      "status": "AVAILABLE",
+      "features": [
+        "Underfloor Heating",
+        "Residents Gym",
+        "Secure Parking"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "tufnell-park-950005-1",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Open-plan living space"
+        },
+        {
+          "id": "tufnell-park-950005-2",
+          "url": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Private balcony with city views"
+        },
+        {
+          "id": "tufnell-park-950005-3",
+          "url": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Inviting master bedroom"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5573,
+      "longitude": -0.1409,
+      "lat": 51.5573,
+      "lng": -0.1409,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Tufnell Park",
+        "N7"
+      ],
+      "createdAt": "2025-01-20T10:00:00Z",
+      "updatedAt": "2025-02-06T18:00:00Z",
+      "availableAt": "2025-03-12T18:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 49,
+      "allowedTenancyDurations": [
+        {
+          "min": 9,
+          "max": 36
+        }
+      ],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "N7",
+      "url": "https://www.scraye.com/listings/950005",
+      "externalUrl": "https://www.scraye.com/listings/950005",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "N7",
+        "placeName": "Tufnell Park",
+        "slug": "london/tufnell-park",
+        "longitude": -0.1409,
+        "latitude": 51.5573,
+        "listTimestamp": "2025-01-20T10:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950006",
+      "sourceId": "950006",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Modern Two Bedroom Apartment, Kew TW9",
+      "description": "Modern 2-bedroom apartment in Kew offering smart home controls, 24 hour security and secure parking.",
+      "price": "\u00a31675",
+      "priceValue": 1675,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Smart Home Controls",
+        "24 Hour Security",
+        "Secure Parking"
+      ],
+      "furnishedState": "PART_FURNISHED",
+      "image": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "kew-950006-1",
+          "url": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Private balcony with city views"
+        },
+        {
+          "id": "kew-950006-2",
+          "url": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Inviting master bedroom"
+        },
+        {
+          "id": "kew-950006-3",
+          "url": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Elegant dining area"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4788,
+      "longitude": -0.295,
+      "lat": 51.4788,
+      "lng": -0.295,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Kew",
+        "TW9"
+      ],
+      "createdAt": "2025-01-23T10:00:00Z",
+      "updatedAt": "2025-01-29T11:00:00Z",
+      "availableAt": "2025-03-06T11:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 115,
+      "allowedTenancyDurations": [
+        {
+          "min": 9,
+          "max": 12
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "TW9",
+      "url": "https://www.scraye.com/listings/950006",
+      "externalUrl": "https://www.scraye.com/listings/950006",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "TW9",
+        "placeName": "Kew",
+        "slug": "london/kew",
+        "longitude": -0.295,
+        "latitude": 51.4788,
+        "listTimestamp": "2025-01-23T10:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950007",
+      "sourceId": "950007",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Spacious Two Bedroom Penthouse, Kilburn NW6",
+      "description": "Spacious 2-bedroom penthouse in Kilburn offering 24 hour security, underfloor heating and city skyline views.",
+      "price": "\u00a32475",
+      "priceValue": 2475,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "receptions": 1,
+      "propertyType": "PENTHOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "24 Hour Security",
+        "Underfloor Heating",
+        "City Skyline Views"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "kilburn-950007-1",
+          "url": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Inviting master bedroom"
+        },
+        {
+          "id": "kilburn-950007-2",
+          "url": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Elegant dining area"
+        },
+        {
+          "id": "kilburn-950007-3",
+          "url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Fully fitted kitchen"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5465,
+      "longitude": -0.1913,
+      "lat": 51.5465,
+      "lng": -0.1913,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Kilburn",
+        "NW6"
+      ],
+      "createdAt": "2025-02-09T09:00:00Z",
+      "updatedAt": "2025-02-15T13:00:00Z",
+      "availableAt": "2025-03-28T13:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 87,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 18
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "NW6",
+      "url": "https://www.scraye.com/listings/950007",
+      "externalUrl": "https://www.scraye.com/listings/950007",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "NW6",
+        "placeName": "Kilburn",
+        "slug": "london/kilburn",
+        "longitude": -0.1913,
+        "latitude": 51.5465,
+        "listTimestamp": "2025-02-09T09:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950008",
+      "sourceId": "950008",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Spacious One Bedroom Apartment, Camden NW1",
+      "description": "Spacious 1-bedroom apartment in Camden offering roof terrace, secure parking and on-site concierge.",
+      "price": "\u00a31550",
+      "priceValue": 1550,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 2,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Roof Terrace",
+        "Secure Parking",
+        "On-site Concierge"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "camden-950008-1",
+          "url": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Elegant dining area"
+        },
+        {
+          "id": "camden-950008-2",
+          "url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Fully fitted kitchen"
+        },
+        {
+          "id": "camden-950008-3",
+          "url": "https://images.unsplash.com/photo-1507086184172-3e5e05b4b913?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Roof terrace seating"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5416,
+      "longitude": -0.1432,
+      "lat": 51.5416,
+      "lng": -0.1432,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Camden",
+        "NW1"
+      ],
+      "createdAt": "2025-01-10T10:00:00Z",
+      "updatedAt": "2025-02-07T12:00:00Z",
+      "availableAt": "2025-02-18T12:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 78,
+      "allowedTenancyDurations": [
+        {
+          "min": 9,
+          "max": 18
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "NW1",
+      "url": "https://www.scraye.com/listings/950008",
+      "externalUrl": "https://www.scraye.com/listings/950008",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "NW1",
+        "placeName": "Camden",
+        "slug": "london/camden",
+        "longitude": -0.1432,
+        "latitude": 51.5416,
+        "listTimestamp": "2025-01-10T10:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950009",
+      "sourceId": "950009",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Contemporary Two Bedroom Maisonette, Chiswick W4",
+      "description": "Contemporary 2-bedroom maisonette in Chiswick offering concierge service, secure parking and 24 hour security.",
+      "price": "\u00a32850",
+      "priceValue": 2850,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "receptions": 2,
+      "propertyType": "MAISONETTE",
+      "status": "AVAILABLE",
+      "features": [
+        "Concierge Service",
+        "Secure Parking",
+        "24 Hour Security"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "chiswick-950009-1",
+          "url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Fully fitted kitchen"
+        },
+        {
+          "id": "chiswick-950009-2",
+          "url": "https://images.unsplash.com/photo-1507086184172-3e5e05b4b913?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Roof terrace seating"
+        },
+        {
+          "id": "chiswick-950009-3",
+          "url": "https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Modern bathroom suite"
+        }
+      ],
+      "media": [],
+      "latitude": 51.494,
+      "longitude": -0.2673,
+      "lat": 51.494,
+      "lng": -0.2673,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Chiswick",
+        "W4"
+      ],
+      "createdAt": "2025-01-20T09:00:00Z",
+      "updatedAt": "2025-02-08T17:00:00Z",
+      "availableAt": "2025-03-15T17:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 56,
+      "allowedTenancyDurations": [
+        {
+          "min": 12,
+          "max": 24
+        }
+      ],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "W4",
+      "url": "https://www.scraye.com/listings/950009",
+      "externalUrl": "https://www.scraye.com/listings/950009",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "W4",
+        "placeName": "Chiswick",
+        "slug": "london/chiswick",
+        "longitude": -0.2673,
+        "latitude": 51.494,
+        "listTimestamp": "2025-01-20T09:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950010",
+      "sourceId": "950010",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Elegant One Bedroom House, Clapham SW4",
+      "description": "Elegant 1-bedroom house in Clapham offering floor to ceiling windows, private balcony and city skyline views.",
+      "price": "\u00a31900",
+      "priceValue": 1900,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 1,
+      "bathrooms": 2,
+      "receptions": 2,
+      "propertyType": "HOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "Floor to Ceiling Windows",
+        "Private Balcony",
+        "City Skyline Views"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1507086184172-3e5e05b4b913?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "clapham-950010-1",
+          "url": "https://images.unsplash.com/photo-1507086184172-3e5e05b4b913?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Roof terrace seating"
+        },
+        {
+          "id": "clapham-950010-2",
+          "url": "https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Modern bathroom suite"
+        },
+        {
+          "id": "clapham-950010-3",
+          "url": "https://images.unsplash.com/photo-1527030280862-64139fba04ca?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Contemporary lounge"
+        }
+      ],
+      "media": [],
+      "latitude": 51.462,
+      "longitude": -0.138,
+      "lat": 51.462,
+      "lng": -0.138,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Clapham",
+        "SW4"
+      ],
+      "createdAt": "2025-01-07T16:00:00Z",
+      "updatedAt": "2025-01-17T18:00:00Z",
+      "availableAt": "2025-02-24T18:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 85,
+      "allowedTenancyDurations": [
+        {
+          "min": 9,
           "max": 36
         }
       ],
       "instantViewingsEnabled": false,
       "verified": true,
       "outcode": "SW4",
-      "url": "https://www.scraye.com/listings/910005",
-      "externalUrl": "https://www.scraye.com/listings/910005",
+      "url": "https://www.scraye.com/listings/950010",
+      "externalUrl": "https://www.scraye.com/listings/950010",
       "provider": "Scraye",
       "_scraye": {
-        "placeId": "MA",
-        "placeName": "London",
+        "placeId": "SW4",
+        "placeName": "Clapham",
         "slug": "london/clapham",
-        "longitude": -0.1384,
-        "latitude": 51.4607,
-        "listTimestamp": "2025-06-30T13:45:00.000Z"
-      }
-    }
-  ],
-  "sale": [
-    {
-      "id": "scraye-920001",
-      "sourceId": "920001",
-      "source": "scraye",
-      "transactionType": "sale",
-      "title": "Penthouse with River Views, Chelsea SW3",
-      "description": "Key features: Panoramic terrace, Concierge, Secure parking",
-      "price": "£2,450,000",
-      "priceValue": 2450000,
-      "priceCurrency": "GBP",
-      "priceQualifier": null,
-      "rentFrequency": null,
-      "bedrooms": 3,
-      "bathrooms": 3,
-      "receptions": null,
-      "propertyType": "APARTMENT",
-      "status": "AVAILABLE",
-      "features": [
-        "Panoramic Terrace",
-        "Concierge",
-        "Secure Parking"
-      ],
-      "furnishedState": null,
-      "image": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80",
-      "images": [
-        {
-          "id": "chelsea-1",
-          "url": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80",
-          "altText": "Luxury penthouse reception"
-        },
-        {
-          "id": "chelsea-2",
-          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
-          "altText": "Marble bathroom"
-        }
-      ],
-      "media": [],
-      "latitude": 51.4847,
-      "longitude": -0.1683,
-      "lat": 51.4847,
-      "lng": -0.1683,
-      "city": "London",
-      "county": null,
-      "matchingRegions": [
-        "London",
-        "SW3"
-      ],
-      "createdAt": "2025-05-28T09:00:00.000Z",
-      "updatedAt": "2025-08-10T10:30:00.000Z",
-      "availableAt": null,
-      "depositType": null,
-      "size": 156,
-      "allowedTenancyDurations": [],
-      "instantViewingsEnabled": false,
-      "verified": true,
-      "outcode": "SW3",
-      "url": "https://www.scraye.com/listings/920001",
-      "externalUrl": "https://www.scraye.com/listings/920001",
-      "provider": "Scraye",
-      "_scraye": {
-        "placeId": "MA",
-        "placeName": "London",
-        "slug": "london/chelsea",
-        "longitude": -0.1683,
-        "latitude": 51.4847,
-        "listTimestamp": "2025-05-28T09:00:00.000Z"
+        "longitude": -0.138,
+        "latitude": 51.462,
+        "listTimestamp": "2025-01-07T16:00:00Z"
       }
     },
     {
-      "id": "scraye-920002",
-      "sourceId": "920002",
+      "id": "scraye-950011",
+      "sourceId": "950011",
       "source": "scraye",
-      "transactionType": "sale",
-      "title": "Detached Residence, Hampstead NW3",
-      "description": "Key features: Landscaped gardens, Cinema room, Double garage",
-      "price": "£3,850,000",
-      "priceValue": 3850000,
+      "transactionType": "rent",
+      "title": "Refurbished One Bedroom Penthouse, Wapping E1W",
+      "description": "Refurbished 1-bedroom penthouse in Wapping offering residents gym, secure parking and roof terrace.",
+      "price": "\u00a32250",
+      "priceValue": 2250,
       "priceCurrency": "GBP",
       "priceQualifier": null,
-      "rentFrequency": null,
-      "bedrooms": 5,
-      "bathrooms": 4,
-      "receptions": null,
-      "propertyType": "HOUSE",
+      "rentFrequency": "M",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "PENTHOUSE",
       "status": "AVAILABLE",
       "features": [
-        "Landscaped Gardens",
-        "Cinema Room",
-        "Double Garage"
-      ],
-      "furnishedState": null,
-      "image": "https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&fit=crop&w=1200&q=80",
-      "images": [
-        {
-          "id": "hampstead-1",
-          "url": "https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&fit=crop&w=1200&q=80",
-          "altText": "Detached house exterior"
-        },
-        {
-          "id": "hampstead-2",
-          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
-          "altText": "Landscaped garden"
-        }
-      ],
-      "media": [],
-      "latitude": 51.5606,
-      "longitude": -0.178,
-      "lat": 51.5606,
-      "lng": -0.178,
-      "city": "London",
-      "county": null,
-      "matchingRegions": [
-        "London",
-        "NW3"
-      ],
-      "createdAt": "2025-06-12T11:15:00.000Z",
-      "updatedAt": "2025-08-08T14:05:00.000Z",
-      "availableAt": null,
-      "depositType": null,
-      "size": 312,
-      "allowedTenancyDurations": [],
-      "instantViewingsEnabled": false,
-      "verified": true,
-      "outcode": "NW3",
-      "url": "https://www.scraye.com/listings/920002",
-      "externalUrl": "https://www.scraye.com/listings/920002",
-      "provider": "Scraye",
-      "_scraye": {
-        "placeId": "MA",
-        "placeName": "London",
-        "slug": "london/hampstead",
-        "longitude": -0.178,
-        "latitude": 51.5606,
-        "listTimestamp": "2025-06-12T11:15:00.000Z"
-      }
-    },
-    {
-      "id": "scraye-920003",
-      "sourceId": "920003",
-      "source": "scraye",
-      "transactionType": "sale",
-      "title": "Riverside Apartment, Greenwich SE10",
-      "description": "Key features: Wrap-around balcony, Residents gym, Concierge",
-      "price": "£895,000",
-      "priceValue": 895000,
-      "priceCurrency": "GBP",
-      "priceQualifier": null,
-      "rentFrequency": null,
-      "bedrooms": 2,
-      "bathrooms": 2,
-      "receptions": null,
-      "propertyType": "APARTMENT",
-      "status": "AVAILABLE",
-      "features": [
-        "Wrap-Around Balcony",
         "Residents Gym",
-        "Concierge"
+        "Secure Parking",
+        "Roof Terrace"
       ],
-      "furnishedState": null,
-      "image": "https://images.unsplash.com/photo-1512914890250-353c83f300b0?auto=format&fit=crop&w=1200&q=80",
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&w=1200&q=80",
       "images": [
         {
-          "id": "greenwich-1",
-          "url": "https://images.unsplash.com/photo-1512914890250-353c83f300b0?auto=format&fit=crop&w=1200&q=80",
-          "altText": "Riverside view"
+          "id": "wapping-950011-1",
+          "url": "https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Modern bathroom suite"
         },
         {
-          "id": "greenwich-2",
+          "id": "wapping-950011-2",
+          "url": "https://images.unsplash.com/photo-1527030280862-64139fba04ca?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Contemporary lounge"
+        },
+        {
+          "id": "wapping-950011-3",
           "url": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
-          "altText": "Modern kitchen diner"
+          "altText": "Expansive riverside view"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5059,
+      "longitude": -0.0557,
+      "lat": 51.5059,
+      "lng": -0.0557,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Wapping",
+        "E1W"
+      ],
+      "createdAt": "2025-01-17T10:00:00Z",
+      "updatedAt": "2025-01-30T16:00:00Z",
+      "availableAt": null,
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 106,
+      "allowedTenancyDurations": [],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "E1W",
+      "url": "https://www.scraye.com/listings/950011",
+      "externalUrl": "https://www.scraye.com/listings/950011",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "E1W",
+        "placeName": "Wapping",
+        "slug": "london/wapping",
+        "longitude": -0.0557,
+        "latitude": 51.5059,
+        "listTimestamp": "2025-01-17T10:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950012",
+      "sourceId": "950012",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Contemporary Three Bedroom Apartment, Notting Hill W11",
+      "description": "Contemporary 3-bedroom apartment in Notting Hill offering 24 hour security, secure parking and floor to ceiling windows.",
+      "price": "\u00a32300",
+      "priceValue": 2300,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "receptions": 2,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "24 Hour Security",
+        "Secure Parking",
+        "Floor to Ceiling Windows"
+      ],
+      "furnishedState": "PART_FURNISHED",
+      "image": "https://images.unsplash.com/photo-1527030280862-64139fba04ca?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "notting-hill-950012-1",
+          "url": "https://images.unsplash.com/photo-1527030280862-64139fba04ca?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Contemporary lounge"
+        },
+        {
+          "id": "notting-hill-950012-2",
+          "url": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Expansive riverside view"
+        },
+        {
+          "id": "notting-hill-950012-3",
+          "url": "https://images.unsplash.com/photo-1549187774-b4e9b0445b08?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Spacious family living room"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5094,
+      "longitude": -0.2059,
+      "lat": 51.5094,
+      "lng": -0.2059,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Notting Hill",
+        "W11"
+      ],
+      "createdAt": "2025-02-09T13:00:00Z",
+      "updatedAt": "2025-02-17T21:00:00Z",
+      "availableAt": "2025-03-31T21:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 113,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 24
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "W11",
+      "url": "https://www.scraye.com/listings/950012",
+      "externalUrl": "https://www.scraye.com/listings/950012",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "W11",
+        "placeName": "Notting Hill",
+        "slug": "london/notting-hill",
+        "longitude": -0.2059,
+        "latitude": 51.5094,
+        "listTimestamp": "2025-02-09T13:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950013",
+      "sourceId": "950013",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Boutique One Bedroom Apartment, Deptford SE8",
+      "description": "Boutique 1-bedroom apartment in Deptford offering concierge service, pet friendly and open-plan living.",
+      "price": "\u00a32100",
+      "priceValue": 2100,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 1,
+      "bathrooms": 2,
+      "receptions": 2,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Concierge Service",
+        "Pet Friendly",
+        "Open-Plan Living"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "deptford-950013-1",
+          "url": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Expansive riverside view"
+        },
+        {
+          "id": "deptford-950013-2",
+          "url": "https://images.unsplash.com/photo-1549187774-b4e9b0445b08?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Spacious family living room"
+        },
+        {
+          "id": "deptford-950013-3",
+          "url": "https://images.unsplash.com/photo-1616594039964-3151a8e58f0c?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Stylish home office"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4799,
+      "longitude": -0.0218,
+      "lat": 51.4799,
+      "lng": -0.0218,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Deptford",
+        "SE8"
+      ],
+      "createdAt": "2025-01-18T10:00:00Z",
+      "updatedAt": "2025-01-29T14:00:00Z",
+      "availableAt": "2025-02-16T14:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 93,
+      "allowedTenancyDurations": [
+        {
+          "min": 9,
+          "max": 18
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "SE8",
+      "url": "https://www.scraye.com/listings/950013",
+      "externalUrl": "https://www.scraye.com/listings/950013",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SE8",
+        "placeName": "Deptford",
+        "slug": "london/deptford",
+        "longitude": -0.0218,
+        "latitude": 51.4799,
+        "listTimestamp": "2025-01-18T10:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950014",
+      "sourceId": "950014",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Modern One Bedroom Apartment, Greenwich SE10",
+      "description": "Modern 1-bedroom apartment in Greenwich offering cycle storage, pet friendly and floor to ceiling windows.",
+      "price": "\u00a32325",
+      "priceValue": 2325,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 2,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Cycle Storage",
+        "Pet Friendly",
+        "Floor to Ceiling Windows"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1549187774-b4e9b0445b08?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "greenwich-950014-1",
+          "url": "https://images.unsplash.com/photo-1549187774-b4e9b0445b08?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Spacious family living room"
+        },
+        {
+          "id": "greenwich-950014-2",
+          "url": "https://images.unsplash.com/photo-1616594039964-3151a8e58f0c?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Stylish home office"
+        },
+        {
+          "id": "greenwich-950014-3",
+          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bright living room"
         }
       ],
       "media": [],
@@ -546,30 +1070,2835 @@
       "lat": 51.4826,
       "lng": 0.0077,
       "city": "London",
-      "county": null,
+      "county": "Greater London",
       "matchingRegions": [
         "London",
+        "Greenwich",
         "SE10"
       ],
-      "createdAt": "2025-07-05T08:50:00.000Z",
-      "updatedAt": "2025-08-14T09:40:00.000Z",
-      "availableAt": null,
-      "depositType": null,
-      "size": 104,
+      "createdAt": "2025-03-04T13:00:00Z",
+      "updatedAt": "2025-03-19T20:00:00Z",
+      "availableAt": "2025-04-06T20:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 84,
       "allowedTenancyDurations": [],
-      "instantViewingsEnabled": false,
+      "instantViewingsEnabled": true,
       "verified": true,
       "outcode": "SE10",
-      "url": "https://www.scraye.com/listings/920003",
-      "externalUrl": "https://www.scraye.com/listings/920003",
+      "url": "https://www.scraye.com/listings/950014",
+      "externalUrl": "https://www.scraye.com/listings/950014",
       "provider": "Scraye",
       "_scraye": {
-        "placeId": "MA",
-        "placeName": "London",
+        "placeId": "SE10",
+        "placeName": "Greenwich",
         "slug": "london/greenwich",
         "longitude": 0.0077,
         "latitude": 51.4826,
-        "listTimestamp": "2025-07-05T08:50:00.000Z"
+        "listTimestamp": "2025-03-04T13:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950015",
+      "sourceId": "950015",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Modern Two Bedroom House, Chelsea SW3",
+      "description": "Modern 2-bedroom house in Chelsea offering smart home controls, concierge service and roof terrace.",
+      "price": "\u00a32575",
+      "priceValue": 2575,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "HOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "Smart Home Controls",
+        "Concierge Service",
+        "Roof Terrace"
+      ],
+      "furnishedState": "PART_FURNISHED",
+      "image": "https://images.unsplash.com/photo-1616594039964-3151a8e58f0c?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "chelsea-950015-1",
+          "url": "https://images.unsplash.com/photo-1616594039964-3151a8e58f0c?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Stylish home office"
+        },
+        {
+          "id": "chelsea-950015-2",
+          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bright living room"
+        },
+        {
+          "id": "chelsea-950015-3",
+          "url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Sleek contemporary kitchen"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4875,
+      "longitude": -0.1681,
+      "lat": 51.4875,
+      "lng": -0.1681,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Chelsea",
+        "SW3"
+      ],
+      "createdAt": "2025-03-04T14:00:00Z",
+      "updatedAt": "2025-04-01T20:00:00Z",
+      "availableAt": null,
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 117,
+      "allowedTenancyDurations": [
+        {
+          "min": 12,
+          "max": 18
+        }
+      ],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "SW3",
+      "url": "https://www.scraye.com/listings/950015",
+      "externalUrl": "https://www.scraye.com/listings/950015",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SW3",
+        "placeName": "Chelsea",
+        "slug": "london/chelsea",
+        "longitude": -0.1681,
+        "latitude": 51.4875,
+        "listTimestamp": "2025-03-04T14:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950016",
+      "sourceId": "950016",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Boutique Three Bedroom House, Canary Wharf E14",
+      "description": "Boutique 3-bedroom house in Canary Wharf offering underfloor heating, floor to ceiling windows and communal gardens.",
+      "price": "\u00a32525",
+      "priceValue": 2525,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "receptions": 2,
+      "propertyType": "HOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "Underfloor Heating",
+        "Floor to Ceiling Windows",
+        "Communal Gardens"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "canary-wharf-950016-1",
+          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bright living room"
+        },
+        {
+          "id": "canary-wharf-950016-2",
+          "url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Sleek contemporary kitchen"
+        },
+        {
+          "id": "canary-wharf-950016-3",
+          "url": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Serene double bedroom"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5055,
+      "longitude": -0.0235,
+      "lat": 51.5055,
+      "lng": -0.0235,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Canary Wharf",
+        "E14"
+      ],
+      "createdAt": "2025-01-06T13:00:00Z",
+      "updatedAt": "2025-01-17T21:00:00Z",
+      "availableAt": "2025-02-13T21:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 70,
+      "allowedTenancyDurations": [],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "E14",
+      "url": "https://www.scraye.com/listings/950016",
+      "externalUrl": "https://www.scraye.com/listings/950016",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "E14",
+        "placeName": "Canary Wharf",
+        "slug": "london/canary-wharf",
+        "longitude": -0.0235,
+        "latitude": 51.5055,
+        "listTimestamp": "2025-01-06T13:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950017",
+      "sourceId": "950017",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Stylish Four Bedroom Duplex, Barnes SW13",
+      "description": "Stylish 4-bedroom duplex in Barnes offering concierge service, underfloor heating and secure parking.",
+      "price": "\u00a31800",
+      "priceValue": 1800,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 4,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "DUPLEX",
+      "status": "AVAILABLE",
+      "features": [
+        "Concierge Service",
+        "Underfloor Heating",
+        "Secure Parking"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "barnes-950017-1",
+          "url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Sleek contemporary kitchen"
+        },
+        {
+          "id": "barnes-950017-2",
+          "url": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Serene double bedroom"
+        },
+        {
+          "id": "barnes-950017-3",
+          "url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Designer bathroom with marble finishes"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4723,
+      "longitude": -0.2391,
+      "lat": 51.4723,
+      "lng": -0.2391,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Barnes",
+        "SW13"
+      ],
+      "createdAt": "2025-01-26T14:00:00Z",
+      "updatedAt": "2025-02-24T22:00:00Z",
+      "availableAt": "2025-04-05T22:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 95,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 36
+        }
+      ],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "SW13",
+      "url": "https://www.scraye.com/listings/950017",
+      "externalUrl": "https://www.scraye.com/listings/950017",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SW13",
+        "placeName": "Barnes",
+        "slug": "london/barnes",
+        "longitude": -0.2391,
+        "latitude": 51.4723,
+        "listTimestamp": "2025-01-26T14:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950018",
+      "sourceId": "950018",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Design-Led Four Bedroom Maisonette, Stratford E15",
+      "description": "Design-Led 4-bedroom maisonette in Stratford offering pet friendly, floor to ceiling windows and on-site concierge.",
+      "price": "\u00a31825",
+      "priceValue": 1825,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 4,
+      "bathrooms": 4,
+      "receptions": 1,
+      "propertyType": "MAISONETTE",
+      "status": "AVAILABLE",
+      "features": [
+        "Pet Friendly",
+        "Floor to Ceiling Windows",
+        "On-site Concierge"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "stratford-950018-1",
+          "url": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Serene double bedroom"
+        },
+        {
+          "id": "stratford-950018-2",
+          "url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Designer bathroom with marble finishes"
+        },
+        {
+          "id": "stratford-950018-3",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Open-plan living space"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5417,
+      "longitude": 0.0037,
+      "lat": 51.5417,
+      "lng": 0.0037,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Stratford",
+        "E15"
+      ],
+      "createdAt": "2025-02-17T17:00:00Z",
+      "updatedAt": "2025-03-05T21:00:00Z",
+      "availableAt": null,
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 76,
+      "allowedTenancyDurations": [
+        {
+          "min": 12,
+          "max": 24
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "E15",
+      "url": "https://www.scraye.com/listings/950018",
+      "externalUrl": "https://www.scraye.com/listings/950018",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "E15",
+        "placeName": "Stratford",
+        "slug": "london/stratford",
+        "longitude": 0.0037,
+        "latitude": 51.5417,
+        "listTimestamp": "2025-02-17T17:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950019",
+      "sourceId": "950019",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Spacious Three Bedroom Apartment, Westminster SW1A",
+      "description": "Spacious 3-bedroom apartment in Westminster offering underfloor heating, residents gym and smart home controls.",
+      "price": "\u00a32375",
+      "priceValue": 2375,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "receptions": 1,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Underfloor Heating",
+        "Residents Gym",
+        "Smart Home Controls"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "westminster-950019-1",
+          "url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Designer bathroom with marble finishes"
+        },
+        {
+          "id": "westminster-950019-2",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Open-plan living space"
+        },
+        {
+          "id": "westminster-950019-3",
+          "url": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Private balcony with city views"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4995,
+      "longitude": -0.1248,
+      "lat": 51.4995,
+      "lng": -0.1248,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Westminster",
+        "SW1A"
+      ],
+      "createdAt": "2025-02-11T09:00:00Z",
+      "updatedAt": "2025-02-16T15:00:00Z",
+      "availableAt": null,
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 82,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 12
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "SW1A",
+      "url": "https://www.scraye.com/listings/950019",
+      "externalUrl": "https://www.scraye.com/listings/950019",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SW1A",
+        "placeName": "Westminster",
+        "slug": "london/westminster",
+        "longitude": -0.1248,
+        "latitude": 51.4995,
+        "listTimestamp": "2025-02-11T09:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950020",
+      "sourceId": "950020",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Design-Led One Bedroom Penthouse, Hoxton N1",
+      "description": "Design-Led 1-bedroom penthouse in Hoxton offering city skyline views, on-site concierge and residents gym.",
+      "price": "\u00a31825",
+      "priceValue": 1825,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 1,
+      "bathrooms": 2,
+      "receptions": 2,
+      "propertyType": "PENTHOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "City Skyline Views",
+        "On-site Concierge",
+        "Residents Gym"
+      ],
+      "furnishedState": "PART_FURNISHED",
+      "image": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "hoxton-950020-1",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Open-plan living space"
+        },
+        {
+          "id": "hoxton-950020-2",
+          "url": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Private balcony with city views"
+        },
+        {
+          "id": "hoxton-950020-3",
+          "url": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Inviting master bedroom"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5316,
+      "longitude": -0.081,
+      "lat": 51.5316,
+      "lng": -0.081,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Hoxton",
+        "N1"
+      ],
+      "createdAt": "2025-02-15T16:00:00Z",
+      "updatedAt": "2025-03-04T22:00:00Z",
+      "availableAt": "2025-03-25T22:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 117,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 18
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "N1",
+      "url": "https://www.scraye.com/listings/950020",
+      "externalUrl": "https://www.scraye.com/listings/950020",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "N1",
+        "placeName": "Hoxton",
+        "slug": "london/hoxton",
+        "longitude": -0.081,
+        "latitude": 51.5316,
+        "listTimestamp": "2025-02-15T16:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950021",
+      "sourceId": "950021",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Refurbished Three Bedroom Duplex, Dulwich SE21",
+      "description": "Refurbished 3-bedroom duplex in Dulwich offering residents gym, open-plan living and cycle storage.",
+      "price": "\u00a31925",
+      "priceValue": 1925,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "DUPLEX",
+      "status": "AVAILABLE",
+      "features": [
+        "Residents Gym",
+        "Open-Plan Living",
+        "Cycle Storage"
+      ],
+      "furnishedState": "PART_FURNISHED",
+      "image": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "dulwich-950021-1",
+          "url": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Private balcony with city views"
+        },
+        {
+          "id": "dulwich-950021-2",
+          "url": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Inviting master bedroom"
+        },
+        {
+          "id": "dulwich-950021-3",
+          "url": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Elegant dining area"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4453,
+      "longitude": -0.0916,
+      "lat": 51.4453,
+      "lng": -0.0916,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Dulwich",
+        "SE21"
+      ],
+      "createdAt": "2025-01-26T12:00:00Z",
+      "updatedAt": "2025-02-08T19:00:00Z",
+      "availableAt": null,
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 114,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 18
+        }
+      ],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "SE21",
+      "url": "https://www.scraye.com/listings/950021",
+      "externalUrl": "https://www.scraye.com/listings/950021",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SE21",
+        "placeName": "Dulwich",
+        "slug": "london/dulwich",
+        "longitude": -0.0916,
+        "latitude": 51.4453,
+        "listTimestamp": "2025-01-26T12:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950022",
+      "sourceId": "950022",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Stylish One Bedroom Penthouse, Earls Court SW5",
+      "description": "Stylish 1-bedroom penthouse in Earls Court offering city skyline views, roof terrace and secure parking.",
+      "price": "\u00a31775",
+      "priceValue": 1775,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 1,
+      "bathrooms": 2,
+      "receptions": 2,
+      "propertyType": "PENTHOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "City Skyline Views",
+        "Roof Terrace",
+        "Secure Parking"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "earls-court-950022-1",
+          "url": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Inviting master bedroom"
+        },
+        {
+          "id": "earls-court-950022-2",
+          "url": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Elegant dining area"
+        },
+        {
+          "id": "earls-court-950022-3",
+          "url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Fully fitted kitchen"
+        }
+      ],
+      "media": [],
+      "latitude": 51.49,
+      "longitude": -0.1937,
+      "lat": 51.49,
+      "lng": -0.1937,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Earls Court",
+        "SW5"
+      ],
+      "createdAt": "2025-01-29T15:00:00Z",
+      "updatedAt": "2025-02-12T23:00:00Z",
+      "availableAt": "2025-02-28T23:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 115,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 18
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "SW5",
+      "url": "https://www.scraye.com/listings/950022",
+      "externalUrl": "https://www.scraye.com/listings/950022",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SW5",
+        "placeName": "Earls Court",
+        "slug": "london/earls-court",
+        "longitude": -0.1937,
+        "latitude": 51.49,
+        "listTimestamp": "2025-01-29T15:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950023",
+      "sourceId": "950023",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Design-Led Two Bedroom Duplex, Woolwich SE18",
+      "description": "Design-Led 2-bedroom duplex in Woolwich offering cycle storage, smart home controls and on-site concierge.",
+      "price": "\u00a32900",
+      "priceValue": 2900,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "receptions": 2,
+      "propertyType": "DUPLEX",
+      "status": "AVAILABLE",
+      "features": [
+        "Cycle Storage",
+        "Smart Home Controls",
+        "On-site Concierge"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "woolwich-950023-1",
+          "url": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Elegant dining area"
+        },
+        {
+          "id": "woolwich-950023-2",
+          "url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Fully fitted kitchen"
+        },
+        {
+          "id": "woolwich-950023-3",
+          "url": "https://images.unsplash.com/photo-1507086184172-3e5e05b4b913?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Roof terrace seating"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4907,
+      "longitude": 0.0648,
+      "lat": 51.4907,
+      "lng": 0.0648,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Woolwich",
+        "SE18"
+      ],
+      "createdAt": "2025-01-18T11:00:00Z",
+      "updatedAt": "2025-01-30T14:00:00Z",
+      "availableAt": null,
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 77,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 36
+        }
+      ],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "SE18",
+      "url": "https://www.scraye.com/listings/950023",
+      "externalUrl": "https://www.scraye.com/listings/950023",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SE18",
+        "placeName": "Woolwich",
+        "slug": "london/woolwich",
+        "longitude": 0.0648,
+        "latitude": 51.4907,
+        "listTimestamp": "2025-01-18T11:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950024",
+      "sourceId": "950024",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Spacious Two Bedroom Maisonette, Bethnal Green E2",
+      "description": "Spacious 2-bedroom maisonette in Bethnal Green offering concierge service, residents gym and open-plan living.",
+      "price": "\u00a32300",
+      "priceValue": 2300,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "receptions": 2,
+      "propertyType": "MAISONETTE",
+      "status": "AVAILABLE",
+      "features": [
+        "Concierge Service",
+        "Residents Gym",
+        "Open-Plan Living"
+      ],
+      "furnishedState": "PART_FURNISHED",
+      "image": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "bethnal-green-950024-1",
+          "url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Fully fitted kitchen"
+        },
+        {
+          "id": "bethnal-green-950024-2",
+          "url": "https://images.unsplash.com/photo-1507086184172-3e5e05b4b913?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Roof terrace seating"
+        },
+        {
+          "id": "bethnal-green-950024-3",
+          "url": "https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Modern bathroom suite"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5273,
+      "longitude": -0.0605,
+      "lat": 51.5273,
+      "lng": -0.0605,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Bethnal Green",
+        "E2"
+      ],
+      "createdAt": "2025-01-07T17:00:00Z",
+      "updatedAt": "2025-01-17T00:00:00Z",
+      "availableAt": "2025-03-02T00:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 84,
+      "allowedTenancyDurations": [
+        {
+          "min": 9,
+          "max": 18
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "E2",
+      "url": "https://www.scraye.com/listings/950024",
+      "externalUrl": "https://www.scraye.com/listings/950024",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "E2",
+        "placeName": "Bethnal Green",
+        "slug": "london/bethnal-green",
+        "longitude": -0.0605,
+        "latitude": 51.5273,
+        "listTimestamp": "2025-01-07T17:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950025",
+      "sourceId": "950025",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Stylish Three Bedroom Duplex, Herne Hill SE24",
+      "description": "Stylish 3-bedroom duplex in Herne Hill offering roof terrace, communal gardens and 24 hour security.",
+      "price": "\u00a32600",
+      "priceValue": 2600,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "receptions": 2,
+      "propertyType": "DUPLEX",
+      "status": "AVAILABLE",
+      "features": [
+        "Roof Terrace",
+        "Communal Gardens",
+        "24 Hour Security"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1507086184172-3e5e05b4b913?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "herne-hill-950025-1",
+          "url": "https://images.unsplash.com/photo-1507086184172-3e5e05b4b913?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Roof terrace seating"
+        },
+        {
+          "id": "herne-hill-950025-2",
+          "url": "https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Modern bathroom suite"
+        },
+        {
+          "id": "herne-hill-950025-3",
+          "url": "https://images.unsplash.com/photo-1527030280862-64139fba04ca?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Contemporary lounge"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4529,
+      "longitude": -0.1024,
+      "lat": 51.4529,
+      "lng": -0.1024,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Herne Hill",
+        "SE24"
+      ],
+      "createdAt": "2025-01-30T13:00:00Z",
+      "updatedAt": "2025-02-13T15:00:00Z",
+      "availableAt": null,
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 66,
+      "allowedTenancyDurations": [],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "SE24",
+      "url": "https://www.scraye.com/listings/950025",
+      "externalUrl": "https://www.scraye.com/listings/950025",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SE24",
+        "placeName": "Herne Hill",
+        "slug": "london/herne-hill",
+        "longitude": -0.1024,
+        "latitude": 51.4529,
+        "listTimestamp": "2025-01-30T13:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950026",
+      "sourceId": "950026",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Design-Led Two Bedroom Apartment, Holborn WC1V",
+      "description": "Design-Led 2-bedroom apartment in Holborn offering on-site concierge, floor to ceiling windows and roof terrace.",
+      "price": "\u00a32750",
+      "priceValue": 2750,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "receptions": 2,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "On-site Concierge",
+        "Floor to Ceiling Windows",
+        "Roof Terrace"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "holborn-950026-1",
+          "url": "https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Modern bathroom suite"
+        },
+        {
+          "id": "holborn-950026-2",
+          "url": "https://images.unsplash.com/photo-1527030280862-64139fba04ca?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Contemporary lounge"
+        },
+        {
+          "id": "holborn-950026-3",
+          "url": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Expansive riverside view"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5171,
+      "longitude": -0.1204,
+      "lat": 51.5171,
+      "lng": -0.1204,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Holborn",
+        "WC1V"
+      ],
+      "createdAt": "2025-03-04T16:00:00Z",
+      "updatedAt": "2025-04-03T23:00:00Z",
+      "availableAt": "2025-04-23T23:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 51,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 36
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "WC1V",
+      "url": "https://www.scraye.com/listings/950026",
+      "externalUrl": "https://www.scraye.com/listings/950026",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "WC1V",
+        "placeName": "Holborn",
+        "slug": "london/holborn",
+        "longitude": -0.1204,
+        "latitude": 51.5171,
+        "listTimestamp": "2025-03-04T16:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950027",
+      "sourceId": "950027",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Spacious Two Bedroom Penthouse, Hammersmith W6",
+      "description": "Spacious 2-bedroom penthouse in Hammersmith offering cycle storage, city skyline views and 24 hour security.",
+      "price": "\u00a31500",
+      "priceValue": 1500,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "PENTHOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "Cycle Storage",
+        "City Skyline Views",
+        "24 Hour Security"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1527030280862-64139fba04ca?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "hammersmith-950027-1",
+          "url": "https://images.unsplash.com/photo-1527030280862-64139fba04ca?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Contemporary lounge"
+        },
+        {
+          "id": "hammersmith-950027-2",
+          "url": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Expansive riverside view"
+        },
+        {
+          "id": "hammersmith-950027-3",
+          "url": "https://images.unsplash.com/photo-1549187774-b4e9b0445b08?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Spacious family living room"
+        }
+      ],
+      "media": [],
+      "latitude": 51.492,
+      "longitude": -0.2236,
+      "lat": 51.492,
+      "lng": -0.2236,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Hammersmith",
+        "W6"
+      ],
+      "createdAt": "2025-02-26T14:00:00Z",
+      "updatedAt": "2025-03-12T20:00:00Z",
+      "availableAt": null,
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 45,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 24
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "W6",
+      "url": "https://www.scraye.com/listings/950027",
+      "externalUrl": "https://www.scraye.com/listings/950027",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "W6",
+        "placeName": "Hammersmith",
+        "slug": "london/hammersmith",
+        "longitude": -0.2236,
+        "latitude": 51.492,
+        "listTimestamp": "2025-02-26T14:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950028",
+      "sourceId": "950028",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Contemporary Two Bedroom Apartment, Putney SW15",
+      "description": "Contemporary 2-bedroom apartment in Putney offering cycle storage, residents gym and roof terrace.",
+      "price": "\u00a32075",
+      "priceValue": 2075,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Cycle Storage",
+        "Residents Gym",
+        "Roof Terrace"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "putney-950028-1",
+          "url": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Expansive riverside view"
+        },
+        {
+          "id": "putney-950028-2",
+          "url": "https://images.unsplash.com/photo-1549187774-b4e9b0445b08?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Spacious family living room"
+        },
+        {
+          "id": "putney-950028-3",
+          "url": "https://images.unsplash.com/photo-1616594039964-3151a8e58f0c?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Stylish home office"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4613,
+      "longitude": -0.2155,
+      "lat": 51.4613,
+      "lng": -0.2155,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Putney",
+        "SW15"
+      ],
+      "createdAt": "2025-01-31T11:00:00Z",
+      "updatedAt": "2025-02-16T15:00:00Z",
+      "availableAt": "2025-03-18T15:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 105,
+      "allowedTenancyDurations": [
+        {
+          "min": 12,
+          "max": 18
+        }
+      ],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "SW15",
+      "url": "https://www.scraye.com/listings/950028",
+      "externalUrl": "https://www.scraye.com/listings/950028",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SW15",
+        "placeName": "Putney",
+        "slug": "london/putney",
+        "longitude": -0.2155,
+        "latitude": 51.4613,
+        "listTimestamp": "2025-01-31T11:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950029",
+      "sourceId": "950029",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Characterful One Bedroom Apartment, Highgate N6",
+      "description": "Characterful 1-bedroom apartment in Highgate offering concierge service, on-site concierge and 24 hour security.",
+      "price": "\u00a32325",
+      "priceValue": 2325,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 1,
+      "bathrooms": 2,
+      "receptions": 2,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Concierge Service",
+        "On-site Concierge",
+        "24 Hour Security"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1549187774-b4e9b0445b08?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "highgate-950029-1",
+          "url": "https://images.unsplash.com/photo-1549187774-b4e9b0445b08?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Spacious family living room"
+        },
+        {
+          "id": "highgate-950029-2",
+          "url": "https://images.unsplash.com/photo-1616594039964-3151a8e58f0c?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Stylish home office"
+        },
+        {
+          "id": "highgate-950029-3",
+          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bright living room"
+        }
+      ],
+      "media": [],
+      "latitude": 51.572,
+      "longitude": -0.1462,
+      "lat": 51.572,
+      "lng": -0.1462,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Highgate",
+        "N6"
+      ],
+      "createdAt": "2025-01-21T13:00:00Z",
+      "updatedAt": "2025-01-30T17:00:00Z",
+      "availableAt": "2025-02-12T17:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 65,
+      "allowedTenancyDurations": [],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "N6",
+      "url": "https://www.scraye.com/listings/950029",
+      "externalUrl": "https://www.scraye.com/listings/950029",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "N6",
+        "placeName": "Highgate",
+        "slug": "london/highgate",
+        "longitude": -0.1462,
+        "latitude": 51.572,
+        "listTimestamp": "2025-01-21T13:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950030",
+      "sourceId": "950030",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Elegant Two Bedroom Apartment, Vauxhall SW8",
+      "description": "Elegant 2-bedroom apartment in Vauxhall offering floor to ceiling windows, smart home controls and 24 hour security.",
+      "price": "\u00a32000",
+      "priceValue": 2000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "receptions": 1,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Floor to Ceiling Windows",
+        "Smart Home Controls",
+        "24 Hour Security"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1616594039964-3151a8e58f0c?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "vauxhall-950030-1",
+          "url": "https://images.unsplash.com/photo-1616594039964-3151a8e58f0c?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Stylish home office"
+        },
+        {
+          "id": "vauxhall-950030-2",
+          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bright living room"
+        },
+        {
+          "id": "vauxhall-950030-3",
+          "url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Sleek contemporary kitchen"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4861,
+      "longitude": -0.1255,
+      "lat": 51.4861,
+      "lng": -0.1255,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Vauxhall",
+        "SW8"
+      ],
+      "createdAt": "2025-01-30T12:00:00Z",
+      "updatedAt": "2025-02-10T14:00:00Z",
+      "availableAt": "2025-02-20T14:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 77,
+      "allowedTenancyDurations": [],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "SW8",
+      "url": "https://www.scraye.com/listings/950030",
+      "externalUrl": "https://www.scraye.com/listings/950030",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SW8",
+        "placeName": "Vauxhall",
+        "slug": "london/vauxhall",
+        "longitude": -0.1255,
+        "latitude": 51.4861,
+        "listTimestamp": "2025-01-30T12:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950031",
+      "sourceId": "950031",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Characterful One Bedroom House, Poplar E14",
+      "description": "Characterful 1-bedroom house in Poplar offering on-site concierge, floor to ceiling windows and 24 hour security.",
+      "price": "\u00a32750",
+      "priceValue": 2750,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 2,
+      "propertyType": "HOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "On-site Concierge",
+        "Floor to Ceiling Windows",
+        "24 Hour Security"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "poplar-950031-1",
+          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bright living room"
+        },
+        {
+          "id": "poplar-950031-2",
+          "url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Sleek contemporary kitchen"
+        },
+        {
+          "id": "poplar-950031-3",
+          "url": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Serene double bedroom"
+        }
+      ],
+      "media": [],
+      "latitude": 51.509,
+      "longitude": -0.017,
+      "lat": 51.509,
+      "lng": -0.017,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Poplar",
+        "E14"
+      ],
+      "createdAt": "2025-02-01T11:00:00Z",
+      "updatedAt": "2025-02-08T15:00:00Z",
+      "availableAt": "2025-03-08T15:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 56,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 12
+        }
+      ],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "E14",
+      "url": "https://www.scraye.com/listings/950031",
+      "externalUrl": "https://www.scraye.com/listings/950031",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "E14",
+        "placeName": "Poplar",
+        "slug": "london/poplar",
+        "longitude": -0.017,
+        "latitude": 51.509,
+        "listTimestamp": "2025-02-01T11:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950032",
+      "sourceId": "950032",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Boutique Two Bedroom Penthouse, Victoria SW1E",
+      "description": "Boutique 2-bedroom penthouse in Victoria offering underfloor heating, private balcony and cycle storage.",
+      "price": "\u00a32175",
+      "priceValue": 2175,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "receptions": 2,
+      "propertyType": "PENTHOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "Underfloor Heating",
+        "Private Balcony",
+        "Cycle Storage"
+      ],
+      "furnishedState": "PART_FURNISHED",
+      "image": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "victoria-950032-1",
+          "url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Sleek contemporary kitchen"
+        },
+        {
+          "id": "victoria-950032-2",
+          "url": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Serene double bedroom"
+        },
+        {
+          "id": "victoria-950032-3",
+          "url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Designer bathroom with marble finishes"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4975,
+      "longitude": -0.1381,
+      "lat": 51.4975,
+      "lng": -0.1381,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Victoria",
+        "SW1E"
+      ],
+      "createdAt": "2025-02-06T09:00:00Z",
+      "updatedAt": "2025-02-17T13:00:00Z",
+      "availableAt": null,
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 92,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 12
+        }
+      ],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "SW1E",
+      "url": "https://www.scraye.com/listings/950032",
+      "externalUrl": "https://www.scraye.com/listings/950032",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SW1E",
+        "placeName": "Victoria",
+        "slug": "london/victoria",
+        "longitude": -0.1381,
+        "latitude": 51.4975,
+        "listTimestamp": "2025-02-06T09:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950033",
+      "sourceId": "950033",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Contemporary Two Bedroom House, Balham SW12",
+      "description": "Contemporary 2-bedroom house in Balham offering communal gardens, on-site concierge and smart home controls.",
+      "price": "\u00a31825",
+      "priceValue": 1825,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "receptions": 1,
+      "propertyType": "HOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "Communal Gardens",
+        "On-site Concierge",
+        "Smart Home Controls"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "balham-950033-1",
+          "url": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Serene double bedroom"
+        },
+        {
+          "id": "balham-950033-2",
+          "url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Designer bathroom with marble finishes"
+        },
+        {
+          "id": "balham-950033-3",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Open-plan living space"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4431,
+      "longitude": -0.1525,
+      "lat": 51.4431,
+      "lng": -0.1525,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Balham",
+        "SW12"
+      ],
+      "createdAt": "2025-01-18T09:00:00Z",
+      "updatedAt": "2025-02-16T11:00:00Z",
+      "availableAt": "2025-03-20T11:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 105,
+      "allowedTenancyDurations": [
+        {
+          "min": 9,
+          "max": 24
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "SW12",
+      "url": "https://www.scraye.com/listings/950033",
+      "externalUrl": "https://www.scraye.com/listings/950033",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SW12",
+        "placeName": "Balham",
+        "slug": "london/balham",
+        "longitude": -0.1525,
+        "latitude": 51.4431,
+        "listTimestamp": "2025-01-18T09:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950034",
+      "sourceId": "950034",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Refurbished One Bedroom Apartment, Kentish Town NW5",
+      "description": "Refurbished 1-bedroom apartment in Kentish Town offering on-site concierge, floor to ceiling windows and pet friendly.",
+      "price": "\u00a32400",
+      "priceValue": 2400,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 2,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "On-site Concierge",
+        "Floor to Ceiling Windows",
+        "Pet Friendly"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "kentish-town-950034-1",
+          "url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Designer bathroom with marble finishes"
+        },
+        {
+          "id": "kentish-town-950034-2",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Open-plan living space"
+        },
+        {
+          "id": "kentish-town-950034-3",
+          "url": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Private balcony with city views"
+        }
+      ],
+      "media": [],
+      "latitude": 51.55,
+      "longitude": -0.14,
+      "lat": 51.55,
+      "lng": -0.14,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Kentish Town",
+        "NW5"
+      ],
+      "createdAt": "2025-02-11T14:00:00Z",
+      "updatedAt": "2025-02-16T20:00:00Z",
+      "availableAt": "2025-02-23T20:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 83,
+      "allowedTenancyDurations": [],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "NW5",
+      "url": "https://www.scraye.com/listings/950034",
+      "externalUrl": "https://www.scraye.com/listings/950034",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "NW5",
+        "placeName": "Kentish Town",
+        "slug": "london/kentish-town",
+        "longitude": -0.14,
+        "latitude": 51.55,
+        "listTimestamp": "2025-02-11T14:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950035",
+      "sourceId": "950035",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Spacious One Bedroom Maisonette, Elephant and Castle SE1",
+      "description": "Spacious 1-bedroom maisonette in Elephant and Castle offering on-site concierge, smart home controls and secure parking.",
+      "price": "\u00a32800",
+      "priceValue": 2800,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "MAISONETTE",
+      "status": "AVAILABLE",
+      "features": [
+        "On-site Concierge",
+        "Smart Home Controls",
+        "Secure Parking"
+      ],
+      "furnishedState": "PART_FURNISHED",
+      "image": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "elephant-and-castle-950035-1",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Open-plan living space"
+        },
+        {
+          "id": "elephant-and-castle-950035-2",
+          "url": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Private balcony with city views"
+        },
+        {
+          "id": "elephant-and-castle-950035-3",
+          "url": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Inviting master bedroom"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4945,
+      "longitude": -0.0991,
+      "lat": 51.4945,
+      "lng": -0.0991,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Elephant and Castle",
+        "SE1"
+      ],
+      "createdAt": "2025-01-13T15:00:00Z",
+      "updatedAt": "2025-01-29T17:00:00Z",
+      "availableAt": "2025-03-06T17:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 86,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 24
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "SE1",
+      "url": "https://www.scraye.com/listings/950035",
+      "externalUrl": "https://www.scraye.com/listings/950035",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SE1",
+        "placeName": "Elephant and Castle",
+        "slug": "london/elephant-and-castle",
+        "longitude": -0.0991,
+        "latitude": 51.4945,
+        "listTimestamp": "2025-01-13T15:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950036",
+      "sourceId": "950036",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Elegant One Bedroom House, Angel N1",
+      "description": "Elegant 1-bedroom house in Angel offering communal gardens, on-site concierge and floor to ceiling windows.",
+      "price": "\u00a31925",
+      "priceValue": 1925,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 2,
+      "propertyType": "HOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "Communal Gardens",
+        "On-site Concierge",
+        "Floor to Ceiling Windows"
+      ],
+      "furnishedState": "PART_FURNISHED",
+      "image": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "angel-950036-1",
+          "url": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Private balcony with city views"
+        },
+        {
+          "id": "angel-950036-2",
+          "url": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Inviting master bedroom"
+        },
+        {
+          "id": "angel-950036-3",
+          "url": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Elegant dining area"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5321,
+      "longitude": -0.1048,
+      "lat": 51.5321,
+      "lng": -0.1048,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Angel",
+        "N1"
+      ],
+      "createdAt": "2025-01-17T12:00:00Z",
+      "updatedAt": "2025-01-31T17:00:00Z",
+      "availableAt": null,
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 79,
+      "allowedTenancyDurations": [
+        {
+          "min": 12,
+          "max": 24
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "N1",
+      "url": "https://www.scraye.com/listings/950036",
+      "externalUrl": "https://www.scraye.com/listings/950036",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "N1",
+        "placeName": "Angel",
+        "slug": "london/angel",
+        "longitude": -0.1048,
+        "latitude": 51.5321,
+        "listTimestamp": "2025-01-17T12:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950037",
+      "sourceId": "950037",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Elegant Four Bedroom House, Islington N1",
+      "description": "Elegant 4-bedroom house in Islington offering roof terrace, floor to ceiling windows and underfloor heating.",
+      "price": "\u00a31750",
+      "priceValue": 1750,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 4,
+      "bathrooms": 4,
+      "receptions": 2,
+      "propertyType": "HOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "Roof Terrace",
+        "Floor to Ceiling Windows",
+        "Underfloor Heating"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "islington-950037-1",
+          "url": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Inviting master bedroom"
+        },
+        {
+          "id": "islington-950037-2",
+          "url": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Elegant dining area"
+        },
+        {
+          "id": "islington-950037-3",
+          "url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Fully fitted kitchen"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5386,
+      "longitude": -0.1011,
+      "lat": 51.5386,
+      "lng": -0.1011,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Islington",
+        "N1"
+      ],
+      "createdAt": "2025-01-11T17:00:00Z",
+      "updatedAt": "2025-01-16T23:00:00Z",
+      "availableAt": "2025-02-12T23:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 126,
+      "allowedTenancyDurations": [
+        {
+          "min": 12,
+          "max": 36
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "N1",
+      "url": "https://www.scraye.com/listings/950037",
+      "externalUrl": "https://www.scraye.com/listings/950037",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "N1",
+        "placeName": "Islington",
+        "slug": "london/islington",
+        "longitude": -0.1011,
+        "latitude": 51.5386,
+        "listTimestamp": "2025-01-11T17:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950038",
+      "sourceId": "950038",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Light-Filled Three Bedroom Maisonette, Peckham SE15",
+      "description": "Light-Filled 3-bedroom maisonette in Peckham offering cycle storage, roof terrace and city skyline views.",
+      "price": "\u00a33000",
+      "priceValue": 3000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "receptions": 2,
+      "propertyType": "MAISONETTE",
+      "status": "AVAILABLE",
+      "features": [
+        "Cycle Storage",
+        "Roof Terrace",
+        "City Skyline Views"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "peckham-950038-1",
+          "url": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Elegant dining area"
+        },
+        {
+          "id": "peckham-950038-2",
+          "url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Fully fitted kitchen"
+        },
+        {
+          "id": "peckham-950038-3",
+          "url": "https://images.unsplash.com/photo-1507086184172-3e5e05b4b913?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Roof terrace seating"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4746,
+      "longitude": -0.0694,
+      "lat": 51.4746,
+      "lng": -0.0694,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Peckham",
+        "SE15"
+      ],
+      "createdAt": "2025-02-13T17:00:00Z",
+      "updatedAt": "2025-03-02T21:00:00Z",
+      "availableAt": "2025-04-15T21:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 59,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 36
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "SE15",
+      "url": "https://www.scraye.com/listings/950038",
+      "externalUrl": "https://www.scraye.com/listings/950038",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SE15",
+        "placeName": "Peckham",
+        "slug": "london/peckham",
+        "longitude": -0.0694,
+        "latitude": 51.4746,
+        "listTimestamp": "2025-02-13T17:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950039",
+      "sourceId": "950039",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Spacious Four Bedroom Duplex, Nine Elms SW11",
+      "description": "Spacious 4-bedroom duplex in Nine Elms offering open-plan living, cycle storage and secure parking.",
+      "price": "\u00a31725",
+      "priceValue": 1725,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 4,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "DUPLEX",
+      "status": "AVAILABLE",
+      "features": [
+        "Open-Plan Living",
+        "Cycle Storage",
+        "Secure Parking"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "nine-elms-950039-1",
+          "url": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Fully fitted kitchen"
+        },
+        {
+          "id": "nine-elms-950039-2",
+          "url": "https://images.unsplash.com/photo-1507086184172-3e5e05b4b913?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Roof terrace seating"
+        },
+        {
+          "id": "nine-elms-950039-3",
+          "url": "https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Modern bathroom suite"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4807,
+      "longitude": -0.1404,
+      "lat": 51.4807,
+      "lng": -0.1404,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Nine Elms",
+        "SW11"
+      ],
+      "createdAt": "2025-01-08T10:00:00Z",
+      "updatedAt": "2025-01-27T14:00:00Z",
+      "availableAt": "2025-02-04T14:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 118,
+      "allowedTenancyDurations": [],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "SW11",
+      "url": "https://www.scraye.com/listings/950039",
+      "externalUrl": "https://www.scraye.com/listings/950039",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SW11",
+        "placeName": "Nine Elms",
+        "slug": "london/nine-elms",
+        "longitude": -0.1404,
+        "latitude": 51.4807,
+        "listTimestamp": "2025-01-08T10:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950040",
+      "sourceId": "950040",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Refurbished One Bedroom Duplex, Pimlico SW1V",
+      "description": "Refurbished 1-bedroom duplex in Pimlico offering floor to ceiling windows, secure parking and underfloor heating.",
+      "price": "\u00a32475",
+      "priceValue": 2475,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 2,
+      "propertyType": "DUPLEX",
+      "status": "AVAILABLE",
+      "features": [
+        "Floor to Ceiling Windows",
+        "Secure Parking",
+        "Underfloor Heating"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1507086184172-3e5e05b4b913?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "pimlico-950040-1",
+          "url": "https://images.unsplash.com/photo-1507086184172-3e5e05b4b913?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Roof terrace seating"
+        },
+        {
+          "id": "pimlico-950040-2",
+          "url": "https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Modern bathroom suite"
+        },
+        {
+          "id": "pimlico-950040-3",
+          "url": "https://images.unsplash.com/photo-1527030280862-64139fba04ca?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Contemporary lounge"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4893,
+      "longitude": -0.133,
+      "lat": 51.4893,
+      "lng": -0.133,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Pimlico",
+        "SW1V"
+      ],
+      "createdAt": "2025-02-17T16:00:00Z",
+      "updatedAt": "2025-03-19T22:00:00Z",
+      "availableAt": "2025-03-26T22:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 110,
+      "allowedTenancyDurations": [
+        {
+          "min": 12,
+          "max": 18
+        }
+      ],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "SW1V",
+      "url": "https://www.scraye.com/listings/950040",
+      "externalUrl": "https://www.scraye.com/listings/950040",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SW1V",
+        "placeName": "Pimlico",
+        "slug": "london/pimlico",
+        "longitude": -0.133,
+        "latitude": 51.4893,
+        "listTimestamp": "2025-02-17T16:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950041",
+      "sourceId": "950041",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Elegant Four Bedroom House, Stepney Green E1",
+      "description": "Elegant 4-bedroom house in Stepney Green offering roof terrace, concierge service and private balcony.",
+      "price": "\u00a32000",
+      "priceValue": 2000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "receptions": 2,
+      "propertyType": "HOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "Roof Terrace",
+        "Concierge Service",
+        "Private Balcony"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "stepney-green-950041-1",
+          "url": "https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Modern bathroom suite"
+        },
+        {
+          "id": "stepney-green-950041-2",
+          "url": "https://images.unsplash.com/photo-1527030280862-64139fba04ca?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Contemporary lounge"
+        },
+        {
+          "id": "stepney-green-950041-3",
+          "url": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Expansive riverside view"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5204,
+      "longitude": -0.0461,
+      "lat": 51.5204,
+      "lng": -0.0461,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Stepney Green",
+        "E1"
+      ],
+      "createdAt": "2025-02-23T13:00:00Z",
+      "updatedAt": "2025-03-06T19:00:00Z",
+      "availableAt": "2025-04-01T19:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 96,
+      "allowedTenancyDurations": [
+        {
+          "min": 9,
+          "max": 36
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "E1",
+      "url": "https://www.scraye.com/listings/950041",
+      "externalUrl": "https://www.scraye.com/listings/950041",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "E1",
+        "placeName": "Stepney Green",
+        "slug": "london/stepney-green",
+        "longitude": -0.0461,
+        "latitude": 51.5204,
+        "listTimestamp": "2025-02-23T13:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950042",
+      "sourceId": "950042",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Spacious Four Bedroom Apartment, Richmond TW9",
+      "description": "Spacious 4-bedroom apartment in Richmond offering cycle storage, underfloor heating and residents gym.",
+      "price": "\u00a32550",
+      "priceValue": 2550,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 4,
+      "bathrooms": 4,
+      "receptions": 2,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Cycle Storage",
+        "Underfloor Heating",
+        "Residents Gym"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1527030280862-64139fba04ca?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "richmond-950042-1",
+          "url": "https://images.unsplash.com/photo-1527030280862-64139fba04ca?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Contemporary lounge"
+        },
+        {
+          "id": "richmond-950042-2",
+          "url": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Expansive riverside view"
+        },
+        {
+          "id": "richmond-950042-3",
+          "url": "https://images.unsplash.com/photo-1549187774-b4e9b0445b08?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Spacious family living room"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4613,
+      "longitude": -0.3037,
+      "lat": 51.4613,
+      "lng": -0.3037,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Richmond",
+        "TW9"
+      ],
+      "createdAt": "2025-02-17T11:00:00Z",
+      "updatedAt": "2025-03-18T16:00:00Z",
+      "availableAt": null,
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 89,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 18
+        }
+      ],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "TW9",
+      "url": "https://www.scraye.com/listings/950042",
+      "externalUrl": "https://www.scraye.com/listings/950042",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "TW9",
+        "placeName": "Richmond",
+        "slug": "london/richmond",
+        "longitude": -0.3037,
+        "latitude": 51.4613,
+        "listTimestamp": "2025-02-17T11:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950043",
+      "sourceId": "950043",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Spacious Three Bedroom Maisonette, Limehouse E14",
+      "description": "Spacious 3-bedroom maisonette in Limehouse offering underfloor heating, private balcony and smart home controls.",
+      "price": "\u00a32225",
+      "priceValue": 2225,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "receptions": 1,
+      "propertyType": "MAISONETTE",
+      "status": "AVAILABLE",
+      "features": [
+        "Underfloor Heating",
+        "Private Balcony",
+        "Smart Home Controls"
+      ],
+      "furnishedState": "PART_FURNISHED",
+      "image": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "limehouse-950043-1",
+          "url": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Expansive riverside view"
+        },
+        {
+          "id": "limehouse-950043-2",
+          "url": "https://images.unsplash.com/photo-1549187774-b4e9b0445b08?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Spacious family living room"
+        },
+        {
+          "id": "limehouse-950043-3",
+          "url": "https://images.unsplash.com/photo-1616594039964-3151a8e58f0c?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Stylish home office"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5123,
+      "longitude": -0.0398,
+      "lat": 51.5123,
+      "lng": -0.0398,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Limehouse",
+        "E14"
+      ],
+      "createdAt": "2025-01-05T12:00:00Z",
+      "updatedAt": "2025-01-21T16:00:00Z",
+      "availableAt": "2025-03-02T16:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 50,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 12
+        }
+      ],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "E14",
+      "url": "https://www.scraye.com/listings/950043",
+      "externalUrl": "https://www.scraye.com/listings/950043",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "E14",
+        "placeName": "Limehouse",
+        "slug": "london/limehouse",
+        "longitude": -0.0398,
+        "latitude": 51.5123,
+        "listTimestamp": "2025-01-05T12:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950044",
+      "sourceId": "950044",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Boutique Three Bedroom Maisonette, Wimbledon SW19",
+      "description": "Boutique 3-bedroom maisonette in Wimbledon offering smart home controls, floor to ceiling windows and on-site concierge.",
+      "price": "\u00a32900",
+      "priceValue": 2900,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 3,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "MAISONETTE",
+      "status": "AVAILABLE",
+      "features": [
+        "Smart Home Controls",
+        "Floor to Ceiling Windows",
+        "On-site Concierge"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1549187774-b4e9b0445b08?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "wimbledon-950044-1",
+          "url": "https://images.unsplash.com/photo-1549187774-b4e9b0445b08?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Spacious family living room"
+        },
+        {
+          "id": "wimbledon-950044-2",
+          "url": "https://images.unsplash.com/photo-1616594039964-3151a8e58f0c?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Stylish home office"
+        },
+        {
+          "id": "wimbledon-950044-3",
+          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bright living room"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4214,
+      "longitude": -0.2064,
+      "lat": 51.4214,
+      "lng": -0.2064,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Wimbledon",
+        "SW19"
+      ],
+      "createdAt": "2025-01-09T17:00:00Z",
+      "updatedAt": "2025-01-21T23:00:00Z",
+      "availableAt": "2025-03-01T23:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 127,
+      "allowedTenancyDurations": [],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "SW19",
+      "url": "https://www.scraye.com/listings/950044",
+      "externalUrl": "https://www.scraye.com/listings/950044",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SW19",
+        "placeName": "Wimbledon",
+        "slug": "london/wimbledon",
+        "longitude": -0.2064,
+        "latitude": 51.4214,
+        "listTimestamp": "2025-01-09T17:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950045",
+      "sourceId": "950045",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Refurbished Three Bedroom Penthouse, Brixton SW9",
+      "description": "Refurbished 3-bedroom penthouse in Brixton offering communal gardens, smart home controls and underfloor heating.",
+      "price": "\u00a32575",
+      "priceValue": 2575,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "receptions": 2,
+      "propertyType": "PENTHOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "Communal Gardens",
+        "Smart Home Controls",
+        "Underfloor Heating"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1616594039964-3151a8e58f0c?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "brixton-950045-1",
+          "url": "https://images.unsplash.com/photo-1616594039964-3151a8e58f0c?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Stylish home office"
+        },
+        {
+          "id": "brixton-950045-2",
+          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bright living room"
+        },
+        {
+          "id": "brixton-950045-3",
+          "url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Sleek contemporary kitchen"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4616,
+      "longitude": -0.1157,
+      "lat": 51.4616,
+      "lng": -0.1157,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Brixton",
+        "SW9"
+      ],
+      "createdAt": "2025-01-27T11:00:00Z",
+      "updatedAt": "2025-02-20T19:00:00Z",
+      "availableAt": null,
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 102,
+      "allowedTenancyDurations": [
+        {
+          "min": 12,
+          "max": 12
+        }
+      ],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "SW9",
+      "url": "https://www.scraye.com/listings/950045",
+      "externalUrl": "https://www.scraye.com/listings/950045",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SW9",
+        "placeName": "Brixton",
+        "slug": "london/brixton",
+        "longitude": -0.1157,
+        "latitude": 51.4616,
+        "listTimestamp": "2025-01-27T11:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950046",
+      "sourceId": "950046",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Modern One Bedroom Duplex, Bloomsbury WC1B",
+      "description": "Modern 1-bedroom duplex in Bloomsbury offering floor to ceiling windows, open-plan living and communal gardens.",
+      "price": "\u00a31800",
+      "priceValue": 1800,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 2,
+      "propertyType": "DUPLEX",
+      "status": "AVAILABLE",
+      "features": [
+        "Floor to Ceiling Windows",
+        "Open-Plan Living",
+        "Communal Gardens"
+      ],
+      "furnishedState": "PART_FURNISHED",
+      "image": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "bloomsbury-950046-1",
+          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bright living room"
+        },
+        {
+          "id": "bloomsbury-950046-2",
+          "url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Sleek contemporary kitchen"
+        },
+        {
+          "id": "bloomsbury-950046-3",
+          "url": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Serene double bedroom"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5203,
+      "longitude": -0.1253,
+      "lat": 51.5203,
+      "lng": -0.1253,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Bloomsbury",
+        "WC1B"
+      ],
+      "createdAt": "2025-02-07T12:00:00Z",
+      "updatedAt": "2025-02-26T13:00:00Z",
+      "availableAt": "2025-04-07T13:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 47,
+      "allowedTenancyDurations": [
+        {
+          "min": 12,
+          "max": 24
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "WC1B",
+      "url": "https://www.scraye.com/listings/950046",
+      "externalUrl": "https://www.scraye.com/listings/950046",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "WC1B",
+        "placeName": "Bloomsbury",
+        "slug": "london/bloomsbury",
+        "longitude": -0.1253,
+        "latitude": 51.5203,
+        "listTimestamp": "2025-02-07T12:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950047",
+      "sourceId": "950047",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Spacious Two Bedroom Maisonette, Aldgate EC3N",
+      "description": "Spacious 2-bedroom maisonette in Aldgate offering roof terrace, concierge service and open-plan living.",
+      "price": "\u00a31650",
+      "priceValue": 1650,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "receptions": 2,
+      "propertyType": "MAISONETTE",
+      "status": "AVAILABLE",
+      "features": [
+        "Roof Terrace",
+        "Concierge Service",
+        "Open-Plan Living"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "aldgate-950047-1",
+          "url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Sleek contemporary kitchen"
+        },
+        {
+          "id": "aldgate-950047-2",
+          "url": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Serene double bedroom"
+        },
+        {
+          "id": "aldgate-950047-3",
+          "url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Designer bathroom with marble finishes"
+        }
+      ],
+      "media": [],
+      "latitude": 51.5143,
+      "longitude": -0.0754,
+      "lat": 51.5143,
+      "lng": -0.0754,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Aldgate",
+        "EC3N"
+      ],
+      "createdAt": "2025-02-26T12:00:00Z",
+      "updatedAt": "2025-03-28T17:00:00Z",
+      "availableAt": null,
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 84,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 24
+        }
+      ],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "EC3N",
+      "url": "https://www.scraye.com/listings/950047",
+      "externalUrl": "https://www.scraye.com/listings/950047",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "EC3N",
+        "placeName": "Aldgate",
+        "slug": "london/aldgate",
+        "longitude": -0.0754,
+        "latitude": 51.5143,
+        "listTimestamp": "2025-02-26T12:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950048",
+      "sourceId": "950048",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Boutique One Bedroom House, Tooting SW17",
+      "description": "Boutique 1-bedroom house in Tooting offering secure parking, on-site concierge and floor to ceiling windows.",
+      "price": "\u00a31725",
+      "priceValue": 1725,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "HOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "Secure Parking",
+        "On-site Concierge",
+        "Floor to Ceiling Windows"
+      ],
+      "furnishedState": "UNFURNISHED",
+      "image": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "tooting-950048-1",
+          "url": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Serene double bedroom"
+        },
+        {
+          "id": "tooting-950048-2",
+          "url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Designer bathroom with marble finishes"
+        },
+        {
+          "id": "tooting-950048-3",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Open-plan living space"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4275,
+      "longitude": -0.168,
+      "lat": 51.4275,
+      "lng": -0.168,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Tooting",
+        "SW17"
+      ],
+      "createdAt": "2025-03-06T14:00:00Z",
+      "updatedAt": "2025-03-15T15:00:00Z",
+      "availableAt": "2025-04-11T15:00:00Z",
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 120,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 12
+        }
+      ],
+      "instantViewingsEnabled": false,
+      "verified": true,
+      "outcode": "SW17",
+      "url": "https://www.scraye.com/listings/950048",
+      "externalUrl": "https://www.scraye.com/listings/950048",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SW17",
+        "placeName": "Tooting",
+        "slug": "london/tooting",
+        "longitude": -0.168,
+        "latitude": 51.4275,
+        "listTimestamp": "2025-03-06T14:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950049",
+      "sourceId": "950049",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Spacious Four Bedroom Duplex, Kensington W8",
+      "description": "Spacious 4-bedroom duplex in Kensington offering underfloor heating, residents gym and private balcony.",
+      "price": "\u00a31575",
+      "priceValue": 1575,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 4,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "DUPLEX",
+      "status": "AVAILABLE",
+      "features": [
+        "Underfloor Heating",
+        "Residents Gym",
+        "Private Balcony"
+      ],
+      "furnishedState": "PART_FURNISHED",
+      "image": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "kensington-950049-1",
+          "url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Designer bathroom with marble finishes"
+        },
+        {
+          "id": "kensington-950049-2",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Open-plan living space"
+        },
+        {
+          "id": "kensington-950049-3",
+          "url": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Private balcony with city views"
+        }
+      ],
+      "media": [],
+      "latitude": 51.499,
+      "longitude": -0.1937,
+      "lat": 51.499,
+      "lng": -0.1937,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Kensington",
+        "W8"
+      ],
+      "createdAt": "2025-02-25T16:00:00Z",
+      "updatedAt": "2025-03-23T20:00:00Z",
+      "availableAt": null,
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 116,
+      "allowedTenancyDurations": [],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "W8",
+      "url": "https://www.scraye.com/listings/950049",
+      "externalUrl": "https://www.scraye.com/listings/950049",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "W8",
+        "placeName": "Kensington",
+        "slug": "london/kensington",
+        "longitude": -0.1937,
+        "latitude": 51.499,
+        "listTimestamp": "2025-02-25T16:00:00Z"
+      }
+    },
+    {
+      "id": "scraye-950050",
+      "sourceId": "950050",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Light-Filled Three Bedroom Apartment, Blackheath SE3",
+      "description": "Light-Filled 3-bedroom apartment in Blackheath offering communal gardens, cycle storage and on-site concierge.",
+      "price": "\u00a32325",
+      "priceValue": 2325,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "M",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "receptions": 1,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Communal Gardens",
+        "Cycle Storage",
+        "On-site Concierge"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "blackheath-950050-1",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Open-plan living space"
+        },
+        {
+          "id": "blackheath-950050-2",
+          "url": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Private balcony with city views"
+        },
+        {
+          "id": "blackheath-950050-3",
+          "url": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Inviting master bedroom"
+        }
+      ],
+      "media": [],
+      "latitude": 51.4676,
+      "longitude": 0.0086,
+      "lat": 51.4676,
+      "lng": 0.0086,
+      "city": "London",
+      "county": "Greater London",
+      "matchingRegions": [
+        "London",
+        "Blackheath",
+        "SE3"
+      ],
+      "createdAt": "2025-02-10T17:00:00Z",
+      "updatedAt": "2025-03-01T18:00:00Z",
+      "availableAt": null,
+      "depositType": "FIVE_WEEKS_RENT",
+      "size": 49,
+      "allowedTenancyDurations": [
+        {
+          "min": 6,
+          "max": 12
+        }
+      ],
+      "instantViewingsEnabled": true,
+      "verified": true,
+      "outcode": "SE3",
+      "url": "https://www.scraye.com/listings/950050",
+      "externalUrl": "https://www.scraye.com/listings/950050",
+      "provider": "Scraye",
+      "_scraye": {
+        "placeId": "SE3",
+        "placeName": "Blackheath",
+        "slug": "london/blackheath",
+        "longitude": 0.0086,
+        "latitude": 51.4676,
+        "listTimestamp": "2025-02-10T17:00:00Z"
       }
     }
   ]
