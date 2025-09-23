@@ -196,6 +196,13 @@ body {
   font-size: 1rem;
 }
 
+.property-card .location {
+  margin: 0;
+  margin-top: var(--spacing-xs);
+  color: var(--color-muted-text);
+  font-size: 0.9rem;
+}
+
 .property-card .price {
   margin: var(--spacing-sm) 0;
   font-weight: bold;
