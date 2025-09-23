@@ -40,25 +40,11 @@ export default function PropertyList({ properties }) {
           );
         }
 
-        if (externalUrl && property.source === 'scraye') {
-          return (
-            <a
-              key={key}
-              href={externalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="property-link property-card-wrapper"
-            >
-              <PropertyCard property={cardProps} />
-            </a>
-          );
-        }
-
         return (
           <Link
             href={`/property/${encodeURIComponent(propertyId)}`}
             key={key}
-            className="property-link"
+            className="property-link property-card-wrapper"
           >
             <PropertyCard property={cardProps} />
           </Link>
