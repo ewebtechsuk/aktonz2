@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
+
+import { useSession } from '../components/SessionProvider';
 import styles from '../styles/Register.module.css';
 
 export default function Register() {
+  const router = useRouter();
+  const { refresh } = useSession();
   const [status, setStatus] = useState('');
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -17,70 +23,45 @@ export default function Register() {
       return;
     }
 
-    const apiKey = process.env.NEXT_PUBLIC_APEX27_API_KEY;
     const branchId = process.env.NEXT_PUBLIC_APEX27_BRANCH_ID;
-
-
-    const body = { email };
+    const body = { email, password };
     if (branchId) {
       body.branchId = branchId;
     }
 
+    setLoading(true);
+    setStatus('Creating your account...');
+
     try {
-      let res;
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(body),
+      });
 
-      // Try the backend endpoint first when available.
-      try {
-        res = await fetch('/api/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-      } catch (_) {
-        // Network failures fall through to the Apex27 fallback logic.
-      }
-
-      // If the backend fails, fall back to the public Apex27 API when a
-      // client-side API key is configured.
-
-      if (!res?.ok && apiKey) {
+      if (res.ok) {
+        setStatus('Registration successful. Redirecting...');
         try {
-          res = await fetch('https://api.apex27.co.uk/contacts', {
-            method: 'POST',
-            headers: {
-              'x-api-key': apiKey,
-              accept: 'application/json',
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(body),
-          });
-        } catch (_) {
-          // Ignore network errors and handle failure below.
-
+          await refresh();
+        } catch (refreshError) {
+          console.warn('Failed to refresh session after registration', refreshError);
         }
-      }
-
-      if (res?.ok) {
-        setStatus('Registration successful');
-
+        router.push('/account');
       } else {
         let data = {};
         try {
-          data = await res?.json();
+          data = await res.json();
         } catch (_) {
-          // Non-JSON response or no response
+          // Ignore JSON parsing issues
         }
-        // Surface meaningful errors, including missing API keys.
-        setStatus(
-          data?.error ||
-            data?.message ||
-            (apiKey ? 'Registration failed' : 'Apex27 API key not configured')
-        );
-
+        setStatus(data?.error || data?.message || 'Registration failed');
+        setLoading(false);
       }
     } catch (err) {
       console.error('Registration error', err);
       setStatus('Registration failed');
+      setLoading(false);
     }
   }
 
@@ -100,12 +81,28 @@ export default function Register() {
           <h2>Create an account</h2>
           <form onSubmit={handleSubmit}>
             <label htmlFor="email">Email address *</label>
-            <input id="email" name="email" type="email" autoComplete="email" required />
+            <input id="email" name="email" type="email" autoComplete="email" required disabled={loading} />
             <label htmlFor="password">Password *</label>
-            <input id="password" name="password" type="password" autoComplete="new-password" required />
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="new-password"
+              required
+              disabled={loading}
+            />
             <label htmlFor="confirmPassword">Confirm Password *</label>
-            <input id="confirmPassword" name="confirmPassword" type="password" autoComplete="new-password" required />
-            <button type="submit" className={styles.button}>Register</button>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              required
+              disabled={loading}
+            />
+            <button type="submit" className={styles.button} disabled={loading}>
+              {loading ? 'Creating account…' : 'Register'}
+            </button>
           </form>
           {status && <p className={styles.status}>{status}</p>}
           <p className={styles.signIn}>

@@ -1,12 +1,11 @@
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
+import { loginPortalAccount, registerPortalAccount } from '../../lib/apex27-portal.js';
+import { applyApiHeaders, handlePreflight } from '../../lib/api-helpers.js';
+import { clearSession, writeSession } from '../../lib/session.js';
 
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
+export default async function handler(req, res) {
+  applyApiHeaders(req, res, { methods: ['POST'] });
+
+  if (handlePreflight(req, res)) {
     return;
   }
 
@@ -16,57 +15,60 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { email } = req.body || {};
+  const { email, password } = req.body || {};
   if (!email) {
     res.status(400).json({ error: 'Missing email' });
     return;
   }
+  if (!password) {
+    res.status(400).json({ error: 'Missing password' });
+    return;
+  }
 
   try {
-    const apiKey =
-      process.env.APEX27_API_KEY || process.env.NEXT_PUBLIC_APEX27_API_KEY;
-    const branchId =
-      process.env.APEX27_BRANCH_ID || process.env.NEXT_PUBLIC_APEX27_BRANCH_ID;
-    if (!apiKey) {
-      // Missing configuration is a client error rather than a server fault.
-      res.status(400).json({ error: 'Apex27 API key not configured' });
-      return;
+    const registration = await registerPortalAccount({ email, password });
+
+    let token = null;
+    let contact = registration?.contact || registration || null;
+
+    try {
+      const loginResult = await loginPortalAccount({ email, password });
+      token = loginResult?.token || loginResult?.data?.token || null;
+      contact =
+        loginResult?.contact ||
+        loginResult?.data?.contact ||
+        contact ||
+        loginResult?.data ||
+        loginResult ||
+        null;
+    } catch (loginError) {
+      console.warn('Registration succeeded but login failed', loginError);
     }
 
-    const body = { email };
-    if (branchId) {
-      body.branchId = branchId;
-    }
+    const contactId =
+      contact?.id ||
+      contact?.contactId ||
+      contact?.contactID ||
+      registration?.contactId ||
+      registration?.contactID ||
+      registration?.id ||
+      token?.contactId ||
+      null;
 
-    const response = await fetch('https://api.apex27.co.uk/contacts', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-      let data = {};
+    if (contactId) {
       try {
-        data = await response.json();
-      } catch (_) {
-        // Non-JSON responses fall through with a generic message.
+        writeSession(res, { contactId, token: token || null, email });
+      } catch (sessionError) {
+        console.error('Failed to persist session after registration', sessionError);
+        clearSession(res);
       }
-      res
-        .status(response.status)
-        .json({ error: data.error || data.message || 'Failed to register' });
-      return;
     }
 
-
-    res.status(200).json({ ok: true });
+    const responseContact = contact || (contactId ? { contactId } : null);
+    res.status(200).json({ ok: true, contact: responseContact, token: token || null });
   } catch (err) {
     console.error('Failed to register contact', err);
     const message = err instanceof Error ? err.message : 'Failed to register';
-    // Treat upstream failures as a bad gateway to avoid generic 500 errors.
     res.status(502).json({ error: message });
   }
 }
