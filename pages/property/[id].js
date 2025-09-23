@@ -18,6 +18,7 @@ import {
   normalizeImages,
   extractPricePrefix,
 } from '../../lib/apex27.mjs';
+import { loadScrayeListingsByType, normalizeScrayeListings } from '../../lib/scraye.mjs';
 import {
   resolvePropertyIdentifier,
   propertyMatchesIdentifier,
@@ -232,15 +233,29 @@ export default function Property({ property, recommendations }) {
 }
 
 export async function getStaticPaths() {
-  const [sale, rent] = await Promise.all([
+  const [sale, rent, scrayeRent, scrayeSale] = await Promise.all([
     fetchProperties({ transactionType: 'sale' }),
     fetchProperties({ transactionType: 'rent' }),
+    loadScrayeListingsByType('rent'),
+    loadScrayeListingsByType('sale'),
   ]);
-  const properties = [...sale, ...rent];
-  const paths = properties
-    .map((property) => resolvePropertyIdentifier(property))
-    .filter(Boolean)
-    .map((id) => ({ params: { id: String(id) } }));
+
+  const scrayeListings = [
+    ...normalizeScrayeListings(scrayeRent),
+    ...normalizeScrayeListings(scrayeSale),
+  ];
+
+  const properties = [...sale, ...rent, ...scrayeListings];
+  const seen = new Set();
+  const paths = [];
+  properties.forEach((property) => {
+    const identifier = resolvePropertyIdentifier(property);
+    if (!identifier) return;
+    const normalized = String(identifier).trim().toLowerCase();
+    if (!normalized || seen.has(normalized)) return;
+    seen.add(normalized);
+    paths.push({ params: { id: String(identifier) } });
+  });
   return {
     paths,
     fallback: 'blocking',
