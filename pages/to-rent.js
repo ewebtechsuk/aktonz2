@@ -506,9 +506,25 @@ export async function getStaticProps() {
     statuses: ['available', 'under_offer', 'let_agreed', 'let', 'let_stc', 'let_by'],
   });
 
-  const properties = raw.slice(0, 50).map((property) => ({
+  const available = [];
+  const archived = [];
+
+  raw.forEach((property) => {
+    if (property && typeof property === 'object') {
+      const status = normalizeStatus(property.status);
+      if (status.includes('let')) {
+        archived.push(property);
+      } else {
+        available.push(property);
+      }
+    }
+  });
+
+  const prioritized = available.concat(archived.slice(0, 40));
+
+  const properties = prioritized.map((property) => ({
     ...property,
-    images: (property.images || []).slice(0, 3),
+    images: Array.isArray(property.images) ? property.images.slice(0, 3) : [],
     description: property.description ? property.description.slice(0, 200) : '',
   }));
 
