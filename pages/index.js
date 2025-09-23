@@ -51,13 +51,13 @@ export async function getStaticProps() {
 
   const sales = allSale
     .filter((p) => isAvailable(p) && p.featured)
-    .slice(0, 4);
+    .slice(0, 5);
 
   const lettings = allRent
     .filter((p) => isAvailable(p) && p.featured)
-    .slice(0, 4);
+    .slice(0, 5);
 
-  const archiveSales = allSale.filter(isSold).slice(0, 4);
+  const archiveSales = allSale.filter(isSold).slice(0, 5);
 
   return { props: { sales, lettings, archiveSales } };
 }
