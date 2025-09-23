@@ -457,7 +457,34 @@ export async function getStaticProps() {
     statuses: ['available', 'under_offer', 'sold'],
   });
 
-  const properties = raw.slice(0, 50).map((property) => ({
+  const scrayeListings = [];
+  const otherListings = [];
+
+  raw.forEach((property) => {
+    const source = typeof property?.source === 'string' ? property.source.toLowerCase() : '';
+    if (source === 'scraye') {
+      scrayeListings.push(property);
+    } else {
+      otherListings.push(property);
+    }
+  });
+
+  const prioritized = [];
+  const seen = new Set();
+  const pushUnique = (property) => {
+    if (!property) return;
+    const key = property.id ? String(property.id).toLowerCase() : null;
+    if (key && seen.has(key)) return;
+    if (key) {
+      seen.add(key);
+    }
+    prioritized.push(property);
+  };
+
+  scrayeListings.forEach(pushUnique);
+  otherListings.forEach(pushUnique);
+
+  const properties = prioritized.slice(0, 50).map((property) => ({
     ...property,
     images: (property.images || []).slice(0, 3),
     description: property.description ? property.description.slice(0, 200) : '',
