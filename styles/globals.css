@@ -14,7 +14,6 @@ body {
   grid-template-columns: 1fr;
   gap: var(--spacing-lg);
   align-items: stretch;
-  justify-content: center;
 }
 
 
@@ -35,10 +34,9 @@ body {
   display: flex;
   flex-direction: column;
   transition: box-shadow 0.2s, transform 0.2s;
-  width: 323px;
-
+  width: 100%;
+  max-width: 100%;
   height: auto;
-
 }
 
 .property-list .property-link:hover .property-card,
@@ -223,9 +221,9 @@ body {
   color: var(--color-muted-text);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .property-list {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
 
   .property-card .image-wrapper {
@@ -233,11 +231,7 @@ body {
   }
 }
 
-@media (min-width: 1024px) {
-  .property-list {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
+@media (min-width: 1200px) {
   .property-card .image-wrapper {
     aspect-ratio: auto;
     height: 300px;
