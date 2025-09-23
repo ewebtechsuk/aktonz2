@@ -1,4 +1,5 @@
-import { loginPortalAccount } from '../../lib/apex27-portal.js';
+import { loginPortalAccount, resolvePortalContact } from '../../lib/apex27-portal.js';
+
 import { applyApiHeaders, handlePreflight } from '../../lib/api-helpers.js';
 import { clearSession, writeSession } from '../../lib/session.js';
 
@@ -23,40 +24,35 @@ export default async function handler(req, res) {
   }
 
   try {
-    const result = await loginPortalAccount({ email, password });
-    const token = result?.token || result?.data?.token || null;
-    let contact = result?.contact || result?.data?.contact || result?.data || null;
+    const auth = await loginPortalAccount({ email, password });
+    const resolved = await resolvePortalContact({
+      contact: auth?.contact || null,
+      contactId: auth?.contactId || null,
+      token: auth?.token || null,
+      email: auth?.email || email || null,
+    });
 
-    const contactId =
-      contact?.id ||
-      contact?.contactId ||
-      contact?.contactID ||
-      result?.contactId ||
-      result?.contactID ||
-      result?.id ||
-      result?.data?.contactId ||
-      result?.data?.contactID ||
-      null;
-
-    if (!contact && contactId) {
-      contact = { contactId };
-    }
-
+    const contactId = resolved.contactId || auth?.contactId || null;
     if (!contactId) {
 
       res.status(502).json({ error: 'Login failed' });
       return;
     }
 
+    const sessionEmail = resolved.email || auth?.email || email || null;
+    const responseContact = resolved.contact || auth?.contact || { contactId };
+
     try {
-      writeSession(res, { contactId, token: token || null, email });
+      writeSession(res, { contactId, token: auth?.token || null, email: sessionEmail });
     } catch (sessionError) {
       console.error('Failed to persist session during login', sessionError);
       clearSession(res);
-
+      res.status(500).json({ error: 'Unable to persist session' });
+      return;
     }
 
-    res.status(200).json({ ok: true, contact, token: token || null });
+    res.status(200).json({ ok: true, contact: responseContact, token: auth?.token || null, email: sessionEmail });
+
   } catch (err) {
     console.error('Failed to authenticate contact', err);
     const message = err instanceof Error ? err.message : 'Login failed';

@@ -8,7 +8,8 @@ import styles from '../styles/Login.module.css';
 
 export default function Login() {
   const router = useRouter();
-  const { refresh } = useSession();
+  const { refresh, setSession, clearSession } = useSession();
+
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -31,13 +32,24 @@ export default function Login() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-
         body: JSON.stringify({ email, password }),
       });
+      let data = {};
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        data = {};
+      }
 
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
         throw new Error(data?.error || 'Unable to sign in');
+      }
+
+      try {
+        setSession({ contact: data?.contact || null, email: data?.email || email || null });
+      } catch (sessionError) {
+        console.warn('Failed to apply session from login response', sessionError);
+
       }
 
       try {
@@ -48,6 +60,8 @@ export default function Login() {
       router.push('/account');
     } catch (err) {
       console.error('Login failed', err);
+      clearSession();
+
       setStatus(err instanceof Error ? err.message : 'Unable to sign in');
       setLoading(false);
     }

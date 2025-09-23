@@ -1,6 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-const SessionContext = createContext({ user: null, loading: true, error: null, email: null, refresh: () => {} });
+const SessionContext = createContext({
+  user: null,
+  loading: true,
+  error: null,
+  email: null,
+  refresh: () => {},
+  setSession: () => {},
+  clearSession: () => {},
+});
+
 
 async function fetchSession() {
   const res = await fetch('/api/account/me', { credentials: 'include' });
@@ -19,24 +28,39 @@ async function fetchSession() {
   return data;
 }
 
+function deriveSessionState(payload) {
+  const contact = payload?.contact || payload?.user || null;
+  const email = payload?.email || contact?.email || null;
+
+  return {
+    user: contact || null,
+    email: email || null,
+    loading: false,
+    error: null,
+  };
+}
+
 export function SessionProvider({ children }) {
   const [state, setState] = useState({ user: null, loading: true, error: null, email: null });
 
+  const applySession = useCallback((payload) => {
+    setState(deriveSessionState(payload));
+  }, []);
+
+  const clear = useCallback(() => {
+    setState({ user: null, email: null, loading: false, error: null });
+  }, []);
+
   const load = useCallback(async () => {
-    setState((prev) => ({ ...prev, loading: true }));
+    setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       const data = await fetchSession();
-      setState({
-        user: data?.contact || null,
-        loading: false,
-        error: null,
-        email: data?.email || data?.contact?.email || null,
-      });
-
+      applySession(data);
     } catch (err) {
-      setState({ user: null, loading: false, error: err instanceof Error ? err.message : 'Unable to load account', email: null });
+      const message = err instanceof Error ? err.message : 'Unable to load account';
+      setState({ user: null, email: null, loading: false, error: message });
     }
-  }, []);
+  }, [applySession]);
 
   useEffect(() => {
     load();
@@ -49,8 +73,10 @@ export function SessionProvider({ children }) {
       loading: state.loading,
       error: state.error,
       refresh: load,
+      setSession: applySession,
+      clearSession: clear,
     };
-  }, [state.user, state.email, state.loading, state.error, load]);
+  }, [state.user, state.email, state.loading, state.error, load, applySession, clear]);
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
