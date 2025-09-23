@@ -196,6 +196,12 @@ body {
   font-size: 1rem;
 }
 
+.property-card .type {
+  margin: 0;
+  color: var(--color-muted-text);
+  font-size: 0.9rem;
+}
+
 .property-card .location {
   margin: 0;
   margin-top: var(--spacing-xs);

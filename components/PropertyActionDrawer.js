@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import { FaBath, FaBed, FaCouch } from 'react-icons/fa';
 import { formatRentFrequency } from '../lib/format.mjs';
+import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
 import styles from '../styles/PropertyActionDrawer.module.css';
 
 function formatPrice(property = {}) {
@@ -28,6 +29,10 @@ export default function PropertyActionDrawer({
       : 'For sale'
     : '';
   const priceLabel = formatPrice(summary);
+  const typeLabel =
+    summary.typeLabel ??
+    summary.propertyTypeLabel ??
+    formatPropertyTypeLabel(summary.propertyType ?? summary.type ?? null);
 
   return (
     <>
@@ -67,9 +72,7 @@ export default function PropertyActionDrawer({
               <h3 className={styles.summaryTitle}>
                 {summary.title || 'Property details'}
               </h3>
-              {summary.type && (
-                <p className={styles.summaryType}>{summary.type}</p>
-              )}
+              {typeLabel && <p className={styles.summaryType}>{typeLabel}</p>}
               {priceLabel && <p className={styles.summaryPrice}>{priceLabel}</p>}
               <ul className={styles.summaryMeta}>
                 {summary.bedrooms != null && (
