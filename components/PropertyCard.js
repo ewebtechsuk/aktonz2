@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { formatRentFrequency } from '../lib/format.mjs';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
+import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
 
 export default function PropertyCard({ property }) {
   const rawStatus = property.status ? property.status.replace(/_/g, ' ') : null;
@@ -96,6 +97,10 @@ export default function PropertyCard({ property }) {
   if (town) locationParts.push(town);
   if (postcode) locationParts.push(postcode);
   const locationText = locationParts.join(' · ');
+  const typeLabel =
+    property.propertyTypeLabel ??
+    property.typeLabel ??
+    formatPropertyTypeLabel(property.propertyType ?? property.type ?? null);
 
   return (
     <div className={`property-card${isArchived ? ' archived' : ''}`}>
@@ -159,6 +164,7 @@ export default function PropertyCard({ property }) {
       </div>
       <div className="details">
         <h3 className="title">{property.title}</h3>
+        {typeLabel && <p className="type">{typeLabel}</p>}
         {locationText && <p className="location">{locationText}</p>}
         {property.price && (
           <p className="price">

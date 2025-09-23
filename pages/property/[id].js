@@ -21,6 +21,10 @@ import {
   resolvePropertyIdentifier,
   propertyMatchesIdentifier,
 } from '../../lib/property-id.mjs';
+import {
+  resolvePropertyTypeLabel,
+  formatPropertyTypeLabel,
+} from '../../lib/property-type.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
 import { formatRentFrequency, formatPriceGBP } from '../../lib/format.mjs';
@@ -59,6 +63,10 @@ export default function Property({ property, recommendations }) {
     );
   }
   const features = Array.isArray(property.features) ? property.features : [];
+  const displayType =
+    property.typeLabel ??
+    property.propertyTypeLabel ??
+    formatPropertyTypeLabel(property.propertyType ?? property.type ?? null);
   const hasLocation =
     property.latitude != null && property.longitude != null;
   const mapProperties = useMemo(
@@ -72,7 +80,7 @@ export default function Property({ property, recommendations }) {
           rentFrequency: property.rentFrequency,
           tenure: property.tenure ?? null,
           image: property.image ?? null,
-          propertyType: property.type ?? null,
+          propertyType: property.propertyType ?? property.type ?? null,
           lat: property.latitude,
           lng: property.longitude,
         },
@@ -88,6 +96,7 @@ export default function Property({ property, recommendations }) {
       property.rentFrequency,
       property.tenure,
       property.title,
+      property.propertyType,
       property.type,
     ]
   );
@@ -115,7 +124,7 @@ export default function Property({ property, recommendations }) {
               />
             )}
           </div>
-          {property.type && <p className={styles.type}>{property.type}</p>}
+          {displayType && <p className={styles.type}>{displayType}</p>}
           <div className={styles.stats}>
             {property.receptions != null && (
               <span>
@@ -234,6 +243,15 @@ export async function getStaticProps({ params }) {
   if (rawProperty) {
     const imgList = normalizeImages(rawProperty.images || []);
     const isSalePrice = rawProperty.rentFrequency == null;
+    const propertyTypeValue =
+      rawProperty.propertyType ||
+      rawProperty.type ||
+      rawProperty.property_type ||
+      rawProperty.property_type_code ||
+      '';
+    const propertyTypeLabel =
+      resolvePropertyTypeLabel(rawProperty) ??
+      formatPropertyTypeLabel(propertyTypeValue);
     const rawOutcode =
       rawProperty.outcode ??
       rawProperty.postcode ??
@@ -290,7 +308,10 @@ export async function getStaticProps({ params }) {
         }
         return [];
       })(),
-      type: rawProperty.propertyType || rawProperty.type || '',
+      propertyType: propertyTypeValue || null,
+      propertyTypeLabel: propertyTypeLabel ?? null,
+      type: propertyTypeValue || '',
+      typeLabel: propertyTypeLabel ?? null,
       receptions:
         rawProperty.receptionRooms ?? rawProperty.receptions ?? null,
       bedrooms: rawProperty.bedrooms ?? rawProperty.beds ?? null,
