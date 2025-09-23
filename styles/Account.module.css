@@ -8,6 +8,7 @@
   background: #ffffff;
   border-radius: 22px;
   border: 1px solid #d7ebe3;
+
   padding: clamp(1.75rem, 3vw, 2.75rem);
   box-shadow: 0 18px 45px rgba(20, 80, 60, 0.08);
   display: flex;
@@ -45,6 +46,7 @@
 }
 
 .primaryCta {
+
   align-self: center;
   background: #00965f;
   color: #ffffff;
@@ -69,6 +71,7 @@
 }
 
 .formGroup {
+
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
@@ -337,6 +340,7 @@
   border: 1px solid #cfe4db;
   padding: 1.1rem 1.2rem;
   font-size: 1rem;
+
   line-height: 1.6;
   color: #184435;
   background: #f7fbf8;
@@ -346,11 +350,13 @@
 
 .textArea:focus {
   outline: 2px solid rgba(0, 150, 95, 0.25);
+
   outline-offset: 2px;
 }
 
 @media (max-width: 720px) {
   .panelHeader {
+
     flex-direction: column;
     align-items: flex-start;
   }
@@ -365,6 +371,7 @@
 
   .mapSurface {
     min-height: 220px;
+
   }
 }
 
@@ -375,5 +382,6 @@
 
   .rangeControls {
     flex-direction: column;
+
   }
 }
