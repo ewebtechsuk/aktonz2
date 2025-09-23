@@ -16,6 +16,7 @@ import {
   fetchPropertiesByType,
   extractMedia,
   normalizeImages,
+  extractPricePrefix,
 } from '../../lib/apex27.mjs';
 import {
   resolvePropertyIdentifier,
@@ -296,7 +297,8 @@ export async function getStaticProps({ params }) {
             ? formatPriceGBP(rawProperty.price, { isSale: isSalePrice })
             : rawProperty.price
           : null,
-      pricePrefix: rawProperty.pricePrefix ?? rawProperty.price_prefix ?? null,
+      pricePrefix: extractPricePrefix(rawProperty) ?? null,
+
       rentFrequency: rawProperty.rentFrequency ?? null,
       image: imgList[0] || null,
       images: imgList,
