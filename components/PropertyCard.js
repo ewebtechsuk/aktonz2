@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import FavoriteButton from './FavoriteButton';
 import { formatRentFrequency } from '../lib/format.mjs';
-import { FaBed, FaBath } from 'react-icons/fa';
+import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
 
 export default function PropertyCard({ property }) {
   const rawStatus = property.status ? property.status.replace(/_/g, ' ') : null;
@@ -142,8 +141,14 @@ export default function PropertyCard({ property }) {
               ` ${formatRentFrequency(property.rentFrequency)}`}
           </p>
         )}
-        {(property.bedrooms != null || property.bathrooms != null) && (
+        {(property.receptions != null || property.bedrooms != null || property.bathrooms != null) && (
           <div className="features">
+            {property.receptions != null && (
+              <span className="feature">
+                <FaCouch aria-hidden="true" />
+                {property.receptions}
+              </span>
+            )}
             {property.bedrooms != null && (
               <span className="feature">
                 <FaBed aria-hidden="true" />
@@ -158,7 +163,6 @@ export default function PropertyCard({ property }) {
             )}
           </div>
         )}
-        {property.id && <FavoriteButton propertyId={property.id} />}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
+import { FaHeart, FaRegHeart } from 'react-icons/fa';
 
-export default function FavoriteButton({ propertyId }) {
+export default function FavoriteButton({ propertyId, iconOnly = false, className = '' }) {
   const [favourite, setFavourite] = useState(false);
 
   useEffect(() => {
@@ -52,14 +53,35 @@ export default function FavoriteButton({ propertyId }) {
     }
   };
 
+  const buttonText = favourite ? 'Unfavourite' : 'Favourite';
+  const label = favourite ? 'Remove from favourites' : 'Save to favourites';
+  const classNames = [
+    'favorite-button',
+    favourite ? 'active' : '',
+    iconOnly ? 'icon-only' : '',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <button
-      className={`favorite-button${favourite ? ' active' : ''}`}
+      className={classNames}
       onClick={toggleFavourite}
       aria-pressed={favourite}
       type="button"
+      aria-label={iconOnly ? label : undefined}
+      title={iconOnly ? label : undefined}
     >
-      {favourite ? 'Unfavourite' : 'Favourite'}
+      {iconOnly ? (
+        favourite ? (
+          <FaHeart aria-hidden="true" />
+        ) : (
+          <FaRegHeart aria-hidden="true" />
+        )
+      ) : (
+        buttonText
+      )}
     </button>
   );
 }
