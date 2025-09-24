@@ -59,7 +59,7 @@ async function loadPrebuildPropertyIds(limit = 24) {
   }
 
   try {
-    const fs = await import('fs/promises');
+    const fs = await import('node:fs/promises');
     const pathMod = await import('path');
     const filePath = pathMod.join(process.cwd(), 'data', 'listings.json');
     const raw = await fs.readFile(filePath, 'utf8');
