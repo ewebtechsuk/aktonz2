@@ -12,13 +12,11 @@ import PropertyMap from '../../components/PropertyMap';
 import Head from 'next/head';
 import {
   fetchPropertyById,
-  fetchProperties,
-  fetchPropertiesByType,
+  fetchPropertiesByTypeCachedFirst,
   extractMedia,
   normalizeImages,
   extractPricePrefix,
 } from '../../lib/apex27.mjs';
-import { loadScrayeListingsByType, normalizeScrayeListings } from '../../lib/scraye.mjs';
 import {
   resolvePropertyIdentifier,
   propertyMatchesIdentifier,
@@ -52,6 +50,58 @@ function rentToMonthly(price, freq) {
       return amount / 12;
     default:
       return amount;
+  }
+}
+
+async function loadPrebuildPropertyIds(limit = 24) {
+  if (!limit || limit <= 0) {
+    return [];
+  }
+
+  try {
+    const fs = await import('fs/promises');
+    const pathMod = await import('path');
+    const filePath = pathMod.join(process.cwd(), 'data', 'listings.json');
+    const raw = await fs.readFile(filePath, 'utf8');
+    const data = JSON.parse(raw);
+
+    const ids = [];
+    const seen = new Set();
+
+    if (Array.isArray(data)) {
+      for (const entry of data) {
+        const identifier = resolvePropertyIdentifier(entry);
+        if (!identifier) {
+          continue;
+        }
+
+        const normalized = String(identifier).trim();
+        if (!normalized) {
+          continue;
+        }
+
+        if (normalized.toLowerCase().startsWith('scraye-')) {
+          continue;
+        }
+
+        const dedupeKey = normalized.toLowerCase();
+        if (seen.has(dedupeKey)) {
+          continue;
+        }
+
+        seen.add(dedupeKey);
+        ids.push(normalized);
+
+        if (ids.length >= limit) {
+          break;
+        }
+      }
+    }
+
+    return ids;
+  } catch (error) {
+    console.warn('Unable to derive prebuild property ids from cache', error);
+    return [];
   }
 }
 
@@ -233,29 +283,8 @@ export default function Property({ property, recommendations }) {
 }
 
 export async function getStaticPaths() {
-  const [sale, rent, scrayeRent, scrayeSale] = await Promise.all([
-    fetchProperties({ transactionType: 'sale' }),
-    fetchProperties({ transactionType: 'rent' }),
-    loadScrayeListingsByType('rent'),
-    loadScrayeListingsByType('sale'),
-  ]);
-
-  const scrayeListings = [
-    ...normalizeScrayeListings(scrayeRent),
-    ...normalizeScrayeListings(scrayeSale),
-  ];
-
-  const properties = [...sale, ...rent, ...scrayeListings];
-  const seen = new Set();
-  const paths = [];
-  properties.forEach((property) => {
-    const identifier = resolvePropertyIdentifier(property);
-    if (!identifier) return;
-    const normalized = String(identifier).trim().toLowerCase();
-    if (!normalized || seen.has(normalized)) return;
-    seen.add(normalized);
-    paths.push({ params: { id: String(identifier) } });
-  });
+  const ids = await loadPrebuildPropertyIds(24);
+  const paths = ids.map((id) => ({ params: { id: String(id) } }));
   return {
     paths,
     fallback: 'blocking',
@@ -350,7 +379,7 @@ export async function getStaticProps({ params }) {
     };
   }
 
-  const allRent = await fetchPropertiesByType('rent');
+  const allRent = await fetchPropertiesByTypeCachedFirst('rent');
   const recommendations = allRent
     .filter((p) => !propertyMatchesIdentifier(p, params.id))
     .slice(0, 4);
