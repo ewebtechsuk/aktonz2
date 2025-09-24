@@ -12,6 +12,9 @@ export default function OfferDrawer({ property }) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [offer, setOffer] = useState(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState(null);
 
   const propertyId = property?.id;
   const propertyTitle = property?.title || '';
@@ -28,12 +31,15 @@ export default function OfferDrawer({ property }) {
     resetFields();
     setStatus(null);
     setSubmitting(false);
+    setOffer(null);
+    setPaymentError(null);
   };
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (submitting) return;
     setStatus(null);
+    setPaymentError(null);
 
     if (!propertyId) {
       setStatus({ tone: 'error', message: 'Missing property reference.' });
@@ -56,6 +62,8 @@ export default function OfferDrawer({ property }) {
       });
 
       if (!res.ok) throw new Error('Request failed');
+      const payload = await res.json();
+      setOffer(payload?.offer || null);
       setStatus({
         tone: 'success',
         message: 'Offer submitted successfully. We will be in touch shortly.',
@@ -68,6 +76,43 @@ export default function OfferDrawer({ property }) {
       });
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  const depositLabel = offer?.depositAmount
+    ? new Intl.NumberFormat('en-GB', {
+        style: 'currency',
+        currency: 'GBP',
+        minimumFractionDigits: 2,
+      }).format(offer.depositAmount)
+    : null;
+
+  async function handlePayment() {
+    if (!offer || paymentLoading) return;
+    setPaymentError(null);
+    setPaymentLoading(true);
+
+    try {
+      const res = await fetch(`${router.basePath}/api/payments/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ offerId: offer.id }),
+      });
+
+      if (!res.ok) throw new Error('payment-start-failed');
+
+      const data = await res.json();
+      if (data?.url) {
+        window.location.href = data.url;
+        return;
+      }
+
+      throw new Error('missing-url');
+    } catch (err) {
+      console.error('Failed to start payment', err);
+      setPaymentError('We were unable to start the payment. Please try again.');
+    } finally {
+      setPaymentLoading(false);
     }
   }
 
@@ -154,6 +199,30 @@ export default function OfferDrawer({ property }) {
             >
               {status.message}
             </p>
+          )}
+          {offer && (
+            <div className={styles.paymentPanel}>
+              <h3>Secure this property</h3>
+              <p>
+                Complete the holding deposit
+                {depositLabel ? ` of ${depositLabel}` : ''} to reserve your
+                position. You can return to this step at any time from your
+                confirmation email.
+              </p>
+              <button
+                type="button"
+                className={styles.paymentButton}
+                onClick={handlePayment}
+                disabled={paymentLoading}
+              >
+                {paymentLoading ? 'Starting secure checkout…' : 'Pay holding deposit'}
+              </button>
+              {paymentError && (
+                <p className={`${styles.status} ${styles.error}`}>
+                  {paymentError}
+                </p>
+              )}
+            </div>
           )}
         </form>
       </PropertyActionDrawer>

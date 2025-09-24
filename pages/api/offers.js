@@ -1,9 +1,5 @@
-import {
-  createSmtpTransport,
-  getNotificationRecipients,
-  resolveFromAddress,
-  sendMailOrThrow,
-} from '../../lib/mailer.mjs';
+import { createSmtpTransport, resolveFromAddress } from '../../lib/mailer.js';
+import { addOffer } from '../../lib/offers.js';
 
 
 export default async function handler(req, res) {
@@ -20,12 +16,29 @@ export default async function handler(req, res) {
     return res.status(405).end('Method Not Allowed');
   }
 
-  const { propertyId, propertyTitle, price, frequency, name, email } =
-    req.body || {};
+  const {
+    propertyId,
+    propertyTitle,
+    price,
+    frequency,
+    name,
+    email,
+    depositAmount,
+  } = req.body || {};
 
   if (!propertyId || !price || !name || !email) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
+
+  const offer = await addOffer({
+    propertyId,
+    propertyTitle,
+    price,
+    frequency,
+    name,
+    email,
+    depositAmount,
+  });
 
   try {
     if (process.env.APEX27_API_KEY) {
@@ -53,17 +66,15 @@ export default async function handler(req, res) {
     const from = resolveFromAddress();
     const aktonzRecipients = getNotificationRecipients();
 
-    await sendMailOrThrow(
-      transporter,
-      {
-        to: aktonzRecipients,
-        from,
-        replyTo: email,
-        subject: `New offer for ${propertyTitle}`,
-        text: `${name} <${email}> offered £${price} ${frequency} for property ${propertyId}.`,
-      },
-      { context: 'offers:internal', expectedRecipients: aktonzRecipients }
-    );
+    await transporter.sendMail({
+      to: aktonz,
+      from,
+      subject: `New offer for ${propertyTitle}`,
+      text: `${name} <${email}> offered £${price} ${
+        frequency || ''
+      } for property ${propertyId}. Holding deposit: £${offer.depositAmount}.`,
+    });
+
 
     await sendMailOrThrow(
       transporter,
@@ -98,5 +109,5 @@ export default async function handler(req, res) {
       .json({ error: 'Failed to send offer notifications' });
   }
 
-  return res.status(200).json({ ok: true });
+  return res.status(200).json({ ok: true, offer });
 }
