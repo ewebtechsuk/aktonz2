@@ -5,6 +5,7 @@ import styles from '../styles/ViewingForm.module.css';
 
 export default function ViewingForm({ property }) {
   const router = useRouter();
+  const basePath = (router?.basePath ?? '').replace(/\/$/, '');
 
   const initialForm = {
     name: '',
@@ -48,7 +49,7 @@ export default function ViewingForm({ property }) {
     try {
       const endpoint = process.env.NEXT_PUBLIC_BOOK_VIEWING_API
         ? `${process.env.NEXT_PUBLIC_BOOK_VIEWING_API.replace(/\/$/, '')}/${propertyId}/viewings`
-        : `${router.basePath}/api/book-viewing`;
+        : `${basePath}/api/book-viewing`;
 
       const res = await fetch(endpoint, {
         method: 'POST',
