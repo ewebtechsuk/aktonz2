@@ -1,4 +1,10 @@
-import { createSmtpTransport, resolveFromAddress } from '../../lib/mailer.js';
+import {
+  createSmtpTransport,
+  getNotificationRecipients,
+  resolveFromAddress,
+  sendMailOrThrow,
+} from '../../lib/mailer.mjs';
+
 
 export default async function handler(req, res) {
   if (req.method === 'HEAD') {
@@ -45,21 +51,30 @@ export default async function handler(req, res) {
   try {
     const transporter = createSmtpTransport();
     const from = resolveFromAddress();
-    const aktonz = process.env.AKTONZ_EMAIL || 'info@aktonz.com';
+    const aktonzRecipients = getNotificationRecipients();
 
-    await transporter.sendMail({
-      to: aktonz,
-      from,
-      subject: `New offer for ${propertyTitle}`,
-      text: `${name} <${email}> offered £${price} ${frequency} for property ${propertyId}.`,
-    });
+    await sendMailOrThrow(
+      transporter,
+      {
+        to: aktonzRecipients,
+        from,
+        replyTo: email,
+        subject: `New offer for ${propertyTitle}`,
+        text: `${name} <${email}> offered £${price} ${frequency} for property ${propertyId}.`,
+      },
+      { context: 'offers:internal', expectedRecipients: aktonzRecipients }
+    );
 
-    await transporter.sendMail({
-      to: email,
-      from,
-      subject: 'We received your offer',
-      text: `Thank you for your offer on ${propertyTitle}.`,
-    });
+    await sendMailOrThrow(
+      transporter,
+      {
+        to: email,
+        from,
+        subject: 'We received your offer',
+        text: `Thank you for your offer on ${propertyTitle}.`,
+      },
+      { context: 'offers:visitor', expectedRecipients: [email] }
+    );
   } catch (err) {
     if (err?.code === 'SMTP_CONFIG_MISSING') {
       console.error('SMTP configuration missing for offers route', err.missing);
@@ -67,6 +82,15 @@ export default async function handler(req, res) {
         .status(500)
         .json({ error: 'Email service is not configured.' });
     }
+
+
+    if (err?.code === 'SMTP_DELIVERY_FAILED') {
+      console.error('SMTP rejected offer notification', err.missing, err.info);
+      return res
+        .status(502)
+        .json({ error: 'Email delivery failed.' });
+    }
+
 
     console.error('Failed to send email notifications', err);
     return res
