@@ -11,6 +11,7 @@ import {
 import agents from '../data/agents.json';
 import supportData from '../data/ai-support.json';
 import styles from '../styles/ChatWidget.module.css';
+import { useSession } from './SessionProvider';
 
 const STOP_WORDS = new Set([
   'the',
@@ -84,12 +85,32 @@ const createKnowledgeBase = () => {
     };
   });
 
-  const listings = (supportData.listings || []).map((listing) => ({
-    ...listing,
-    transactionType: listing.transactionType || 'rent',
-    searchText: createSearchText(listing),
-  }));
-  const listingMap = new Map(listings.map((listing) => [listing.id, listing]));
+  const listings = (supportData.listings || []).map((listing) => {
+    const rawId = listing?.id != null ? String(listing.id).trim() : '';
+    const derivedId =
+      rawId ||
+      (typeof listing?.link === 'string' && listing.link.includes('/property/')
+        ? listing.link
+            .split('/')
+            .filter(Boolean)
+            .pop()
+        : '');
+    const id = derivedId || rawId || null;
+    const baseListing = {
+      ...listing,
+      id,
+      transactionType: listing.transactionType || 'rent',
+    };
+
+    const link = id ? `/property/${encodeURIComponent(id)}` : null;
+
+    return {
+      ...baseListing,
+      link,
+      searchText: createSearchText(baseListing),
+    };
+  });
+  const listingMap = new Map(listings.filter((listing) => listing.id).map((listing) => [listing.id, listing]));
 
   const contacts = (supportData.contacts || []).map((contact) => {
     const preferredAgent = agentMap.get(String(contact.preferredAgentId));
@@ -190,10 +211,173 @@ const searchListings = (input, knowledge) => {
   return matches.slice(0, 3);
 };
 
-const createBotReplies = (input, knowledge, formatters) => {
+const createBotReplies = (input, knowledge, formatters, options = {}) => {
+  const { isAuthenticated = false } = options;
   const lower = input.toLowerCase();
   const now = new Date();
   const replies = [];
+
+  const respondWithCompanyProfile = () => {
+    const company = knowledge.company;
+    if (!company) {
+      return false;
+    }
+
+    const sections = [];
+    const headline = [company.name, company.tagline].filter(Boolean).join(' — ');
+    if (headline) {
+      sections.push(`${headline}.`);
+    }
+    if (company.mission) {
+      sections.push(company.mission);
+    }
+    if (Array.isArray(company.services) && company.services.length) {
+      sections.push(company.services.map((service) => `• ${service}`).join('\n'));
+    }
+    if (company.office) {
+      const officeParts = [];
+      if (company.office.address) {
+        officeParts.push(`We're based at ${company.office.address}.`);
+      }
+      const contactBits = [];
+      if (company.office.phone) {
+        contactBits.push(`call ${company.office.phone}`);
+      }
+      if (company.office.email) {
+        contactBits.push(`email ${company.office.email}`);
+      }
+      if (contactBits.length) {
+        officeParts.push(`${contactBits.join(' or ')}`);
+      }
+      if (officeParts.length) {
+        sections.push(officeParts.join(' '));
+      }
+    }
+
+    replies.push({
+      from: 'bot',
+      type: 'text',
+      text: sections.filter(Boolean).join('\n\n'),
+    });
+
+    return true;
+  };
+
+  const respondWithTeam = () => {
+    if (!Array.isArray(knowledge.team) || !knowledge.team.length) {
+      return false;
+    }
+
+    replies.push({
+      from: 'bot',
+      type: 'team',
+      members: knowledge.team,
+    });
+
+    return true;
+  };
+
+  const respondWithListings = () => {
+    const results = searchListings(input, knowledge);
+
+    if (results.length) {
+      const contextLabel = /(sale|buy|selling)/.test(lower)
+        ? 'sales'
+        : /(rent|letting|tenant)/.test(lower)
+          ? 'rental'
+          : 'standout';
+      replies.push({
+        from: 'bot',
+        type: 'text',
+        text: `Here are ${results.length} ${contextLabel} options that fit what you described.`,
+      });
+      replies.push({
+        from: 'bot',
+        type: 'listings',
+        listings: results,
+      });
+    } else {
+      replies.push({
+        from: 'bot',
+        type: 'text',
+        text: "I couldn't find an exact match yet, but share a little more detail and I'll curate a shortlist.",
+      });
+    }
+  };
+
+  const respondWithViewingGuidance = () => {
+    const office = knowledge.company?.office;
+    const contactLine = office?.phone
+      ? `Call ${office.phone} or share the property you're interested in and I'll help line up times.`
+      : 'Share the property you want to see and I can help line up times with the team.';
+
+    replies.push({
+      from: 'bot',
+      type: 'text',
+      text: `We can arrange viewings seven days a week. ${contactLine}`,
+    });
+  };
+
+  const requireAccountAccess = (topic) => {
+    replies.push({
+      from: 'bot',
+      type: 'text',
+      text: `Sign in to your Aktonz account to view ${topic}. Once you're logged in I can surface your conversations, appointments, offers and tenancy updates here in the chat.`,
+    });
+  };
+
+  if (!isAuthenticated) {
+    if (/(company|aktonz|service|landlord service|sell my home|manage|management|what do you do)/.test(lower)) {
+      respondWithCompanyProfile();
+      return replies;
+    }
+
+    if (/(team|agent|advisor|negotiator|who can i speak)/.test(lower)) {
+      replies.push({
+        from: 'bot',
+        type: 'text',
+        text: 'Meet the Aktonz advisors who can help with lettings, sales and portfolio support.',
+      });
+      respondWithTeam();
+      return replies;
+    }
+
+    if (/(viewing|tour|inspection|book)/.test(lower)) {
+      respondWithViewingGuidance();
+      return replies;
+    }
+
+    if (/(account|login|sign\s?in|register|profile|dashboard)/.test(lower)) {
+      replies.push({
+        from: 'bot',
+        type: 'text',
+        text: 'Create or sign in to your Aktonz account to save searches, manage viewings and keep everything in one place.',
+      });
+      return replies;
+    }
+
+    if (
+      /(conversation|interaction|history|appointment|meeting|consult|call|offer|negotiation|deal|client|contact|landlord|tenant|buyer|seller|tenan(?:cy|cies)|management|portfolio|sales\b|lettings\b)/.test(
+        lower,
+      )
+    ) {
+      requireAccountAccess('your account updates');
+      return replies;
+    }
+
+    if (/(listing|property|home|flat|apartment|house|rent|sale|buy|selling)/.test(lower)) {
+      respondWithListings();
+      return replies;
+    }
+
+    replies.push({
+      from: 'bot',
+      type: 'text',
+      text: "I'm the Aktonz assistant. Ask me about available listings, how to book a viewing or what our team can support you with.",
+    });
+
+    return replies;
+  }
 
   const matchedContact = knowledge.contacts.find((contact) => {
     const name = contact.name.toLowerCase();
@@ -297,6 +481,88 @@ const createBotReplies = (input, knowledge, formatters) => {
     return replies;
   }
 
+  if (
+    /(sales pipeline|my sales|selling progress)/.test(lower)
+  ) {
+    const saleOffers = knowledge.offers.filter((offer) => offer.type === 'sale');
+    if (saleOffers.length) {
+      replies.push({
+        from: 'bot',
+        type: 'events',
+        title: 'Sales pipeline',
+        items: saleOffers.map((offer) => ({
+          id: offer.id,
+          title: `${offer.contact?.name || 'Buyer'} — ${offer.amount}`,
+          time: formatters.formatDateTime(offer.date),
+          description: `${offer.property?.title || 'Property'} • ${offer.status}`,
+          meta: offer.notes,
+        })),
+      });
+    } else {
+      replies.push({
+        from: 'bot',
+        type: 'text',
+        text: 'There are no live sales offers right now.',
+      });
+    }
+    return replies;
+  }
+
+  if (/(lettings pipeline|my lettings|rental pipeline)/.test(lower)) {
+    const rentalOffers = knowledge.offers.filter((offer) => offer.type === 'rent');
+    const upcomingViewings = knowledge.viewings.filter((viewing) => new Date(viewing.date) >= now);
+
+    replies.push({
+      from: 'bot',
+      type: 'text',
+      text: `You have ${rentalOffers.length} live tenancy offers and ${upcomingViewings.length} upcoming viewings. Want the full breakdown?`,
+    });
+
+    if (upcomingViewings.length) {
+      replies.push({
+        from: 'bot',
+        type: 'events',
+        title: 'Upcoming viewings',
+        items: upcomingViewings.map((viewing) => ({
+          id: viewing.id,
+          title: `${viewing.property?.title || 'Viewing'} with ${viewing.contact?.name || 'client'}`,
+          time: formatters.formatDateTime(viewing.date),
+          description: viewing.notes,
+          meta: viewing.status,
+        })),
+      });
+    }
+
+    if (rentalOffers.length) {
+      replies.push({
+        from: 'bot',
+        type: 'events',
+        title: 'Tenancy offers',
+        items: rentalOffers.map((offer) => ({
+          id: offer.id,
+          title: `${offer.contact?.name || 'Client'} — ${offer.amount}`,
+          time: formatters.formatDateTime(offer.date),
+          description: `${offer.property?.title || 'Property'} • ${offer.status}`,
+          meta: offer.notes,
+        })),
+      });
+    }
+
+    return replies;
+  }
+
+  if (/(tenan(?:cy|cies)|management|portfolio)/.test(lower)) {
+    const rentalOffers = knowledge.offers.filter((offer) => offer.type === 'rent');
+    const upcomingViewings = knowledge.viewings.filter((viewing) => new Date(viewing.date) >= now);
+
+    replies.push({
+      from: 'bot',
+      type: 'text',
+      text: `Your management snapshot shows ${rentalOffers.length} tenancy offers in motion and ${upcomingViewings.length} viewing touchpoints scheduled. Let me know if you'd like the specifics.`,
+    });
+    return replies;
+  }
+
   if (/(offer|negotiation|deal|accepted|rejected)/.test(lower)) {
     if (knowledge.offers.length) {
       replies.push({
@@ -336,11 +602,7 @@ const createBotReplies = (input, knowledge, formatters) => {
       type: 'text',
       text: 'Your dedicated Aktonz advisors are on hand for lettings, sales and portfolio strategy.',
     });
-    replies.push({
-      from: 'bot',
-      type: 'team',
-      members: knowledge.team,
-    });
+    respondWithTeam();
     return replies;
   }
 
@@ -349,13 +611,7 @@ const createBotReplies = (input, knowledge, formatters) => {
       lower,
     )
   ) {
-    const company = knowledge.company;
-    const services = (company?.services || []).map((service) => `• ${service}`).join('\n');
-    replies.push({
-      from: 'bot',
-      type: 'text',
-      text: `${company.name} — ${company.tagline}.\n${company.mission}\n\n${services}\n\nWe're based at ${company.office.address}. Call ${company.office.phone} or email ${company.office.email}.`,
-    });
+    respondWithCompanyProfile();
     return replies;
   }
 
@@ -369,37 +625,14 @@ const createBotReplies = (input, knowledge, formatters) => {
   }
 
   if (/(listing|property|home|flat|apartment|house|rent|sale|buy|selling)/.test(lower)) {
-    const results = searchListings(input, knowledge);
-    if (results.length) {
-      const contextLabel = /(sale|buy|selling)/.test(lower)
-        ? 'sales'
-        : /(rent|letting|tenant)/.test(lower)
-          ? 'rental'
-          : 'standout';
-      replies.push({
-        from: 'bot',
-        type: 'text',
-        text: `Here are ${results.length} ${contextLabel} options that fit what you described.`,
-      });
-      replies.push({
-        from: 'bot',
-        type: 'listings',
-        listings: results,
-      });
-    } else {
-      replies.push({
-        from: 'bot',
-        type: 'text',
-        text: "I couldn't find an exact match yet, but share a little more detail and I'll curate a shortlist.",
-      });
-    }
+    respondWithListings();
     return replies;
   }
 
   replies.push({
     from: 'bot',
     type: 'text',
-    text: "I'm the Aktonz digital assistant. Ask me about your clients, appointments, offers or any listings and I'll bring the right details into the chat.",
+    text: "I'm the Aktonz digital assistant. Ask me about your clients, viewings, offers or any listings and I'll bring the right details into the chat.",
   });
 
   return replies;
@@ -407,25 +640,81 @@ const createBotReplies = (input, knowledge, formatters) => {
 
 export default function ChatWidget() {
   const knowledge = useMemo(() => createKnowledgeBase(), []);
+  const { user, loading: sessionLoading } = useSession();
+  const isAuthenticated = Boolean(user);
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState(() => [
-    {
-      id: 'welcome-1',
-      from: 'bot',
-      type: 'text',
-      text: "Hi, I'm the Aktonz Intelligent Digital Assistant. How can I help today?",
-    },
-    {
-      id: 'welcome-2',
-      from: 'bot',
-      type: 'text',
-      text: 'Ask about your clients, upcoming viewings, offers or our latest listings.',
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef(null);
   const typingTimeoutRef = useRef();
+  const previousAuthState = useRef(isAuthenticated);
+
+  const defaultMessages = useMemo(
+    () =>
+      isAuthenticated
+        ? [
+            {
+              id: 'welcome-auth-1',
+              from: 'bot',
+              type: 'text',
+              text: "Hi, I'm the Aktonz Intelligent Assistant. I'm connected to your account, so ask me about clients, conversations or listings.",
+            },
+            {
+              id: 'welcome-auth-2',
+              from: 'bot',
+              type: 'text',
+              text: 'I can pull up your viewings, appointments, offers and tenancy updates whenever you need them.',
+            },
+          ]
+        : [
+            {
+              id: 'welcome-guest-1',
+              from: 'bot',
+              type: 'text',
+              text: "Hi, I'm the Aktonz assistant. Ask me about our company or the latest listings and I'll help you book a viewing.",
+            },
+            {
+              id: 'welcome-guest-2',
+              from: 'bot',
+              type: 'text',
+              text: 'Sign in to unlock your saved conversations, appointments and offers.',
+            },
+          ],
+    [isAuthenticated],
+  );
+
+  useEffect(() => {
+    if (sessionLoading) {
+      return;
+    }
+
+    if (messages.length === 0) {
+      setMessages(defaultMessages);
+    } else if (isAuthenticated && !previousAuthState.current) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `welcome-auth-upgrade-${Date.now()}`,
+          from: 'bot',
+          type: 'text',
+          text: 'Thanks for signing in. I can now surface your conversations, viewings, offers and tenancy updates right here.',
+        },
+      ]);
+    } else if (!isAuthenticated && previousAuthState.current) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `welcome-guest-reminder-${Date.now()}`,
+          from: 'bot',
+          type: 'text',
+          text: 'You are signed out. I can still help with listings, booking viewings and sharing more about Aktonz.',
+        },
+      ]);
+    }
+
+    previousAuthState.current = isAuthenticated;
+  }, [sessionLoading, defaultMessages, isAuthenticated, messages.length]);
 
   const dateTimeFormatter = useMemo(
     () =>
@@ -484,8 +773,15 @@ export default function ChatWidget() {
   }, []);
 
   const buildReplies = useCallback(
-    (input) => createBotReplies(input, knowledge, { formatDateTime, formatDate, describeRecency }),
-    [knowledge, formatDateTime, formatDate, describeRecency],
+    (input) =>
+      createBotReplies(
+        input,
+        knowledge,
+        { formatDateTime, formatDate, describeRecency },
+        { isAuthenticated },
+      ),
+    [knowledge, formatDateTime, formatDate, describeRecency, isAuthenticated],
+
   );
 
   const sendMessage = useCallback(
@@ -544,14 +840,23 @@ export default function ChatWidget() {
   );
 
   const suggestions = useMemo(
-    () => [
-      'Show me my upcoming appointments',
-      'What viewings are booked?',
-      "Give me Sophie Turner's conversation history",
-      'Which offers are still pending?',
-      'Find me a two bedroom rental in Shoreditch',
-    ],
-    [],
+    () =>
+      isAuthenticated
+        ? [
+            'Show me my upcoming appointments',
+            'What viewings are booked?',
+            "Give me Sophie Turner's conversation history",
+            'Which offers are still pending?',
+            "What's my lettings pipeline?",
+          ]
+        : [
+            'Show me available rentals',
+            'How do I book a viewing?',
+            'Tell me about Aktonz',
+            'Find me a property in Shoreditch',
+          ],
+    [isAuthenticated],
+
   );
 
   const renderMessageContent = useCallback(
@@ -803,7 +1108,12 @@ export default function ChatWidget() {
             className={styles.input}
             value={inputValue}
             onChange={(event) => setInputValue(event.target.value)}
-            placeholder="Ask about clients, viewings, offers or listings..."
+            placeholder={
+              isAuthenticated
+                ? 'Ask about clients, viewings, offers or listings...'
+                : 'Ask about listings, viewings or Aktonz...'
+            }
+
             onKeyDown={handleKeyDown}
             rows={2}
             aria-label="Message Aktonz support"
