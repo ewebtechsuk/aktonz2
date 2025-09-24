@@ -171,16 +171,19 @@ export default function PropertyCard({ property }) {
                 >
                   ›
                 </button>
-                <div className="gallery-dots" role="tablist" aria-label={`${title} gallery`}>
+                <div
+                  className="gallery-dots"
+                  role="group"
+                  aria-label={`${title} gallery navigation`}
+                >
                   {images.map((_, index) => (
                     <button
                       type="button"
                       key={`${sliderKeyPrefix}-dot-${index}`}
                       className={`gallery-dot${index === currentImage ? ' active' : ''}`}
                       onClick={(event) => handleDotClick(event, index)}
-
                       aria-label={`View image ${index + 1}`}
-                      aria-current={index === currentImage ? 'true' : undefined}
+                      aria-pressed={index === currentImage}
                     />
                   ))}
                 </div>
