@@ -3901,5 +3901,1307 @@
         "listTimestamp": "2025-02-10T17:00:00Z"
       }
     }
+  ],
+  "sale": [
+    {
+      "id": "scraye-960001",
+      "sourceId": "960001",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Warehouse Loft, Shoreditch E2",
+      "description": "Stylish 1-bedroom loft apartment with exposed brick, floor-to-ceiling windows and a private balcony moments from Shoreditch High Street.",
+      "price": "\u00a3625,000",
+      "priceValue": 625000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Open-plan living",
+        "Private balcony",
+        "Concierge"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "shoreditch-960001-1",
+          "url": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Loft living room"
+        },
+        {
+          "id": "shoreditch-960001-2",
+          "url": "https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Contemporary kitchen"
+        },
+        {
+          "id": "shoreditch-960001-3",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bedroom with city views"
+        }
+      ],
+      "media": [],
+      "tenure": "Leasehold",
+      "size": "562 sq ft",
+      "lat": 51.5268,
+      "lng": -0.0779,
+      "city": "Shoreditch",
+      "county": "London",
+      "outcode": "E2",
+      "matchingRegions": [
+        "London",
+        "Shoreditch"
+      ],
+      "url": "https://www.scraye.com/listings/960001",
+      "externalUrl": "https://www.scraye.com/listings/960001",
+      "_scraye": {
+        "placeId": "E2",
+        "placeName": "Shoreditch",
+        "slug": "london/shoreditch",
+        "longitude": -0.0779,
+        "latitude": 51.5268,
+        "listTimestamp": "2025-02-12T09:00:00Z",
+        "reference": "SCRAYE-960001"
+      }
+    },
+    {
+      "id": "scraye-960002",
+      "sourceId": "960002",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Riverside Apartment, Battersea SW11",
+      "description": "Bright 2-bedroom apartment overlooking the Thames with residents' gym and landscaped podium gardens.",
+      "price": "\u00a3805,000",
+      "priceValue": 805000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "receptions": 1,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "River views",
+        "Residents' gym",
+        "24-hour concierge"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1521783593447-5702af1b3d4a?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "battersea-960002-1",
+          "url": "https://images.unsplash.com/photo-1521783593447-5702af1b3d4a?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Riverside living room"
+        },
+        {
+          "id": "battersea-960002-2",
+          "url": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Modern kitchen"
+        },
+        {
+          "id": "battersea-960002-3",
+          "url": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bedroom"
+        }
+      ],
+      "media": [],
+      "tenure": "Leasehold",
+      "size": "814 sq ft",
+      "lat": 51.4781,
+      "lng": -0.1505,
+      "city": "Battersea",
+      "county": "London",
+      "outcode": "SW11",
+      "matchingRegions": [
+        "London",
+        "Battersea"
+      ],
+      "url": "https://www.scraye.com/listings/960002",
+      "externalUrl": "https://www.scraye.com/listings/960002",
+      "_scraye": {
+        "placeId": "SW11",
+        "placeName": "Battersea",
+        "slug": "london/battersea",
+        "longitude": -0.1505,
+        "latitude": 51.4781,
+        "listTimestamp": "2025-02-10T08:30:00Z",
+        "reference": "SCRAYE-960002"
+      }
+    },
+    {
+      "id": "scraye-960003",
+      "sourceId": "960003",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Garden Duplex, Hampstead NW3",
+      "description": "Characterful 3-bedroom duplex arranged over two floors with private south-facing garden and study.",
+      "price": "\u00a3915,000",
+      "priceValue": 915000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "receptions": 2,
+      "propertyType": "MAISONETTE",
+      "status": "AVAILABLE",
+      "features": [
+        "Private garden",
+        "Period features",
+        "Home office"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "hampstead-960003-1",
+          "url": "https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Hampstead reception room"
+        },
+        {
+          "id": "hampstead-960003-2",
+          "url": "https://images.unsplash.com/photo-1502672023488-70e25813eb80?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Garden"
+        },
+        {
+          "id": "hampstead-960003-3",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bedroom"
+        }
+      ],
+      "media": [],
+      "tenure": "Share of Freehold",
+      "size": "1,105 sq ft",
+      "lat": 51.5558,
+      "lng": -0.178,
+      "city": "Hampstead",
+      "county": "London",
+      "outcode": "NW3",
+      "matchingRegions": [
+        "London",
+        "Hampstead"
+      ],
+      "url": "https://www.scraye.com/listings/960003",
+      "externalUrl": "https://www.scraye.com/listings/960003",
+      "_scraye": {
+        "placeId": "NW3",
+        "placeName": "Hampstead",
+        "slug": "london/hampstead",
+        "longitude": -0.178,
+        "latitude": 51.5558,
+        "listTimestamp": "2025-02-14T12:15:00Z",
+        "reference": "SCRAYE-960003"
+      }
+    },
+    {
+      "id": "scraye-960004",
+      "sourceId": "960004",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Victorian Terrace, Clapham SW4",
+      "description": "Beautifully extended 4-bedroom Victorian family home with double reception, loft conversion and landscaped garden.",
+      "price": "\u00a31,450,000",
+      "priceValue": 1450000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "receptions": 2,
+      "propertyType": "TERRACED_HOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "Double reception",
+        "Kitchen diner",
+        "Landscaped garden"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1600585154340-0ef3c08dcdb6?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "clapham-960004-1",
+          "url": "https://images.unsplash.com/photo-1600585154340-0ef3c08dcdb6?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Exterior of terrace house"
+        },
+        {
+          "id": "clapham-960004-2",
+          "url": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Family kitchen"
+        },
+        {
+          "id": "clapham-960004-3",
+          "url": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Garden"
+        }
+      ],
+      "media": [],
+      "tenure": "Freehold",
+      "size": "1,842 sq ft",
+      "lat": 51.4633,
+      "lng": -0.1396,
+      "city": "Clapham",
+      "county": "London",
+      "outcode": "SW4",
+      "matchingRegions": [
+        "London",
+        "Clapham"
+      ],
+      "url": "https://www.scraye.com/listings/960004",
+      "externalUrl": "https://www.scraye.com/listings/960004",
+      "_scraye": {
+        "placeId": "SW4",
+        "placeName": "Clapham",
+        "slug": "london/clapham",
+        "longitude": -0.1396,
+        "latitude": 51.4633,
+        "listTimestamp": "2025-02-09T11:20:00Z",
+        "reference": "SCRAYE-960004"
+      }
+    },
+    {
+      "id": "scraye-960005",
+      "sourceId": "960005",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Period Conversion, Islington N1",
+      "description": "Elegant 1-bedroom conversion on a tree-lined street with high ceilings, sash windows and communal gardens.",
+      "price": "\u00a3595,000",
+      "priceValue": 595000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "High ceilings",
+        "Original fireplaces",
+        "Communal gardens"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1599423300746-b62533397364?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "islington-960005-1",
+          "url": "https://images.unsplash.com/photo-1599423300746-b62533397364?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Islington reception"
+        },
+        {
+          "id": "islington-960005-2",
+          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Kitchen"
+        },
+        {
+          "id": "islington-960005-3",
+          "url": "https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bedroom"
+        }
+      ],
+      "media": [],
+      "tenure": "Share of Freehold",
+      "size": "588 sq ft",
+      "lat": 51.5363,
+      "lng": -0.1049,
+      "city": "Islington",
+      "county": "London",
+      "outcode": "N1",
+      "matchingRegions": [
+        "London",
+        "Islington"
+      ],
+      "url": "https://www.scraye.com/listings/960005",
+      "externalUrl": "https://www.scraye.com/listings/960005",
+      "_scraye": {
+        "placeId": "N1",
+        "placeName": "Islington",
+        "slug": "london/islington",
+        "longitude": -0.1049,
+        "latitude": 51.5363,
+        "listTimestamp": "2025-02-11T10:10:00Z",
+        "reference": "SCRAYE-960005"
+      }
+    },
+    {
+      "id": "scraye-960006",
+      "sourceId": "960006",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Skyline Apartment, Canary Wharf E14",
+      "description": "Impressive 2-bedroom apartment on a high floor with panoramic docklands views and access to residents' club.",
+      "price": "\u00a3875,000",
+      "priceValue": 875000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "receptions": 1,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Panoramic views",
+        "Residents' club",
+        "Secure parking"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "canarywharf-960006-1",
+          "url": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Skyline view"
+        },
+        {
+          "id": "canarywharf-960006-2",
+          "url": "https://images.unsplash.com/photo-1521783593447-5702af1b3d4a?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Living area"
+        },
+        {
+          "id": "canarywharf-960006-3",
+          "url": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bedroom"
+        }
+      ],
+      "media": [],
+      "tenure": "Leasehold",
+      "size": "901 sq ft",
+      "lat": 51.5037,
+      "lng": -0.0184,
+      "city": "Canary Wharf",
+      "county": "London",
+      "outcode": "E14",
+      "matchingRegions": [
+        "London",
+        "Canary Wharf"
+      ],
+      "url": "https://www.scraye.com/listings/960006",
+      "externalUrl": "https://www.scraye.com/listings/960006",
+      "_scraye": {
+        "placeId": "E14",
+        "placeName": "Canary Wharf",
+        "slug": "london/canary-wharf",
+        "longitude": -0.0184,
+        "latitude": 51.5037,
+        "listTimestamp": "2025-02-16T07:45:00Z",
+        "reference": "SCRAYE-960006"
+      }
+    },
+    {
+      "id": "scraye-960007",
+      "sourceId": "960007",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Edwardian Home, Wimbledon SW19",
+      "description": "Elegant 3-bedroom Edwardian house with bay-fronted reception, utility room and west-facing garden.",
+      "price": "\u00a3945,000",
+      "priceValue": 945000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "receptions": 2,
+      "propertyType": "SEMI_DETACHED",
+      "status": "AVAILABLE",
+      "features": [
+        "Bay windows",
+        "Utility room",
+        "West-facing garden"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "wimbledon-960007-1",
+          "url": "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Exterior"
+        },
+        {
+          "id": "wimbledon-960007-2",
+          "url": "https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Reception"
+        },
+        {
+          "id": "wimbledon-960007-3",
+          "url": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Kitchen"
+        }
+      ],
+      "media": [],
+      "tenure": "Freehold",
+      "size": "1,362 sq ft",
+      "lat": 51.4199,
+      "lng": -0.2197,
+      "city": "Wimbledon",
+      "county": "London",
+      "outcode": "SW19",
+      "matchingRegions": [
+        "London",
+        "Wimbledon"
+      ],
+      "url": "https://www.scraye.com/listings/960007",
+      "externalUrl": "https://www.scraye.com/listings/960007",
+      "_scraye": {
+        "placeId": "SW19",
+        "placeName": "Wimbledon",
+        "slug": "london/wimbledon",
+        "longitude": -0.2197,
+        "latitude": 51.4199,
+        "listTimestamp": "2025-02-13T16:05:00Z",
+        "reference": "SCRAYE-960007"
+      }
+    },
+    {
+      "id": "scraye-960008",
+      "sourceId": "960008",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Riverside Townhouse, Chiswick W4",
+      "description": "Refurbished 4-bedroom townhouse with terrace, garage and access to Thames Path.",
+      "price": "\u00a31,295,000",
+      "priceValue": 1295000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "receptions": 2,
+      "propertyType": "TOWNHOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "Roof terrace",
+        "Garage",
+        "River access"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1522156373667-4c7234bbd804?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "chiswick-960008-1",
+          "url": "https://images.unsplash.com/photo-1522156373667-4c7234bbd804?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Townhouse exterior"
+        },
+        {
+          "id": "chiswick-960008-2",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Terrace"
+        },
+        {
+          "id": "chiswick-960008-3",
+          "url": "https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Living room"
+        }
+      ],
+      "media": [],
+      "tenure": "Freehold",
+      "size": "1,728 sq ft",
+      "lat": 51.486,
+      "lng": -0.2686,
+      "city": "Chiswick",
+      "county": "London",
+      "outcode": "W4",
+      "matchingRegions": [
+        "London",
+        "Chiswick"
+      ],
+      "url": "https://www.scraye.com/listings/960008",
+      "externalUrl": "https://www.scraye.com/listings/960008",
+      "_scraye": {
+        "placeId": "W4",
+        "placeName": "Chiswick",
+        "slug": "london/chiswick",
+        "longitude": -0.2686,
+        "latitude": 51.486,
+        "listTimestamp": "2025-02-08T14:40:00Z",
+        "reference": "SCRAYE-960008"
+      }
+    },
+    {
+      "id": "scraye-960009",
+      "sourceId": "960009",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Period Apartment, Notting Hill W11",
+      "description": "Charming 1-bedroom apartment moments from Portobello Road with Juliette balcony and separate study nook.",
+      "price": "\u00a3620,000",
+      "priceValue": 620000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Juliette balcony",
+        "Separate study",
+        "Wooden floors"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1464890100898-a385f744067f?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "nottinghill-960009-1",
+          "url": "https://images.unsplash.com/photo-1464890100898-a385f744067f?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Notting Hill living room"
+        },
+        {
+          "id": "nottinghill-960009-2",
+          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Kitchen"
+        },
+        {
+          "id": "nottinghill-960009-3",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bedroom"
+        }
+      ],
+      "media": [],
+      "tenure": "Leasehold",
+      "size": "545 sq ft",
+      "lat": 51.5145,
+      "lng": -0.2059,
+      "city": "Notting Hill",
+      "county": "London",
+      "outcode": "W11",
+      "matchingRegions": [
+        "London",
+        "Notting Hill"
+      ],
+      "url": "https://www.scraye.com/listings/960009",
+      "externalUrl": "https://www.scraye.com/listings/960009",
+      "_scraye": {
+        "placeId": "W11",
+        "placeName": "Notting Hill",
+        "slug": "london/notting-hill",
+        "longitude": -0.2059,
+        "latitude": 51.5145,
+        "listTimestamp": "2025-02-17T09:25:00Z",
+        "reference": "SCRAYE-960009"
+      }
+    },
+    {
+      "id": "scraye-960010",
+      "sourceId": "960010",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Royal Park View, Greenwich SE10",
+      "description": "Immaculate 2-bedroom apartment with dual aspect reception, winter garden and views towards Greenwich Park.",
+      "price": "\u00a3765,000",
+      "priceValue": 765000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "receptions": 1,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Winter garden",
+        "Park views",
+        "Concierge"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1484100356142-db6ab6244067?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "greenwich-960010-1",
+          "url": "https://images.unsplash.com/photo-1484100356142-db6ab6244067?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Greenwich apartment"
+        },
+        {
+          "id": "greenwich-960010-2",
+          "url": "https://images.unsplash.com/photo-1521783593447-5702af1b3d4a?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Open plan living"
+        },
+        {
+          "id": "greenwich-960010-3",
+          "url": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bedroom"
+        }
+      ],
+      "media": [],
+      "tenure": "Leasehold",
+      "size": "792 sq ft",
+      "lat": 51.4773,
+      "lng": -0.0134,
+      "city": "Greenwich",
+      "county": "London",
+      "outcode": "SE10",
+      "matchingRegions": [
+        "London",
+        "Greenwich"
+      ],
+      "url": "https://www.scraye.com/listings/960010",
+      "externalUrl": "https://www.scraye.com/listings/960010",
+      "_scraye": {
+        "placeId": "SE10",
+        "placeName": "Greenwich",
+        "slug": "london/greenwich",
+        "longitude": -0.0134,
+        "latitude": 51.4773,
+        "listTimestamp": "2025-02-18T13:55:00Z",
+        "reference": "SCRAYE-960010"
+      }
+    },
+    {
+      "id": "scraye-960011",
+      "sourceId": "960011",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "River Quarter House, Richmond TW9",
+      "description": "Spacious 3-bedroom townhouse close to Richmond Green with terrace, garage and flexible family room.",
+      "price": "\u00a3985,000",
+      "priceValue": 985000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "receptions": 2,
+      "propertyType": "TOWNHOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "Garage",
+        "Private terrace",
+        "Flexible family room"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "richmond-960011-1",
+          "url": "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Richmond townhouse"
+        },
+        {
+          "id": "richmond-960011-2",
+          "url": "https://images.unsplash.com/photo-1521783593447-5702af1b3d4a?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Living room"
+        },
+        {
+          "id": "richmond-960011-3",
+          "url": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Kitchen"
+        }
+      ],
+      "media": [],
+      "tenure": "Freehold",
+      "size": "1,524 sq ft",
+      "lat": 51.4572,
+      "lng": -0.3007,
+      "city": "Richmond",
+      "county": "London",
+      "outcode": "TW9",
+      "matchingRegions": [
+        "London",
+        "Richmond"
+      ],
+      "url": "https://www.scraye.com/listings/960011",
+      "externalUrl": "https://www.scraye.com/listings/960011",
+      "_scraye": {
+        "placeId": "TW9",
+        "placeName": "Richmond",
+        "slug": "london/richmond",
+        "longitude": -0.3007,
+        "latitude": 51.4572,
+        "listTimestamp": "2025-02-15T15:35:00Z",
+        "reference": "SCRAYE-960011"
+      }
+    },
+    {
+      "id": "scraye-960012",
+      "sourceId": "960012",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Edwardian Villa, Dulwich SE21",
+      "description": "Elegant 4-bedroom villa on Dulwich Village fringe offering generous rooms, cellar and 90ft garden.",
+      "price": "\u00a31,675,000",
+      "priceValue": 1675000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "receptions": 3,
+      "propertyType": "DETACHED",
+      "status": "AVAILABLE",
+      "features": [
+        "90ft garden",
+        "Cellar",
+        "Period detailing"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "dulwich-960012-1",
+          "url": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Dulwich home"
+        },
+        {
+          "id": "dulwich-960012-2",
+          "url": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Reception"
+        },
+        {
+          "id": "dulwich-960012-3",
+          "url": "https://images.unsplash.com/photo-1521783593447-5702af1b3d4a?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Garden"
+        }
+      ],
+      "media": [],
+      "tenure": "Freehold",
+      "size": "2,105 sq ft",
+      "lat": 51.4416,
+      "lng": -0.0837,
+      "city": "Dulwich",
+      "county": "London",
+      "outcode": "SE21",
+      "matchingRegions": [
+        "London",
+        "Dulwich"
+      ],
+      "url": "https://www.scraye.com/listings/960012",
+      "externalUrl": "https://www.scraye.com/listings/960012",
+      "_scraye": {
+        "placeId": "SE21",
+        "placeName": "Dulwich",
+        "slug": "london/dulwich",
+        "longitude": -0.0837,
+        "latitude": 51.4416,
+        "listTimestamp": "2025-02-07T10:50:00Z",
+        "reference": "SCRAYE-960012"
+      }
+    },
+    {
+      "id": "scraye-960013",
+      "sourceId": "960013",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Stucco Apartment, Kensington W8",
+      "description": "Graceful 1-bedroom apartment in a white stucco building with ornate plasterwork and access to communal gardens.",
+      "price": "\u00a3910,000",
+      "priceValue": 910000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Communal gardens",
+        "Stucco facade",
+        "Period detailing"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1529429617124-aee318a79a6b?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "kensington-960013-1",
+          "url": "https://images.unsplash.com/photo-1529429617124-aee318a79a6b?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Kensington facade"
+        },
+        {
+          "id": "kensington-960013-2",
+          "url": "https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Reception"
+        },
+        {
+          "id": "kensington-960013-3",
+          "url": "https://images.unsplash.com/photo-1521783593447-5702af1b3d4a?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Kitchen"
+        }
+      ],
+      "media": [],
+      "tenure": "Share of Freehold",
+      "size": "602 sq ft",
+      "lat": 51.5014,
+      "lng": -0.1967,
+      "city": "Kensington",
+      "county": "London",
+      "outcode": "W8",
+      "matchingRegions": [
+        "London",
+        "Kensington"
+      ],
+      "url": "https://www.scraye.com/listings/960013",
+      "externalUrl": "https://www.scraye.com/listings/960013",
+      "_scraye": {
+        "placeId": "W8",
+        "placeName": "Kensington",
+        "slug": "london/kensington",
+        "longitude": -0.1967,
+        "latitude": 51.5014,
+        "listTimestamp": "2025-02-19T12:40:00Z",
+        "reference": "SCRAYE-960013"
+      }
+    },
+    {
+      "id": "scraye-960014",
+      "sourceId": "960014",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Canalside Loft, Camden NW1",
+      "description": "Cool 2-bedroom loft by Regent's Canal with mezzanine workspace and exposed steelwork.",
+      "price": "\u00a3870,000",
+      "priceValue": 870000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "receptions": 1,
+      "propertyType": "LOFT",
+      "status": "AVAILABLE",
+      "features": [
+        "Mezzanine workspace",
+        "Exposed brick",
+        "Canal views"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1505692794403-5fd89976b6c5?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "camden-960014-1",
+          "url": "https://images.unsplash.com/photo-1505692794403-5fd89976b6c5?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Camden loft"
+        },
+        {
+          "id": "camden-960014-2",
+          "url": "https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Kitchen"
+        },
+        {
+          "id": "camden-960014-3",
+          "url": "https://images.unsplash.com/photo-1521783593447-5702af1b3d4a?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bedroom"
+        }
+      ],
+      "media": [],
+      "tenure": "Leasehold",
+      "size": "876 sq ft",
+      "lat": 51.5416,
+      "lng": -0.1433,
+      "city": "Camden",
+      "county": "London",
+      "outcode": "NW1",
+      "matchingRegions": [
+        "London",
+        "Camden"
+      ],
+      "url": "https://www.scraye.com/listings/960014",
+      "externalUrl": "https://www.scraye.com/listings/960014",
+      "_scraye": {
+        "placeId": "NW1",
+        "placeName": "Camden",
+        "slug": "london/camden",
+        "longitude": -0.1433,
+        "latitude": 51.5416,
+        "listTimestamp": "2025-02-20T07:20:00Z",
+        "reference": "SCRAYE-960014"
+      }
+    },
+    {
+      "id": "scraye-960015",
+      "sourceId": "960015",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Brixton Hill House, SW2",
+      "description": "Stylishly renovated 3-bedroom Victorian house with bifold doors opening to landscaped patio garden.",
+      "price": "\u00a3879,000",
+      "priceValue": 879000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "receptions": 1,
+      "propertyType": "TERRACED_HOUSE",
+      "status": "AVAILABLE",
+      "features": [
+        "Bifold doors",
+        "Landscaped garden",
+        "Loft conversion"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1464316325666-63beaf639dbb?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "brixton-960015-1",
+          "url": "https://images.unsplash.com/photo-1464316325666-63beaf639dbb?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Brixton terrace"
+        },
+        {
+          "id": "brixton-960015-2",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Kitchen diner"
+        },
+        {
+          "id": "brixton-960015-3",
+          "url": "https://images.unsplash.com/photo-1521783593447-5702af1b3d4a?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Garden"
+        }
+      ],
+      "media": [],
+      "tenure": "Freehold",
+      "size": "1,218 sq ft",
+      "lat": 51.4459,
+      "lng": -0.1228,
+      "city": "Brixton",
+      "county": "London",
+      "outcode": "SW2",
+      "matchingRegions": [
+        "London",
+        "Brixton"
+      ],
+      "url": "https://www.scraye.com/listings/960015",
+      "externalUrl": "https://www.scraye.com/listings/960015",
+      "_scraye": {
+        "placeId": "SW2",
+        "placeName": "Brixton",
+        "slug": "london/brixton",
+        "longitude": -0.1228,
+        "latitude": 51.4459,
+        "listTimestamp": "2025-02-18T16:25:00Z",
+        "reference": "SCRAYE-960015"
+      }
+    },
+    {
+      "id": "scraye-960016",
+      "sourceId": "960016",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Highgate Heights, N6",
+      "description": "Handsome 4-bedroom detached home with sweeping driveway, south-facing garden and cinema room.",
+      "price": "\u00a32,150,000",
+      "priceValue": 2150000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "receptions": 3,
+      "propertyType": "DETACHED",
+      "status": "AVAILABLE",
+      "features": [
+        "Cinema room",
+        "Sweeping driveway",
+        "South-facing garden"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "highgate-960016-1",
+          "url": "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Highgate house"
+        },
+        {
+          "id": "highgate-960016-2",
+          "url": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Garden"
+        },
+        {
+          "id": "highgate-960016-3",
+          "url": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Kitchen"
+        }
+      ],
+      "media": [],
+      "tenure": "Freehold",
+      "size": "2,486 sq ft",
+      "lat": 51.5711,
+      "lng": -0.1527,
+      "city": "Highgate",
+      "county": "London",
+      "outcode": "N6",
+      "matchingRegions": [
+        "London",
+        "Highgate"
+      ],
+      "url": "https://www.scraye.com/listings/960016",
+      "externalUrl": "https://www.scraye.com/listings/960016",
+      "_scraye": {
+        "placeId": "N6",
+        "placeName": "Highgate",
+        "slug": "london/highgate",
+        "longitude": -0.1527,
+        "latitude": 51.5711,
+        "listTimestamp": "2025-02-06T09:15:00Z",
+        "reference": "SCRAYE-960016"
+      }
+    },
+    {
+      "id": "scraye-960017",
+      "sourceId": "960017",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Bankside Residence, Southwark SE1",
+      "description": "Sleek 2-bedroom apartment beside Tate Modern featuring winter garden, concierge and residents' lounge.",
+      "price": "\u00a3995,000",
+      "priceValue": 995000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "receptions": 1,
+      "propertyType": "APARTMENT",
+      "status": "AVAILABLE",
+      "features": [
+        "Winter garden",
+        "Residents' lounge",
+        "Concierge"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "southwark-960017-1",
+          "url": "https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bankside reception"
+        },
+        {
+          "id": "southwark-960017-2",
+          "url": "https://images.unsplash.com/photo-1521783593447-5702af1b3d4a?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Kitchen"
+        },
+        {
+          "id": "southwark-960017-3",
+          "url": "https://images.unsplash.com/photo-1505692794403-5fd89976b6c5?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bedroom"
+        }
+      ],
+      "media": [],
+      "tenure": "Leasehold",
+      "size": "834 sq ft",
+      "lat": 51.5075,
+      "lng": -0.0994,
+      "city": "Southwark",
+      "county": "London",
+      "outcode": "SE1",
+      "matchingRegions": [
+        "London",
+        "Southwark"
+      ],
+      "url": "https://www.scraye.com/listings/960017",
+      "externalUrl": "https://www.scraye.com/listings/960017",
+      "_scraye": {
+        "placeId": "SE1",
+        "placeName": "Southwark",
+        "slug": "london/southwark",
+        "longitude": -0.0994,
+        "latitude": 51.5075,
+        "listTimestamp": "2025-02-05T08:05:00Z",
+        "reference": "SCRAYE-960017"
+      }
+    },
+    {
+      "id": "scraye-960018",
+      "sourceId": "960018",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Victorian Conversion, Stoke Newington N16",
+      "description": "Generous 3-bedroom conversion with bay windows, bespoke cabinetry and private roof terrace.",
+      "price": "\u00a3805,000",
+      "priceValue": 805000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "receptions": 1,
+      "propertyType": "MAISONETTE",
+      "status": "AVAILABLE",
+      "features": [
+        "Roof terrace",
+        "Bespoke cabinetry",
+        "Bay windows"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1464890100898-a385f744067f?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "stokenewington-960018-1",
+          "url": "https://images.unsplash.com/photo-1464890100898-a385f744067f?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Stoke Newington living room"
+        },
+        {
+          "id": "stokenewington-960018-2",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Kitchen"
+        },
+        {
+          "id": "stokenewington-960018-3",
+          "url": "https://images.unsplash.com/photo-1521783593447-5702af1b3d4a?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Roof terrace"
+        }
+      ],
+      "media": [],
+      "tenure": "Share of Freehold",
+      "size": "1,048 sq ft",
+      "lat": 51.5635,
+      "lng": -0.0765,
+      "city": "Stoke Newington",
+      "county": "London",
+      "outcode": "N16",
+      "matchingRegions": [
+        "London",
+        "Stoke Newington"
+      ],
+      "url": "https://www.scraye.com/listings/960018",
+      "externalUrl": "https://www.scraye.com/listings/960018",
+      "_scraye": {
+        "placeId": "N16",
+        "placeName": "Stoke Newington",
+        "slug": "london/stoke-newington",
+        "longitude": -0.0765,
+        "latitude": 51.5635,
+        "listTimestamp": "2025-02-04T09:35:00Z",
+        "reference": "SCRAYE-960018"
+      }
+    },
+    {
+      "id": "scraye-960019",
+      "sourceId": "960019",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Kings Cross Loft, N1C",
+      "description": "Light-filled 1-bedroom loft in converted warehouse with double-height ceilings and communal roof terrace.",
+      "price": "\u00a3675,000",
+      "priceValue": 675000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "LOFT",
+      "status": "AVAILABLE",
+      "features": [
+        "Double-height ceilings",
+        "Exposed brick",
+        "Communal roof terrace"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "kingscross-960019-1",
+          "url": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Kings Cross loft"
+        },
+        {
+          "id": "kingscross-960019-2",
+          "url": "https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Kitchen"
+        },
+        {
+          "id": "kingscross-960019-3",
+          "url": "https://images.unsplash.com/photo-1521783593447-5702af1b3d4a?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Bedroom"
+        }
+      ],
+      "media": [],
+      "tenure": "Leasehold",
+      "size": "603 sq ft",
+      "lat": 51.5362,
+      "lng": -0.1269,
+      "city": "King's Cross",
+      "county": "London",
+      "outcode": "N1C",
+      "matchingRegions": [
+        "London",
+        "King's Cross"
+      ],
+      "url": "https://www.scraye.com/listings/960019",
+      "externalUrl": "https://www.scraye.com/listings/960019",
+      "_scraye": {
+        "placeId": "N1C",
+        "placeName": "King's Cross",
+        "slug": "london/kings-cross",
+        "longitude": -0.1269,
+        "latitude": 51.5362,
+        "listTimestamp": "2025-02-03T08:45:00Z",
+        "reference": "SCRAYE-960019"
+      }
+    },
+    {
+      "id": "scraye-960020",
+      "sourceId": "960020",
+      "source": "scraye",
+      "transactionType": "sale",
+      "title": "Heathside Residence, Blackheath SE3",
+      "description": "Grand 4-bedroom family home with orangery, home office and direct views over Blackheath.",
+      "price": "\u00a31,350,000",
+      "priceValue": 1350000,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": null,
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "receptions": 2,
+      "propertyType": "DETACHED",
+      "status": "AVAILABLE",
+      "features": [
+        "Orangery",
+        "Home office",
+        "Heath views"
+      ],
+      "furnishedState": null,
+      "image": "https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=1200&q=80",
+      "images": [
+        {
+          "id": "blackheath-960020-1",
+          "url": "https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Blackheath home"
+        },
+        {
+          "id": "blackheath-960020-2",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Orangery"
+        },
+        {
+          "id": "blackheath-960020-3",
+          "url": "https://images.unsplash.com/photo-1521783593447-5702af1b3d4a?auto=format&fit=crop&w=1200&q=80",
+          "altText": "Garden"
+        }
+      ],
+      "media": [],
+      "tenure": "Freehold",
+      "size": "1,958 sq ft",
+      "lat": 51.4673,
+      "lng": 0.0014,
+      "city": "Blackheath",
+      "county": "London",
+      "outcode": "SE3",
+      "matchingRegions": [
+        "London",
+        "Blackheath"
+      ],
+      "url": "https://www.scraye.com/listings/960020",
+      "externalUrl": "https://www.scraye.com/listings/960020",
+      "_scraye": {
+        "placeId": "SE3",
+        "placeName": "Blackheath",
+        "slug": "london/blackheath",
+        "longitude": 0.0014,
+        "latitude": 51.4673,
+        "listTimestamp": "2025-02-02T11:30:00Z",
+        "reference": "SCRAYE-960020"
+      }
+    }
   ]
 }

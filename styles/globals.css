@@ -209,6 +209,17 @@ body {
   font-size: 0.9rem;
 }
 
+.property-card .reference {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-muted-text);
+}
+
+.property-card .reference span {
+  font-weight: 600;
+  color: var(--color-secondary);
+}
+
 .property-card .price {
   margin: var(--spacing-sm) 0;
   font-weight: bold;

@@ -46,6 +46,22 @@
   color: var(--color-muted-text);
 }
 
+.location {
+  margin-top: var(--spacing-xs);
+  color: var(--color-muted-text);
+}
+
+.reference {
+  margin-top: var(--spacing-xs);
+  color: var(--color-muted-text);
+  font-size: 0.95rem;
+}
+
+.reference span {
+  font-weight: 600;
+  color: var(--color-secondary);
+}
+
 .stats {
   display: flex;
   gap: var(--spacing-md);
