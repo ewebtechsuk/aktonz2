@@ -1,4 +1,5 @@
 import { resolvePortalContact, updatePortalProfile } from '../../../lib/apex27-portal.js';
+import { getAdminFromSession } from '../../../lib/admin-users.mjs';
 
 import { applyApiHeaders, handlePreflight } from '../../../lib/api-helpers.js';
 import { readSession, writeSession } from '../../../lib/session.js';
@@ -12,6 +13,17 @@ export default async function handler(req, res) {
   }
 
   const session = readSession(req);
+  const admin = getAdminFromSession(session);
+  if (admin) {
+    if (req.method === 'GET') {
+      res.status(200).json({ contact: admin, admin: true });
+      return;
+    }
+
+    res.status(403).json({ error: 'Admin profile cannot be updated via this endpoint' });
+    return;
+  }
+
   if (!session?.contactId) {
     res.status(401).json({ error: 'Not authenticated' });
     return;
