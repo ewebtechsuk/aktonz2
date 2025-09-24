@@ -12,6 +12,89 @@
   gap: var(--spacing-xl);
 }
 
+.adminHeader {
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border-light);
+  padding: var(--spacing-md) var(--spacing-md);
+}
+
+.adminHeaderInner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.adminBrand {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-xs);
+}
+
+.adminBrandName {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.adminBrandBadge {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-muted-text);
+  background: var(--color-surface-alt);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.adminNav {
+  margin-left: auto;
+}
+
+.adminNavList {
+  list-style: none;
+  display: flex;
+  gap: var(--spacing-sm);
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+.adminNavList li {
+  display: flex;
+}
+
+.adminNavLink {
+  display: inline-flex;
+  align-items: center;
+  padding: calc(var(--spacing-xs) * 1.5) var(--spacing-sm);
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--color-text);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.adminNavLink:hover,
+.adminNavLink:focus-visible {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+}
+
+.adminNavLink:focus-visible {
+  outline: 2px solid var(--color-border);
+  outline-offset: 2px;
+}
+
+.anchorSection {
+  scroll-margin-top: calc(var(--spacing-xl) + var(--spacing-md));
+}
+
 .pageHeader {
   display: flex;
   justify-content: space-between;
@@ -109,6 +192,7 @@
 .panelHeadingLink:focus-visible {
   color: var(--color-secondary);
 }
+
 
 .summaryList {
   display: flex;
@@ -278,6 +362,18 @@
 }
 
 @media (max-width: 768px) {
+  .adminHeaderInner {
+    justify-content: center;
+  }
+
+  .adminNav {
+    width: 100%;
+  }
+
+  .adminNavList {
+    justify-content: center;
+  }
+
   .panel {
     padding: var(--spacing-lg);
   }
