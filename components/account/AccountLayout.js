@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
@@ -60,13 +61,18 @@ export default function AccountLayout({
   children,
 }) {
   const router = useRouter();
-  const { user, email, loading } = useSession();
+  const { user, email, loading, refresh, clearSession } = useSession();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState('');
+  const menuRef = useRef(null);
 
   const displayName = user
     ? [user.firstName, user.surname].filter(Boolean).join(' ').trim()
     : null;
   const fallbackName = email || 'Guest user';
   const userName = displayName || fallbackName;
+  const userEmail = email || user?.email || '';
 
   const initialsSource = displayName || email || 'A';
   const userInitial = initialsSource
@@ -79,6 +85,90 @@ export default function AccountLayout({
   function isActive(path) {
     if (!path) return false;
     return router.pathname === path || router.pathname.startsWith(`${path}/`);
+  }
+
+  const accountLinks = useMemo(
+    () => [
+      { label: 'Profile', href: '/account/profile' },
+      { label: 'Alerts', href: '/account/saved-searches' },
+      { label: 'Contacts', href: '/contact' },
+    ],
+    [],
+  );
+
+  useEffect(() => {
+    if (!menuOpen) {
+      return undefined;
+    }
+
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    }
+
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener('pointerdown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('pointerdown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [router.pathname]);
+
+  function toggleMenu() {
+    setMenuOpen((prev) => !prev);
+    setLogoutError('');
+  }
+
+  function handleMenuItemSelect() {
+    setMenuOpen(false);
+    setLogoutError('');
+  }
+
+  async function handleLogout() {
+    if (loggingOut) return;
+
+    setLoggingOut(true);
+    setLogoutError('');
+
+    try {
+      const response = await fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Unable to sign out. Please try again.');
+      }
+
+      clearSession();
+
+      try {
+        await refresh();
+      } catch (refreshError) {
+        console.warn('Failed to refresh session after logout', refreshError);
+      }
+
+      setMenuOpen(false);
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout failed', error);
+      const message = error instanceof Error ? error.message : 'Unable to sign out. Please try again.';
+      setLogoutError(message);
+    } finally {
+      setLoggingOut(false);
+    }
   }
 
   return (
@@ -122,15 +212,72 @@ export default function AccountLayout({
             })}
           </nav>
 
-          <div className={styles.userMenu}>
-            <span className={styles.userInitial}>{userInitial}</span>
-            <div className={styles.userDetails}>
-              <span className={styles.userName}>{userName}</span>
-              <span className={styles.userStatus}>
-                {loading ? 'Loading account…' : user ? 'Logged in' : 'Not signed in'}
-              </span>
+          <div
+            className={`${styles.userMenu} ${menuOpen ? styles.userMenuOpen : ''}`}
+            ref={menuRef}
+          >
+            <button
+              type="button"
+              className={styles.userMenuToggle}
+              onClick={toggleMenu}
+              aria-haspopup="true"
+              aria-expanded={menuOpen}
+              aria-controls="account-menu-dropdown"
+              aria-label={menuOpen ? 'Close account menu' : 'Open account menu'}
+            >
+              <span className={styles.userInitial}>{userInitial}</span>
+              <div className={styles.userDetails}>
+                <span className={styles.userName}>{userName}</span>
+                <span className={styles.userStatus}>
+                  {loading ? 'Loading account…' : user ? 'Logged in' : 'Not signed in'}
+                </span>
+              </div>
+              <span className={`${styles.userCaret} ${menuOpen ? styles.userCaretOpen : ''}`} aria-hidden="true" />
+            </button>
+
+            <div
+              id="account-menu-dropdown"
+              className={styles.userDropdown}
+              role="menu"
+              aria-hidden={!menuOpen}
+            >
+              <div className={styles.userDropdownHeader}>
+                <span className={styles.userDropdownName}>{userName}</span>
+                {userEmail ? <span className={styles.userDropdownEmail}>{userEmail}</span> : null}
+              </div>
+
+              <div className={styles.userDropdownList}>
+                {accountLinks.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className={styles.userDropdownLink}
+                    role="menuitem"
+                    tabIndex={menuOpen ? 0 : -1}
+                    onClick={handleMenuItemSelect}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+
+              <div className={styles.userDropdownFooter}>
+                <button
+                  type="button"
+                  className={styles.userLogoutButton}
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                  tabIndex={menuOpen ? 0 : -1}
+                >
+                  {loggingOut ? 'Signing out…' : 'Logout'}
+                </button>
+                {logoutError ? (
+                  <p className={styles.userDropdownStatus} role="status">
+                    {logoutError}
+                  </p>
+                ) : null}
+              </div>
             </div>
-            <button type="button" className={styles.userCaret} aria-label="Account menu" />
           </div>
         </div>
 

@@ -781,6 +781,7 @@ export default function ChatWidget() {
         { isAuthenticated },
       ),
     [knowledge, formatDateTime, formatDate, describeRecency, isAuthenticated],
+
   );
 
   const sendMessage = useCallback(
@@ -855,6 +856,7 @@ export default function ChatWidget() {
             'Find me a property in Shoreditch',
           ],
     [isAuthenticated],
+
   );
 
   const renderMessageContent = useCallback(
@@ -1111,6 +1113,7 @@ export default function ChatWidget() {
                 ? 'Ask about clients, viewings, offers or listings...'
                 : 'Ask about listings, viewings or Aktonz...'
             }
+
             onKeyDown={handleKeyDown}
             rows={2}
             aria-label="Message Aktonz support"
