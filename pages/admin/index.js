@@ -29,7 +29,6 @@ function formatDate(value) {
       minute: '2-digit',
     }).format(new Date(value));
   } catch (error) {
-
     return value;
   }
 }
@@ -175,48 +174,98 @@ export default function AdminDashboard() {
     [offers],
   );
 
-  if (sessionLoading) {
-    return (
-      <main className={styles.main}>
-        <div className={styles.container}>
-          <p className={styles.loading}>Checking your admin access…</p>
+  const renderLayout = (title, content, showNavigation = false) => (
+    <>
+      <Head>
+        <title>{title}</title>
+      </Head>
+      <header className={styles.adminHeader}>
+        <div className={styles.adminHeaderInner}>
+          <div className={styles.adminBrand}>
+            <span className={styles.adminBrandName}>Aktonz</span>
+            <span className={styles.adminBrandBadge}>Admin</span>
+          </div>
+          {showNavigation ? (
+            <nav className={styles.adminNav} aria-label="Admin sections">
+              <ul className={styles.adminNavList}>
+                <li>
+                  <a className={styles.adminNavLink} href="#valuations">
+                    Valuations
+                  </a>
+                </li>
+                <li>
+                  <a className={styles.adminNavLink} href="#viewings">
+                    Viewings
+                  </a>
+                </li>
+                <li>
+                  <a className={styles.adminNavLink} href="#offers">
+                    Offers
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          ) : null}
         </div>
+      </header>
+      <main className={styles.main}>
+        <div className={styles.container}>{content}</div>
       </main>
+    </>
+  );
+
+  if (sessionLoading) {
+    return renderLayout(
+      'Aktonz Admin — Loading',
+      <p className={styles.loading}>Checking your admin access…</p>,
     );
   }
 
   if (!isAdmin) {
-    return (
-      <main className={styles.main}>
-        <div className={styles.container}>
-          <header className={styles.pageHeader}>
-            <div>
-              <p className={styles.pageEyebrow}>Operations</p>
-              <h1 className={styles.pageTitle}>Admin access required</h1>
-            </div>
-          </header>
-          <section className={styles.panel}>
-            <p className={styles.emptyState}>
-              You need to <Link href="/login">sign in with an admin account</Link> to manage valuation
-              requests and offers.
-            </p>
-          </section>
-        </div>
-      </main>
+    return renderLayout(
+      'Aktonz Admin — Access required',
+      <>
+        <header className={styles.pageHeader}>
+          <div>
+            <p className={styles.pageEyebrow}>Operations</p>
+            <h1 className={styles.pageTitle}>Admin access required</h1>
+          </div>
+        </header>
+        <section className={styles.panel}>
+          <p className={styles.emptyState}>
+            You need to <Link href="/login">sign in with an admin account</Link> to manage valuation requests and
+            offers.
+          </p>
+        </section>
+      </>,
     );
   }
 
-  return (
+  return renderLayout(
+    'Aktonz Admin — Offers & valuations',
     <>
-      <Head>
-        <title>Aktonz Admin — Offers &amp; valuations</title>
-      </Head>
-      <main className={styles.main}>
-        <div className={styles.container}>
-          <header className={styles.pageHeader}>
+      <header className={styles.pageHeader}>
+        <div>
+          <p className={styles.pageEyebrow}>Operations</p>
+          <h1 className={styles.pageTitle}>Offers & valuation requests</h1>
+        </div>
+        <button type="button" className={styles.refreshButton} onClick={loadData} disabled={loading}>
+          Refresh
+        </button>
+      </header>
+
+      {error ? <div className={styles.error}>{error}</div> : null}
+
+      <section id="valuations" className={`${styles.panel} ${styles.anchorSection}`}>
+        <div className={styles.panelHeader}>
+          <div>
+            <h2>Valuation requests</h2>
+            <p>Acaboom captures these valuation leads from the website and synchronises them here.</p>
+          </div>
+          <dl className={styles.summaryList}>
             <div>
-              <p className={styles.pageEyebrow}>Operations</p>
-              <h1 className={styles.pageTitle}>Offers &amp; valuation requests</h1>
+              <dt>Open</dt>
+              <dd>{openValuations.length}</dd>
             </div>
             <button
               type="button"
@@ -251,28 +300,78 @@ export default function AdminDashboard() {
                   <dd>{valuations.length}</dd>
                 </div>
               </dl>
-            </div>
 
-            {loading ? (
-              <p className={styles.loading}>Loading valuation requests…</p>
-            ) : valuations.length ? (
-              <div className={styles.tableScroll}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>Received</th>
-                      <th>Client</th>
-                      <th>Property</th>
-                      <th>Status &amp; notes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {valuations.map((valuation) => (
-                      <tr key={valuation.id}>
-                        <td>
-                          <div className={styles.primaryText}>{formatDate(valuation.createdAt)}</div>
-                          {valuation.updatedAt && (
-                            <div className={styles.meta}>Updated {formatDate(valuation.updatedAt)}</div>
+            </div>
+          </dl>
+        </div>
+
+        {loading ? (
+          <p className={styles.loading}>Loading valuation requests…</p>
+        ) : valuations.length ? (
+          <div className={styles.tableScroll}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Received</th>
+                  <th>Client</th>
+                  <th>Property</th>
+                  <th>Status &amp; notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {valuations.map((valuation) => (
+                  <tr key={valuation.id}>
+                    <td>
+                      <div className={styles.primaryText}>{formatDate(valuation.createdAt)}</div>
+                      {valuation.updatedAt && (
+                        <div className={styles.meta}>Updated {formatDate(valuation.updatedAt)}</div>
+                      )}
+                    </td>
+                    <td>
+                      <div className={styles.primaryText}>
+                        {valuation.firstName} {valuation.lastName}
+                      </div>
+                      <div className={styles.meta}>
+                        <a href={`mailto:${valuation.email}`}>{valuation.email}</a>
+                      </div>
+                      <div className={styles.meta}>
+                        <a href={`tel:${valuation.phone}`}>{valuation.phone}</a>
+                      </div>
+                    </td>
+                    <td>
+                      <div className={styles.primaryText}>{valuation.address}</div>
+                      {valuation.source ? <div className={styles.meta}>{valuation.source}</div> : null}
+                      {valuation.appointmentAt ? (
+                        <div className={styles.meta}>Appointment {formatDate(valuation.appointmentAt)}</div>
+                      ) : null}
+                    </td>
+                    <td>
+                      <select
+                        className={styles.statusSelect}
+                        value={valuation.status || statusOptions[0]?.value || 'new'}
+                        onChange={(event) => handleStatusChange(valuation, event.target.value)}
+                        disabled={updatingId === valuation.id}
+                      >
+                        {statusOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                      <div className={styles.badge}>{formatStatusLabel(valuation.status, statusOptions)}</div>
+                      {valuation.presentation ? (
+                        <div className={styles.meta}>
+                          Style{' '}
+                          {valuation.presentation.presentationUrl ? (
+                            <a
+                              href={valuation.presentation.presentationUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {valuation.presentation.title || 'View presentation'}
+                            </a>
+                          ) : (
+                            valuation.presentation.title || valuation.presentation.id
                           )}
                         </td>
                         <td>
@@ -462,8 +561,77 @@ export default function AdminDashboard() {
             )}
           </section>
         </div>
-      </main>
-    </>
 
+        {loading ? (
+          <p className={styles.loading}>Loading offers…</p>
+        ) : offers.length ? (
+          <div className={styles.tableScroll}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Received</th>
+                  <th>Property</th>
+                  <th>Client</th>
+                  <th>Offer</th>
+                </tr>
+              </thead>
+              <tbody>
+                {offers.map((offer) => (
+                  <tr key={offer.id}>
+                    <td>
+                      <div className={styles.primaryText}>{formatDate(offer.date)}</div>
+                      {offer.agent?.name ? (
+                        <div className={styles.meta}>Handled by {offer.agent.name}</div>
+                      ) : null}
+                    </td>
+                    <td>
+                      <div className={styles.primaryText}>{offer.property?.title || 'Unlinked property'}</div>
+                      {offer.property?.address ? <div className={styles.meta}>{offer.property.address}</div> : null}
+                      {offer.property?.link ? (
+                        <div className={styles.meta}>
+                          <a href={offer.property.link} target="_blank" rel="noreferrer">
+                            View listing
+                          </a>
+                        </div>
+                      ) : null}
+                    </td>
+                    <td>
+                      <div className={styles.primaryText}>
+                        {offer.contact?.name || 'Unknown contact'}
+                      </div>
+                      {offer.contact?.email ? (
+                        <div className={styles.meta}>
+                          <a href={`mailto:${offer.contact.email}`}>{offer.contact.email}</a>
+                        </div>
+                      ) : null}
+                      {offer.contact?.phone ? (
+                        <div className={styles.meta}>
+                          <a href={`tel:${offer.contact.phone}`}>{offer.contact.phone}</a>
+                        </div>
+                      ) : null}
+                    </td>
+                    <td>
+                      <div className={styles.primaryText}>{offer.amount}</div>
+                      <div
+                        className={`${styles.offerType} ${
+                          offer.type === 'sale' ? styles.offerTypeSale : styles.offerTypeRent
+                        }`}
+                      >
+                        {offer.type === 'sale' ? 'Sale offer' : 'Tenancy offer'}
+                      </div>
+                      {offer.status ? <div className={styles.meta}>{offer.status}</div> : null}
+                      {offer.notes ? <p className={styles.note}>{offer.notes}</p> : null}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className={styles.emptyState}>No live offers at the moment.</p>
+        )}
+      </section>
+    </>,
+    true,
   );
 }

@@ -91,12 +91,14 @@ export default function AdminOffersPage() {
     }
   }, [router.isReady, router.query?.id]);
 
+
   useEffect(() => {
     if (!sortedOffers.length) {
       return;
     }
 
     const routeId = router.isReady ? normalizeRouteId(router.query?.id) : null;
+
     if (routeId && sortedOffers.some((offer) => offer.id === routeId)) {
       return;
     }
