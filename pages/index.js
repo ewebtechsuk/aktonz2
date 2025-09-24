@@ -3,7 +3,7 @@ import PropertyList from '../components/PropertyList';
 import Hero from '../components/Hero';
 import Features from '../components/Features';
 import Stats from '../components/Stats';
-import { fetchPropertiesByType } from '../lib/apex27.mjs';
+import { fetchPropertiesByTypeCachedFirst } from '../lib/apex27.mjs';
 import styles from '../styles/Home.module.css';
 
 export default function Home({ sales, lettings, archiveSales }) {
@@ -37,10 +37,10 @@ export default function Home({ sales, lettings, archiveSales }) {
 
 export async function getStaticProps() {
   const [allSale, allRent] = await Promise.all([
-    fetchPropertiesByType('sale', {
+    fetchPropertiesByTypeCachedFirst('sale', {
       statuses: ['available', 'under_offer', 'sold'],
     }),
-    fetchPropertiesByType('rent', {
+    fetchPropertiesByTypeCachedFirst('rent', {
       statuses: ['available'],
     }),
   ]);
