@@ -166,18 +166,20 @@ export default function AdminValuationsPage() {
       return;
     }
 
-    const routeId = normalizeRouteId(router.query.id);
+    const routeId = normalizeRouteId(router.query?.id);
     if (routeId) {
       setSelectedId(routeId);
     }
-  }, [router.isReady, router.query.id]);
+  }, [router.isReady, router.query?.id]);
+
 
   useEffect(() => {
     if (!valuations.length) {
       return;
     }
 
-    const routeId = router.isReady ? normalizeRouteId(router.query.id) : null;
+    const routeId = router.isReady ? normalizeRouteId(router.query?.id) : null;
+
     if (routeId && valuations.some((entry) => entry.id === routeId)) {
       return;
     }
