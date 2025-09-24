@@ -3,6 +3,7 @@ import path from 'path';
 import {
   fetchScrayeListings,
   normalizeScrayeListings,
+  sortScrayeListings,
   loadScrayeCache,
 } from '../lib/scraye.mjs';
 
@@ -45,8 +46,8 @@ async function main() {
     fetchScrayeListings({ transactionType: 'sale', placeIds: placeIds.length ? placeIds : undefined }),
   ]);
 
-  const rent = normalizeScrayeListings(rentListings);
-  const sale = normalizeScrayeListings(saleListings);
+  const rent = sortScrayeListings(normalizeScrayeListings(rentListings));
+  const sale = sortScrayeListings(normalizeScrayeListings(saleListings));
 
   const cache = {
     generatedAt: new Date().toISOString(),
