@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import PropertyList from '../components/PropertyList';
-import { fetchPropertiesByType } from '../lib/apex27.mjs';
+import { fetchPropertiesByTypeCachedFirst } from '../lib/apex27.mjs';
 import styles from '../styles/Home.module.css';
 
 export default function Favourites({ properties }) {
@@ -30,11 +30,10 @@ export default function Favourites({ properties }) {
 }
 
 export async function getStaticProps() {
-  const sale = await fetchPropertiesByType('sale', {
+  const sale = await fetchPropertiesByTypeCachedFirst('sale', {
     statuses: ['available', 'under_offer', 'sold'],
   });
-  await new Promise((res) => setTimeout(res, 200));
-  const rent = await fetchPropertiesByType('rent', {
+  const rent = await fetchPropertiesByTypeCachedFirst('rent', {
     statuses: ['available', 'under_offer', 'let_agreed', 'let'],
   });
   const properties = [...sale.slice(0, 20), ...rent.slice(0, 20)];
