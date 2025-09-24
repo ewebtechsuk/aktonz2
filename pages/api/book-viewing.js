@@ -1,4 +1,10 @@
-import { createSmtpTransport, resolveFromAddress } from '../../lib/mailer.js';
+import {
+  createSmtpTransport,
+  getNotificationRecipients,
+  resolveFromAddress,
+  sendMailOrThrow,
+} from '../../lib/mailer.mjs';
+
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -54,32 +60,46 @@ export default async function handler(req, res) {
 
     const transporter = createSmtpTransport();
     const from = resolveFromAddress();
-    const aktonzEmail = process.env.AKTONZ_EMAIL || 'info@aktonz.com';
+    const aktonzRecipients = getNotificationRecipients();
 
-    await transporter.sendMail({
-      from,
-      to: email,
-      subject: 'Welcome to Aktonz',
-      text: `Hi ${name || ''}, welcome to Aktonz!`,
-    });
 
-    await transporter.sendMail({
-      from,
-      to: email,
-      subject: 'Viewing request received',
-      text: `We have received your request to view ${propertyTitle} on ${date} at ${time}. We'll be in touch soon.`,
-    });
+    await sendMailOrThrow(
+      transporter,
+      {
+        from,
+        to: email,
+        subject: 'Welcome to Aktonz',
+        text: `Hi ${name || ''}, welcome to Aktonz!`,
+      },
+      { context: 'viewing:welcome', expectedRecipients: [email] }
+    );
 
-    await transporter.sendMail({
-      from,
-      to: aktonzEmail,
-      subject: 'New viewing request',
-      text: `${
-        name || 'Someone'
-      } has requested a viewing for ${propertyTitle} on ${date} at ${time}. Contact: ${email} ${
-        phone || ''
-      }`,
-    });
+    await sendMailOrThrow(
+      transporter,
+      {
+        from,
+        to: email,
+        subject: 'Viewing request received',
+        text: `We have received your request to view ${propertyTitle} on ${date} at ${time}. We'll be in touch soon.`,
+      },
+      { context: 'viewing:confirmation', expectedRecipients: [email] }
+    );
+
+    await sendMailOrThrow(
+      transporter,
+      {
+        from,
+        to: aktonzRecipients,
+        replyTo: email,
+        subject: 'New viewing request',
+        text: `${
+          name || 'Someone'
+        } has requested a viewing for ${propertyTitle} on ${date} at ${time}. Contact: ${email} ${
+          phone || ''
+        }`,
+      },
+      { context: 'viewing:internal', expectedRecipients: aktonzRecipients }
+    );
 
     res.status(200).json({ ok: true });
   } catch (err) {
@@ -88,6 +108,13 @@ export default async function handler(req, res) {
       res.status(500).json({ error: 'Email service is not configured.' });
       return;
     }
+
+    if (err?.code === 'SMTP_DELIVERY_FAILED') {
+      console.error('SMTP rejected viewing request notification', err.missing, err.info);
+      res.status(502).json({ error: 'Email delivery failed.' });
+      return;
+    }
+
 
     console.error('Failed to book viewing', err);
     res.status(500).json({ error: 'Failed to book viewing' });
