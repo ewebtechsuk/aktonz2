@@ -85,6 +85,11 @@
 }
 
 .userMenu {
+  position: relative;
+  display: inline-flex;
+}
+
+.userMenuToggle {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
@@ -92,6 +97,29 @@
   padding: 0.5rem 0.9rem 0.5rem 0.6rem;
   border-radius: 999px;
   border: 1px solid #cbe3df;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.userMenuToggle:hover,
+.userMenuToggle:focus-visible {
+  border-color: #96ccc4;
+  background: #edf7f5;
+  box-shadow: 0 8px 24px rgba(13, 86, 75, 0.08);
+}
+
+.userMenuToggle:focus-visible {
+  outline: 3px solid rgba(11, 124, 109, 0.25);
+  outline-offset: 2px;
+}
+
+.userMenuOpen .userMenuToggle {
+  border-color: #96ccc4;
+  background: #e9f5f3;
+  box-shadow: 0 12px 32px rgba(13, 86, 75, 0.12);
 }
 
 .userInitial {
@@ -131,7 +159,7 @@
   border: none;
   background: none;
   position: relative;
-  cursor: pointer;
+  cursor: inherit;
 }
 
 .userCaret::after {
@@ -144,6 +172,114 @@
   border-right: 2px solid #3c5d58;
   border-bottom: 2px solid #3c5d58;
   transform: translate(-50%, -25%) rotate(45deg);
+  transition: transform 0.2s ease;
+}
+
+.userCaretOpen::after {
+  transform: translate(-50%, -75%) rotate(-135deg);
+}
+
+.userDropdown {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  min-width: 240px;
+  background: #ffffff;
+  border-radius: 0.85rem;
+  border: 1px solid #cbe3df;
+  box-shadow: 0 24px 48px rgba(13, 86, 75, 0.18);
+  padding: 0.75rem 0 0.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+  z-index: 25;
+  pointer-events: none;
+}
+
+.userMenuOpen .userDropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.userDropdownHeader {
+  padding: 0 1.1rem 0.7rem;
+  border-bottom: 1px solid #e3f0ee;
+}
+
+.userDropdownName {
+  display: block;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #16312d;
+  margin-bottom: 0.2rem;
+}
+
+.userDropdownEmail {
+  display: block;
+  font-size: 0.85rem;
+  color: #4f6f6a;
+  word-break: break-word;
+}
+
+.userDropdownList {
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem 0;
+}
+
+.userDropdownLink {
+  display: block;
+  padding: 0.65rem 1.1rem;
+  text-decoration: none;
+  color: #2b5a54;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.userDropdownLink:hover,
+.userDropdownLink:focus-visible {
+  background: #f1faf8;
+  color: #0b7c6d;
+}
+
+.userDropdownFooter {
+  border-top: 1px solid #e3f0ee;
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+}
+
+.userLogoutButton {
+  width: 100%;
+  padding: 0.65rem 1.1rem;
+  text-align: left;
+  background: none;
+  border: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #c94b4b;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.userLogoutButton:hover,
+.userLogoutButton:focus-visible {
+  background: #fdf0f0;
+  color: #a63b3b;
+}
+
+.userLogoutButton:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.userDropdownStatus {
+  margin: 0.4rem 1.1rem 0.2rem;
+  font-size: 0.75rem;
+  color: #c94b4b;
 }
 
 .hero {
@@ -307,7 +443,18 @@
 
   .userMenu {
     width: 100%;
+  }
+
+  .userMenuToggle {
+    width: 100%;
     justify-content: space-between;
+  }
+
+  .userDropdown {
+    width: 100%;
+    min-width: 0;
+    left: 0;
+    right: 0;
   }
 }
 
