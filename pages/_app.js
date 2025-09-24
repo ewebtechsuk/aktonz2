@@ -12,7 +12,8 @@ import { SessionProvider } from '../components/SessionProvider';
 
 export default function MyApp({ Component, pageProps }) {
   const router = useRouter();
-  const showHeader = !router.pathname.startsWith('/account');
+  const showHeader =
+    !router.pathname.startsWith('/account') && !router.pathname.startsWith('/admin');
 
   return (
     <>
