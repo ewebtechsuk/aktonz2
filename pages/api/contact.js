@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import { createSmtpTransport, resolveFromAddress } from '../../lib/mailer.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -12,27 +12,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const smtpConfigProvided =
-      process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
-
-    const transporter = smtpConfigProvided
-      ? nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: Number(process.env.SMTP_PORT || 587),
-          secure: process.env.SMTP_SECURE === 'true',
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-          },
-        })
-      : nodemailer.createTransport({ jsonTransport: true });
-
-    if (!smtpConfigProvided) {
-      console.warn('SMTP configuration missing. Using JSON transport.');
-    }
-
-    const from =
-      process.env.EMAIL_FROM || process.env.SMTP_USER || 'no-reply@aktonz.com';
+    const transporter = createSmtpTransport();
+    const from = resolveFromAddress();
     const aktonz = process.env.AKTONZ_EMAIL || 'info@aktonz.com';
 
     await transporter.sendMail({
@@ -49,6 +30,13 @@ export default async function handler(req, res) {
       text: 'Thank you for contacting us. We will be in touch soon.',
     });
   } catch (err) {
+    if (err?.code === 'SMTP_CONFIG_MISSING') {
+      console.error('SMTP configuration missing for contact form', err.missing);
+      return res
+        .status(500)
+        .json({ error: 'Email service is not configured.' });
+    }
+
     console.error('Failed to send enquiry emails', err);
     return res.status(500).json({ error: 'Failed to send message' });
   }

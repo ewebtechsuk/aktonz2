@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import { createSmtpTransport, resolveFromAddress } from '../../lib/mailer.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -19,7 +19,6 @@ export default async function handler(req, res) {
     res.status(200).json({ status: 'ready' });
     return;
   }
-
 
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -53,17 +52,8 @@ export default async function handler(req, res) {
       });
     }
 
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || 587),
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-
-    const from = process.env.FROM_EMAIL || 'no-reply@aktonz.com';
+    const transporter = createSmtpTransport();
+    const from = resolveFromAddress();
     const aktonzEmail = process.env.AKTONZ_EMAIL || 'info@aktonz.com';
 
     await transporter.sendMail({
@@ -93,6 +83,12 @@ export default async function handler(req, res) {
 
     res.status(200).json({ ok: true });
   } catch (err) {
+    if (err?.code === 'SMTP_CONFIG_MISSING') {
+      console.error('SMTP configuration missing for viewing route', err.missing);
+      res.status(500).json({ error: 'Email service is not configured.' });
+      return;
+    }
+
     console.error('Failed to book viewing', err);
     res.status(500).json({ error: 'Failed to book viewing' });
   }
