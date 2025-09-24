@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import styles from '../styles/MediaGallery.module.css';
 
@@ -71,7 +70,6 @@ function renderMedia(url, index) {
       <img
         src={url}
         alt={`Property media item ${index + 1}`}
-
         referrerPolicy="no-referrer"
       />
     </div>
@@ -80,8 +78,6 @@ function renderMedia(url, index) {
 
 export default function MediaGallery({ images = [], media = [] }) {
   const items = [...media, ...images];
-  const [current, setCurrent] = useState(0);
-  const imageOffset = media.length;
   if (items.length === 0) return null;
   return (
     <div className={styles.slider}>
@@ -92,38 +88,9 @@ export default function MediaGallery({ images = [], media = [] }) {
         emulateTouch
         useKeyboardArrows
         showIndicators={false}
-        selectedItem={current}
-        onChange={setCurrent}
       >
         {items.map((url, i) => renderMedia(url, i))}
       </Carousel>
-      {images.length > 0 && (
-        <ul className={styles.thumbs}>
-          {images.map((src, i) => (
-            <li
-              key={i}
-              className={
-                current === imageOffset + i ? styles.activeThumb : undefined
-              }
-            >
-              <button
-                type="button"
-                onClick={() => setCurrent(imageOffset + i)}
-                aria-label={`Show slide ${imageOffset + i + 1}`}
-                className={styles.thumbButton}
-              >
-                <img
-                  src={src}
-                  alt={`Thumbnail ${i + 1}`}
-
-                  referrerPolicy="no-referrer"
-                />
-
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   );
 }
