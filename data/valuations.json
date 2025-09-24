@@ -1,0 +1,31 @@
+{
+  "valuations": [
+    {
+      "id": "val-20250317-ashcroft",
+      "createdAt": "2025-03-17T10:05:00Z",
+      "updatedAt": "2025-03-17T12:15:00Z",
+      "status": "contacted",
+      "firstName": "Amelia",
+      "lastName": "Ashcroft",
+      "email": "amelia.ashcroft@example.com",
+      "phone": "020 7946 0888",
+      "address": "Flat 5, 14 Abersham Road, London E8 2LN",
+      "source": "Acaboom lead import",
+      "notes": "Discussed dual-track sale and rent strategies; awaiting comparables."
+    },
+    {
+      "id": "val-20250318-browne",
+      "createdAt": "2025-03-18T14:30:00Z",
+      "updatedAt": "2025-03-18T14:30:00Z",
+      "status": "scheduled",
+      "firstName": "Luca",
+      "lastName": "Browne",
+      "email": "luca.browne@example.com",
+      "phone": "07700 900123",
+      "address": "27 Murray Grove, London N1 7QJ",
+      "source": "Website valuation form",
+      "appointmentAt": "2025-03-21T09:00:00Z",
+      "notes": "Client requested performance stats for nearby two-bedroom loft conversions."
+    }
+  ]
+}

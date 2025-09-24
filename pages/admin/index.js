@@ -1,255 +1,337 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
-import styles from '../../styles/AdminOffers.module.css';
 
-const STATUS_OPTIONS = ['new', 'reviewing', 'accepted', 'rejected'];
-const PAYMENT_STATUS_OPTIONS = [
-  'pending',
-  'paid',
-  'unpaid',
-  'no_payment_required',
+import styles from '../../styles/Admin.module.css';
+
+const STATUS_OPTIONS = [
+  { value: 'new', label: 'New' },
+  { value: 'contacted', label: 'Contacted' },
+  { value: 'scheduled', label: 'Scheduled' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'archived', label: 'Archived' },
 ];
 
 function formatDate(value) {
-  if (!value) return '—';
+  if (!value) {
+    return '—';
+  }
+
   try {
     return new Intl.DateTimeFormat('en-GB', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     }).format(new Date(value));
-  } catch {
+  } catch (error) {
+
     return value;
   }
 }
 
-function formatCurrency(value) {
-  if (value == null || value === '') return '—';
-  return new Intl.NumberFormat('en-GB', {
-    style: 'currency',
-    currency: 'GBP',
-  }).format(Number(value));
+function formatStatusLabel(status) {
+  const option = STATUS_OPTIONS.find((entry) => entry.value === status);
+  return option ? option.label : STATUS_OPTIONS[0].label;
 }
 
-function OfferRow({ offer, onStatusChange, onPaymentStatusChange, onSaveNotes }) {
-  const [notes, setNotes] = useState(offer.notes || '');
-  const hasPayment = offer.payments?.length > 0;
-  const latestPayment = hasPayment ? offer.payments[offer.payments.length - 1] : null;
-  const paymentAmountLabel =
-    latestPayment && Number.isFinite(latestPayment.amount)
-      ? formatCurrency(latestPayment.amount / 100)
-      : '—';
-
-  useEffect(() => {
-    setNotes(offer.notes || '');
-  }, [offer.notes]);
-
-  return (
-    <tr>
-      <td>
-        <div className={styles.primaryCell}>
-          <strong>{offer.name}</strong>
-          <span>{offer.email}</span>
-        </div>
-      </td>
-      <td>
-        <div className={styles.primaryCell}>
-          <strong>{offer.propertyTitle || offer.propertyId}</strong>
-          <span>Offer: {formatCurrency(offer.price)}</span>
-          {offer.frequency && <span>Frequency: {offer.frequency}</span>}
-        </div>
-      </td>
-      <td>{formatDate(offer.createdAt)}</td>
-      <td>
-        <select
-          value={offer.status}
-          onChange={(event) => onStatusChange(offer.id, event.target.value)}
-        >
-          {STATUS_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {option.charAt(0).toUpperCase() + option.slice(1)}
-            </option>
-          ))}
-        </select>
-      </td>
-      <td>
-        <select
-          value={offer.paymentStatus || 'pending'}
-          onChange={(event) =>
-            onPaymentStatusChange(offer.id, event.target.value)
-          }
-        >
-          {PAYMENT_STATUS_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {option.replace(/_/g, ' ')}
-            </option>
-          ))}
-        </select>
-        {latestPayment && (
-          <div className={styles.paymentMeta}>
-            <span>{paymentAmountLabel}</span>
-            <span>Status: {latestPayment.status}</span>
-            {latestPayment.receiptUrl && (
-              <a href={latestPayment.receiptUrl} target="_blank" rel="noreferrer">
-                View receipt
-              </a>
-            )}
-          </div>
-        )}
-      </td>
-      <td>
-        <textarea
-          value={notes}
-          onChange={(event) => setNotes(event.target.value)}
-          onBlur={() => onSaveNotes(offer.id, notes)}
-          placeholder="Add internal notes"
-        />
-      </td>
-    </tr>
-  );
-}
-
-export default function AdminOffersPage() {
-  const [token, setToken] = useState('');
+export default function AdminDashboard() {
   const [offers, setOffers] = useState([]);
+  const [valuations, setValuations] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [tokenInput, setTokenInput] = useState('');
+  const [updatingId, setUpdatingId] = useState(null);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const storedToken = window.localStorage.getItem('aktonz-admin-token');
-    if (storedToken) {
-      setToken(storedToken);
-      setTokenInput(storedToken);
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const [offersRes, valuationsRes] = await Promise.all([
+        fetch('/api/admin/offers'),
+        fetch('/api/admin/valuations'),
+      ]);
+
+      if (!offersRes.ok) {
+        throw new Error('Failed to fetch offers');
+      }
+      if (!valuationsRes.ok) {
+        throw new Error('Failed to fetch valuations');
+      }
+
+      const offersJson = await offersRes.json();
+      const valuationsJson = await valuationsRes.json();
+
+      setOffers(Array.isArray(offersJson.offers) ? offersJson.offers : []);
+      setValuations(Array.isArray(valuationsJson.valuations) ? valuationsJson.valuations : []);
+    } catch (err) {
+      console.error(err);
+      setError('Unable to load the operations dashboard. Please try again.');
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  const headers = useMemo(() => {
-    if (!token) return {};
-    return {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    };
-  }, [token]);
-
   useEffect(() => {
-    if (!token) return;
-    setLoading(true);
-    fetch('/api/admin/offers', { headers })
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error('Failed to fetch offers');
-        }
-        const data = await response.json();
-        setOffers(data.offers || []);
-        setError(null);
-      })
-      .catch(() => {
-        setError('Unable to fetch offers. Check your admin token.');
-      })
-      .finally(() => setLoading(false));
-  }, [token, headers]);
+    loadData();
+  }, [loadData]);
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const nextToken = tokenInput.trim();
-    setToken(nextToken);
-    if (typeof window !== 'undefined') {
-      if (nextToken) {
-        window.localStorage.setItem('aktonz-admin-token', nextToken);
-      } else {
-        window.localStorage.removeItem('aktonz-admin-token');
+  const handleStatusChange = useCallback(
+    async (valuation, nextStatus) => {
+      if (!valuation || valuation.status === nextStatus) {
+        return;
       }
-    }
-  };
 
-  const updateOfferField = async (id, payload) => {
-    try {
-      const response = await fetch('/api/admin/offers', {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({ id, ...payload }),
-      });
+      setUpdatingId(valuation.id);
+      setError(null);
 
-      if (!response.ok) throw new Error('Failed to update');
+      try {
+        const response = await fetch('/api/admin/valuations', {
+          method: 'PATCH',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ id: valuation.id, status: nextStatus }),
+        });
 
-      const data = await response.json();
-      setOffers((current) =>
-        current.map((offer) => (offer.id === id ? data.offer : offer))
-      );
-    } catch (err) {
-      console.error(err);
-      setError('Failed to update offer. Please try again.');
-    }
-  };
+        if (!response.ok) {
+          throw new Error('Failed to update valuation status');
+        }
 
-  const handleStatusChange = (id, status) => updateOfferField(id, { status });
-  const handlePaymentStatusChange = (id, paymentStatus) =>
-    updateOfferField(id, { paymentStatus });
-  const handleSaveNotes = (id, notes) => updateOfferField(id, { notes });
+        const { valuation: updated } = await response.json();
+        setValuations((current) =>
+          current.map((entry) => (entry.id === updated.id ? { ...entry, ...updated } : entry)),
+        );
+      } catch (err) {
+        console.error(err);
+        setError('Unable to update valuation status. Please try again.');
+      } finally {
+        setUpdatingId(null);
+      }
+    },
+    [],
+  );
+
+  const openValuations = useMemo(
+    () => valuations.filter((valuation) => !['completed', 'archived'].includes(valuation.status || '')),
+    [valuations],
+  );
+
+  const salesOffers = useMemo(
+    () => offers.filter((offer) => offer.type === 'sale'),
+    [offers],
+  );
+  const rentalOffers = useMemo(
+    () => offers.filter((offer) => offer.type === 'rent'),
+    [offers],
+  );
 
   return (
-    <div className={styles.page}>
+    <>
       <Head>
-        <title>Offer Management | Admin</title>
+        <title>Aktonz Admin — Offers &amp; valuations</title>
       </Head>
-      <main className={styles.container}>
-        <header className={styles.header}>
-          <h1>Offer management</h1>
-          <p>Review new offers, track payments, and leave internal notes.</p>
-        </header>
-
-        <section className={styles.panel}>
-          <form onSubmit={handleSubmit} className={styles.tokenForm}>
-            <label htmlFor="admin-token">Admin access token</label>
-            <div className={styles.tokenRow}>
-              <input
-                id="admin-token"
-                type="password"
-                value={tokenInput}
-                onChange={(event) => setTokenInput(event.target.value)}
-                placeholder="Enter the token configured on the server"
-              />
-              <button type="submit">Unlock</button>
+      <main className={styles.main}>
+        <div className={styles.container}>
+          <header className={styles.pageHeader}>
+            <div>
+              <p className={styles.pageEyebrow}>Operations</p>
+              <h1 className={styles.pageTitle}>Offers &amp; valuation requests</h1>
             </div>
-          </form>
-          {error && <p className={styles.error}>{error}</p>}
-        </section>
+            <button
+              type="button"
+              className={styles.refreshButton}
+              onClick={loadData}
+              disabled={loading}
+            >
+              Refresh
+            </button>
+          </header>
 
-        {loading && <p>Loading offers…</p>}
+          {error ? <div className={styles.error}>{error}</div> : null}
 
-        {!loading && offers.length > 0 && (
-          <section className={styles.tableSection}>
-            <table>
-              <thead>
-                <tr>
-                  <th>Buyer</th>
-                  <th>Property</th>
-                  <th>Submitted</th>
-                  <th>Status</th>
-                  <th>Payment</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {offers.map((offer) => (
-                  <OfferRow
-                    key={offer.id}
-                    offer={offer}
-                    onStatusChange={handleStatusChange}
-                    onPaymentStatusChange={handlePaymentStatusChange}
-                    onSaveNotes={handleSaveNotes}
-                  />
-                ))}
-              </tbody>
-            </table>
+          <section className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <div>
+                <h2>Valuation requests</h2>
+                <p>Acaboom captures these valuation leads from the website and synchronises them here.</p>
+              </div>
+              <dl className={styles.summaryList}>
+                <div>
+                  <dt>Open</dt>
+                  <dd>{openValuations.length}</dd>
+                </div>
+                <div>
+                  <dt>Total</dt>
+                  <dd>{valuations.length}</dd>
+                </div>
+              </dl>
+            </div>
+
+            {loading ? (
+              <p className={styles.loading}>Loading valuation requests…</p>
+            ) : valuations.length ? (
+              <div className={styles.tableScroll}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Received</th>
+                      <th>Client</th>
+                      <th>Property</th>
+                      <th>Status &amp; notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {valuations.map((valuation) => (
+                      <tr key={valuation.id}>
+                        <td>
+                          <div className={styles.primaryText}>{formatDate(valuation.createdAt)}</div>
+                          {valuation.updatedAt && (
+                            <div className={styles.meta}>Updated {formatDate(valuation.updatedAt)}</div>
+                          )}
+                        </td>
+                        <td>
+                          <div className={styles.primaryText}>
+                            {valuation.firstName} {valuation.lastName}
+                          </div>
+                          <div className={styles.meta}>
+                            <a href={`mailto:${valuation.email}`}>{valuation.email}</a>
+                          </div>
+                          <div className={styles.meta}>
+                            <a href={`tel:${valuation.phone}`}>{valuation.phone}</a>
+                          </div>
+                        </td>
+                        <td>
+                          <div className={styles.primaryText}>{valuation.address}</div>
+                          {valuation.source ? (
+                            <div className={styles.meta}>{valuation.source}</div>
+                          ) : null}
+                          {valuation.appointmentAt ? (
+                            <div className={styles.meta}>Appointment {formatDate(valuation.appointmentAt)}</div>
+                          ) : null}
+                        </td>
+                        <td>
+                          <select
+                            className={styles.statusSelect}
+                            value={valuation.status || 'new'}
+                            onChange={(event) =>
+                              handleStatusChange(valuation, event.target.value)
+                            }
+                            disabled={updatingId === valuation.id}
+                          >
+                            {STATUS_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                          <div className={styles.badge}>{formatStatusLabel(valuation.status)}</div>
+                          {valuation.notes ? (
+                            <p className={styles.note}>{valuation.notes}</p>
+                          ) : null}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className={styles.emptyState}>No valuation requests just yet.</p>
+            )}
           </section>
-        )}
 
-        {!loading && token && offers.length === 0 && (
-          <p>No offers submitted yet.</p>
-        )}
+          <section className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <div>
+                <h2>Offers pipeline</h2>
+                <p>Review live sale and tenancy offers captured across the Aktonz platform.</p>
+              </div>
+              <dl className={styles.summaryList}>
+                <div>
+                  <dt>Sale</dt>
+                  <dd>{salesOffers.length}</dd>
+                </div>
+                <div>
+                  <dt>Rent</dt>
+                  <dd>{rentalOffers.length}</dd>
+                </div>
+              </dl>
+            </div>
+
+            {loading ? (
+              <p className={styles.loading}>Loading offers…</p>
+            ) : offers.length ? (
+              <div className={styles.tableScroll}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Received</th>
+                      <th>Property</th>
+                      <th>Client</th>
+                      <th>Offer</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {offers.map((offer) => (
+                      <tr key={offer.id}>
+                        <td>
+                          <div className={styles.primaryText}>{formatDate(offer.date)}</div>
+                          {offer.agent?.name ? (
+                            <div className={styles.meta}>Handled by {offer.agent.name}</div>
+                          ) : null}
+                        </td>
+                        <td>
+                          <div className={styles.primaryText}>{offer.property?.title || 'Unlinked property'}</div>
+                          {offer.property?.address ? (
+                            <div className={styles.meta}>{offer.property.address}</div>
+                          ) : null}
+                          {offer.property?.link ? (
+                            <div className={styles.meta}>
+                              <a href={offer.property.link} target="_blank" rel="noreferrer">
+                                View listing
+                              </a>
+                            </div>
+                          ) : null}
+                        </td>
+                        <td>
+                          <div className={styles.primaryText}>
+                            {offer.contact?.name || 'Unknown contact'}
+                          </div>
+                          {offer.contact?.email ? (
+                            <div className={styles.meta}>
+                              <a href={`mailto:${offer.contact.email}`}>{offer.contact.email}</a>
+                            </div>
+                          ) : null}
+                          {offer.contact?.phone ? (
+                            <div className={styles.meta}>
+                              <a href={`tel:${offer.contact.phone}`}>{offer.contact.phone}</a>
+                            </div>
+                          ) : null}
+                        </td>
+                        <td>
+                          <div className={styles.primaryText}>{offer.amount}</div>
+                          <div
+                            className={`${styles.offerType} ${
+                              offer.type === 'sale' ? styles.offerTypeSale : styles.offerTypeRent
+                            }`}
+                          >
+                            {offer.type === 'sale' ? 'Sale offer' : 'Tenancy offer'}
+                          </div>
+                          {offer.status ? (
+                            <div className={styles.meta}>{offer.status}</div>
+                          ) : null}
+                          {offer.notes ? <p className={styles.note}>{offer.notes}</p> : null}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className={styles.emptyState}>No live offers at the moment.</p>
+            )}
+          </section>
+        </div>
       </main>
-    </div>
+    </>
+
   );
 }
