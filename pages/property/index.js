@@ -1,5 +1,5 @@
 import PropertyList from '../../components/PropertyList';
-import { fetchPropertiesByType } from '../../lib/apex27.mjs';
+import { fetchPropertiesByTypeCachedFirst } from '../../lib/apex27.mjs';
 import styles from '../../styles/Home.module.css';
 
 export default function PropertyArchive({ properties }) {
@@ -13,10 +13,10 @@ export default function PropertyArchive({ properties }) {
 
 export async function getStaticProps() {
   const [sale, rent] = await Promise.all([
-    fetchPropertiesByType('sale', {
+    fetchPropertiesByTypeCachedFirst('sale', {
       statuses: ['available', 'under_offer', 'sold'],
     }),
-    fetchPropertiesByType('rent'),
+    fetchPropertiesByTypeCachedFirst('rent'),
   ]);
 
   const allowedSale = ['available', 'under_offer', 'sold'];

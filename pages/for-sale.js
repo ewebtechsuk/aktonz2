@@ -7,7 +7,7 @@ import PropertyMap from '../components/PropertyMap';
 import AgentCard from '../components/AgentCard';
 import ListingFilters from '../components/ListingFilters';
 import ListingInsights from '../components/ListingInsights';
-import { fetchPropertiesByType } from '../lib/apex27.mjs';
+import { fetchPropertiesByTypeCachedFirst } from '../lib/apex27.mjs';
 import agentsData from '../data/agents.json';
 import homeStyles from '../styles/Home.module.css';
 import saleStyles from '../styles/ForSale.module.css';
@@ -453,7 +453,7 @@ export default function ForSale({ properties, agents }) {
 }
 
 export async function getStaticProps() {
-  const raw = await fetchPropertiesByType('sale', {
+  const raw = await fetchPropertiesByTypeCachedFirst('sale', {
     statuses: ['available', 'under_offer', 'sold'],
   });
 
