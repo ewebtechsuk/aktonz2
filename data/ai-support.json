@@ -1,0 +1,256 @@
+{
+  "company": {
+    "name": "Aktonz Estate Agents",
+    "tagline": "London lettings, sales and asset management",
+    "mission": "We combine deep local expertise with smart data insights to match every client with the right property faster.",
+    "services": [
+      "Tailored search for renters, buyers and corporate relocations",
+      "End-to-end landlord services including compliance, marketing and portfolio strategy",
+      "Sales progression with proactive weekly updates",
+      "Instant viewing scheduling and digital offer negotiation"
+    ],
+    "coverage": ["Central London", "East London", "North London"],
+    "office": {
+      "address": "14 Abersham Road, London E8 2LN",
+      "phone": "020 3389 8009",
+      "email": "info@aktonz.com"
+    },
+    "hours": {
+      "weekdays": "08:30-19:00",
+      "saturday": "10:00-16:00",
+      "sunday": "By appointment"
+    }
+  },
+  "teamNotes": [
+    {
+      "id": "1723",
+      "role": "Head of Lettings",
+      "focus": ["North & East London lettings", "Corporate relocation"],
+      "email": "lettings@aktonz.com"
+    },
+    {
+      "id": "1724",
+      "role": "Senior Sales Advisor",
+      "focus": ["Prime Central London sales", "Portfolio reviews"],
+      "email": "sales@aktonz.com"
+    }
+  ],
+  "listings": [
+    {
+      "id": "ALX-3756638",
+      "title": "Room 4, 41 Ilkeston Court",
+      "address": "Overbury Street, Hackney, London E5",
+      "area": "Hackney",
+      "transactionType": "rent",
+      "price": "£950 pcm",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "status": "Let agreed",
+      "summary": "Furnished double room in a four-bedroom maisonette with an open-plan kitchen, secure fob access and wood flooring throughout.",
+      "tags": ["House share", "Furnished", "Hackney", "Zone 2"],
+      "link": "/property/854421"
+    },
+    {
+      "id": "SCRAYE-950001",
+      "title": "Boutique Four Bedroom Maisonette",
+      "address": "Fitzrovia, London W1T",
+      "area": "Fitzrovia",
+      "transactionType": "rent",
+      "price": "£2,275 pcm",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "status": "Available",
+      "summary": "Pet-friendly duplex with a roof terrace, private balcony and instant viewing slots.",
+      "tags": ["Maisonette", "Roof terrace", "Pet friendly"],
+      "link": "https://www.scraye.com/listings/950001"
+    },
+    {
+      "id": "SCRAYE-950002",
+      "title": "Stylish Four Bedroom Apartment",
+      "address": "Shoreditch, London E2",
+      "area": "Shoreditch",
+      "transactionType": "rent",
+      "price": "£1,750 pcm",
+      "bedrooms": 4,
+      "bathrooms": 4,
+      "status": "Available",
+      "summary": "Smart-home enabled apartment with residents' gym access and skyline views.",
+      "tags": ["Apartment", "Residents' gym", "Smart home"],
+      "link": "https://www.scraye.com/listings/950002"
+    },
+    {
+      "id": "ALX-49780680",
+      "title": "Earls Court Road Apartment",
+      "address": "Earls Court Road, South Kensington, London SW5",
+      "area": "South Kensington",
+      "transactionType": "sale",
+      "price": "£495,000",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "status": "For sale",
+      "summary": "First-floor one bedroom flat with high ceilings, big windows and private balcony moments from Earl's Court station.",
+      "tags": ["Flat", "Balcony", "Prime Central"],
+      "link": "/property/49780680"
+    }
+  ],
+  "appointments": [
+    {
+      "id": "apt-20250318",
+      "type": "Rental strategy session",
+      "date": "2025-03-18T10:30:00Z",
+      "location": "Aktonz HQ, 14 Abersham Road, London E8 2LN",
+      "contactId": "contact-sophie-turner",
+      "agentId": "1723",
+      "notes": "Review Shoreditch shortlist and prepare referencing documents."
+    },
+    {
+      "id": "apt-20250319",
+      "type": "Landlord portfolio review",
+      "date": "2025-03-19T15:00:00Z",
+      "location": "Virtual Teams meeting",
+      "contactId": "contact-priya-patel",
+      "agentId": "1724",
+      "notes": "Discuss renewal strategy and pricing for Hackney portfolio."
+    }
+  ],
+  "viewings": [
+    {
+      "id": "view-20250320",
+      "date": "2025-03-20T12:00:00Z",
+      "propertyId": "SCRAYE-950001",
+      "contactId": "contact-sophie-turner",
+      "agentId": "1724",
+      "status": "Confirmed",
+      "notes": "Keys to be collected from concierge at 11:45. Prospect bringing partner."
+    },
+    {
+      "id": "view-20250321",
+      "date": "2025-03-21T18:00:00Z",
+      "propertyId": "SCRAYE-950002",
+      "contactId": "contact-daniel-reed",
+      "agentId": "1723",
+      "status": "Awaiting confirmation",
+      "notes": "Corporate relocation team requested a later slot; awaiting landlord approval."
+    }
+  ],
+  "offers": [
+    {
+      "id": "offer-49780680",
+      "date": "2025-03-12T16:45:00Z",
+      "type": "sale",
+      "propertyId": "ALX-49780680",
+      "contactId": "contact-daniel-reed",
+      "amount": "£482,500",
+      "status": "Awaiting vendor decision",
+      "notes": "Buyer is mortgage-in-principle approved with completion flexibility of 6-8 weeks."
+    },
+    {
+      "id": "offer-3756638",
+      "date": "2025-03-11T11:15:00Z",
+      "type": "rent",
+      "propertyId": "ALX-3756638",
+      "contactId": "contact-sophie-turner",
+      "amount": "£950 pcm",
+      "status": "Referencing in progress",
+      "notes": "Tenant referencing expected back by 18 March; landlord happy to include professional cleaning."
+    }
+  ],
+  "contacts": [
+    {
+      "id": "contact-sophie-turner",
+      "name": "Sophie Turner",
+      "email": "sophie.turner@example.com",
+      "phone": "+44 7700 900123",
+      "stage": "Hot tenant",
+      "preferredAgentId": "1723",
+      "searchFocus": "2-bedroom, pet-friendly rentals in Shoreditch and Islington up to £2,300 pcm",
+      "activeRequirements": [
+        "Two equally sized double bedrooms",
+        "Pet friendly with nearby green space",
+        "Move-in window between April and May"
+      ],
+      "relatedListings": ["SCRAYE-950001", "SCRAYE-950002"],
+      "summary": "Tech product manager relocating from Manchester with partner and a small dog.",
+      "conversations": [
+        {
+          "date": "2025-03-12T09:30:00Z",
+          "channel": "Phone",
+          "agentId": "1723",
+          "summary": "Confirmed interest in Shoreditch E2 options and scheduled the Fitzrovia viewing for 20 March."
+        },
+        {
+          "date": "2025-03-10T14:05:00Z",
+          "channel": "Email",
+          "agentId": "1724",
+          "summary": "Shared curated shortlist with virtual tours and referencing checklist."
+        },
+        {
+          "date": "2025-03-07T16:20:00Z",
+          "channel": "WhatsApp",
+          "agentId": "1723",
+          "summary": "Discussed pet policy confirmation and landlord flexibility on furnished items."
+        }
+      ]
+    },
+    {
+      "id": "contact-daniel-reed",
+      "name": "Daniel Reed",
+      "email": "daniel.reed@urbanaxis.co.uk",
+      "phone": "+44 7700 900456",
+      "stage": "Warm buyer",
+      "preferredAgentId": "1724",
+      "searchFocus": "Prime Zone 1 one-bedroom apartments up to £520,000",
+      "activeRequirements": [
+        "Must allow short-let flexibility six weeks a year",
+        "Close to a Zone 1 Underground station",
+        "Strong rental yield for investment portfolio"
+      ],
+      "relatedListings": ["ALX-49780680"],
+      "summary": "Portfolio investor expanding London holdings after recent sale in Canary Wharf.",
+      "conversations": [
+        {
+          "date": "2025-03-13T11:10:00Z",
+          "channel": "Teams",
+          "agentId": "1724",
+          "summary": "Vendor feedback pending; discussed comparable sales on Earls Court Road."
+        },
+        {
+          "date": "2025-03-08T08:45:00Z",
+          "channel": "Email",
+          "agentId": "1724",
+          "summary": "Issued offer paperwork and proof of funds for £482,500."
+        }
+      ]
+    },
+    {
+      "id": "contact-priya-patel",
+      "name": "Priya Patel",
+      "email": "priya.patel@solsticecapital.com",
+      "phone": "+44 7700 900789",
+      "stage": "Landlord",
+      "preferredAgentId": "1723",
+      "searchFocus": "Portfolio management across Hackney and Shoreditch",
+      "activeRequirements": [
+        "Annual rental yield analysis",
+        "Hands-on tenant management",
+        "Quarterly compliance checks"
+      ],
+      "relatedListings": ["ALX-3756638"],
+      "summary": "Owns three Hackney house shares managed by Aktonz since 2019.",
+      "conversations": [
+        {
+          "date": "2025-03-11T09:00:00Z",
+          "channel": "Video call",
+          "agentId": "1724",
+          "summary": "Reviewed renewal pricing for Ilkeston Court room; agreed to hold at £950 pcm."
+        },
+        {
+          "date": "2025-03-05T17:40:00Z",
+          "channel": "Email",
+          "agentId": "1723",
+          "summary": "Shared compliance pack update and scheduled portfolio review."
+        }
+      ]
+    }
+  ]
+}
