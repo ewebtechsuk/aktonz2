@@ -3,30 +3,30 @@ import styles from '../styles/Home.module.css';
 export default function Features() {
   const items = [
     {
-      icon: '🎬',
-      title: 'Lifecycle storytelling',
-      text: 'Beautiful microsites, bios and explainer videos keep vendors excited before you arrive.'
+      icon: '🏠',
+      title: 'Let your property hassle free',
+      text: 'Our team handles everything from tenant search to management.'
     },
     {
-      icon: '📊',
-      title: 'Data-rich valuations',
-      text: 'Live comparable data, price trends and interactive charts power confident conversations.'
+      icon: '💰',
+      title: "What's your home worth?",
+      text: 'Get an instant online valuation today.'
     },
     {
-      icon: '📝',
-      title: 'Smart proposals',
-      text: 'Branded proposals with e-signatures, analytics and engagement tracking built-in.'
+      icon: '🔍',
+      title: 'Find the right property for you',
+      text: 'Browse thousands of homes across London.'
     },
     {
-      icon: '📣',
-      title: 'Automated follow-ups',
-      text: 'Always-on email, SMS and task nudges turn interest into signed instructions.'
+      icon: '🤝',
+      title: 'Need help? Ask our experts',
+      text: 'Our local agents are here to support you.'
     }
   ];
 
   return (
     <section className={styles.featuresSection}>
-      <h2>End-to-end journeys that mirror how top agents win</h2>
+      <h2>When you need experts</h2>
       <div className={styles.featuresGrid}>
         {items.map((item) => (
           <div className={styles.featureCard} key={item.title}>
