@@ -1,0 +1,229 @@
+.main {
+  background: var(--color-surface);
+  min-height: 100vh;
+  padding: var(--spacing-xl) var(--spacing-md);
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.pageEyebrow {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--color-muted-text);
+  margin: 0;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.refreshButton {
+  background: var(--color-text);
+  color: var(--color-background);
+  border: none;
+  border-radius: 999px;
+  padding: calc(var(--spacing-sm) * 1.5) calc(var(--spacing-md) * 1.5);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.refreshButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.panel {
+  background: var(--color-background);
+  border-radius: 18px;
+  padding: var(--spacing-xl);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-lg);
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.panelHeader h2 {
+  margin: 0 0 var(--spacing-xs);
+}
+
+.panelHeader p {
+  margin: 0;
+  color: var(--color-muted-text);
+}
+
+.summaryList {
+  display: flex;
+  gap: var(--spacing-lg);
+  margin: 0;
+}
+
+.summaryList div {
+  text-align: right;
+}
+
+.summaryList dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted-text);
+}
+
+.summaryList dd {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.table th {
+  text-align: left;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border-light);
+  color: var(--color-muted-text);
+}
+
+.table td {
+  padding: var(--spacing-md) var(--spacing-xs);
+  border-bottom: 1px solid var(--color-border-light);
+  vertical-align: top;
+}
+
+.primaryText {
+  font-weight: 600;
+}
+
+.meta {
+  font-size: 0.85rem;
+  color: var(--color-muted-text);
+}
+
+.meta a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.meta a:hover {
+  text-decoration: underline;
+}
+
+.statusSelect {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 999px;
+  background: var(--color-surface-alt);
+}
+
+.offerType {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 999px;
+  margin-top: var(--spacing-xs);
+}
+
+.offerTypeSale {
+  background: rgba(0, 128, 96, 0.12);
+  color: var(--color-success);
+}
+
+.offerTypeRent {
+  background: rgba(0, 112, 243, 0.12);
+  color: var(--color-secondary);
+}
+
+.note {
+  margin: var(--spacing-xs) 0 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.emptyState {
+  margin: 0;
+  color: var(--color-muted-text);
+}
+
+.loading {
+  margin: 0;
+  color: var(--color-muted-text);
+}
+
+.error {
+  background: rgba(255, 0, 0, 0.08);
+  color: var(--color-error);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+  .panel {
+    padding: var(--spacing-lg);
+  }
+
+  .table {
+    min-width: 100%;
+  }
+
+  .summaryList {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .summaryList div {
+    text-align: left;
+  }
+}

@@ -43,7 +43,7 @@
   padding: var(--spacing-md);
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 300px;
+  width: 320px;
 }
 
 .form h2 {
@@ -56,12 +56,19 @@
   margin-bottom: 0.5rem;
 }
 
-.form input {
+.form input,
+.form textarea {
   width: 100%;
   padding: var(--spacing-sm);
   margin-top: var(--spacing-xs);
   margin-bottom: calc(var(--spacing-sm) * 1.5);
   border: 1px solid var(--color-border);
+  font-family: inherit;
+}
+
+.form textarea {
+  resize: vertical;
+  min-height: 90px;
 }
 
 .form button {
@@ -71,6 +78,26 @@
   color: var(--color-background);
   border: none;
   cursor: pointer;
+  font-weight: 600;
+}
+
+.form button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.formStatus {
+  min-height: 1.4em;
+  margin: var(--spacing-sm) 0 0;
+  font-size: 0.9rem;
+}
+
+.formStatusSuccess {
+  color: var(--color-success);
+}
+
+.formStatusError {
+  color: var(--color-error);
 }
 
 .section {
@@ -112,3 +139,13 @@
   padding: var(--spacing-sm) 0;
 }
 
+@media (max-width: 768px) {
+  .hero {
+    padding: var(--spacing-lg) var(--spacing-sm);
+  }
+
+  .form {
+    width: 100%;
+    max-width: 420px;
+  }
+}
