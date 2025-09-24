@@ -5,6 +5,7 @@ import {
   sendMailOrThrow,
 } from '../../lib/mailer.mjs';
 
+
 export default async function handler(req, res) {
   if (req.method === 'HEAD') {
     return res.status(200).end();
@@ -82,12 +83,14 @@ export default async function handler(req, res) {
         .json({ error: 'Email service is not configured.' });
     }
 
+
     if (err?.code === 'SMTP_DELIVERY_FAILED') {
       console.error('SMTP rejected offer notification', err.missing, err.info);
       return res
         .status(502)
         .json({ error: 'Email delivery failed.' });
     }
+
 
     console.error('Failed to send email notifications', err);
     return res
