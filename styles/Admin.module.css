@@ -76,6 +76,40 @@
   color: var(--color-muted-text);
 }
 
+.panelLinks {
+  margin-top: var(--spacing-xs);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.panelLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-weight: 600;
+  color: var(--color-secondary);
+  text-decoration: none;
+}
+
+.panelLink:hover {
+  text-decoration: underline;
+}
+
+.panelHeadingLink {
+  color: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  transition: color 0.2s ease;
+}
+
+.panelHeadingLink:hover,
+.panelHeadingLink:focus-visible {
+  color: var(--color-secondary);
+}
+
 .summaryList {
   display: flex;
   gap: var(--spacing-lg);
@@ -97,6 +131,20 @@
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
+}
+
+.summaryLink {
+  color: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--spacing-xs);
+  font-weight: inherit;
+}
+
+.summaryLink:hover,
+.summaryLink:focus-visible {
+  color: var(--color-secondary);
 }
 
 .tableScroll {
@@ -162,6 +210,26 @@
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: 999px;
   background: var(--color-surface-alt);
+}
+
+.rowLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-secondary);
+  text-decoration: none;
+}
+
+.rowLink::after {
+  content: '→';
+  font-family: inherit;
+}
+
+.rowLink:hover {
+  text-decoration: underline;
 }
 
 .offerType {
