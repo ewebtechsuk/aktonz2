@@ -1,0 +1,143 @@
+.page {
+  min-height: 100vh;
+  background: var(--color-background, #ffffff);
+  color: var(--color-text, #0f172a);
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+  display: grid;
+  gap: 2rem;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.header p {
+  margin: 0.5rem 0 0;
+  color: var(--color-muted-text, #475569);
+}
+
+.panel {
+  padding: 1.75rem;
+  border-radius: 18px;
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.tokenForm {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.tokenForm label {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  color: var(--color-muted-text, #475569);
+}
+
+.tokenRow {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 600px) {
+  .tokenRow {
+    grid-template-columns: 1fr auto;
+  }
+}
+
+.tokenRow input {
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-light, #cbd5f5);
+  font-size: 1rem;
+}
+
+.tokenRow button {
+  padding: 0.85rem 1.8rem;
+  border-radius: 999px;
+  border: none;
+  background: var(--color-secondary, #1e293b);
+  color: var(--color-background, #ffffff);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.error {
+  margin-top: 0.75rem;
+  color: var(--color-error, #dc2626);
+}
+
+.tableSection {
+  overflow-x: auto;
+}
+
+.tableSection table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-surface, #ffffff);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.tableSection thead {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.tableSection th,
+.tableSection td {
+  padding: 1rem 1.25rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.primaryCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.primaryCell strong {
+  font-size: 1rem;
+}
+
+.primaryCell span {
+  color: var(--color-muted-text, #475569);
+  font-size: 0.9rem;
+}
+
+.tableSection select,
+.tableSection textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-light, #cbd5f5);
+  font-size: 0.95rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.tableSection textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.paymentMeta {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.paymentMeta a {
+  color: var(--color-secondary, #1e293b);
+  text-decoration: underline;
+}

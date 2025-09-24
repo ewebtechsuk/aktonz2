@@ -123,3 +123,51 @@
 .error {
   color: var(--color-error);
 }
+
+.paymentPanel {
+  margin-top: var(--spacing-lg);
+  padding: 1.5rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.03);
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.paymentPanel h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.paymentPanel p {
+  margin: 0;
+  color: var(--color-text);
+  line-height: 1.55;
+}
+
+.paymentButton {
+  justify-self: flex-start;
+  margin-top: 0.4rem;
+  padding: 0.85rem 1.6rem;
+  border-radius: 999px;
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-background);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.paymentButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.2);
+}
+
+.paymentButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
