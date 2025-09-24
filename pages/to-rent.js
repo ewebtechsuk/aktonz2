@@ -7,7 +7,7 @@ import PropertyMap from '../components/PropertyMap';
 import ListingFilters from '../components/ListingFilters';
 import ListingInsights from '../components/ListingInsights';
 import AgentCard from '../components/AgentCard';
-import { fetchPropertiesByType } from '../lib/apex27.mjs';
+import { fetchPropertiesByTypeCachedFirst } from '../lib/apex27.mjs';
 import agentsData from '../data/agents.json';
 import homeStyles from '../styles/Home.module.css';
 import rentStyles from '../styles/ToRent.module.css';
@@ -502,7 +502,7 @@ export default function ToRent({ properties, agents }) {
 }
 
 export async function getStaticProps() {
-  const raw = await fetchPropertiesByType('rent', {
+  const raw = await fetchPropertiesByTypeCachedFirst('rent', {
     statuses: ['available', 'under_offer', 'let_agreed', 'let', 'let_stc', 'let_by'],
   });
 
