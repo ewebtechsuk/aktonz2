@@ -64,6 +64,7 @@ export default async function handler(req, res) {
     });
 
     const from = process.env.FROM_EMAIL || 'no-reply@aktonz.com';
+    const aktonzEmail = process.env.AKTONZ_EMAIL || 'info@aktonz.com';
 
     await transporter.sendMail({
       from,
@@ -81,9 +82,13 @@ export default async function handler(req, res) {
 
     await transporter.sendMail({
       from,
-      to: 'info@aktonz.com',
+      to: aktonzEmail,
       subject: 'New viewing request',
-      text: `${name || 'Someone'} has requested a viewing for ${propertyTitle} on ${date} at ${time}. Contact: ${email} ${phone || ''}`,
+      text: `${
+        name || 'Someone'
+      } has requested a viewing for ${propertyTitle} on ${date} at ${time}. Contact: ${email} ${
+        phone || ''
+      }`,
     });
 
     res.status(200).json({ ok: true });

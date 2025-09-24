@@ -53,16 +53,14 @@ export default async function handler(req, res) {
     });
 
     const from = process.env.EMAIL_FROM || process.env.SMTP_USER;
-    const aktonz = process.env.AKTONZ_EMAIL;
+    const aktonz = process.env.AKTONZ_EMAIL || 'info@aktonz.com';
 
-    if (aktonz) {
-      await transporter.sendMail({
-        to: aktonz,
-        from,
-        subject: `New offer for ${propertyTitle}`,
-        text: `${name} <${email}> offered £${price} ${frequency} for property ${propertyId}.`,
-      });
-    }
+    await transporter.sendMail({
+      to: aktonz,
+      from,
+      subject: `New offer for ${propertyTitle}`,
+      text: `${name} <${email}> offered £${price} ${frequency} for property ${propertyId}.`,
+    });
 
     await transporter.sendMail({
       to: email,
