@@ -179,6 +179,21 @@
   text-decoration: underline;
 }
 
+.panelHeadingLink {
+  color: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  transition: color 0.2s ease;
+}
+
+.panelHeadingLink:hover,
+.panelHeadingLink:focus-visible {
+  color: var(--color-secondary);
+}
+
+
 .summaryList {
   display: flex;
   gap: var(--spacing-lg);
@@ -200,6 +215,20 @@
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
+}
+
+.summaryLink {
+  color: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--spacing-xs);
+  font-weight: inherit;
+}
+
+.summaryLink:hover,
+.summaryLink:focus-visible {
+  color: var(--color-secondary);
 }
 
 .tableScroll {

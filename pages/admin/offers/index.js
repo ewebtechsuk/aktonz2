@@ -85,18 +85,20 @@ export default function AdminOffersPage() {
       return;
     }
 
-    const routeId = normalizeRouteId(router.query.id);
+    const routeId = normalizeRouteId(router.query?.id);
     if (routeId) {
       setSelectedId(routeId);
     }
-  }, [router.isReady, router.query.id]);
+  }, [router.isReady, router.query?.id]);
+
 
   useEffect(() => {
     if (!sortedOffers.length) {
       return;
     }
 
-    const routeId = router.isReady ? normalizeRouteId(router.query.id) : null;
+    const routeId = router.isReady ? normalizeRouteId(router.query?.id) : null;
+
     if (routeId && sortedOffers.some((offer) => offer.id === routeId)) {
       return;
     }
