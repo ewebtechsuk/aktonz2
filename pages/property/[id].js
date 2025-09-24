@@ -283,8 +283,60 @@ export default function Property({ property, recommendations }) {
 }
 
 export async function getStaticPaths() {
-  const ids = await loadPrebuildPropertyIds(24);
-  const paths = ids.map((id) => ({ params: { id: String(id) } }));
+  const [saleResult, rentResult, scrayeRentResult, scrayeSaleResult] = await Promise.allSettled([
+    fetchProperties({ transactionType: 'sale' }),
+    fetchProperties({ transactionType: 'rent' }),
+    loadScrayeListingsByType('rent'),
+    loadScrayeListingsByType('sale'),
+  ]);
+
+  const sale = saleResult.status === 'fulfilled' && Array.isArray(saleResult.value)
+    ? saleResult.value
+    : [];
+  if (saleResult.status === 'rejected') {
+    console.warn('Failed to load sale listings during build', saleResult.reason);
+  }
+
+  const rent = rentResult.status === 'fulfilled' && Array.isArray(rentResult.value)
+    ? rentResult.value
+    : [];
+  if (rentResult.status === 'rejected') {
+    console.warn('Failed to load rent listings during build', rentResult.reason);
+  }
+
+  const scrayeRent =
+    scrayeRentResult.status === 'fulfilled' && Array.isArray(scrayeRentResult.value)
+      ? scrayeRentResult.value
+      : [];
+  if (scrayeRentResult.status === 'rejected') {
+    console.warn('Failed to load Scraye rent listings during build', scrayeRentResult.reason);
+  }
+
+  const scrayeSale =
+    scrayeSaleResult.status === 'fulfilled' && Array.isArray(scrayeSaleResult.value)
+      ? scrayeSaleResult.value
+      : [];
+  if (scrayeSaleResult.status === 'rejected') {
+    console.warn('Failed to load Scraye sale listings during build', scrayeSaleResult.reason);
+  }
+
+  const scrayeListings = [
+    ...normalizeScrayeListings(scrayeRent),
+    ...normalizeScrayeListings(scrayeSale),
+  ];
+
+  const properties = [...sale, ...rent, ...scrayeListings];
+  const seen = new Set();
+  const paths = [];
+  properties.forEach((property) => {
+    const identifier = resolvePropertyIdentifier(property);
+    if (!identifier) return;
+    const normalized = String(identifier).trim().toLowerCase();
+    if (!normalized || seen.has(normalized)) return;
+    seen.add(normalized);
+    paths.push({ params: { id: String(identifier) } });
+  });
+
   return {
     paths,
     fallback: 'blocking',

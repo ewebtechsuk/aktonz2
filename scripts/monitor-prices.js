@@ -1,4 +1,4 @@
-import fs from 'fs/promises';
+import fs from 'node:fs/promises';
 import path from 'path';
 
 const LISTINGS_PATH = path.join(process.cwd(), 'data', 'listings.json');
