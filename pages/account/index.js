@@ -3,80 +3,39 @@ import Link from 'next/link';
 import AccountLayout from '../../components/account/AccountLayout';
 import styles from '../../styles/Account.module.css';
 
+
+const PRICE_MIN_OPTIONS = ['£1,500 pcm', '£1,700 pcm', '£1,900 pcm', '£2,100 pcm'];
+const PRICE_MAX_OPTIONS = ['£2,600 pcm', '£2,900 pcm', '£3,200 pcm', '£3,500 pcm'];
+const TENURE_OPTIONS = ['6 months', '12 months', '18 months', '24 months+'];
+
 const BEDROOM_OPTIONS = [
   { label: 'Studio' },
-  { label: '1' },
-  { label: '2', active: true },
-  { label: '3' },
-  { label: '4+' },
+  { label: '1 bed' },
+  { label: '2 bed', active: true },
+  { label: '3 bed' },
+  { label: '4+ bed' },
 ];
 
 const PROPERTY_TYPES = [
   { label: 'Apartment', active: true },
-  { label: 'House', active: true },
-  { label: 'Loft' },
-  { label: 'Townhouse' },
+  { label: 'House' },
   { label: 'New build' },
+  { label: 'Period' },
+  { label: 'Loft' },
 ];
 
-const FEATURE_TAGS = [
-  { label: 'Outside space', active: true },
-  { label: 'Pet friendly', active: true },
-  { label: 'Parking' },
-  { label: 'Home office' },
-  { label: 'Concierge' },
-  { label: 'Gym access' },
+const AREA_CHOICES = [
+  { label: 'Shoreditch', active: true },
+  { label: 'Islington', active: true },
+  { label: 'Hackney', active: true },
+  { label: 'Dalston' },
+  { label: 'Canonbury' },
 ];
 
-const TENANCY_LENGTHS = [
-  { label: '6 months' },
-  { label: '12 months', active: true },
-  { label: '18 months' },
-  { label: '24 months' },
-  { label: 'Flexible' },
-];
-
-const MOVE_IN_TIMES = [
-  { label: 'Immediately' },
-  { label: 'Within 1 month' },
-  { label: '1-3 months', active: true },
-  { label: '3-6 months' },
-  { label: '6+ months' },
-];
-
-const FURNISHING_OPTIONS = [
-  { label: 'Furnished', active: true },
-  { label: 'Part furnished' },
-  { label: 'Unfurnished' },
-];
-
-const PET_PREFERENCES = [
-  { label: 'No pets' },
-  { label: 'Cat friendly', active: true },
-  { label: 'Dog friendly' },
-];
-
-const FLEXIBILITY_CARDS = [
-  {
-    title: 'How flexible are you?',
-    description:
-      'Would you like us to highlight homes slightly outside of your chosen neighbourhoods if they meet the rest of your requirements?',
-    options: [
-      { label: 'Stick to my areas' },
-      { label: 'Show nearby too', active: true },
-      { label: 'Cast a wider net' },
-    ],
-  },
-  {
-    title: 'What about condition?',
-    description:
-      'Let us know how you feel about properties that may need a light refresh so we can widen your shortlist when it makes sense.',
-    options: [
-      { label: 'Only turnkey' },
-      { label: 'Happy with light works', active: true },
-      { label: 'Open to refurb projects' },
-    ],
-  },
+const FLEXIBILITY_CHOICES = [
+  { label: 'Stick to my areas' },
+  { label: 'Show nearby too', active: true },
+  { label: 'Cast a wider net' },
 ];
 
 const AREA_TAGS = [
@@ -104,249 +63,221 @@ export default function AccountDashboard() {
         secondary: { label: 'Talk to my team', href: '/contact' },
       }}
     >
-      <section className={styles.searchCard}>
-        <header className={styles.cardHeader}>
-          <div>
-            <h2>Register with us to jump the queue</h2>
-            <p>
-              Tell us the essentials so your dedicated lettings team can share tailored listings the moment they launch.
-            </p>
-          </div>
-          <Link href="/account/profile" className={styles.primaryAction}>
-            Update my preferences
-          </Link>
-        </header>
-
-        <div className={styles.formGrid}>
-          <div className={styles.formField}>
+      <div className={styles.pageSections}>
+        <section className={styles.panel}>
+          <header className={styles.panelHeader}>
             <div>
-              <h3 className={styles.fieldTitle}>Select the areas you're interested in</h3>
-              <p className={styles.fieldDescription}>Search by neighbourhood, station or postcode.</p>
+              <h2>Register with us to jump the queue</h2>
+              <p>
+                Share your preferences so your dedicated lettings team can send tailored homes the moment they launch.
+              </p>
             </div>
-            <label className={styles.inputShell}>
-              <span className={styles.inputIcon}>
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <Link href="/account/profile" className={styles.primaryCta}>
+              Update my preferences
+            </Link>
+          </header>
+
+          <div className={styles.registerGrid}>
+            <div className={styles.formGroup}>
+              <span className={styles.groupLabel}>Please share the price range you'd like</span>
+              <div className={styles.rangeControls}>
+                <label className={styles.selectWrap}>
+                  <span className={styles.selectCaption}>Min</span>
+                  <select className={styles.select} defaultValue="£1,900 pcm" aria-label="Minimum price per month">
+                    {PRICE_MIN_OPTIONS.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className={styles.selectWrap}>
+                  <span className={styles.selectCaption}>Max</span>
+                  <select className={styles.select} defaultValue="£3,200 pcm" aria-label="Maximum price per month">
+                    {PRICE_MAX_OPTIONS.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <span className={styles.groupLabel}>And for how long?</span>
+              <select className={`${styles.select} ${styles.selectFull}`} defaultValue="12 months" aria-label="Tenancy length">
+                {TENURE_OPTIONS.map((value) => (
+
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.formGroup}>
+              <span className={styles.groupLabel}>Please select number of bedrooms</span>
+              <p className={styles.groupHint}>Choose every option that works for you.</p>
+              <div className={styles.pillRow}>
+                {BEDROOM_OPTIONS.map((option) => (
+                  <span key={option.label} className={`${styles.pillOption} ${option.active ? styles.pillOptionActive : ''}`}>
+                    {option.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.formGroup}>
+              <span className={styles.groupLabel}>What type of property would you consider?</span>
+              <p className={styles.groupHint}>Tick every style that feels right.</p>
+              <div className={styles.chipRow}>
+                {PROPERTY_TYPES.map((type) => (
+                  <span key={type.label} className={`${styles.chipOption} ${type.active ? styles.chipOptionActive : ''}`}>
+                    {type.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className={`${styles.panel} ${styles.mapPanel}`}>
+          <header className={styles.sectionHeader}>
+            <div>
+              <h3>Which area(s) are you looking in?</h3>
+              <p>Drop pins on the map or search to add neighbourhoods you love.</p>
+            </div>
+            <Link href="/area-guides" className={styles.ghostButton}>
+
+              Add another area
+            </Link>
+          </header>
+
+          <div className={styles.mapShell}>
+            <div className={styles.mapSurface}>
+              <div className={styles.mapToolbar}>
+                <button type="button" className={`${styles.mapMode} ${styles.mapModeActive}`} aria-pressed="true">
+                  Map
+                </button>
+                <button type="button" className={styles.mapMode} aria-pressed="false">
+                  Satellite
+                </button>
+              </div>
+              <svg
+                className={styles.mapIllustration}
+                viewBox="0 0 640 360"
+                role="presentation"
+                focusable="false"
+                aria-hidden="true"
+              >
+                <rect width="640" height="360" fill="#e8f5f0" />
+                <path
+                  d="M40 120c120-50 180 40 260 10s130-80 220-40 80 90 0 140-180-20-240-10-120 90-220 50"
+                  fill="none"
+                  stroke="#c3ddd3"
+                  strokeWidth="18"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M20 200c90 40 150-10 210-30s120-10 200 40 160 40 190-30"
+                  fill="none"
+                  stroke="#99c8b8"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M100 40c40 70 140 70 210 50s150-30 220 20"
+                  fill="none"
+                  stroke="#70b39a"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M280 140c40 40 80 40 140 20s120-20 180 60"
+                  fill="none"
+                  stroke="#54a48a"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                />
+                <g fill="#00965f">
+                  <circle cx="340" cy="150" r="12" />
+                  <circle cx="430" cy="120" r="12" />
+                  <circle cx="290" cy="210" r="12" />
+                </g>
+                <g fill="#ffffff" fontSize="14" fontWeight="700" textAnchor="middle" dominantBaseline="middle">
+                  <text x="340" y="150">S</text>
+                  <text x="430" y="120">I</text>
+                  <text x="290" y="210">H</text>
+                </g>
+              </svg>
+            </div>
+
+            <div className={styles.mapFootnote}>
+              <strong>Search radius</strong>
+              <span>1.5 miles</span>
+              <p>We will alert you instantly when properties launch within this area.</p>
+            </div>
+          </div>
+
+          <div className={styles.mapSearch}>
+            <label className={styles.searchInput}>
+              <span className={styles.searchIcon}>
+                <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
                   <path
-                    d="M9 10.875A3.375 3.375 0 1 0 9 4.125a3.375 3.375 0 0 0 0 6.75Zm0 6.188c2.25-2.531 5.625-5.531 5.625-8.438A5.625 5.625 0 0 0 9 3 5.625 5.625 0 0 0 3.375 8.625c0 2.906 3.375 5.906 5.625 8.438Z"
+                    d="M9 3.5a5.5 5.5 0 0 1 4.13 9.1l3.68 3.68a1 1 0 1 1-1.42 1.42l-3.68-3.68A5.5 5.5 0 1 1 9 3.5Zm0 2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"
                     fill="currentColor"
                   />
                 </svg>
               </span>
-              <input className={styles.textInput} type="text" placeholder="Search areas, stations or postcodes" />
+              <input
+                type="text"
+                className={styles.searchField}
+                placeholder="Search areas, stations or postcodes"
+                aria-label="Search areas, stations or postcodes"
+              />
             </label>
             <p className={styles.helperText}>Add at least three areas so we can cross-match new launches instantly.</p>
           </div>
 
-          <div className={styles.formField}>
-            <div>
-              <h3 className={styles.fieldTitle}>How many bedrooms?</h3>
-              <p className={styles.fieldDescription}>Select all that work for you.</p>
-            </div>
-            <div className={styles.pillGroup}>
-              {BEDROOM_OPTIONS.map((option) => (
-                <span key={option.label} className={`${styles.pill} ${option.active ? styles.pillActive : ''}`}>
-                  {option.label}
+          <div className={styles.areaChips}>
+            {AREA_CHOICES.map((area) => (
+              <span key={area.label} className={`${styles.areaChip} ${area.active ? styles.areaChipActive : ''}`}>
+                {area.label}
+                <span className={styles.chipRemove} aria-hidden="true">
+                  ×
                 </span>
-              ))}
-            </div>
+              </span>
+            ))}
           </div>
+        </section>
 
-          <div className={styles.formField}>
-            <div>
-              <h3 className={styles.fieldTitle}>What's your budget?</h3>
-              <p className={styles.fieldDescription}>Tell us the minimum and maximum monthly rent you'd consider.</p>
-            </div>
-            <div className={styles.selectGroup}>
-              <select className={styles.select} defaultValue={SELECTED_MIN} aria-label="Minimum monthly rent">
-                {BUDGET_MIN_OPTIONS.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-              <select className={styles.select} defaultValue={SELECTED_MAX} aria-label="Maximum monthly rent">
-                {BUDGET_MAX_OPTIONS.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
+        <section className={styles.panel}>
+          <h3>How flexible are you?</h3>
+          <p>Would you like us to be more flexible about your search width? Let us know how much we can broaden results.</p>
+          <div className={styles.flexOptions}>
+            {FLEXIBILITY_CHOICES.map((choice) => (
+              <span key={choice.label} className={`${styles.flexOption} ${choice.active ? styles.flexOptionActive : ''}`}>
+                {choice.label}
+              </span>
+            ))}
           </div>
+        </section>
 
-          <div className={styles.formField}>
-            <div>
-              <h3 className={styles.fieldTitle}>Which property types work best?</h3>
-              <p className={styles.fieldDescription}>Tick every style that feels right.</p>
-            </div>
-            <div className={styles.checkboxGrid}>
-              {PROPERTY_TYPES.map((type) => (
-                <label key={type.label} className={`${styles.checkbox} ${type.active ? styles.checkboxActive : ''}`}>
-                  <input type="checkbox" defaultChecked={type.active} />
-                  <span>{type.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+        <section className={styles.panel}>
+          <h3>Any other information?</h3>
+          <p>
+            We can work even faster when we know about commute times, outside space, school catchments or anything else that
+            matters.
+          </p>
+          <textarea
+            className={styles.textArea}
+            placeholder="Tell us about must-have features, pet requirements or timing considerations."
+            rows={6}
+          />
+        </section>
+      </div>
 
-          <div className={styles.formField}>
-            <div>
-              <h3 className={styles.fieldTitle}>How long are you looking to rent for?</h3>
-              <p className={styles.fieldDescription}>Let us know the tenancy length you have in mind.</p>
-            </div>
-            <div className={styles.pillGroup}>
-              {TENANCY_LENGTHS.map((length) => (
-                <span key={length.label} className={`${styles.pill} ${length.active ? styles.pillActive : ''}`}>
-                  {length.label}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.formField}>
-            <div>
-              <h3 className={styles.fieldTitle}>When would you like to move in?</h3>
-              <p className={styles.fieldDescription}>We will prioritise properties that match your timeline.</p>
-            </div>
-            <div className={styles.pillGroup}>
-              {MOVE_IN_TIMES.map((time) => (
-                <span key={time.label} className={`${styles.pill} ${time.active ? styles.pillActive : ''}`}>
-                  {time.label}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.formField}>
-            <div>
-              <h3 className={styles.fieldTitle}>Furnishing preference</h3>
-              <p className={styles.fieldDescription}>Let us know how you'd like the property to be presented.</p>
-            </div>
-            <div className={styles.pillGroup}>
-              {FURNISHING_OPTIONS.map((option) => (
-                <span key={option.label} className={`${styles.pill} ${option.active ? styles.pillActive : ''}`}>
-                  {option.label}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.formField}>
-            <div>
-              <h3 className={styles.fieldTitle}>Must-have features</h3>
-              <p className={styles.fieldDescription}>Select the things you cannot live without.</p>
-            </div>
-            <div className={styles.checkboxGrid}>
-              {FEATURE_TAGS.map((feature) => (
-                <label key={feature.label} className={`${styles.checkbox} ${feature.active ? styles.checkboxActive : ''}`}>
-                  <input type="checkbox" defaultChecked={feature.active} />
-                  <span>{feature.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.formField}>
-            <div>
-              <h3 className={styles.fieldTitle}>Do you have pets?</h3>
-              <p className={styles.fieldDescription}>We will only share homes that welcome every member of the family.</p>
-            </div>
-            <div className={styles.pillGroup}>
-              {PET_PREFERENCES.map((option) => (
-                <span key={option.label} className={`${styles.pill} ${option.active ? styles.pillActive : ''}`}>
-                  {option.label}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.mapSection}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <h3>Which area(s) are you looking in?</h3>
-            <p>
-              Drop pins on the map or type in the neighbourhoods you love. We will match you with new listings the moment
-              they launch.
-            </p>
-          </div>
-          <div className={styles.sectionHeaderActions}>
-            <Link href="/area-guides" className={styles.secondaryButton}>
-              Add another area
-            </Link>
-          </div>
-        </div>
-
-        <div className={styles.mapShell}>
-          <div className={styles.mapToolbar}>
-            <button type="button" className={`${styles.mapMode} ${styles.mapModeActive}`}>
-              Map
-            </button>
-            <button type="button" className={styles.mapMode}>
-              Satellite
-            </button>
-          </div>
-          <div className={styles.mapCanvas}>
-            <div className={styles.mapRadius} />
-            <div className={styles.mapRoad} />
-            <div className={styles.mapRoad} />
-            <div className={styles.mapRoad} />
-            <div className={styles.mapRiver} />
-            <div className={styles.mapMarker}>
-              <span className={styles.mapLabel}>Shoreditch</span>
-            </div>
-            <div className={styles.mapMarker}>
-              <span className={styles.mapLabel}>Islington</span>
-            </div>
-            <div className={styles.mapMarker}>
-              <span className={styles.mapLabel}>Hackney</span>
-            </div>
-          </div>
-          <div className={styles.mapLegend}>
-            <strong>Search radius</strong>
-            <span>1.5 miles</span>
-            <p>We will alert you instantly when properties launch within this area.</p>
-          </div>
-        </div>
-
-        <div className={styles.mapChips}>
-          {AREA_TAGS.map((area) => (
-            <span key={area.label} className={`${styles.chip} ${area.active ? styles.chipActive : ''}`}>
-              {area.label}
-              <span className={styles.chipRemove}>×</span>
-            </span>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.flexibilitySection}>
-        {FLEXIBILITY_CARDS.map((card) => (
-          <article key={card.title} className={styles.questionCard}>
-            <h4>{card.title}</h4>
-            <p>{card.description}</p>
-            <div className={styles.answerGroup}>
-              {card.options.map((option) => (
-                <span key={option.label} className={`${styles.answer} ${option.active ? styles.answerActive : ''}`}>
-                  {option.label}
-                </span>
-              ))}
-            </div>
-          </article>
-        ))}
-      </section>
-
-      <section className={styles.infoSection}>
-        <h3>Any other information?</h3>
-        <p>
-          Tell us anything else that is important - from ideal streets to commuting considerations or lifestyle must-haves.
-          The more detail you share, the smarter our recommendations become.
-        </p>
-        <textarea
-          className={styles.textArea}
-          placeholder="Let us know about school catchments, parking requirements or anything else that will help us tailor your search."
-        />
-      </section>
     </AccountLayout>
   );
 }
