@@ -53,6 +53,59 @@ function rentToMonthly(price, freq) {
   }
 }
 
+function normalizeScrayeReference(value) {
+  if (value == null) {
+    return null;
+  }
+
+  const normalized = String(value).trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const prefixPattern = /^scraye[-\s]?/i;
+  if (prefixPattern.test(normalized)) {
+    const suffix = normalized.replace(prefixPattern, '').replace(/\s+/g, '');
+    return suffix ? `SCRAYE-${suffix.toUpperCase()}` : 'SCRAYE';
+  }
+
+  const cleaned = normalized.replace(/\s+/g, '');
+  if (/^scraye-/i.test(cleaned)) {
+    return cleaned.toUpperCase();
+  }
+
+  return `SCRAYE-${cleaned.toUpperCase()}`;
+}
+
+function deriveScrayeReference(rawProperty) {
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return null;
+  }
+
+  const direct =
+    rawProperty.scrayeReference ||
+    rawProperty._scraye?.reference ||
+    rawProperty._scraye?.listingReference;
+  if (direct) {
+    return normalizeScrayeReference(direct);
+  }
+
+  const source = typeof rawProperty.source === 'string' ? rawProperty.source.toLowerCase() : '';
+  if (source !== 'scraye') {
+    return null;
+  }
+
+  const candidates = [rawProperty.sourceId, rawProperty._scraye?.sourceId, rawProperty.id];
+  for (const candidate of candidates) {
+    const reference = normalizeScrayeReference(candidate);
+    if (reference) {
+      return reference;
+    }
+  }
+
+  return null;
+}
+
 async function loadPrebuildPropertyIds(limit = 24) {
   if (!limit || limit <= 0) {
     return [];
@@ -123,6 +176,19 @@ export default function Property({ property, recommendations }) {
     property.typeLabel ??
     property.propertyTypeLabel ??
     formatPropertyTypeLabel(property.propertyType ?? property.type ?? null);
+  const locationLabel = (() => {
+    const parts = [];
+    if (property.city) {
+      parts.push(property.city);
+    }
+    if (property.outcode) {
+      parts.push(property.outcode);
+    }
+    return parts.join(' · ');
+  })();
+  const scrayeReference = !property.rentFrequency
+    ? property.scrayeReference ?? property._scraye?.reference ?? null
+    : null;
   const hasLocation =
     property.latitude != null && property.longitude != null;
   const pricePrefixLabel =
@@ -185,6 +251,12 @@ export default function Property({ property, recommendations }) {
             )}
           </div>
           {displayType && <p className={styles.type}>{displayType}</p>}
+          {locationLabel && <p className={styles.location}>{locationLabel}</p>}
+          {scrayeReference && (
+            <p className={styles.reference}>
+              Scraye reference: <span>{scrayeReference}</span>
+            </p>
+          )}
           <div className={styles.stats}>
             {property.receptions != null && (
               <span>
@@ -376,6 +448,9 @@ export async function getStaticProps({ params }) {
       longitude: rawProperty.longitude ?? null,
       city: normalizedCity,
       outcode: normalizedOutcode,
+      source: rawProperty.source ?? null,
+      _scraye: rawProperty._scraye ?? null,
+      scrayeReference: deriveScrayeReference(rawProperty),
     };
   }
 

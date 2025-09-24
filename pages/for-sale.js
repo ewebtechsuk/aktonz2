@@ -17,6 +17,45 @@ function normalizeStatus(value) {
   return String(value || '').toLowerCase().replace(/\s+/g, '_');
 }
 
+function stringContainsLondon(value) {
+  if (!value) return false;
+  const normalized = String(value).trim().toLowerCase();
+  if (!normalized) return false;
+  if (normalized === 'london') return true;
+  if (normalized.endsWith(' london')) return true;
+  return normalized.includes('london');
+}
+
+function matchesLondon(property) {
+  if (!property || typeof property !== 'object') {
+    return false;
+  }
+
+  const candidates = [
+    property.city,
+    property.county,
+    property.displayAddress,
+    property._scraye?.placeName,
+    property._scraye?.localityName,
+    property._scraye?.administrativeArea,
+  ];
+
+  return candidates.some((candidate) => stringContainsLondon(candidate));
+}
+
+function bedroomsWithinRange(property, min, max) {
+  const value = Number(property?.bedrooms ?? property?.beds ?? property?._scraye?.bedrooms);
+  if (!Number.isFinite(value)) {
+    return false;
+  }
+  return value >= min && value <= max;
+}
+
+function isLiveSale(property) {
+  const normalized = normalizeStatus(property?.status);
+  return normalized === 'available' || normalized === 'live';
+}
+
 function normalizeType(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '_');
 }
@@ -463,10 +502,13 @@ export async function getStaticProps() {
   raw.forEach((property) => {
     const source = typeof property?.source === 'string' ? property.source.toLowerCase() : '';
     if (source === 'scraye') {
-      scrayeListings.push(property);
-    } else {
-      otherListings.push(property);
+      if (matchesLondon(property) && bedroomsWithinRange(property, 1, 4) && isLiveSale(property)) {
+        scrayeListings.push(property);
+      }
+      return;
     }
+
+    otherListings.push(property);
   });
 
   const prioritized = [];
@@ -484,11 +526,46 @@ export async function getStaticProps() {
   scrayeListings.forEach(pushUnique);
   otherListings.forEach(pushUnique);
 
-  const properties = prioritized.slice(0, 50).map((property) => ({
-    ...property,
-    images: (property.images || []).slice(0, 3),
-    description: property.description ? property.description.slice(0, 200) : '',
-  }));
+  const properties = prioritized.slice(0, 50).map((property) => {
+    const priceNumber = getPriceValue(property);
+    const formattedPrice =
+      priceNumber > 0
+        ? formatPriceGBP(priceNumber, { isSale: !property?.rentFrequency })
+        : property.price;
+
+    const scrayeReference = (() => {
+      if (property?._scraye?.reference) {
+        return property._scraye.reference;
+      }
+
+      const source = typeof property?.source === 'string' ? property.source.toLowerCase() : '';
+      if (source !== 'scraye') {
+        return null;
+      }
+
+      const sourceId = property?.sourceId ?? property?._scraye?.sourceId;
+      if (sourceId) {
+        const suffix = String(sourceId).replace(/^scraye-/i, '');
+        return suffix ? `SCRAYE-${suffix}` : null;
+      }
+
+      if (typeof property?.id === 'string' && property.id.toLowerCase().startsWith('scraye-')) {
+        const suffix = property.id.slice(7);
+        return suffix ? `SCRAYE-${suffix}` : null;
+      }
+
+      return null;
+    })();
+
+    return {
+      ...property,
+      price: formattedPrice || property.price,
+      priceValue: priceNumber || property.priceValue || null,
+      scrayeReference,
+      images: (property.images || []).slice(0, 3),
+      description: property.description ? property.description.slice(0, 200) : '',
+    };
+  });
 
   const agents = agentsData;
 

@@ -107,6 +107,40 @@ export default function PropertyCard({ property }) {
       ? formatPricePrefix(property.pricePrefix)
       : '';
 
+  const isSaleListing = property?.transactionType
+    ? String(property.transactionType).toLowerCase() === 'sale'
+    : !property?.rentFrequency;
+
+  const scrayeReference = (() => {
+    if (property?.scrayeReference) {
+      return property.scrayeReference;
+    }
+    if (!isSaleListing) {
+      return null;
+    }
+    if (property?._scraye?.reference) {
+      return property._scraye.reference;
+    }
+
+    const source = typeof property?.source === 'string' ? property.source.toLowerCase() : '';
+    if (source !== 'scraye') {
+      return null;
+    }
+
+    const sourceId = property?.sourceId ?? property?._scraye?.sourceId;
+    if (sourceId) {
+      const suffix = String(sourceId).replace(/^scraye-/i, '');
+      return suffix ? `SCRAYE-${suffix}` : null;
+    }
+
+    if (typeof property?.id === 'string' && property.id.toLowerCase().startsWith('scraye-')) {
+      const suffix = property.id.slice(7);
+      return suffix ? `SCRAYE-${suffix}` : null;
+    }
+
+    return null;
+  })();
+
   return (
     <div className={`property-card${isArchived ? ' archived' : ''}`}>
       <div className="image-wrapper">
@@ -171,6 +205,11 @@ export default function PropertyCard({ property }) {
         <h3 className="title">{property.title}</h3>
         {typeLabel && <p className="type">{typeLabel}</p>}
         {locationText && <p className="location">{locationText}</p>}
+        {scrayeReference && (
+          <p className="reference">
+            Scraye ref: <span>{scrayeReference}</span>
+          </p>
+        )}
         {property.price && (
           <p className="price">
             {property.price}
