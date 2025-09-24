@@ -3,6 +3,10 @@ import PropertyList from '../components/PropertyList';
 import Hero from '../components/Hero';
 import Features from '../components/Features';
 import Stats from '../components/Stats';
+import TrustedBy from '../components/TrustedBy';
+import LifecycleShowcase from '../components/LifecycleShowcase';
+import ModuleHighlights from '../components/ModuleHighlights';
+import CallToAction from '../components/CallToAction';
 import { fetchPropertiesByTypeCachedFirst } from '../lib/apex27.mjs';
 import styles from '../styles/Home.module.css';
 
@@ -14,8 +18,12 @@ export default function Home({ sales, lettings, archiveSales }) {
       </Head>
       <main className={styles.main}>
         <Hero />
+        <TrustedBy />
         <Features />
+        <LifecycleShowcase />
+        <ModuleHighlights />
         <Stats />
+        <CallToAction />
         <section className={styles.listings} id="listings">
           <h2>Featured Sales</h2>
           <PropertyList properties={sales} />
