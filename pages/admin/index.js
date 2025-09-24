@@ -25,6 +25,7 @@ function formatDate(value) {
       minute: '2-digit',
     }).format(new Date(value));
   } catch (error) {
+
     return value;
   }
 }
@@ -331,5 +332,6 @@ export default function AdminDashboard() {
         </div>
       </main>
     </>
+
   );
 }

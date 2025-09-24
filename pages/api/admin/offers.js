@@ -17,4 +17,5 @@ export default function handler(req, res) {
 
   res.setHeader('Allow', ['GET', 'HEAD']);
   return res.status(405).end('Method Not Allowed');
+
 }
