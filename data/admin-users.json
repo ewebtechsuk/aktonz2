@@ -1,0 +1,10 @@
+[
+  {
+    "id": "ops-admin",
+    "email": "operations@aktonz.com",
+    "firstName": "Operations",
+    "lastName": "Admin",
+    "name": "Operations Admin",
+    "passwordHash": "f562b85553f78dc5a02c0475aeece48ebbaa5851a94605e8da9e8a568de7837f"
+  }
+]

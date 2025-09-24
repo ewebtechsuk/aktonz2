@@ -3,7 +3,9 @@ import {
   updateValuation,
   getValuationStatusOptions,
 } from '../../../../lib/acaboom.mjs';
+import { getAdminFromSession } from '../../../../lib/admin-users.mjs';
 import { listGallerySections } from '../../../../lib/gallery.mjs';
+import { readSession } from '../../../../lib/session.js';
 
 function resolveId(param) {
   if (Array.isArray(param)) {
@@ -13,6 +15,13 @@ function resolveId(param) {
 }
 
 export default async function handler(req, res) {
+  const session = readSession(req);
+  const admin = getAdminFromSession(session);
+
+  if (!admin) {
+    return res.status(401).json({ error: 'Admin authentication required' });
+  }
+
   const valuationId = resolveId(req.query?.id);
 
   if (!valuationId) {

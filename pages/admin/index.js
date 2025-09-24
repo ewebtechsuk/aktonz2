@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 
 import styles from '../../styles/Admin.module.css';
+import { useSession } from '../../components/SessionProvider';
 
 const DEFAULT_STATUS_OPTIONS = [
   { value: 'new', label: 'New' },
@@ -48,8 +50,15 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
+  const { user, loading: sessionLoading } = useSession();
+  const isAdmin = user?.role === 'admin';
 
   const loadData = useCallback(async () => {
+    if (!isAdmin) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -103,11 +112,17 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
+    if (!isAdmin) {
+      setOffers([]);
+      setValuations([]);
+      return;
+    }
+
     loadData();
-  }, [loadData]);
+  }, [isAdmin, loadData]);
 
   const handleStatusChange = useCallback(
     async (valuation, nextStatus) => {
@@ -159,6 +174,37 @@ export default function AdminDashboard() {
     () => offers.filter((offer) => offer.type === 'rent'),
     [offers],
   );
+
+  if (sessionLoading) {
+    return (
+      <main className={styles.main}>
+        <div className={styles.container}>
+          <p className={styles.loading}>Checking your admin access…</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <main className={styles.main}>
+        <div className={styles.container}>
+          <header className={styles.pageHeader}>
+            <div>
+              <p className={styles.pageEyebrow}>Operations</p>
+              <h1 className={styles.pageTitle}>Admin access required</h1>
+            </div>
+          </header>
+          <section className={styles.panel}>
+            <p className={styles.emptyState}>
+              You need to <Link href="/login">sign in with an admin account</Link> to manage valuation
+              requests and offers.
+            </p>
+          </section>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <>

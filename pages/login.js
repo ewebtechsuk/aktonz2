@@ -57,7 +57,9 @@ export default function Login() {
       } catch (refreshError) {
         console.warn('Failed to refresh session after login', refreshError);
       }
-      router.push('/account');
+
+      const isAdminResponse = Boolean(data?.admin || data?.contact?.role === 'admin');
+      router.push(isAdminResponse ? '/admin' : '/account');
     } catch (err) {
       console.error('Login failed', err);
       clearSession();
