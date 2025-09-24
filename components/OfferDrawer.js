@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import PropertyActionDrawer from './PropertyActionDrawer';
 import styles from '../styles/OfferDrawer.module.css';
@@ -7,7 +7,14 @@ export default function OfferDrawer({ property }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [price, setPrice] = useState('');
-  const [frequency, setFrequency] = useState('pw');
+  const transactionType = property?.transactionType
+    ? String(property.transactionType).toLowerCase()
+    : null;
+  const isSaleListing = transactionType
+    ? transactionType === 'sale'
+    : !property?.rentFrequency;
+  const defaultFrequency = isSaleListing ? '' : 'pw';
+  const [frequency, setFrequency] = useState(defaultFrequency);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState(null);
@@ -19,9 +26,13 @@ export default function OfferDrawer({ property }) {
   const propertyId = property?.id;
   const propertyTitle = property?.title || '';
 
+  useEffect(() => {
+    setFrequency(defaultFrequency);
+  }, [defaultFrequency, propertyId]);
+
   const resetFields = () => {
     setPrice('');
-    setFrequency('pw');
+    setFrequency(defaultFrequency);
     setName('');
     setEmail('');
   };
@@ -55,9 +66,10 @@ export default function OfferDrawer({ property }) {
           propertyId,
           propertyTitle,
           price,
-          frequency,
+          ...(isSaleListing ? {} : { frequency }),
           name,
           email,
+          depositAmount: isSaleListing ? 0 : undefined,
         }),
       });
 
@@ -148,19 +160,21 @@ export default function OfferDrawer({ property }) {
                 required
               />
             </div>
-            <div className={styles.field}>
-              <label htmlFor="offer-frequency">Frequency</label>
-              <select
-                id="offer-frequency"
-                name="frequency"
-                value={frequency}
-                onChange={(e) => setFrequency(e.target.value)}
-                autoComplete="off"
-              >
-                <option value="pw">Per week</option>
-                <option value="pcm">Per month</option>
-              </select>
-            </div>
+            {!isSaleListing && (
+              <div className={styles.field}>
+                <label htmlFor="offer-frequency">Frequency</label>
+                <select
+                  id="offer-frequency"
+                  name="frequency"
+                  value={frequency}
+                  onChange={(e) => setFrequency(e.target.value)}
+                  autoComplete="off"
+                >
+                  <option value="pw">Per week</option>
+                  <option value="pcm">Per month</option>
+                </select>
+              </div>
+            )}
           </div>
           <div className={styles.fieldRow}>
             <div className={styles.field}>
@@ -200,7 +214,7 @@ export default function OfferDrawer({ property }) {
               {status.message}
             </p>
           )}
-          {offer && (
+          {offer && !isSaleListing && (
             <div className={styles.paymentPanel}>
               <h3>Secure this property</h3>
               <p>

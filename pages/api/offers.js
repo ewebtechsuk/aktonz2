@@ -1,4 +1,9 @@
-import { createSmtpTransport, resolveFromAddress } from '../../lib/mailer.js';
+import {
+  createSmtpTransport,
+  getNotificationRecipients,
+  resolveFromAddress,
+  sendMailOrThrow,
+} from '../../lib/mailer.mjs';
 import { addOffer } from '../../lib/offers.js';
 
 
@@ -65,16 +70,18 @@ export default async function handler(req, res) {
     const transporter = createSmtpTransport();
     const from = resolveFromAddress();
     const aktonzRecipients = getNotificationRecipients();
+    const frequencyLabel = frequency ? ` ${frequency}` : '';
+    const depositNote =
+      offer.depositAmount > 0
+        ? ` Holding deposit: £${offer.depositAmount}.`
+        : '';
 
     await transporter.sendMail({
-      to: aktonz,
+      to: aktonzRecipients,
       from,
       subject: `New offer for ${propertyTitle}`,
-      text: `${name} <${email}> offered £${price} ${
-        frequency || ''
-      } for property ${propertyId}. Holding deposit: £${offer.depositAmount}.`,
+      text: `${name} <${email}> offered £${price}${frequencyLabel} for property ${propertyId}.${depositNote}`,
     });
-
 
     await sendMailOrThrow(
       transporter,
