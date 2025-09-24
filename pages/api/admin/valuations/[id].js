@@ -1,50 +1,60 @@
 import {
-  listValuationRequests,
+  getValuationById,
   updateValuation,
-  VALUATION_STATUSES,
   getValuationStatusOptions,
-} from '../../../lib/acaboom.mjs';
-import { listGallerySections } from '../../../lib/gallery.mjs';
+} from '../../../../lib/acaboom.mjs';
+import { listGallerySections } from '../../../../lib/gallery.mjs';
+
+function resolveId(param) {
+  if (Array.isArray(param)) {
+    return param[0];
+  }
+  return param;
+}
 
 export default async function handler(req, res) {
+  const valuationId = resolveId(req.query?.id);
+
+  if (!valuationId) {
+    return res.status(400).json({ error: 'Valuation id is required' });
+  }
+
   if (req.method === 'HEAD') {
     return res.status(200).end();
   }
 
   if (req.method === 'GET') {
     try {
-      const [valuations, gallerySections] = await Promise.all([
-        listValuationRequests(),
+      const [valuation, gallerySections] = await Promise.all([
+        getValuationById(valuationId),
         listGallerySections(),
       ]);
 
+      if (!valuation) {
+        return res.status(404).json({ error: 'Valuation not found' });
+      }
+
       return res.status(200).json({
-        valuations,
-        statuses: VALUATION_STATUSES,
+        valuation,
         statusOptions: getValuationStatusOptions(),
         gallery: {
           sections: gallerySections,
         },
       });
     } catch (error) {
-      console.error('Failed to list valuations', error);
-      return res.status(500).json({ error: 'Failed to fetch valuations' });
+      console.error('Failed to fetch valuation', error);
+      return res.status(500).json({ error: 'Failed to fetch valuation' });
     }
   }
 
   if (req.method === 'PATCH') {
     const {
-      id,
       status,
       notes,
       appointmentAt,
       presentationId,
       presentationMessage,
     } = req.body || {};
-
-    if (!id) {
-      return res.status(400).json({ error: 'Valuation id is required' });
-    }
 
     if (
       !Object.prototype.hasOwnProperty.call(req.body || {}, 'status') &&
@@ -57,13 +67,14 @@ export default async function handler(req, res) {
     }
 
     try {
-      const valuation = await updateValuation(id, {
+      const valuation = await updateValuation(valuationId, {
         status,
         notes,
         appointmentAt,
         presentationId,
         presentationMessage,
       });
+
       return res.status(200).json({ valuation });
     } catch (error) {
       if (error?.code === 'VALUATION_NOT_FOUND') {
@@ -72,10 +83,6 @@ export default async function handler(req, res) {
 
       if (error?.code === 'VALUATION_INVALID_STATUS') {
         return res.status(400).json({ error: 'Invalid valuation status' });
-      }
-
-      if (error?.code === 'VALUATION_VALIDATION_ERROR') {
-        return res.status(400).json({ error: 'Valuation id is required' });
       }
 
       if (error?.code === 'VALUATION_PRESENTATION_NOT_FOUND') {

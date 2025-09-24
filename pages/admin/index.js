@@ -3,13 +3,15 @@ import Head from 'next/head';
 
 import styles from '../../styles/Admin.module.css';
 
-const STATUS_OPTIONS = [
+const DEFAULT_STATUS_OPTIONS = [
   { value: 'new', label: 'New' },
   { value: 'contacted', label: 'Contacted' },
-  { value: 'scheduled', label: 'Scheduled' },
-  { value: 'completed', label: 'Completed' },
+  { value: 'valuation_sent', label: 'Valuation Sent' },
+  { value: 'lost', label: 'Lost' },
   { value: 'archived', label: 'Archived' },
 ];
+
+const CLOSED_VALUATION_STATUSES = ['lost', 'archived'];
 
 function formatDate(value) {
   if (!value) {
@@ -30,14 +32,19 @@ function formatDate(value) {
   }
 }
 
-function formatStatusLabel(status) {
-  const option = STATUS_OPTIONS.find((entry) => entry.value === status);
-  return option ? option.label : STATUS_OPTIONS[0].label;
+function formatStatusLabel(status, options) {
+  const option = options.find((entry) => entry.value === status);
+  if (option) {
+    return option.label;
+  }
+
+  return options.length ? options[0].label : status;
 }
 
 export default function AdminDashboard() {
   const [offers, setOffers] = useState([]);
   const [valuations, setValuations] = useState([]);
+  const [statusOptions, setStatusOptions] = useState(DEFAULT_STATUS_OPTIONS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
@@ -64,6 +71,32 @@ export default function AdminDashboard() {
 
       setOffers(Array.isArray(offersJson.offers) ? offersJson.offers : []);
       setValuations(Array.isArray(valuationsJson.valuations) ? valuationsJson.valuations : []);
+
+      const resolvedStatusOptions = Array.isArray(valuationsJson.statusOptions)
+        ? valuationsJson.statusOptions
+            .filter((entry) => entry && typeof entry === 'object' && entry.value)
+            .map((entry) => ({
+              value: entry.value,
+              label:
+                entry.label ||
+                String(entry.value)
+                  .split('_')
+                  .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+                  .join(' '),
+            }))
+        : Array.isArray(valuationsJson.statuses)
+        ? valuationsJson.statuses.map((value) => ({
+            value,
+            label: String(value)
+              .split('_')
+              .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+              .join(' '),
+          }))
+        : null;
+
+      if (resolvedStatusOptions && resolvedStatusOptions.length) {
+        setStatusOptions(resolvedStatusOptions);
+      }
     } catch (err) {
       console.error(err);
       setError('Unable to load the operations dashboard. Please try again.');
@@ -111,7 +144,10 @@ export default function AdminDashboard() {
   );
 
   const openValuations = useMemo(
-    () => valuations.filter((valuation) => !['completed', 'archived'].includes(valuation.status || '')),
+    () =>
+      valuations.filter(
+        (valuation) => !CLOSED_VALUATION_STATUSES.includes((valuation.status || '').toLowerCase()),
+      ),
     [valuations],
   );
 
@@ -211,19 +247,47 @@ export default function AdminDashboard() {
                         <td>
                           <select
                             className={styles.statusSelect}
-                            value={valuation.status || 'new'}
+                            value={valuation.status || statusOptions[0]?.value || 'new'}
                             onChange={(event) =>
                               handleStatusChange(valuation, event.target.value)
                             }
                             disabled={updatingId === valuation.id}
                           >
-                            {STATUS_OPTIONS.map((option) => (
+                            {statusOptions.map((option) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
                               </option>
                             ))}
                           </select>
-                          <div className={styles.badge}>{formatStatusLabel(valuation.status)}</div>
+                          <div className={styles.badge}>
+                            {formatStatusLabel(valuation.status, statusOptions)}
+                          </div>
+                          {valuation.presentation ? (
+                            <div className={styles.meta}>
+                              Style:{' '}
+                              {valuation.presentation.presentationUrl ? (
+                                <a
+                                  href={valuation.presentation.presentationUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  {valuation.presentation.title || 'View presentation'}
+                                </a>
+                              ) : (
+                                valuation.presentation.title || valuation.presentation.id
+                              )}
+                            </div>
+                          ) : null}
+                          {valuation.presentation?.sentAt ? (
+                            <div className={styles.meta}>
+                              Sent {formatDate(valuation.presentation.sentAt)}
+                            </div>
+                          ) : null}
+                          {valuation.presentation?.message ? (
+                            <p className={styles.note}>
+                              <strong>Message:</strong> {valuation.presentation.message}
+                            </p>
+                          ) : null}
                           {valuation.notes ? (
                             <p className={styles.note}>{valuation.notes}</p>
                           ) : null}
