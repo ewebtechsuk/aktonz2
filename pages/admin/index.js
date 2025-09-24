@@ -267,9 +267,40 @@ export default function AdminDashboard() {
               <dt>Open</dt>
               <dd>{openValuations.length}</dd>
             </div>
-            <div>
-              <dt>Total</dt>
-              <dd>{valuations.length}</dd>
+            <button
+              type="button"
+              className={styles.refreshButton}
+              onClick={loadData}
+              disabled={loading}
+            >
+              Refresh
+            </button>
+          </header>
+
+          {error ? <div className={styles.error}>{error}</div> : null}
+
+          <section className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <div>
+                <h2>Valuation requests</h2>
+                <p>Acaboom captures these valuation leads from the website and synchronises them here.</p>
+                <div className={styles.panelLinks}>
+                  <Link href="/admin/valuations" className={styles.panelLink}>
+                    Manage valuation pipeline
+                  </Link>
+                </div>
+              </div>
+              <dl className={styles.summaryList}>
+                <div>
+                  <dt>Open</dt>
+                  <dd>{openValuations.length}</dd>
+                </div>
+                <div>
+                  <dt>Total</dt>
+                  <dd>{valuations.length}</dd>
+                </div>
+              </dl>
+
             </div>
           </dl>
         </div>
@@ -342,54 +373,193 @@ export default function AdminDashboard() {
                           ) : (
                             valuation.presentation.title || valuation.presentation.id
                           )}
-                        </div>
-                      ) : null}
-                      {valuation.presentation?.sentAt ? (
-                        <div className={styles.meta}>Sent {formatDate(valuation.presentation.sentAt)}</div>
-                      ) : null}
-                      {valuation.presentation?.message ? (
-                        <p className={styles.note}>
-                          <strong>Message:</strong> {valuation.presentation.message}
-                        </p>
-                      ) : null}
-                      {valuation.notes ? <p className={styles.note}>{valuation.notes}</p> : null}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className={styles.emptyState}>No valuation requests just yet.</p>
-        )}
-      </section>
+                        </td>
+                        <td>
+                          <div className={styles.primaryText}>
+                            {valuation.firstName} {valuation.lastName}
+                          </div>
+                          <div className={styles.meta}>
+                            <a href={`mailto:${valuation.email}`}>{valuation.email}</a>
+                          </div>
+                          <div className={styles.meta}>
+                            <a href={`tel:${valuation.phone}`}>{valuation.phone}</a>
+                          </div>
+                        </td>
+                        <td>
+                          <div className={styles.primaryText}>{valuation.address}</div>
+                          {valuation.source ? (
+                            <div className={styles.meta}>{valuation.source}</div>
+                          ) : null}
+                          {valuation.appointmentAt ? (
+                            <div className={styles.meta}>Appointment {formatDate(valuation.appointmentAt)}</div>
+                          ) : null}
+                        </td>
+                        <td>
+                          <select
+                            className={styles.statusSelect}
+                            value={valuation.status || statusOptions[0]?.value || 'new'}
+                            onChange={(event) =>
+                              handleStatusChange(valuation, event.target.value)
+                            }
+                            disabled={updatingId === valuation.id}
+                          >
+                            {statusOptions.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                          <div className={styles.badge}>
+                            {formatStatusLabel(valuation.status, statusOptions)}
+                          </div>
+                          <Link
+                            href={`/admin/valuations/${encodeURIComponent(valuation.id)}`}
+                            className={styles.rowLink}
+                          >
+                            Manage this valuation
+                          </Link>
+                          {valuation.presentation ? (
+                            <div className={styles.meta}>
+                              Style:{' '}
+                              {valuation.presentation.presentationUrl ? (
+                                <a
+                                  href={valuation.presentation.presentationUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  {valuation.presentation.title || 'View presentation'}
+                                </a>
+                              ) : (
+                                valuation.presentation.title || valuation.presentation.id
+                              )}
+                            </div>
+                          ) : null}
+                          {valuation.presentation?.sentAt ? (
+                            <div className={styles.meta}>
+                              Sent {formatDate(valuation.presentation.sentAt)}
+                            </div>
+                          ) : null}
+                          {valuation.presentation?.message ? (
+                            <p className={styles.note}>
+                              <strong>Message:</strong> {valuation.presentation.message}
+                            </p>
+                          ) : null}
+                          {valuation.notes ? (
+                            <p className={styles.note}>{valuation.notes}</p>
+                          ) : null}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className={styles.emptyState}>No valuation requests just yet.</p>
+            )}
+          </section>
 
-      <section id="viewings" className={`${styles.panel} ${styles.anchorSection}`}>
-        <div className={styles.panelHeader}>
-          <div>
-            <h2>Viewings schedule</h2>
-            <p>Coordinate upcoming viewings and keep the team aligned.</p>
-          </div>
-        </div>
-        <p className={styles.emptyState}>Viewing management tools are coming soon.</p>
-      </section>
+          <section className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <div>
+                <h2>Offers pipeline</h2>
+                <p>Review live sale and tenancy offers captured across the Aktonz platform.</p>
+                <div className={styles.panelLinks}>
+                  <Link href="/admin/offers" className={styles.panelLink}>
+                    Manage offers workspace
+                  </Link>
+                </div>
+              </div>
+              <dl className={styles.summaryList}>
+                <div>
+                  <dt>Sale</dt>
+                  <dd>{salesOffers.length}</dd>
+                </div>
+                <div>
+                  <dt>Rent</dt>
+                  <dd>{rentalOffers.length}</dd>
+                </div>
+              </dl>
+            </div>
 
-      <section id="offers" className={`${styles.panel} ${styles.anchorSection}`}>
-        <div className={styles.panelHeader}>
-          <div>
-            <h2>Offers pipeline</h2>
-            <p>Review live sale and tenancy offers captured across the Aktonz platform.</p>
-          </div>
-          <dl className={styles.summaryList}>
-            <div>
-              <dt>Sale</dt>
-              <dd>{salesOffers.length}</dd>
-            </div>
-            <div>
-              <dt>Rent</dt>
-              <dd>{rentalOffers.length}</dd>
-            </div>
-          </dl>
+            {loading ? (
+              <p className={styles.loading}>Loading offers…</p>
+            ) : offers.length ? (
+              <div className={styles.tableScroll}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Received</th>
+                      <th>Property</th>
+                      <th>Client</th>
+                      <th>Offer</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {offers.map((offer) => (
+                      <tr key={offer.id}>
+                        <td>
+                          <div className={styles.primaryText}>{formatDate(offer.date)}</div>
+                          {offer.agent?.name ? (
+                            <div className={styles.meta}>Handled by {offer.agent.name}</div>
+                          ) : null}
+                        </td>
+                        <td>
+                          <div className={styles.primaryText}>{offer.property?.title || 'Unlinked property'}</div>
+                          {offer.property?.address ? (
+                            <div className={styles.meta}>{offer.property.address}</div>
+                          ) : null}
+                          {offer.property?.link ? (
+                            <div className={styles.meta}>
+                              <a href={offer.property.link} target="_blank" rel="noreferrer">
+                                View listing
+                              </a>
+                            </div>
+                          ) : null}
+                        </td>
+                        <td>
+                          <div className={styles.primaryText}>
+                            {offer.contact?.name || 'Unknown contact'}
+                          </div>
+                          {offer.contact?.email ? (
+                            <div className={styles.meta}>
+                              <a href={`mailto:${offer.contact.email}`}>{offer.contact.email}</a>
+                            </div>
+                          ) : null}
+                          {offer.contact?.phone ? (
+                            <div className={styles.meta}>
+                              <a href={`tel:${offer.contact.phone}`}>{offer.contact.phone}</a>
+                            </div>
+                          ) : null}
+                        </td>
+                        <td>
+                          <div className={styles.primaryText}>{offer.amount}</div>
+                          <div
+                            className={`${styles.offerType} ${
+                              offer.type === 'sale' ? styles.offerTypeSale : styles.offerTypeRent
+                            }`}
+                          >
+                            {offer.type === 'sale' ? 'Sale offer' : 'Tenancy offer'}
+                          </div>
+                          {offer.status ? (
+                            <div className={styles.meta}>{offer.status}</div>
+                          ) : null}
+                          <Link
+                            href={`/admin/offers?id=${encodeURIComponent(offer.id)}`}
+                            className={styles.rowLink}
+                          >
+                            Review this offer
+                          </Link>
+                          {offer.notes ? <p className={styles.note}>{offer.notes}</p> : null}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className={styles.emptyState}>No live offers at the moment.</p>
+            )}
+          </section>
         </div>
 
         {loading ? (
