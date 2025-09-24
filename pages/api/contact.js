@@ -23,16 +23,14 @@ export default async function handler(req, res) {
     });
 
     const from = process.env.EMAIL_FROM || process.env.SMTP_USER;
-    const aktonz = process.env.AKTONZ_EMAIL;
+    const aktonz = process.env.AKTONZ_EMAIL || 'info@aktonz.com';
 
-    if (aktonz) {
-      await transporter.sendMail({
-        to: aktonz,
-        from,
-        subject: `New enquiry from ${name}`,
-        text: `${name} <${email}> says: ${message}`,
-      });
-    }
+    await transporter.sendMail({
+      to: aktonz,
+      from,
+      subject: `New enquiry from ${name}`,
+      text: `${name} <${email}> says: ${message}`,
+    });
 
     await transporter.sendMail({
       to: email,
