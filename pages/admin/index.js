@@ -235,6 +235,11 @@ export default function AdminDashboard() {
               <div>
                 <h2>Valuation requests</h2>
                 <p>Acaboom captures these valuation leads from the website and synchronises them here.</p>
+                <div className={styles.panelLinks}>
+                  <Link href="/admin/valuations" className={styles.panelLink}>
+                    Manage valuation pipeline
+                  </Link>
+                </div>
               </div>
               <dl className={styles.summaryList}>
                 <div>
@@ -308,6 +313,12 @@ export default function AdminDashboard() {
                           <div className={styles.badge}>
                             {formatStatusLabel(valuation.status, statusOptions)}
                           </div>
+                          <Link
+                            href={`/admin/valuations/${encodeURIComponent(valuation.id)}`}
+                            className={styles.rowLink}
+                          >
+                            Manage this valuation
+                          </Link>
                           {valuation.presentation ? (
                             <div className={styles.meta}>
                               Style:{' '}
@@ -353,6 +364,11 @@ export default function AdminDashboard() {
               <div>
                 <h2>Offers pipeline</h2>
                 <p>Review live sale and tenancy offers captured across the Aktonz platform.</p>
+                <div className={styles.panelLinks}>
+                  <Link href="/admin/offers" className={styles.panelLink}>
+                    Manage offers workspace
+                  </Link>
+                </div>
               </div>
               <dl className={styles.summaryList}>
                 <div>
@@ -428,6 +444,12 @@ export default function AdminDashboard() {
                           {offer.status ? (
                             <div className={styles.meta}>{offer.status}</div>
                           ) : null}
+                          <Link
+                            href={`/admin/offers?id=${encodeURIComponent(offer.id)}`}
+                            className={styles.rowLink}
+                          >
+                            Review this offer
+                          </Link>
                           {offer.notes ? <p className={styles.note}>{offer.notes}</p> : null}
                         </td>
                       </tr>
