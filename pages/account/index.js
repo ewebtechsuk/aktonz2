@@ -3,6 +3,7 @@ import Link from 'next/link';
 import AccountLayout from '../../components/account/AccountLayout';
 import styles from '../../styles/Account.module.css';
 
+
 const PRICE_MIN_OPTIONS = ['£1,500 pcm', '£1,700 pcm', '£1,900 pcm', '£2,100 pcm'];
 const PRICE_MAX_OPTIONS = ['£2,600 pcm', '£2,900 pcm', '£3,200 pcm', '£3,500 pcm'];
 const TENURE_OPTIONS = ['6 months', '12 months', '18 months', '24 months+'];
@@ -36,6 +37,19 @@ const FLEXIBILITY_CHOICES = [
   { label: 'Show nearby too', active: true },
   { label: 'Cast a wider net' },
 ];
+
+const AREA_TAGS = [
+  { label: 'Shoreditch', active: true },
+  { label: 'Islington', active: true },
+  { label: 'Hackney', active: true },
+  { label: 'Highbury' },
+  { label: 'Canonbury' },
+];
+
+const BUDGET_MIN_OPTIONS = ['£1,500 pcm', '£1,750 pcm', '£1,900 pcm', '£2,100 pcm'];
+const BUDGET_MAX_OPTIONS = ['£2,400 pcm', '£2,750 pcm', '£3,000 pcm', '£3,250 pcm', '£3,500 pcm'];
+const SELECTED_MIN = '£1,900 pcm';
+const SELECTED_MAX = '£3,000 pcm';
 
 export default function AccountDashboard() {
   return (
@@ -94,6 +108,7 @@ export default function AccountDashboard() {
               <span className={styles.groupLabel}>And for how long?</span>
               <select className={`${styles.select} ${styles.selectFull}`} defaultValue="12 months" aria-label="Tenancy length">
                 {TENURE_OPTIONS.map((value) => (
+
                   <option key={value} value={value}>
                     {value}
                   </option>
@@ -134,6 +149,7 @@ export default function AccountDashboard() {
               <p>Drop pins on the map or search to add neighbourhoods you love.</p>
             </div>
             <Link href="/area-guides" className={styles.ghostButton}>
+
               Add another area
             </Link>
           </header>
@@ -261,6 +277,7 @@ export default function AccountDashboard() {
           />
         </section>
       </div>
+
     </AccountLayout>
   );
 }
