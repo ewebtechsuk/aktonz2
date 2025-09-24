@@ -7,7 +7,7 @@ import PropertyMap from '../components/PropertyMap';
 import AgentCard from '../components/AgentCard';
 import ListingFilters from '../components/ListingFilters';
 import ListingInsights from '../components/ListingInsights';
-import { fetchPropertiesByType } from '../lib/apex27.mjs';
+import { fetchPropertiesByTypeCachedFirst } from '../lib/apex27.mjs';
 import agentsData from '../data/agents.json';
 import homeStyles from '../styles/Home.module.css';
 import saleStyles from '../styles/ForSale.module.css';
@@ -453,11 +453,38 @@ export default function ForSale({ properties, agents }) {
 }
 
 export async function getStaticProps() {
-  const raw = await fetchPropertiesByType('sale', {
+  const raw = await fetchPropertiesByTypeCachedFirst('sale', {
     statuses: ['available', 'under_offer', 'sold'],
   });
 
-  const properties = raw.slice(0, 50).map((property) => ({
+  const scrayeListings = [];
+  const otherListings = [];
+
+  raw.forEach((property) => {
+    const source = typeof property?.source === 'string' ? property.source.toLowerCase() : '';
+    if (source === 'scraye') {
+      scrayeListings.push(property);
+    } else {
+      otherListings.push(property);
+    }
+  });
+
+  const prioritized = [];
+  const seen = new Set();
+  const pushUnique = (property) => {
+    if (!property) return;
+    const key = property.id ? String(property.id).toLowerCase() : null;
+    if (key && seen.has(key)) return;
+    if (key) {
+      seen.add(key);
+    }
+    prioritized.push(property);
+  };
+
+  scrayeListings.forEach(pushUnique);
+  otherListings.forEach(pushUnique);
+
+  const properties = prioritized.slice(0, 50).map((property) => ({
     ...property,
     images: (property.images || []).slice(0, 3),
     description: property.description ? property.description.slice(0, 200) : '',
