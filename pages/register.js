@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
@@ -12,11 +12,26 @@ export default function Register() {
 
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
+  const [emailValue, setEmailValue] = useState('');
+
+  useEffect(() => {
+    if (!router.isReady) {
+      return;
+    }
+
+    const queryEmail = Array.isArray(router.query.email)
+      ? router.query.email[0]
+      : router.query.email;
+
+    if (typeof queryEmail === 'string' && queryEmail && !emailValue) {
+      setEmailValue(queryEmail);
+    }
+  }, [router.isReady, router.query.email, emailValue]);
 
   async function handleSubmit(e) {
     e.preventDefault();
     const formData = new FormData(e.target);
-    const email = formData.get('email');
+    const email = (emailValue || formData.get('email') || '').toString().trim();
     const password = formData.get('password');
     const confirmPassword = formData.get('confirmPassword');
     if (password !== confirmPassword) {
@@ -92,7 +107,16 @@ export default function Register() {
           <h2>Create an account</h2>
           <form onSubmit={handleSubmit}>
             <label htmlFor="email">Email address *</label>
-            <input id="email" name="email" type="email" autoComplete="email" required disabled={loading} />
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              disabled={loading}
+              value={emailValue}
+              onChange={(event) => setEmailValue(event.target.value)}
+            />
             <label htmlFor="password">Password *</label>
             <input
               id="password"

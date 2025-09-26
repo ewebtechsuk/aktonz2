@@ -1,6 +1,17 @@
 import { createValuationRequest } from '../../lib/acaboom.mjs';
 import { createSmtpTransport, resolveFromAddress } from '../../lib/mailer.js';
 
+function resolveSiteUrl(req) {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL;
+  if (configured) {
+    return configured.replace(/\/$/, '');
+  }
+
+  const protocol = req.headers['x-forwarded-proto'] || 'https';
+  const host = req.headers['x-forwarded-host'] || req.headers.host;
+  return `${protocol}://${host}`;
+}
+
 export default async function handler(req, res) {
   if (req.method === 'HEAD') {
     return res.status(200).end();
@@ -17,6 +28,9 @@ export default async function handler(req, res) {
 
   const { firstName, lastName, email, phone, address, notes } = req.body || {};
 
+  let activationUrl = null;
+  let accountUrl = null;
+
   try {
     const valuation = await createValuationRequest({
       firstName,
@@ -31,7 +45,11 @@ export default async function handler(req, res) {
     try {
       const transporter = createSmtpTransport();
       const from = resolveFromAddress();
-      const aktonz = process.env.AKTONZ_VALUATIONS_EMAIL || process.env.AKTONZ_EMAIL || 'valuations@aktonz.com';
+      const aktonz =
+        process.env.AKTONZ_VALUATIONS_EMAIL || process.env.AKTONZ_EMAIL || 'valuations@aktonz.com';
+      const siteUrl = resolveSiteUrl(req);
+      activationUrl = `${siteUrl}/register?email=${encodeURIComponent(valuation.email)}`;
+      accountUrl = `${siteUrl}/account`;
 
       await transporter.sendMail({
         to: aktonz,
@@ -52,9 +70,21 @@ export default async function handler(req, res) {
       await transporter.sendMail({
         to: valuation.email,
         from,
-        subject: 'Thanks for booking an Aktonz valuation',
-        text:
-          'Thanks for booking a valuation with Aktonz. Our valuations team will be in touch shortly to confirm the appointment.',
+        subject: 'Activate your Aktonz account',
+        text: [
+          `Hi ${valuation.firstName},`,
+          '',
+          'Thanks for booking a valuation with Aktonz. To access your personalised dashboard and manage your request, please activate your account using the link below.',
+          '',
+          activationUrl,
+          '',
+          'Once activated you can review your valuation details at any time:',
+          accountUrl,
+          '',
+          'If you were not expecting this message you can ignore it.',
+          '',
+          'Aktonz Team',
+        ].join('\n'),
       });
     } catch (error) {
       if (error?.code === 'SMTP_CONFIG_MISSING') {
@@ -66,7 +96,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Failed to send valuation notifications' });
     }
 
-    return res.status(201).json({ valuation });
+    return res.status(201).json({ valuation, activationUrl, accountUrl });
   } catch (error) {
     if (error?.code === 'VALUATION_VALIDATION_ERROR') {
       return res.status(400).json({ error: 'Missing required fields' });
