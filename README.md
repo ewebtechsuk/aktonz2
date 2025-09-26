@@ -13,6 +13,34 @@ npm run dev
 
 Create a `.env.local` file and set `APEX27_API_KEY` (and optionally `APEX27_BRANCH_ID` for your branch) to fetch real property data from the Apex27 API. Without these variables, no listings will be shown.
 
+### Email configuration
+
+The contact, offer, and viewing forms send transactional email through SMTP. Configure these environment variables wherever the Next.js server runs:
+
+| Variable | Description |
+| --- | --- |
+| `SMTP_HOST` | SMTP hostname (e.g. `smtp.office365.com`). |
+| `SMTP_PORT` | SMTP port. Use `587` for STARTTLS (recommended) or `465` for implicit TLS. |
+| `SMTP_SECURE` | Set to `"false"` for STARTTLS (port 587) or `"true"` for implicit TLS (port 465). |
+| `SMTP_USER` | Username for authentication. For Microsoft 365 this is the full mailbox address (e.g. `info@aktonz.com`). |
+| `SMTP_PASS` | Password or app password for the mailbox. Required even when multi-factor authentication is enabled. |
+| `EMAIL_FROM` | Default "From" address for all outgoing messages. Can be the same as `SMTP_USER` or an alias on that mailbox. |
+| `AKTONZ_EMAIL` | Comma-separated list of internal recipients who should receive notifications. Defaults to `info@aktonz.com` if omitted. |
+
+When using Microsoft 365 (as shown in the Microsoft Admin Center screenshot), make sure the mailbox you authenticate with has **SMTP AUTH** enabled and, if MFA is required, create an **app password**. Microsoft documents the SMTP endpoint under **Settings → Domains → (select your domain) → DNS records**; the typical configuration is:
+
+```
+SMTP_HOST=smtp.office365.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=info@aktonz.com
+SMTP_PASS=<your app password>
+EMAIL_FROM=info@aktonz.com
+AKTONZ_EMAIL=info@aktonz.com
+```
+
+Restart the development or production server after adding or changing these variables so the new configuration is picked up.
+
 To allow the registration form to create contacts when the app is statically
 deployed, also set the public equivalents
 `NEXT_PUBLIC_APEX27_API_KEY` and `NEXT_PUBLIC_APEX27_BRANCH_ID`. These values
