@@ -91,6 +91,35 @@
   outline-offset: 2px;
 }
 
+.adminNavButton {
+  display: inline-flex;
+  align-items: center;
+  padding: calc(var(--spacing-xs) * 1.5) var(--spacing-sm);
+  border-radius: 999px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+.adminNavButton:hover,
+.adminNavButton:focus-visible {
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+}
+
+.adminNavButton:focus-visible {
+  outline: 2px solid var(--color-border);
+  outline-offset: 2px;
+}
+
+.adminNavButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .anchorSection {
   scroll-margin-top: calc(var(--spacing-xl) + var(--spacing-md));
 }
@@ -401,6 +430,13 @@
   color: var(--color-error);
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: 12px;
+}
+
+.logoutError {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--color-error);
+  font-size: 0.9rem;
 }
 
 @media (max-width: 768px) {
