@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 import styles from '../../styles/Admin.module.css';
 import { useSession } from '../../components/SessionProvider';
@@ -53,7 +54,10 @@ export default function AdminDashboard() {
   const [connectError, setConnectError] = useState(null);
   const [connectStatus, setConnectStatus] = useState(null);
   const [connectAuthorizationUrl, setConnectAuthorizationUrl] = useState(null);
-  const { user, loading: sessionLoading } = useSession();
+  const [logoutLoading, setLogoutLoading] = useState(false);
+  const [logoutError, setLogoutError] = useState(null);
+  const router = useRouter();
+  const { user, loading: sessionLoading, clearSession, refresh } = useSession();
   const isAdmin = user?.role === 'admin';
 
   const loadData = useCallback(async () => {
@@ -178,6 +182,39 @@ export default function AdminDashboard() {
     [offers],
   );
 
+  const handleLogout = useCallback(async () => {
+    setLogoutError(null);
+    setLogoutLoading(true);
+
+    try {
+      const response = await fetch('/api/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Unable to sign out. Please try again.');
+      }
+
+      clearSession();
+
+      try {
+        await refresh();
+      } catch (refreshError) {
+        console.warn('Failed to refresh session after logout', refreshError);
+      }
+
+      await router.push('/login');
+    } catch (error) {
+      console.error('Admin logout failed', error);
+      const message =
+        error instanceof Error ? error.message : 'Unable to sign out. Please try again.';
+      setLogoutError(message);
+    } finally {
+      setLogoutLoading(false);
+    }
+  }, [clearSession, refresh, router]);
+
   const renderLayout = (title, content, showNavigation = false) => (
     <>
       <Head>
@@ -212,8 +249,23 @@ export default function AdminDashboard() {
                     Offers
                   </a>
                 </li>
+                <li>
+                  <button
+                    type="button"
+                    className={styles.adminNavButton}
+                    onClick={handleLogout}
+                    disabled={logoutLoading}
+                  >
+                    {logoutLoading ? 'Signing out…' : 'Sign out'}
+                  </button>
+                </li>
               </ul>
             </nav>
+          ) : null}
+          {logoutError ? (
+            <p className={styles.logoutError} role="alert">
+              {logoutError}
+            </p>
           ) : null}
         </div>
       </header>
