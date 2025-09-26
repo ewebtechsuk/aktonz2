@@ -159,6 +159,77 @@
   color: var(--color-muted-text);
 }
 
+.integrationActions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.integrationButton {
+  background: var(--color-secondary);
+  color: var(--color-background);
+  border: none;
+  border-radius: 999px;
+  padding: calc(var(--spacing-sm) * 1.5) calc(var(--spacing-lg));
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.integrationButton:hover,
+.integrationButton:focus-visible {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.integrationButton:focus-visible {
+  outline: 2px solid var(--color-background);
+  outline-offset: 2px;
+}
+
+.integrationButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.integrationDetails {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.integrationError {
+  margin: 0;
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+.integrationStatus {
+  margin: 0;
+  color: var(--color-muted-text);
+}
+
+.integrationStatus a {
+  color: var(--color-secondary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.integrationStatus a:hover,
+.integrationStatus a:focus-visible {
+  text-decoration: underline;
+}
+
+.integrationList {
+  margin: 0;
+  padding-left: var(--spacing-lg);
+  color: var(--color-muted-text);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
 .panelLinks {
   margin-top: var(--spacing-xs);
   display: flex;
