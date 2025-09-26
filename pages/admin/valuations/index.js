@@ -32,6 +32,92 @@ function formatDate(value) {
   }
 }
 
+function getPresentationLabel(entry) {
+  if (!entry) {
+    return '';
+  }
+
+  return (
+    entry.title ||
+    entry.slide ||
+    entry.agency ||
+    (typeof entry.id === 'string' ? entry.id : '') ||
+    ''
+  );
+}
+
+function createPresentationPlaceholder(valuation) {
+  if (!valuation) {
+    return 'Share personal notes to accompany the presentation link.';
+  }
+
+  const name = (valuation.firstName || '').trim().split(' ')[0];
+  const address = (valuation.address || '').trim();
+
+  if (name && address) {
+    return `Hi ${name}, here’s the tailored valuation for ${address}.`;
+  }
+
+  if (name) {
+    return `Hi ${name}, here’s the tailored valuation presentation.`;
+  }
+
+  if (address) {
+    return `Here’s the tailored valuation for ${address}.`;
+  }
+
+  return 'Share personal notes to accompany the presentation link.';
+}
+
+function createPersonalisedMessage(valuation) {
+  if (!valuation) {
+    return '';
+  }
+
+  const firstName = (valuation.firstName || '').trim().split(' ')[0] || 'there';
+  const address = (valuation.address || '').trim();
+  const propertyReference = address ? ` for ${address}` : '';
+
+  return [
+    `Hi ${firstName},`,
+    '',
+    `I’ve prepared a tailored valuation presentation${propertyReference} covering comparables, marketing ideas and the next steps for your move. Please have a look and let me know if there’s anything else you’d like me to include before we meet.`,
+    '',
+    'Best regards,',
+    'The Aktonz team',
+  ].join('\n');
+}
+
+function flattenGallerySections(sections) {
+  if (!Array.isArray(sections)) {
+    return [];
+  }
+
+  const items = [];
+
+  sections.forEach((section) => {
+    if (!section || typeof section !== 'object') {
+      return;
+    }
+
+    const category = section.category || 'Presentation styles';
+    const entries = Array.isArray(section.items) ? section.items : [];
+
+    entries.forEach((item) => {
+      if (!item || typeof item !== 'object') {
+        return;
+      }
+
+      items.push({
+        ...item,
+        category,
+      });
+    });
+  });
+
+  return items;
+}
+
 function formatStatusLabel(status, options) {
   const option = options.find((entry) => entry.value === status);
   if (option) {
@@ -104,6 +190,7 @@ export default function AdminValuationsPage() {
 
   const [valuations, setValuations] = useState([]);
   const [statusOptions, setStatusOptions] = useState(DEFAULT_STATUS_OPTIONS);
+  const [gallerySections, setGallerySections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
@@ -114,6 +201,8 @@ export default function AdminValuationsPage() {
     status: DEFAULT_STATUS_OPTIONS[0].value,
     appointmentAt: '',
     notes: '',
+    presentationId: '',
+    presentationMessage: '',
   });
 
   const loadValuations = useCallback(async () => {
@@ -137,6 +226,9 @@ export default function AdminValuationsPage() {
       );
       setValuations(entries);
 
+      const sections = Array.isArray(payload.gallery?.sections) ? payload.gallery.sections : [];
+      setGallerySections(sections);
+
       const nextStatusOptions = resolveStatusOptions(payload);
       if (nextStatusOptions.length) {
         setStatusOptions(nextStatusOptions);
@@ -154,6 +246,7 @@ export default function AdminValuationsPage() {
   useEffect(() => {
     if (!isAdmin) {
       setValuations([]);
+      setGallerySections([]);
       setLoading(false);
       return;
     }
@@ -203,6 +296,104 @@ export default function AdminValuationsPage() {
     [valuations, selectedId],
   );
 
+  const galleryItems = useMemo(() => flattenGallerySections(gallerySections), [gallerySections]);
+
+  const galleryIndex = useMemo(() => {
+    const map = new Map();
+    galleryItems.forEach((item) => {
+      if (item?.id) {
+        map.set(String(item.id).toLowerCase(), item);
+      }
+    });
+    return map;
+  }, [galleryItems]);
+
+  const presentationGroups = useMemo(() => {
+    const groups = [];
+    const seen = new Set();
+
+    gallerySections.forEach((section, index) => {
+      if (!section || typeof section !== 'object') {
+        return;
+      }
+
+      const items = Array.isArray(section.items) ? section.items : [];
+      if (!items.length) {
+        return;
+      }
+
+      const options = items
+        .filter((item) => item && item.id)
+        .map((item) => {
+          const id = String(item.id);
+          seen.add(id.toLowerCase());
+          return {
+            id,
+            label: getPresentationLabel(item) || id,
+          };
+        });
+
+      if (options.length) {
+        groups.push({
+          key: section.slug || `section-${index}`,
+          label: section.category || 'Presentation styles',
+          options,
+        });
+      }
+    });
+
+    if (selectedValuation?.presentation?.id) {
+      const id = String(selectedValuation.presentation.id);
+      const normalized = id.toLowerCase();
+      if (!seen.has(normalized)) {
+        groups.push({
+          key: 'current-selection',
+          label: 'Current selection',
+          options: [
+            {
+              id,
+              label: getPresentationLabel(selectedValuation.presentation) || id,
+            },
+          ],
+        });
+      }
+    }
+
+    return groups;
+  }, [gallerySections, selectedValuation]);
+
+  const presentationPlaceholder = useMemo(
+    () => createPresentationPlaceholder(selectedValuation),
+    [selectedValuation],
+  );
+
+  const presentationTemplate = useMemo(
+    () => createPersonalisedMessage(selectedValuation),
+    [selectedValuation],
+  );
+
+  const activePresentationDetails = useMemo(() => {
+    if (!formState.presentationId) {
+      return null;
+    }
+
+    const normalized = String(formState.presentationId).toLowerCase();
+    const galleryMatch = galleryIndex.get(normalized);
+
+    if (galleryMatch) {
+      return galleryMatch;
+    }
+
+    if (
+      selectedValuation?.presentation?.id &&
+      String(selectedValuation.presentation.id).toLowerCase() === normalized
+    ) {
+      return selectedValuation.presentation;
+    }
+
+    return null;
+  }, [formState.presentationId, galleryIndex, selectedValuation]);
+
   useEffect(() => {
     if (!selectedValuation) {
       return;
@@ -212,6 +403,8 @@ export default function AdminValuationsPage() {
       status: selectedValuation.status || statusOptions[0]?.value || 'new',
       appointmentAt: toDateTimeLocalInputValue(selectedValuation.appointmentAt),
       notes: selectedValuation.notes || '',
+      presentationId: selectedValuation.presentation?.id || '',
+      presentationMessage: selectedValuation.presentation?.message || '',
     });
     setFormError(null);
     setSuccessMessage('');
@@ -246,10 +439,45 @@ export default function AdminValuationsPage() {
       status: selectedValuation.status || statusOptions[0]?.value || 'new',
       appointmentAt: toDateTimeLocalInputValue(selectedValuation.appointmentAt),
       notes: selectedValuation.notes || '',
+      presentationId: selectedValuation.presentation?.id || '',
+      presentationMessage: selectedValuation.presentation?.message || '',
     });
     setFormError(null);
     setSuccessMessage('');
   }, [selectedValuation, statusOptions]);
+
+  const handlePresentationChange = useCallback(
+    (event) => {
+      const value = event.target.value;
+
+      setFormState((current) => {
+        const next = {
+          ...current,
+          presentationId: value,
+        };
+
+        if (!value) {
+          next.presentationMessage = '';
+        } else if (!current.presentationMessage && presentationTemplate) {
+          next.presentationMessage = presentationTemplate;
+        }
+
+        return next;
+      });
+    },
+    [presentationTemplate],
+  );
+
+  const handleApplyTemplate = useCallback(() => {
+    if (!presentationTemplate) {
+      return;
+    }
+
+    setFormState((current) => ({
+      ...current,
+      presentationMessage: presentationTemplate,
+    }));
+  }, [presentationTemplate]);
 
   const handleSubmit = useCallback(
     async (event) => {
@@ -287,6 +515,25 @@ export default function AdminValuationsPage() {
       const currentNotes = selectedValuation.notes ?? '';
       if (nextNotes !== currentNotes) {
         payload.notes = nextNotes;
+        hasChanges = true;
+      }
+
+      const currentPresentationId = selectedValuation.presentation?.id || '';
+      const nextPresentationId = formState.presentationId || '';
+      if (nextPresentationId !== currentPresentationId) {
+        payload.presentationId = nextPresentationId || null;
+        hasChanges = true;
+      }
+
+      const currentPresentationMessage = selectedValuation.presentation?.message || '';
+      const nextPresentationMessage = formState.presentationMessage || '';
+      if (nextPresentationMessage !== currentPresentationMessage) {
+        if (!nextPresentationId && !currentPresentationId && nextPresentationMessage) {
+          setFormError('Select a valuation style before adding a client message.');
+          return;
+        }
+
+        payload.presentationMessage = nextPresentationMessage;
         hasChanges = true;
       }
 
@@ -523,6 +770,63 @@ export default function AdminValuationsPage() {
                         }
                       />
                       <p className={styles.helperText}>Leave blank if no appointment is scheduled.</p>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label htmlFor="valuation-presentation">Presentation style</label>
+                      <select
+                        id="valuation-presentation"
+                        value={formState.presentationId}
+                        onChange={handlePresentationChange}
+                      >
+                        <option value="">No presentation selected</option>
+                        {presentationGroups.map((group) => (
+                          <optgroup key={group.key} label={group.label}>
+                            {group.options.map((option) => (
+                              <option key={option.id} value={option.id}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                      <p className={styles.helperText}>
+                        {formState.presentationId
+                          ? activePresentationDetails
+                            ? `Personalise the ${getPresentationLabel(activePresentationDetails)} presentation before sharing it with the client.`
+                            : 'This presentation will be saved with the valuation record.'
+                          : 'Pick a presentation to tailor the proposal for this property.'}
+                      </p>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <div className={styles.formGroupHeader}>
+                        <label htmlFor="valuation-presentation-message">Client message</label>
+                        <button
+                          type="button"
+                          className={styles.linkButton}
+                          onClick={handleApplyTemplate}
+                          disabled={!formState.presentationId || !presentationTemplate}
+                        >
+                          Use personalised template
+                        </button>
+                      </div>
+                      <textarea
+                        id="valuation-presentation-message"
+                        value={formState.presentationMessage}
+                        onChange={(event) =>
+                          setFormState((current) => ({
+                            ...current,
+                            presentationMessage: event.target.value,
+                          }))
+                        }
+                        placeholder={presentationPlaceholder}
+                        disabled={!formState.presentationId}
+                      />
+                      <p className={styles.helperText}>
+                        Share context about {selectedValuation.firstName || 'the client'} and their property so the
+                        presentation feels bespoke.
+                      </p>
                     </div>
 
                     <div className={styles.formGroup}>
