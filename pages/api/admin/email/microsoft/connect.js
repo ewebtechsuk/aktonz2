@@ -68,9 +68,71 @@ function formatMissingEnv(keys) {
   return `${keys[0]} (or ${keys.slice(1).join(', ')})`;
 }
 
-function getOAuthConfiguration() {
+function getHeaderValue(req, header) {
+  const value = req.headers[header];
+
+  if (!value) {
+    return null;
+  }
+
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      if (entry && entry.trim()) {
+        return entry.trim();
+      }
+    }
+    return null;
+  }
+
+  const [first] = String(value).split(',');
+  const trimmed = first && first.trim();
+  return trimmed || null;
+}
+
+function getRequestOrigin(req) {
+  const originHeader = getHeaderValue(req, 'origin');
+  if (originHeader) {
+    return originHeader;
+  }
+
+  const host =
+    getHeaderValue(req, 'x-forwarded-host') || getHeaderValue(req, 'host');
+
+  if (!host) {
+    return null;
+  }
+
+  const protocolHeader = getHeaderValue(req, 'x-forwarded-proto');
+  const protocol =
+    protocolHeader || (host.includes('localhost') || host.includes('127.0.0.1')
+      ? 'http'
+      : 'https');
+
+  return `${protocol}://${host}`;
+}
+
+function resolveRedirectUri(req) {
+  const envRedirect = resolveEnvValue(REDIRECT_URI_ENV_KEYS);
+  if (envRedirect) {
+    return envRedirect;
+  }
+
+  const origin = getRequestOrigin(req);
+  if (!origin) {
+    return null;
+  }
+
+  try {
+    return new URL('/api/admin/email/microsoft/callback', origin).toString();
+  } catch (err) {
+    console.error('Unable to resolve Microsoft redirect URI', err);
+    return null;
+  }
+}
+
+function getOAuthConfiguration(req) {
   const clientId = resolveEnvValue(CLIENT_ID_ENV_KEYS);
-  const redirectUri = resolveEnvValue(REDIRECT_URI_ENV_KEYS);
+  const redirectUri = resolveRedirectUri(req);
   const tenant = process.env.MICROSOFT_TENANT_ID || 'common';
   const scopes =
     process.env.MICROSOFT_SCOPES || 'offline_access https://graph.microsoft.com/.default';
@@ -132,11 +194,15 @@ export default function handler(req, res) {
     return res.status(405).end('Method Not Allowed');
   }
 
-  const config = getOAuthConfiguration();
+  const config = getOAuthConfiguration(req);
 
   if (config.missing.length) {
-    return res.status(500).json({
-      error: `Missing Microsoft integration configuration: ${config.missing.join(', ')}`,
+    return res.status(200).json({
+      requiresConfiguration: true,
+      message:
+        config.missing.length === 1
+          ? `Configure the missing Microsoft setting ${config.missing[0]} before connecting.`
+          : `Configure these Microsoft settings before connecting: ${config.missing.join(', ')}.`,
       missing: config.missing,
     });
   }

@@ -260,6 +260,19 @@ export default function AdminDashboard() {
         throw new Error(message);
       }
 
+      if (payload?.requiresConfiguration) {
+        const missing = Array.isArray(payload?.missing)
+          ? payload.missing.join(', ')
+          : null;
+        setConnectError(
+          payload?.message ||
+            (missing
+              ? `Configure these Microsoft settings before connecting: ${missing}.`
+              : 'Configure the Microsoft integration settings before connecting.'),
+        );
+        return;
+      }
+
       if (payload?.authorizationUrl) {
         authorizationUrl = payload.authorizationUrl;
         setConnectAuthorizationUrl(payload.authorizationUrl);
