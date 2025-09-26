@@ -49,6 +49,10 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
+  const [connectLoading, setConnectLoading] = useState(false);
+  const [connectError, setConnectError] = useState(null);
+  const [connectStatus, setConnectStatus] = useState(null);
+  const [connectAuthorizationUrl, setConnectAuthorizationUrl] = useState(null);
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
 
@@ -189,6 +193,11 @@ export default function AdminDashboard() {
             <nav className={styles.adminNav} aria-label="Admin sections">
               <ul className={styles.adminNavList}>
                 <li>
+                  <a className={styles.adminNavLink} href="#email-settings">
+                    Email
+                  </a>
+                </li>
+                <li>
                   <a className={styles.adminNavLink} href="#valuations">
                     Valuations
                   </a>
@@ -241,6 +250,47 @@ export default function AdminDashboard() {
     );
   }
 
+  const handleConnectMicrosoft = useCallback(async () => {
+    setConnectLoading(true);
+    setConnectError(null);
+    setConnectStatus(null);
+    setConnectAuthorizationUrl(null);
+
+    try {
+      const response = await fetch('/api/admin/email/microsoft/connect', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+      });
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message =
+          (payload && (payload.error || payload.message)) ||
+          'Unable to start the Microsoft connection. Please try again.';
+        throw new Error(message);
+      }
+
+      if (payload?.authorizationUrl) {
+        setConnectAuthorizationUrl(payload.authorizationUrl);
+        if (typeof window !== 'undefined') {
+          window.location.assign(payload.authorizationUrl);
+        }
+      }
+
+      if (payload?.message) {
+        setConnectStatus(payload.message);
+      } else {
+        setConnectStatus('Follow the Microsoft sign-in flow to finish configuring email.');
+      }
+    } catch (err) {
+      console.error('Failed to start Microsoft connection', err);
+      setConnectError(err?.message || 'Unable to start the Microsoft connection. Please try again.');
+    } finally {
+      setConnectLoading(false);
+    }
+  }, []);
+
   return renderLayout(
     'Aktonz Admin — Offers & valuations',
     <>
@@ -255,6 +305,40 @@ export default function AdminDashboard() {
       </header>
 
       {error ? <div className={styles.error}>{error}</div> : null}
+
+      <section id="email-settings" className={`${styles.panel} ${styles.anchorSection}`}>
+        <div className={styles.panelHeader}>
+          <div>
+            <h2>Microsoft 365 email</h2>
+            <p>Connect Aktonz to Microsoft 365 to automatically configure SMTP email delivery.</p>
+          </div>
+          <div className={styles.integrationActions}>
+            <button
+              type="button"
+              className={styles.integrationButton}
+              onClick={handleConnectMicrosoft}
+              disabled={connectLoading}
+            >
+              {connectLoading ? 'Connecting…' : 'Connect to Microsoft'}
+            </button>
+          </div>
+        </div>
+        <div className={styles.integrationDetails}>
+          {connectError ? <p className={styles.integrationError}>{connectError}</p> : null}
+          {connectStatus ? <p className={styles.integrationStatus}>{connectStatus}</p> : null}
+          {connectAuthorizationUrl ? (
+            <p className={styles.integrationStatus}>
+              Not redirected?{' '}
+              <a href={connectAuthorizationUrl}>Continue to Microsoft in a new tab</a>.
+            </p>
+          ) : null}
+          <ul className={styles.integrationList}>
+            <li>Sign in with the Microsoft 365 mailbox responsible for Aktonz email.</li>
+            <li>Grant the requested permissions so we can retrieve SMTP configuration.</li>
+            <li>Return to this dashboard once Microsoft confirms the connection.</li>
+          </ul>
+        </div>
+      </section>
 
       <section id="valuations" className={`${styles.panel} ${styles.anchorSection}`}>
         <div className={styles.panelHeader}>
