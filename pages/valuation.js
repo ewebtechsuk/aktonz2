@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useRouter } from 'next/router';
 
 import styles from '../styles/Valuation.module.css';
 import MortgageCalculator from '../components/MortgageCalculator';
@@ -14,6 +15,7 @@ const INITIAL_FORM = {
 };
 
 export default function Valuation() {
+  const router = useRouter();
   const [formValues, setFormValues] = useState(INITIAL_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState({ type: 'idle', message: '' });
@@ -51,8 +53,20 @@ export default function Valuation() {
       setFormValues(INITIAL_FORM);
       setStatus({
         type: 'success',
-        message: 'Thanks! A valuation specialist will be in touch shortly to confirm your appointment.',
+        message:
+          'Thanks! Please check your email to activate your account. Redirecting you to your dashboard…',
       });
+
+      try {
+        await router.push('/account');
+      } catch (navigationError) {
+        console.error('Failed to redirect to account after valuation submission', navigationError);
+        setStatus({
+          type: 'success',
+          message:
+            'Thanks! Please check your email to activate your account. You can continue to your account at /account.',
+        });
+      }
     } catch (error) {
       setStatus({
         type: 'error',

@@ -255,6 +255,13 @@
   gap: calc(var(--spacing-xs) / 2);
 }
 
+.formGroupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
 .formGroup label {
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -275,6 +282,31 @@
 .formGroup textarea {
   min-height: 140px;
   resize: vertical;
+}
+
+.formGroup textarea:disabled {
+  background: var(--color-surface-alt);
+  color: var(--color-muted-text);
+}
+
+.linkButton {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-secondary);
+  cursor: pointer;
+}
+
+.linkButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.linkButton:not(:disabled):hover,
+.linkButton:not(:disabled):focus {
+  text-decoration: underline;
 }
 
 .helperText {

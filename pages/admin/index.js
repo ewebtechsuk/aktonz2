@@ -266,6 +266,7 @@ export default function AdminDashboard() {
       }
     }
 
+
     setConnectLoading(true);
     setConnectError(null);
     setConnectStatus(null);
@@ -294,6 +295,7 @@ export default function AdminDashboard() {
           popup.focus();
         } else if (typeof window !== 'undefined') {
           window.open(payload.authorizationUrl, '_blank', 'noopener,noreferrer');
+
         }
       }
 
@@ -319,6 +321,7 @@ export default function AdminDashboard() {
           popup.close();
         }
       }
+
     }
   }, []);
 
