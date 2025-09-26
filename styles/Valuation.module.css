@@ -7,7 +7,7 @@
     no-repeat center/cover;
   color: var(--color-background);
   position: relative;
-  padding: var(--spacing-xl) var(--spacing-md);
+  padding: var(--spacing-xl) var(--spacing-md) calc(var(--spacing-xl) + 9rem);
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-lg);
@@ -142,7 +142,7 @@
 
 @media (max-width: 768px) {
   .hero {
-    padding: var(--spacing-lg) var(--spacing-sm);
+    padding: var(--spacing-lg) var(--spacing-sm) calc(var(--spacing-xl) + 11rem);
   }
 
   .form {
