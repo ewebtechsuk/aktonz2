@@ -1,0 +1,254 @@
+.page {
+  min-height: 100vh;
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: var(--spacing-xl) var(--spacing-md);
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  gap: var(--spacing-xl);
+}
+
+.header {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.breadcrumb {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-muted-text);
+}
+
+.breadcrumb a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: inherit;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.headerTop h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.headerTop p {
+  margin: var(--spacing-xs) 0 0;
+  color: var(--color-muted-text);
+}
+
+.refreshButton {
+  background: var(--color-text);
+  color: var(--color-background);
+  border: none;
+  border-radius: 999px;
+  padding: calc(var(--spacing-sm) * 1.5) calc(var(--spacing-md) * 1.5);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.refreshButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.content {
+  display: grid;
+  gap: var(--spacing-xl);
+}
+
+.tableSection,
+.detailPanel {
+  background: var(--color-background);
+  border-radius: 18px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
+  padding: var(--spacing-xl);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.table thead th {
+  text-align: left;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted-text);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.table td {
+  padding: var(--spacing-md) var(--spacing-xs);
+  border-bottom: 1px solid var(--color-border-light);
+  vertical-align: top;
+}
+
+.table tbody tr {
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background: var(--color-surface-alt);
+}
+
+.table tbody tr[data-active='true'] {
+  background: var(--color-surface-alt);
+}
+
+.primaryCell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.primaryCell strong {
+  font-size: 1rem;
+}
+
+.primaryCell span,
+.muted {
+  font-size: 0.85rem;
+  color: var(--color-muted-text);
+}
+
+.offerTag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 999px;
+  margin-top: var(--spacing-xs);
+}
+
+.offerTagSale {
+  background: rgba(0, 128, 96, 0.12);
+  color: var(--color-success);
+}
+
+.offerTagRent {
+  background: rgba(0, 112, 243, 0.12);
+  color: var(--color-secondary);
+}
+
+.tableLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-secondary);
+  text-decoration: none;
+}
+
+.tableLink::after {
+  content: '→';
+}
+
+.tableLink:hover {
+  text-decoration: underline;
+}
+
+.detailHeader {
+  display: grid;
+  gap: var(--spacing-xs);
+}
+
+.detailHeader h2 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.detailSummary {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-xs) * 1.5);
+  font-size: 0.95rem;
+}
+
+.detailSummary a {
+  color: var(--color-secondary);
+  text-decoration: none;
+}
+
+.detailSummary a:hover {
+  text-decoration: underline;
+}
+
+.metaGrid {
+  display: grid;
+  gap: var(--spacing-sm);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.metaGrid div {
+  display: grid;
+  gap: calc(var(--spacing-xs) / 2);
+}
+
+.metaGrid dt {
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted-text);
+}
+
+.metaGrid dd {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.notes {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.loading,
+.emptyState {
+  margin: 0;
+  color: var(--color-muted-text);
+}
+
+.errorMessage {
+  color: var(--color-error);
+  background: rgba(255, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-weight: 600;
+}
+
+.highlight {
+  font-weight: 600;
+}

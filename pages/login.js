@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -8,10 +8,22 @@ import styles from '../styles/Login.module.css';
 
 export default function Login() {
   const router = useRouter();
-  const { refresh, setSession, clearSession } = useSession();
+  const { refresh, setSession, clearSession, user, loading: sessionLoading } = useSession();
 
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (sessionLoading) {
+      return;
+    }
+
+    if (user?.role === 'admin') {
+      router.replace('/admin');
+    } else if (user) {
+      router.replace('/account');
+    }
+  }, [router, sessionLoading, user]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -57,7 +69,9 @@ export default function Login() {
       } catch (refreshError) {
         console.warn('Failed to refresh session after login', refreshError);
       }
-      router.push('/account');
+
+      const isAdminResponse = Boolean(data?.admin || data?.contact?.role === 'admin');
+      router.push(isAdminResponse ? '/admin' : '/account');
     } catch (err) {
       console.error('Login failed', err);
       clearSession();
@@ -82,7 +96,14 @@ export default function Login() {
           <h2>Sign in</h2>
           <form onSubmit={handleSubmit}>
             <label htmlFor="email">Email address</label>
-            <input id="email" name="email" type="email" autoComplete="email" required disabled={loading} />
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              disabled={loading || sessionLoading}
+            />
             <label htmlFor="password">Password</label>
             <input
               id="password"
@@ -90,16 +111,22 @@ export default function Login() {
               type="password"
               autoComplete="current-password"
               required
-              disabled={loading}
+              disabled={loading || sessionLoading}
             />
             <div className={styles.formFooter}>
               <label htmlFor="staySignedIn">
-                <input id="staySignedIn" name="staySignedIn" type="checkbox" disabled={loading} /> Stay signed in
+                <input
+                  id="staySignedIn"
+                  name="staySignedIn"
+                  type="checkbox"
+                  disabled={loading || sessionLoading}
+                />{' '}
+                Stay signed in
               </label>
               <Link href="#">Forgot Password?</Link>
             </div>
-            <button type="submit" className={styles.button} disabled={loading}>
-              {loading ? 'Signing in…' : 'Sign in'}
+            <button type="submit" className={styles.button} disabled={loading || sessionLoading}>
+              {loading || sessionLoading ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
           {status ? <p className={styles.status}>{status}</p> : null}

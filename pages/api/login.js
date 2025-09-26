@@ -1,5 +1,6 @@
 import { loginPortalAccount, resolvePortalContact } from '../../lib/apex27-portal.js';
 
+import { authenticateAdmin, createAdminSessionPayload } from '../../lib/admin-users.mjs';
 import { applyApiHeaders, handlePreflight } from '../../lib/api-helpers.js';
 import { clearSession, writeSession } from '../../lib/session.js';
 
@@ -20,6 +21,28 @@ export default async function handler(req, res) {
   const { email, password } = req.body || {};
   if (!email || !password) {
     res.status(400).json({ error: 'Email and password are required' });
+    return;
+  }
+
+  const adminProfile = authenticateAdmin({ email, password });
+  if (adminProfile) {
+    try {
+      const sessionPayload = createAdminSessionPayload(adminProfile);
+      if (!sessionPayload) {
+        throw new Error('Invalid admin session payload');
+      }
+
+      writeSession(res, sessionPayload);
+    } catch (sessionError) {
+      console.error('Failed to persist admin session during login', sessionError);
+      clearSession(res);
+      res.status(500).json({ error: 'Unable to persist session' });
+      return;
+    }
+
+    res
+      .status(200)
+      .json({ ok: true, contact: adminProfile, token: null, email: adminProfile.email, admin: true });
     return;
   }
 

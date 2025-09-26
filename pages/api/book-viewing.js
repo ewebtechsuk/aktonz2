@@ -5,6 +5,7 @@ import {
   sendMailOrThrow,
 } from '../../lib/mailer.mjs';
 
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS,GET,HEAD');
@@ -61,6 +62,7 @@ export default async function handler(req, res) {
     const from = resolveFromAddress();
     const aktonzRecipients = getNotificationRecipients();
 
+
     await sendMailOrThrow(
       transporter,
       {
@@ -112,6 +114,7 @@ export default async function handler(req, res) {
       res.status(502).json({ error: 'Email delivery failed.' });
       return;
     }
+
 
     console.error('Failed to book viewing', err);
     res.status(500).json({ error: 'Failed to book viewing' });
