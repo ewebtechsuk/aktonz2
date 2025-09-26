@@ -231,6 +231,7 @@ export default function AdminValuationsPage() {
       setGallerySections(sections);
       setGalleryAvailable(payload.gallery?.available !== false);
 
+
       const nextStatusOptions = resolveStatusOptions(payload);
       if (nextStatusOptions.length) {
         setStatusOptions(nextStatusOptions);
@@ -801,6 +802,7 @@ export default function AdminValuationsPage() {
                                 ? `Personalise the ${getPresentationLabel(activePresentationDetails)} presentation before sharing it with the client.`
                                 : 'This presentation will be saved with the valuation record.'
                               : 'Pick a presentation to tailor the proposal for this property.'}
+
                       </p>
                     </div>
 
