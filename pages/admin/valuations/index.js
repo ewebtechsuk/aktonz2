@@ -191,6 +191,7 @@ export default function AdminValuationsPage() {
   const [valuations, setValuations] = useState([]);
   const [statusOptions, setStatusOptions] = useState(DEFAULT_STATUS_OPTIONS);
   const [gallerySections, setGallerySections] = useState([]);
+  const [galleryAvailable, setGalleryAvailable] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
@@ -228,6 +229,8 @@ export default function AdminValuationsPage() {
 
       const sections = Array.isArray(payload.gallery?.sections) ? payload.gallery.sections : [];
       setGallerySections(sections);
+      setGalleryAvailable(payload.gallery?.available !== false);
+
 
       const nextStatusOptions = resolveStatusOptions(payload);
       if (nextStatusOptions.length) {
@@ -247,6 +250,7 @@ export default function AdminValuationsPage() {
     if (!isAdmin) {
       setValuations([]);
       setGallerySections([]);
+      setGalleryAvailable(true);
       setLoading(false);
       return;
     }
@@ -791,11 +795,14 @@ export default function AdminValuationsPage() {
                         ))}
                       </select>
                       <p className={styles.helperText}>
-                        {formState.presentationId
-                          ? activePresentationDetails
-                            ? `Personalise the ${getPresentationLabel(activePresentationDetails)} presentation before sharing it with the client.`
-                            : 'This presentation will be saved with the valuation record.'
-                          : 'Pick a presentation to tailor the proposal for this property.'}
+                        {!galleryAvailable
+                          ? 'The presentation library is unavailable. Existing selections are shown below, but refresh once the gallery data has been restored to browse new styles.'
+                          : formState.presentationId
+                              ? activePresentationDetails
+                                ? `Personalise the ${getPresentationLabel(activePresentationDetails)} presentation before sharing it with the client.`
+                                : 'This presentation will be saved with the valuation record.'
+                              : 'Pick a presentation to tailor the proposal for this property.'}
+
                       </p>
                     </div>
 

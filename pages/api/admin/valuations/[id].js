@@ -4,7 +4,7 @@ import {
   getValuationStatusOptions,
 } from '../../../../lib/acaboom.mjs';
 import { getAdminFromSession } from '../../../../lib/admin-users.mjs';
-import { listGallerySections } from '../../../../lib/gallery.mjs';
+import { getGalleryOverview } from '../../../../lib/gallery.mjs';
 import { readSession } from '../../../../lib/session.js';
 
 function resolveId(param) {
@@ -34,9 +34,9 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const [valuation, gallerySections] = await Promise.all([
+      const [valuation, galleryOverview] = await Promise.all([
         getValuationById(valuationId),
-        listGallerySections(),
+        getGalleryOverview(),
       ]);
 
       if (!valuation) {
@@ -47,7 +47,8 @@ export default async function handler(req, res) {
         valuation,
         statusOptions: getValuationStatusOptions(),
         gallery: {
-          sections: gallerySections,
+          sections: galleryOverview.sections,
+          available: galleryOverview.available,
         },
       });
     } catch (error) {
