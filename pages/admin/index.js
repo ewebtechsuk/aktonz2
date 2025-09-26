@@ -223,33 +223,6 @@ export default function AdminDashboard() {
     </>
   );
 
-  if (sessionLoading) {
-    return renderLayout(
-      'Aktonz Admin — Loading',
-      <p className={styles.loading}>Checking your admin access…</p>,
-    );
-  }
-
-  if (!isAdmin) {
-    return renderLayout(
-      'Aktonz Admin — Access required',
-      <>
-        <header className={styles.pageHeader}>
-          <div>
-            <p className={styles.pageEyebrow}>Operations</p>
-            <h1 className={styles.pageTitle}>Admin access required</h1>
-          </div>
-        </header>
-        <section className={styles.panel}>
-          <p className={styles.emptyState}>
-            You need to <Link href="/login">sign in with an admin account</Link> to manage valuation
-            requests and offers.
-          </p>
-        </section>
-      </>,
-    );
-  }
-
   const handleConnectMicrosoft = useCallback(async () => {
     let popup = null;
     let authorizationUrl = null;
@@ -324,6 +297,33 @@ export default function AdminDashboard() {
 
     }
   }, []);
+
+  if (sessionLoading) {
+    return renderLayout(
+      'Aktonz Admin — Loading',
+      <p className={styles.loading}>Checking your admin access…</p>,
+    );
+  }
+
+  if (!isAdmin) {
+    return renderLayout(
+      'Aktonz Admin — Access required',
+      <>
+        <header className={styles.pageHeader}>
+          <div>
+            <p className={styles.pageEyebrow}>Operations</p>
+            <h1 className={styles.pageTitle}>Admin access required</h1>
+          </div>
+        </header>
+        <section className={styles.panel}>
+          <p className={styles.emptyState}>
+            You need to <Link href="/login">sign in with an admin account</Link> to manage valuation
+            requests and offers.
+          </p>
+        </section>
+      </>,
+    );
+  }
 
   return renderLayout(
     'Aktonz Admin — Offers & valuations',
