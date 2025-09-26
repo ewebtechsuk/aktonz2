@@ -1,3 +1,4 @@
+import Head from 'next/head';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
@@ -78,7 +79,15 @@ export default function Valuation() {
   };
 
   return (
-    <main className={styles.main}>
+    <>
+      <Head>
+        <title>Book a Property Valuation in London | Aktonz</title>
+        <meta
+          name="description"
+          content="Arrange a free Aktonz property valuation with a local expert and discover the best strategy to sell or let your home."
+        />
+      </Head>
+      <main className={styles.main}>
       <section className={styles.hero}>
         <div className={styles.heroContent}>
           <h1>Book a Property Valuation in London</h1>
@@ -235,6 +244,7 @@ export default function Valuation() {
         </table>
       </section>
     </main>
+    </>
   );
 }
 

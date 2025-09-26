@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
   FaCalendarAlt,
   FaCheckCircle,
@@ -642,6 +642,7 @@ export default function ChatWidget() {
   const knowledge = useMemo(() => createKnowledgeBase(), []);
   const { user, loading: sessionLoading } = useSession();
   const isAuthenticated = Boolean(user);
+  const panelId = useId();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
@@ -1045,6 +1046,7 @@ export default function ChatWidget() {
   return (
     <div className={styles.container} aria-live="polite">
       <div
+        id={panelId}
         className={`${styles.panel} ${isOpen ? styles.panelOpen : ''}`}
         role="dialog"
         aria-modal="false"
@@ -1067,6 +1069,7 @@ export default function ChatWidget() {
             className={styles.closeButton}
             onClick={() => setIsOpen(false)}
             aria-label="Close chat"
+            disabled={!isOpen}
           >
             <FaTimes />
           </button>
@@ -1096,6 +1099,7 @@ export default function ChatWidget() {
               type="button"
               className={styles.suggestion}
               onClick={() => sendMessage(suggestion)}
+              disabled={!isOpen}
             >
               <FaCheckCircle aria-hidden="true" />
               {suggestion}
@@ -1117,13 +1121,14 @@ export default function ChatWidget() {
             onKeyDown={handleKeyDown}
             rows={2}
             aria-label="Message Aktonz support"
+            disabled={!isOpen}
           />
           <button
             type="button"
             className={styles.sendButton}
             onClick={() => sendMessage()}
             aria-label="Send message"
-            disabled={!inputValue.trim()}
+            disabled={!isOpen || !inputValue.trim()}
           >
             <FaPaperPlane />
           </button>
@@ -1135,6 +1140,8 @@ export default function ChatWidget() {
         className={`${styles.launcher} ${isOpen ? styles.launcherActive : ''}`}
         onClick={() => setIsOpen((open) => !open)}
         aria-label={isOpen ? 'Minimise Aktonz support chat' : 'Open Aktonz support chat'}
+        aria-controls={panelId}
+        aria-expanded={isOpen}
       >
         <FaComments aria-hidden="true" />
         <span className={styles.launcherLabel}>{isOpen ? 'Close chat' : 'Need help?'}</span>
