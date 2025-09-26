@@ -4,7 +4,9 @@ import {
   resolveFromAddress,
   sendMailOrThrow,
 } from '../../lib/mailer.mjs';
+
 import { addOffer } from '../../lib/offers.js';
+
 
 
 export default async function handler(req, res) {
@@ -20,6 +22,7 @@ export default async function handler(req, res) {
     res.setHeader('Allow', ['POST', 'GET', 'HEAD']);
     return res.status(405).end('Method Not Allowed');
   }
+
 
   const {
     propertyId,
@@ -70,6 +73,7 @@ export default async function handler(req, res) {
     const transporter = createSmtpTransport();
     const from = resolveFromAddress();
     const aktonzRecipients = getNotificationRecipients();
+
     const frequencyLabel = frequency ? ` ${frequency}` : '';
     const depositNote =
       offer.depositAmount > 0
