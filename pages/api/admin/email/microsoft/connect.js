@@ -49,6 +49,15 @@ const REDIRECT_URI_ENV_KEYS = [
   'AZURE_AD_REDIRECT_URL',
 ];
 
+const TENANT_ID_ENV_KEYS = [
+  'MICROSOFT_TENANT_ID',
+  'NEXT_PUBLIC_MICROSOFT_TENANT_ID',
+  'AZURE_AD_TENANT_ID',
+  'AZURE_TENANT_ID',
+  'AZURE_DIRECTORY_ID',
+  'MSAL_TENANT_ID',
+];
+
 function resolveEnvValue(keys) {
   for (const key of keys) {
     const value = process.env[key];
@@ -133,7 +142,7 @@ function resolveRedirectUri(req) {
 function getOAuthConfiguration(req) {
   const clientId = resolveEnvValue(CLIENT_ID_ENV_KEYS);
   const redirectUri = resolveRedirectUri(req);
-  const tenant = process.env.MICROSOFT_TENANT_ID || 'common';
+  const tenant = resolveEnvValue(TENANT_ID_ENV_KEYS) || 'common';
   const scopes =
     process.env.MICROSOFT_SCOPES || 'offline_access https://graph.microsoft.com/.default';
 

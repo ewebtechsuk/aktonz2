@@ -58,7 +58,7 @@ resulting identifiers through environment variables:
 | --- | --- |
 | `MICROSOFT_CLIENT_ID` | The **Application (client) ID** from Azure App Registration. Equivalent fallbacks supported: `NEXT_PUBLIC_MICROSOFT_CLIENT_ID`, `AZURE_AD_CLIENT_ID`, `MSAL_CLIENT_ID`. |
 | `MICROSOFT_REDIRECT_URI` | The redirect URI you configure on the app registration. Use `https://<your-domain>/api/admin/email/microsoft/callback`. Public fallbacks are supported: `NEXT_PUBLIC_MICROSOFT_REDIRECT_URI`, `NEXT_PUBLIC_MICROSOFT_REDIRECT_URL`, `AZURE_AD_REDIRECT_URI`, `AZURE_AD_REDIRECT_URL`. |
-| `MICROSOFT_TENANT_ID` | (Optional) Your tenant ID. Leave unset to default to `common` for multi-tenant apps. |
+| `MICROSOFT_TENANT_ID` | (Optional) Your tenant ID. Leave unset to default to `common` for multi-tenant apps. Synonymous environment keys such as `AZURE_DIRECTORY_ID`, `AZURE_TENANT_ID`, or `AZURE_AD_TENANT_ID` are also detected. |
 | `MICROSOFT_SCOPES` | (Optional) Custom OAuth scopes. Defaults to `offline_access https://graph.microsoft.com/.default`. |
 
 Once the environment variables are present, restart the server and press
