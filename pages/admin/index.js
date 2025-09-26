@@ -251,6 +251,22 @@ export default function AdminDashboard() {
   }
 
   const handleConnectMicrosoft = useCallback(async () => {
+    let popup = null;
+    let authorizationUrl = null;
+
+    if (typeof window !== 'undefined') {
+      popup = window.open(
+        '',
+        'aktonzMicrosoftAuth',
+        'noopener,noreferrer,width=600,height=720,menubar=no,toolbar=no,location=no,status=no',
+      );
+
+      if (popup && popup.document && popup.document.body) {
+        popup.document.body.innerHTML = `<p style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; color: #111; margin: 1.5rem;">Preparing Microsoft sign-in…</p>`;
+      }
+    }
+
+
     setConnectLoading(true);
     setConnectError(null);
     setConnectStatus(null);
@@ -272,9 +288,14 @@ export default function AdminDashboard() {
       }
 
       if (payload?.authorizationUrl) {
+        authorizationUrl = payload.authorizationUrl;
         setConnectAuthorizationUrl(payload.authorizationUrl);
-        if (typeof window !== 'undefined') {
-          window.location.assign(payload.authorizationUrl);
+        if (popup && !popup.closed) {
+          popup.location.replace(payload.authorizationUrl);
+          popup.focus();
+        } else if (typeof window !== 'undefined') {
+          window.open(payload.authorizationUrl, '_blank', 'noopener,noreferrer');
+
         }
       }
 
@@ -286,8 +307,21 @@ export default function AdminDashboard() {
     } catch (err) {
       console.error('Failed to start Microsoft connection', err);
       setConnectError(err?.message || 'Unable to start the Microsoft connection. Please try again.');
+
+      if (popup && !popup.closed) {
+        popup.close();
+      }
     } finally {
       setConnectLoading(false);
+
+      if (popup && !popup.closed) {
+        if (authorizationUrl) {
+          popup.focus();
+        } else {
+          popup.close();
+        }
+      }
+
     }
   }, []);
 
