@@ -5,7 +5,7 @@ import {
   getValuationStatusOptions,
 } from '../../../lib/acaboom.mjs';
 import { getAdminFromSession } from '../../../lib/admin-users.mjs';
-import { listGallerySections } from '../../../lib/gallery.mjs';
+import { getGalleryOverview } from '../../../lib/gallery.mjs';
 import { readSession } from '../../../lib/session.js';
 
 function requireAdmin(req, res) {
@@ -31,9 +31,9 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const [valuations, gallerySections] = await Promise.all([
+      const [valuations, galleryOverview] = await Promise.all([
         listValuationRequests(),
-        listGallerySections(),
+        getGalleryOverview(),
       ]);
 
       return res.status(200).json({
@@ -41,7 +41,8 @@ export default async function handler(req, res) {
         statuses: VALUATION_STATUSES,
         statusOptions: getValuationStatusOptions(),
         gallery: {
-          sections: gallerySections,
+          sections: galleryOverview.sections,
+          available: galleryOverview.available,
         },
       });
     } catch (error) {
