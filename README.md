@@ -47,6 +47,25 @@ deployed, also set the public equivalents
 are embedded at build time and used by the client-side fallback when no backend
 is available.
 
+### Microsoft 365 admin connection
+
+The admin dashboard can guide you through connecting a shared mailbox using
+Microsoft OAuth. No access to your Microsoft 365 tenant is required—just
+register an **Azure App Registration** under your own account and supply the
+resulting identifiers through environment variables:
+
+| Variable | Description |
+| --- | --- |
+| `MICROSOFT_CLIENT_ID` | The **Application (client) ID** from Azure App Registration. Equivalent fallbacks supported: `NEXT_PUBLIC_MICROSOFT_CLIENT_ID`, `AZURE_AD_CLIENT_ID`, `MSAL_CLIENT_ID`. |
+| `MICROSOFT_REDIRECT_URI` | The redirect URI you configure on the app registration. Use `https://<your-domain>/api/admin/email/microsoft/callback`. Public fallbacks are supported: `NEXT_PUBLIC_MICROSOFT_REDIRECT_URI`, `NEXT_PUBLIC_MICROSOFT_REDIRECT_URL`, `AZURE_AD_REDIRECT_URI`, `AZURE_AD_REDIRECT_URL`. |
+| `MICROSOFT_TENANT_ID` | (Optional) Your tenant ID. Leave unset to default to `common` for multi-tenant apps. |
+| `MICROSOFT_SCOPES` | (Optional) Custom OAuth scopes. Defaults to `offline_access https://graph.microsoft.com/.default`. |
+
+Once the environment variables are present, restart the server and press
+**Connect Microsoft** on the admin page. The browser is redirected to Microsoft
+to finish authorization—no sensitive tenant information needs to be shared with
+the application maintainers.
+
 If the site is deployed to a static host where Next.js API routes are not
 available, set `NEXT_PUBLIC_BOOK_VIEWING_API` to the base listings URL for
 viewing requests (e.g. `https://api.apex27.co.uk/listings`). The property ID and

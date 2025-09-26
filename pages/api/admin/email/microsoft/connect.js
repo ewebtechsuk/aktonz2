@@ -34,19 +34,53 @@ function setStateCookie(res, value) {
   res.setHeader('Set-Cookie', parts.join('; '));
 }
 
+const CLIENT_ID_ENV_KEYS = [
+  'MICROSOFT_CLIENT_ID',
+  'NEXT_PUBLIC_MICROSOFT_CLIENT_ID',
+  'AZURE_AD_CLIENT_ID',
+  'MSAL_CLIENT_ID',
+];
+
+const REDIRECT_URI_ENV_KEYS = [
+  'MICROSOFT_REDIRECT_URI',
+  'NEXT_PUBLIC_MICROSOFT_REDIRECT_URI',
+  'NEXT_PUBLIC_MICROSOFT_REDIRECT_URL',
+  'AZURE_AD_REDIRECT_URI',
+  'AZURE_AD_REDIRECT_URL',
+];
+
+function resolveEnvValue(keys) {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (typeof value === 'string' && value.trim() !== '') {
+      return value.trim();
+    }
+  }
+
+  return null;
+}
+
+function formatMissingEnv(keys) {
+  if (keys.length <= 1) {
+    return keys[0];
+  }
+
+  return `${keys[0]} (or ${keys.slice(1).join(', ')})`;
+}
+
 function getOAuthConfiguration() {
-  const clientId = process.env.MICROSOFT_CLIENT_ID;
-  const redirectUri = process.env.MICROSOFT_REDIRECT_URI;
+  const clientId = resolveEnvValue(CLIENT_ID_ENV_KEYS);
+  const redirectUri = resolveEnvValue(REDIRECT_URI_ENV_KEYS);
   const tenant = process.env.MICROSOFT_TENANT_ID || 'common';
   const scopes =
     process.env.MICROSOFT_SCOPES || 'offline_access https://graph.microsoft.com/.default';
 
   const missing = [];
   if (!clientId) {
-    missing.push('MICROSOFT_CLIENT_ID');
+    missing.push(formatMissingEnv(CLIENT_ID_ENV_KEYS));
   }
   if (!redirectUri) {
-    missing.push('MICROSOFT_REDIRECT_URI');
+    missing.push(formatMissingEnv(REDIRECT_URI_ENV_KEYS));
   }
 
   return {
