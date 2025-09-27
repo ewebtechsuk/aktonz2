@@ -21,7 +21,6 @@
   "license": "ISC",
   "dependencies": {
     "ioredis": "^5.8.0",
-
     "leaflet": "^1.9.4",
     "next": "^15.5.2",
     "nodemailer": "^6.9.11",
