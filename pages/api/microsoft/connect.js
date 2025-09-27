@@ -1,11 +1,22 @@
+const { resolveMicrosoftRedirectUri } = require("../../../lib/ms-redirect");
+
 module.exports = function handler(req, res) {
   const clientId = process.env.MS_CLIENT_ID;
-  const redirectUri = process.env.MS_REDIRECT_URI;
   const scopes = process.env.MS_SCOPES || 'offline_access Mail.Send User.Read';
   const tenant = process.env.MS_TENANT_ID || 'common';
 
-  if (!clientId || !redirectUri) {
+  if (!clientId) {
     res.status(500).json({ error: "missing_ms_config" });
+    return;
+  }
+
+  let redirectUri;
+  try {
+    redirectUri = resolveMicrosoftRedirectUri(req);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'invalid_redirect_uri';
+    console.error('Microsoft connect redirect URI error', message);
+    res.status(500).json({ error: "invalid_redirect_uri" });
     return;
   }
 
