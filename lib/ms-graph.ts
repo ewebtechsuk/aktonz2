@@ -4,7 +4,25 @@ import { clearTokens, readTokens, saveTokens } from './token-store';
 
 export const MS_CLIENT_ID = '04651e3a-82c5-4e03-ba50-574b2bb79cac';
 export const MS_TENANT_ID = '60737a1b-9707-4d7f-9909-0ee943a1ffff';
-export const MS_REDIRECT_URI = 'https://aktonz.com/api/microsoft/callback';
+
+const DEFAULT_PROD_REDIRECT_URI = 'https://aktonz.com/api/microsoft/callback';
+const DEFAULT_DEV_REDIRECT_URI = 'http://localhost:3000/api/admin/email/microsoft/callback';
+
+function requireAbsoluteUrl(value: string, label: string): string {
+  try {
+    return new URL(value).toString();
+  } catch {
+    throw new Error(`${label} must be set to a valid absolute URL`);
+  }
+}
+
+function getRedirectUri(envKey: string, fallback: string): string {
+  const value = process.env[envKey] ?? fallback;
+  return requireAbsoluteUrl(value, envKey);
+}
+
+export const MS_REDIRECT_URI = getRedirectUri('MS_REDIRECT_URI', DEFAULT_PROD_REDIRECT_URI);
+export const MS_DEV_REDIRECT_URI = getRedirectUri('MS_DEV_REDIRECT_URI', DEFAULT_DEV_REDIRECT_URI);
 export const SCOPES = 'offline_access Mail.Send User.Read';
 export const ALLOWED_UPN = 'info@aktonz.com';
 
