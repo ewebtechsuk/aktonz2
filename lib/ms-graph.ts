@@ -36,6 +36,7 @@ function requireAbsoluteUrl(value: string, label: string): string {
     }
 
     return url.toString();
+
   } catch {
     throw new Error(`${label} must be set to a valid absolute URL`);
   }
@@ -59,6 +60,7 @@ function getRedirectUri(envKeys: string[], fallback: string, label: string): str
 
 export const MS_REDIRECT_URI = getRedirectUri(PROD_REDIRECT_ENV_KEYS, DEFAULT_PROD_REDIRECT_URI, 'MS_REDIRECT_URI');
 export const MS_DEV_REDIRECT_URI = getRedirectUri(DEV_REDIRECT_ENV_KEYS, DEFAULT_DEV_REDIRECT_URI, 'MS_DEV_REDIRECT_URI');
+
 export const SCOPES = 'offline_access Mail.Send User.Read';
 export const ALLOWED_UPN = 'info@aktonz.com';
 
