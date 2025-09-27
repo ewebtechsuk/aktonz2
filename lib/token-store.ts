@@ -1,4 +1,4 @@
-import Redis, { RedisOptions } from 'ioredis';
+import { getRedisClient } from './redis-client';
 
 export type StoredTokens = {
   access_token_enc: string;
@@ -10,37 +10,6 @@ export type StoredTokens = {
 
 
 const TOKEN_KEY = 'aktonz:ms:tokens';
-
-let redisClient: Redis | null = null;
-
-function getRedisClient(): Redis {
-  if (redisClient) {
-    return redisClient;
-  }
-
-  const redisUrl = process.env.REDIS_URL;
-  if (!redisUrl) {
-    throw new Error('REDIS_URL environment variable must be set');
-  }
-
-  const parsedUrl = new URL(redisUrl);
-  const shouldForceTls =
-    parsedUrl.protocol === 'rediss:' || /\.redis-cloud\.com$/i.test(parsedUrl.hostname);
-
-  const options: RedisOptions = {
-    maxRetriesPerRequest: 2,
-    enableOfflineQueue: false,
-  };
-
-  if (shouldForceTls) {
-    options.tls = {
-      rejectUnauthorized: true,
-    };
-  }
-
-  redisClient = new Redis(redisUrl, options);
-  return redisClient;
-}
 
 export async function saveTokens(data: StoredTokens): Promise<void> {
   const client = getRedisClient();

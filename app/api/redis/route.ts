@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+
 import { createClient } from 'redis';
 
 const redisClient = createClient({
