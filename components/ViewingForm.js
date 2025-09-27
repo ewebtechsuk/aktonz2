@@ -79,13 +79,13 @@ export default function ViewingForm({ property }) {
         open={open}
         onClose={handleClose}
         title="Book a viewing"
-        description="Let us know when you'd like to see this home and we'll confirm the appointment."
+        description="Let us know when you&apos;d like to see this home and we&apos;ll confirm the appointment."
         property={property}
       >
         {sent ? (
           <div className={styles.feedback}>
             <h3>Request received</h3>
-            <p>Thank you, we'll be in touch soon to confirm the viewing.</p>
+            <p>Thank you, we&apos;ll be in touch soon to confirm the viewing.</p>
             <button type="button" className={styles.feedbackButton} onClick={handleClose}>
               Close
             </button>

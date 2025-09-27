@@ -1,21 +1,44 @@
 import { NextResponse } from 'next/server';
+import { createClient, RedisClientType } from 'redis';
 
-import { createClient } from 'redis';
+let redisClient: RedisClientType | null = null;
+let redisConnection: Promise<RedisClientType> | null = null;
 
-const redisClient = createClient({
-  url: process.env.REDIS_URL,
-});
+const ensureRedis = () => {
+  if (!process.env.REDIS_URL) {
+    return null;
+  }
 
-redisClient.on('error', (error) => {
-  console.error('Redis Client Error:', error);
-});
+  if (!redisClient) {
+    redisClient = createClient({
+      url: process.env.REDIS_URL,
+    });
 
-const redisConnection = redisClient.connect();
+    redisClient.on('error', (error) => {
+      console.error('Redis Client Error:', error);
+    });
+
+    redisConnection = redisClient.connect();
+  }
+
+  return { client: redisClient, connection: redisConnection };
+};
 
 export const POST = async () => {
-  await redisConnection;
+  const redis = ensureRedis();
 
-  const result = await redisClient.get('item');
+  if (!redis) {
+    return NextResponse.json({ error: 'Redis is not configured.' }, { status: 503 });
+  }
 
-  return NextResponse.json({ result });
+  try {
+    await redis.connection;
+
+    const result = await redis.client.get('item');
+
+    return NextResponse.json({ result });
+  } catch (error) {
+    console.error('Redis request failed:', error);
+    return NextResponse.json({ error: 'Unable to read data from Redis.' }, { status: 500 });
+  }
 };
