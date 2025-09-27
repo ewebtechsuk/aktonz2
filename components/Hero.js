@@ -5,8 +5,9 @@ export default function Hero() {
   return (
     <section className={styles.hero}>
       <div className={styles.heroContent}>
-        <h2>London&apos;s Estate Agent</h2>
-        <p className={styles.subtitle}>Get it done with London&apos;s number one</p>
+        <h2>London&rsquo;s Estate Agent</h2>
+        <p className={styles.subtitle}>Get it done with London&rsquo;s number one</p>
+
         <SearchBar />
       </div>
     </section>

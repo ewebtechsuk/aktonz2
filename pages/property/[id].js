@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import PropertyList from '../../components/PropertyList';
 import MediaGallery from '../../components/MediaGallery';
 import OfferDrawer from '../../components/OfferDrawer';
@@ -226,6 +225,22 @@ export default function Property({ property, recommendations }) {
     !property.rentFrequency && property.pricePrefix
       ? formatPricePrefix(property.pricePrefix)
       : '';
+  const mapProperties = hasLocation
+    ? [
+        {
+          id: property.id,
+          title: property.title,
+          price: property.price,
+          rentFrequency: property.rentFrequency,
+          tenure: property.tenure ?? null,
+          image: property.image ?? null,
+          propertyType: property.propertyType ?? property.type ?? null,
+          lat: property.latitude,
+          lng: property.longitude,
+        },
+      ]
+    : [];
+
 
   return (
     <>

@@ -40,7 +40,8 @@ export default function PropertyManagement() {
       </section>
 
       <section className={styles.included}>
-        <h2>What&apos;s included?</h2>
+        <h2>What&rsquo;s included?</h2>
+
         <table className={styles.table}>
           <thead>
             <tr>
@@ -119,7 +120,7 @@ export default function PropertyManagement() {
 
       <section className={styles.testimonial}>
         <blockquote>
-          “Aktonz handled everything for my rental – I couldn’t be happier.”
+          “Aktonz handled everything for my rental – I couldn&rsquo;t be happier.”
         </blockquote>
         <p className={styles.cite}>– Happy Landlord</p>
       </section>
