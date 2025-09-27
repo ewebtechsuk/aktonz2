@@ -14,6 +14,15 @@ function withNoSniff(headers) {
 
 const staticHeaders = [
   {
+    source: '/((?!_next/static).*)',
+    headers: withNoSniff([
+      {
+        key: 'Cache-Control',
+        value: 'no-cache, max-age=0, s-maxage=0',
+      },
+    ]),
+  },
+  {
     source: '/_next/static/:buildId/_buildManifest.js',
     headers: withNoSniff([
       {
@@ -78,7 +87,7 @@ const staticHeaders = [
     headers: withNoSniff([
       {
         key: 'Cache-Control',
-        value: 'no-store',
+        value: 'no-cache, max-age=0, s-maxage=0',
       },
     ]),
 
@@ -88,7 +97,7 @@ const staticHeaders = [
     headers: withNoSniff([
       {
         key: 'Cache-Control',
-        value: 'no-store',
+        value: 'no-cache, max-age=0, s-maxage=0',
       },
     ]),
 
