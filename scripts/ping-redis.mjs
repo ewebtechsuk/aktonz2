@@ -22,9 +22,25 @@ if (needsTls && parsedUrl.protocol !== 'rediss:') {
   parsedUrl.protocol = 'rediss:';
 }
 
+const connectionUrl = parsedUrl.toString();
 const options = needsTls ? { tls: { servername: parsedUrl.hostname } } : undefined;
 
-const redis = new Redis(parsedUrl.toString(), options);
+function formatUrlForDisplay(urlString) {
+  try {
+    const url = new URL(urlString);
+    if (url.password) {
+      url.password = '***';
+    }
+    return url.toString();
+  } catch (error) {
+    return urlString;
+  }
+}
+
+console.log('Connecting to', formatUrlForDisplay(connectionUrl));
+
+const redis = new Redis(connectionUrl, options);
+
 
 async function main() {
   try {
