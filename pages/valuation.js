@@ -45,28 +45,38 @@ export default function Valuation() {
         body: JSON.stringify(formValues),
       });
 
+      const body = await response.json().catch(() => null);
+
       if (!response.ok) {
-        const body = await response.json().catch(() => null);
         const errorMessage = body?.error || 'We could not process your valuation request.';
         throw new Error(errorMessage);
       }
 
+      const notifications = body?.notifications;
+      const emailsSent = notifications?.sent !== false;
+
+      const successMessages = emailsSent
+        ? {
+            redirect:
+              'Thanks! Please check your email to activate your account. Redirecting you to your dashboard…',
+            fallback:
+              'Thanks! Please check your email to activate your account. You can continue to your account at /account.',
+          }
+        : {
+            redirect:
+              'Thanks! Your valuation request has been received. Email notifications are currently unavailable, but our team will follow up shortly. Redirecting you to your dashboard…',
+            fallback:
+              'Thanks! Your valuation request has been received. Email notifications are currently unavailable. You can continue to your account at /account.',
+          };
+
       setFormValues(INITIAL_FORM);
-      setStatus({
-        type: 'success',
-        message:
-          'Thanks! Please check your email to activate your account. Redirecting you to your dashboard…',
-      });
+      setStatus({ type: 'success', message: successMessages.redirect });
 
       try {
         await router.push('/account');
       } catch (navigationError) {
         console.error('Failed to redirect to account after valuation submission', navigationError);
-        setStatus({
-          type: 'success',
-          message:
-            'Thanks! Please check your email to activate your account. You can continue to your account at /account.',
-        });
+        setStatus({ type: 'success', message: successMessages.fallback });
       }
     } catch (error) {
       setStatus({

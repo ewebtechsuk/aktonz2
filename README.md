@@ -92,6 +92,7 @@ For the existing Aktonz email connector registration you will need to capture
 these identifiers from Azure:
 
 * **Application (client) ID:** `28c9d37b-2c2b-4d49-9ac4-4c180967bc7c`.
+
 * **Client secret value:** create (or rotate) a secret under **Certificates &
   secrets**, then copy the **Value** column immediately—Azure will not display
   it again.
@@ -102,6 +103,7 @@ these values (update the secret and tenant ID if you rotate them in Azure):
 
 ```
 MS_CLIENT_ID=28c9d37b-2c2b-4d49-9ac4-4c180967bc7c
+
 MS_CLIENT_SECRET=<client secret value>
 MS_TENANT_ID=<directory tenant id>
 MS_REDIRECT_URI=https://aktonz.com/api/microsoft/callback
@@ -141,6 +143,7 @@ npm run check-ms-connector
 The script inspects the supported environment variable aliases and calls out
 any mandatory settings (such as `MS_CLIENT_ID`/`MICROSOFT_CLIENT_ID`) that are
 still missing.
+
 
 ### Troubleshooting pull request creation
 
