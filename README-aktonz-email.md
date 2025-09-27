@@ -3,7 +3,7 @@
 ## Azure AD configuration
 - App Registration → **API permissions (Delegated)**: add `Mail.Send`, `offline_access`, and `User.Read`, then click **Grant admin consent** for the tenant.
 - App Registration → **Authentication**: confirm `https://aktonz.com/api/microsoft/callback` exists and add the dev URI `http://localhost:3000/api/admin/email/microsoft/callback`.
-- App Registration → **Certificates & secrets**: create a new client secret named `aktonz-prod`, copy the **Value**, update the Vercel env var, and delete any old secrets.
+- App Registration → **Certificates & secrets**: use the client secret named `aktonz-email-connector-2` (secret ID `5ac90759-6286-48c0-98b2-5a2aa19d7e6d`). Copy the latest **Value** from Azure, update the Vercel env var, and delete any old secrets.
 - App Registration → **Supported account types**: keep the app single-tenant.
 - Authentication → **Implicit/hybrid flows**: ensure all toggles remain **Off**.
 

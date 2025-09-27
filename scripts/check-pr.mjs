@@ -29,6 +29,8 @@ function parseAheadBehind(statusOutput) {
   };
 }
 
+let hasIssues = false;
+
 console.log('Pull request readiness check');
 console.log('');
 
@@ -55,24 +57,40 @@ if (!statusResult.ok) {
   }
   process.exitCode = 1;
 } else if (statusResult.output) {
+  hasIssues = true;
   console.log('- Working tree has uncommitted changes. Stage and commit them before creating a PR.');
 } else {
   console.log('- Working tree is clean.');
 }
 
+const remotesResult = runGit(['remote']);
+const remoteNames = remotesResult.ok && remotesResult.output ? remotesResult.output.split('\n').filter(Boolean) : [];
+const hasAnyRemotes = remoteNames.length > 0;
+
 const remoteResult = runGit(['remote', 'get-url', 'origin']);
+const hasOriginRemote = remoteResult.ok;
 if (!remoteResult.ok) {
-  console.log("- No 'origin' remote is configured. Add one with 'git remote add origin <url>' or push to your fork.");
+  if (hasAnyRemotes) {
+    hasIssues = true;
+    console.log("- No 'origin' remote is configured. Add one with 'git remote add origin <url>' or push to your fork.");
+  } else {
+    console.log("- No Git remotes are configured yet. Add 'origin' when you're ready to push a PR.");
+  }
 } else {
   console.log(`- origin remote: ${remoteResult.output}`);
 }
 
 const upstreamResult = runGit(['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}']);
 if (!upstreamResult.ok) {
-  if (branchName) {
-    console.log(`- No upstream tracking branch. Push with 'git push --set-upstream origin ${branchName}'.`);
+  if (hasAnyRemotes) {
+    hasIssues = true;
+    if (branchName) {
+      console.log(`- No upstream tracking branch. Push with 'git push --set-upstream origin ${branchName}'.`);
+    } else {
+      console.log("- No upstream tracking branch. Push with 'git push --set-upstream origin <branch-name>'.");
+    }
   } else {
-    console.log("- No upstream tracking branch. Push with 'git push --set-upstream origin <branch-name>'.");
+    console.log('- Skipping upstream tracking check until a remote is added.');
   }
 } else {
   console.log(`- Tracking remote branch: ${upstreamResult.output}`);
@@ -90,6 +108,7 @@ if (!upstreamResult.ok) {
 
 const emailResult = runGit(['config', '--get', 'user.email']);
 if (!emailResult.ok || !emailResult.output) {
+  hasIssues = true;
   console.log('- Git user.email is not set. Configure it with `git config user.email "you@example.com"`.');
 }
 
@@ -106,7 +125,17 @@ if (branchName) {
   console.log('  gh pr create --base main --head <your-branch>');
 }
 
-if (process.exitCode && process.exitCode !== 0) {
+if (hasIssues || (process.exitCode && process.exitCode !== 0)) {
+  process.exitCode = 1;
   console.log('');
   console.log('Resolve the issues above and re-run the check before trying again.');
+} else {
+  console.log('');
+  if (!hasAnyRemotes) {
+    console.log("Configure an 'origin' remote (git remote add origin <url>) before you push and open a PR.");
+  } else if (!hasOriginRemote) {
+    console.log("Add an 'origin' remote so the branch can be pushed before creating a PR.");
+  } else {
+    console.log('All set! Push your branch and retry PR creation if needed.');
+  }
 }

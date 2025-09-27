@@ -111,6 +111,11 @@ MS_SCOPES="offline_access Mail.Send User.Read"
 TOKEN_ENCRYPTION_KEY=<generate a long random string>
 ```
 
+> **Current production secret (September 2025):** `aktonz-email-connector-2`
+> (secret ID `5ac90759-6286-48c0-98b2-5a2aa19d7e6d`). Copy the secret **Value**
+> directly from Azure and update the `MS_CLIENT_SECRET` environment variable in
+> each required Vercel environment.
+
 > ⚠️ Rotate the client secret if it has ever been shared outside Azure. Delete
 > superseded secrets so they can no longer be used.
 
@@ -157,12 +162,17 @@ diagnostics and then work through the manual checklist below.
 npm run check-pr
 ```
 
-The script validates that:
+The script highlights anything that would block pull-request creation:
 
-* your working tree is committed,
-* a remote called `origin` is configured,
-* the current branch tracks a remote branch, and
-* the branch has been pushed so GitHub can see it.
+* uncommitted changes in your working tree,
+* a missing or misconfigured `origin` remote,
+* branches without an upstream tracking branch, and
+* unpushed commits waiting locally.
+
+If other remotes exist but `origin`/the upstream branch is missing, the command
+exits with a non-zero status so you can fix those items before trying again. In
+an entirely fresh clone (no remotes yet) it prints informational guidance about
+adding `origin` without failing the run.
 
 It also surfaces actionable commands—such as `git push --set-upstream`—so you
 can fix the detected issues before retrying PR creation from the terminal or the
