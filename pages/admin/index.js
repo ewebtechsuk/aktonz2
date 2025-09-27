@@ -340,7 +340,7 @@ export default function AdminDashboard() {
       if (payload?.message) {
         setConnectStatus(payload.message);
       } else {
-        setConnectStatus('Follow the Microsoft sign-in flow to finish configuring email.');
+        setConnectStatus('Follow the Microsoft 365 sign-in flow to finish configuring email.');
       }
     } catch (err) {
       console.error('Failed to start Microsoft connection', err);
@@ -417,8 +417,13 @@ export default function AdminDashboard() {
               className={styles.integrationButton}
               onClick={handleConnectMicrosoft}
               disabled={connectLoading}
+              aria-label={
+                connectLoading
+                  ? 'Connecting to Microsoft 365'
+                  : 'Connect Aktonz to Microsoft 365 email'
+              }
             >
-              {connectLoading ? 'Connecting…' : 'Connect to Microsoft'}
+              {connectLoading ? 'Connecting…' : 'Connect Microsoft 365'}
             </button>
           </div>
         </div>
