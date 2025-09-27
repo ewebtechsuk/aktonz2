@@ -13,6 +13,7 @@
     "check-pr": "node scripts/check-pr.mjs",
     "check-ms-connector": "node scripts/check-ms-connector.mjs",
     "monitor": "node scripts/monitor-prices.js",
+    "ping-redis": "node scripts/ping-redis.mjs",
     "sync:scraye": "node scripts/syncScraye.mjs"
   },
   "keywords": [],
