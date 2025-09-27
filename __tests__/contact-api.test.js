@@ -1,22 +1,8 @@
-const mockSendMail = jest.fn();
-const mockCreateTransport = jest.fn(() => ({ sendMail: mockSendMail }));
+const mockSendMailGraph = jest.fn();
 
-jest.mock('nodemailer', () => ({
-  __esModule: true,
-  default: {
-    createTransport: mockCreateTransport,
-  },
-  createTransport: mockCreateTransport,
+jest.mock('../lib/ms-graph', () => ({
+  sendMailGraph: (...args) => mockSendMailGraph(...args),
 }));
-
-const originalEnv = { ...process.env };
-
-const resetEnv = () => {
-  Object.keys(process.env).forEach((key) => {
-    delete process.env[key];
-  });
-  Object.assign(process.env, originalEnv);
-};
 
 const createMockRes = () => {
   const res = {};
@@ -34,37 +20,12 @@ const createMockRes = () => {
 };
 
 describe('contact API email delivery', () => {
-  let consoleErrorSpy;
-
   beforeEach(() => {
-    mockSendMail.mockReset();
-    mockCreateTransport.mockReset();
-    mockCreateTransport.mockImplementation(() => ({ sendMail: mockSendMail }));
-    resetEnv();
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockSendMailGraph.mockReset();
   });
 
-  afterEach(() => {
-    consoleErrorSpy.mockRestore();
-    resetEnv();
-  });
-
-  afterAll(() => {
-    resetEnv();
-  });
-
-  test('sends messages to Aktonz and the visitor when SMTP accepts both', async () => {
-    mockSendMail
-      .mockResolvedValueOnce({ accepted: ['info@aktonz.com'] })
-      .mockResolvedValueOnce({ accepted: ['buyer@example.com'] });
-
-    Object.assign(process.env, {
-      SMTP_HOST: 'smtp.office365.com',
-      SMTP_USER: 'info@aktonz.com',
-      SMTP_PASS: 'secret',
-      SMTP_SECURE: 'false',
-      AKTONZ_EMAIL: 'info@aktonz.com',
-    });
+  test('sends contact submissions to Microsoft Graph', async () => {
+    mockSendMailGraph.mockResolvedValueOnce(undefined);
 
     const req = {
       method: 'POST',
@@ -77,39 +38,23 @@ describe('contact API email delivery', () => {
     const res = createMockRes();
 
     await jest.isolateModulesAsync(async () => {
-      const { default: handler } = await import('../lib/api/contact-handler.mjs');
+      const handler = require('../pages/api/contact.js');
       await handler(req, res);
     });
 
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ ok: true });
-    expect(mockCreateTransport).toHaveBeenCalledTimes(1);
-    expect(mockSendMail).toHaveBeenCalledTimes(2);
-    expect(mockSendMail).toHaveBeenNthCalledWith(
-      1,
+    expect(mockSendMailGraph).toHaveBeenCalledTimes(1);
+    expect(mockSendMailGraph).toHaveBeenCalledWith(
       expect.objectContaining({
         to: ['info@aktonz.com'],
-        replyTo: 'buyer@example.com',
-      })
-    );
-    expect(mockSendMail).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        to: 'buyer@example.com',
+        subject: 'New contact from Buyer',
       })
     );
   });
 
-  test('returns 502 when the SMTP server rejects Aktonz recipients', async () => {
-    mockSendMail.mockResolvedValueOnce({ accepted: [] });
-
-    Object.assign(process.env, {
-      SMTP_HOST: 'smtp.office365.com',
-      SMTP_USER: 'info@aktonz.com',
-      SMTP_PASS: 'secret',
-      SMTP_SECURE: 'false',
-      AKTONZ_EMAIL: 'info@aktonz.com',
-    });
+  test('returns 500 when Microsoft Graph fails', async () => {
+    mockSendMailGraph.mockRejectedValueOnce(new Error('Graph error'));
 
     const req = {
       method: 'POST',
@@ -122,12 +67,12 @@ describe('contact API email delivery', () => {
     const res = createMockRes();
 
     await jest.isolateModulesAsync(async () => {
-      const { default: handler } = await import('../lib/api/contact-handler.mjs');
+      const handler = require('../pages/api/contact.js');
       await handler(req, res);
     });
 
-    expect(res.status).toHaveBeenCalledWith(502);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Email delivery failed.' });
-    expect(mockSendMail).toHaveBeenCalledTimes(1);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'Graph error' });
+    expect(mockSendMailGraph).toHaveBeenCalledTimes(1);
   });
 });

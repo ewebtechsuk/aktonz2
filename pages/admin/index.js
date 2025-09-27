@@ -50,10 +50,6 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
-  const [connectLoading, setConnectLoading] = useState(false);
-  const [connectError, setConnectError] = useState(null);
-  const [connectStatus, setConnectStatus] = useState(null);
-  const [connectAuthorizationUrl, setConnectAuthorizationUrl] = useState(null);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [logoutError, setLogoutError] = useState(null);
   const router = useRouter();
@@ -275,94 +271,6 @@ export default function AdminDashboard() {
     </>
   );
 
-  const handleConnectMicrosoft = useCallback(async () => {
-    let popup = null;
-    let authorizationUrl = null;
-
-    if (typeof window !== 'undefined') {
-      popup = window.open(
-        '',
-        'aktonzMicrosoftAuth',
-        'noopener,noreferrer,width=600,height=720,menubar=no,toolbar=no,location=no,status=no',
-      );
-
-      if (popup && popup.document && popup.document.body) {
-        popup.document.body.innerHTML = `<p style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; color: #111; margin: 1.5rem;">Preparing Microsoft sign-in…</p>`;
-      }
-    }
-
-
-    setConnectLoading(true);
-    setConnectError(null);
-    setConnectStatus(null);
-    setConnectAuthorizationUrl(null);
-
-    try {
-      const response = await fetch('/api/admin/email/microsoft/connect', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-      });
-
-      const payload = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        const message =
-          (payload && (payload.error || payload.message)) ||
-          'Unable to start the Microsoft connection. Please try again.';
-        throw new Error(message);
-      }
-
-      if (payload?.requiresConfiguration) {
-        const missing = Array.isArray(payload?.missing)
-          ? payload.missing.join(', ')
-          : null;
-        setConnectError(
-          payload?.message ||
-            (missing
-              ? `Configure these Microsoft settings before connecting: ${missing}.`
-              : 'Configure the Microsoft integration settings before connecting.'),
-        );
-        return;
-      }
-
-      if (payload?.authorizationUrl) {
-        authorizationUrl = payload.authorizationUrl;
-        setConnectAuthorizationUrl(payload.authorizationUrl);
-        if (popup && !popup.closed) {
-          popup.location.replace(payload.authorizationUrl);
-          popup.focus();
-        } else if (typeof window !== 'undefined') {
-          window.open(payload.authorizationUrl, '_blank', 'noopener,noreferrer');
-
-        }
-      }
-
-      if (payload?.message) {
-        setConnectStatus(payload.message);
-      } else {
-        setConnectStatus('Follow the Microsoft 365 sign-in flow to finish configuring email.');
-      }
-    } catch (err) {
-      console.error('Failed to start Microsoft connection', err);
-      setConnectError(err?.message || 'Unable to start the Microsoft connection. Please try again.');
-
-      if (popup && !popup.closed) {
-        popup.close();
-      }
-    } finally {
-      setConnectLoading(false);
-
-      if (popup && !popup.closed) {
-        if (authorizationUrl) {
-          popup.focus();
-        } else {
-          popup.close();
-        }
-      }
-
-    }
-  }, []);
-
   if (sessionLoading) {
     return renderLayout(
       'Aktonz Admin — Loading',
@@ -409,37 +317,19 @@ export default function AdminDashboard() {
         <div className={styles.panelHeader}>
           <div>
             <h2>Microsoft 365 email</h2>
-            <p>Connect Aktonz to Microsoft 365 to automatically configure SMTP email delivery.</p>
+            <p>Connect the info@aktonz.com mailbox so Aktonz can send website forms through Microsoft Graph.</p>
           </div>
           <div className={styles.integrationActions}>
-            <button
-              type="button"
-              className={styles.integrationButton}
-              onClick={handleConnectMicrosoft}
-              disabled={connectLoading}
-              aria-label={
-                connectLoading
-                  ? 'Connecting to Microsoft 365'
-                  : 'Connect Aktonz to Microsoft 365 email'
-              }
-            >
-              {connectLoading ? 'Connecting…' : 'Connect Microsoft 365'}
-            </button>
+            <Link href="/api/microsoft/connect" className={styles.integrationButton}>
+              Connect Microsoft 365
+            </Link>
           </div>
         </div>
         <div className={styles.integrationDetails}>
-          {connectError ? <p className={styles.integrationError}>{connectError}</p> : null}
-          {connectStatus ? <p className={styles.integrationStatus}>{connectStatus}</p> : null}
-          {connectAuthorizationUrl ? (
-            <p className={styles.integrationStatus}>
-              Not redirected?{' '}
-              <a href={connectAuthorizationUrl}>Continue to Microsoft in a new tab</a>.
-            </p>
-          ) : null}
           <ul className={styles.integrationList}>
-            <li>Sign in with the Microsoft 365 mailbox responsible for Aktonz email.</li>
-            <li>Grant the requested permissions so we can retrieve SMTP configuration.</li>
-            <li>Return to this dashboard once Microsoft confirms the connection.</li>
+            <li>Sign in with info@aktonz.com when Microsoft prompts for an account.</li>
+            <li>Grant the requested permissions so Aktonz can send messages via Microsoft Graph.</li>
+            <li>Tokens are encrypted and saved to <code>.aktonz-ms-tokens.json</code> on the server.</li>
           </ul>
         </div>
       </section>
