@@ -11,12 +11,20 @@ export default function PropertyList({ properties }) {
           return null;
         }
         const propertyId = resolvePropertyIdentifier(property);
+        const explicitKey = property?._cardKey;
 
         const cardProps =
           propertyId && property?.id !== propertyId
             ? { ...property, id: propertyId }
             : property;
-        const key = propertyId ?? `${property?.title ?? 'property'}-${index}`;
+        const keyBase =
+          propertyId ??
+          property?.id ??
+          property?.reference ??
+          property?.fullReference ??
+          property?.title ??
+          'property';
+        const key = explicitKey ?? `${keyBase}-${index}`;
 
         const externalUrl = property.externalUrl;
         if (!propertyId) {
