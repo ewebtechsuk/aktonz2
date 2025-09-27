@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { loadTokenSet } from '../../../lib/token-store';
+import { readTokens } from '../../../lib/token-store';
+
 
 interface StatusResponse {
   connected: boolean;
@@ -20,21 +21,24 @@ export default async function handler(
   }
 
   try {
-    const tokenSet = await loadTokenSet();
+    const tokens = await readTokens();
 
-    if (!tokenSet) {
+    if (!tokens) {
+
       res.status(200).json({ connected: false });
       return;
     }
 
-    const expiresInSeconds = Math.max(0, Math.round((tokenSet.expiresAt - Date.now()) / 1000));
+    const expiresAt = tokens.obtained_at + tokens.expires_in * 1000;
+    const expiresInSeconds = Math.max(0, Math.round((expiresAt - Date.now()) / 1000));
 
     res.status(200).json({
       connected: true,
-      expiresAt: tokenSet.expiresAt,
+      expiresAt,
       expiresInSeconds,
-      scope: tokenSet.scope ?? null,
-      tokenType: tokenSet.tokenType ?? null,
+      scope: null,
+      tokenType: null,
+
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

@@ -1,5 +1,6 @@
-import { encryptText, decryptText } from './crypto-util';
-import { clearTokenSet, loadTokenSet, saveTokenSet } from './token-store';
+import { encryptText, decryptText, deserializeEncryptedPayload, serializeEncryptedPayload } from './crypto-util';
+import { clearTokens, readTokens, saveTokens } from './token-store';
+
 
 export const MS_CLIENT_ID = '04651e3a-82c5-4e03-ba50-574b2bb79cac';
 export const MS_TENANT_ID = '60737a1b-9707-4d7f-9909-0ee943a1ffff';
@@ -29,20 +30,24 @@ export function getClientSecret(): string {
 }
 
 export async function getValidAccessToken(): Promise<string> {
-  const tokenSet = await loadTokenSet();
+  const tokenSet = await readTokens();
+
 
   if (!tokenSet) {
     throw new Error('Microsoft Graph connector is not yet configured. Connect via the admin dashboard.');
   }
 
-  const now = Date.now();
-  const refreshThreshold = now + 60_000; // refresh 60 seconds before expiry
+  const expiresAt = tokenSet.obtained_at + tokenSet.expires_in * 1000;
+  const refreshThreshold = Date.now() + 60_000; // refresh 60 seconds before expiry
 
-  if (tokenSet.expiresAt > refreshThreshold) {
-    return decryptText(tokenSet.encryptedAccessToken);
+  if (expiresAt > refreshThreshold) {
+    const encryptedAccess = deserializeEncryptedPayload(tokenSet.access_token_enc);
+    return decryptText(encryptedAccess);
   }
 
-  const refreshToken = decryptText(tokenSet.encryptedRefreshToken);
+  const encryptedRefresh = deserializeEncryptedPayload(tokenSet.refresh_token_enc);
+  const refreshToken = decryptText(encryptedRefresh);
+
   const params = new URLSearchParams({
     client_id: MS_CLIENT_ID,
     scope: SCOPES,
@@ -58,26 +63,29 @@ export async function getValidAccessToken(): Promise<string> {
   });
 
   if (!response.ok) {
-    await clearTokenSet();
+    await clearTokens();
+
     throw new Error(`Failed to refresh Microsoft Graph tokens (${response.status})`);
   }
 
   const result = (await response.json()) as RefreshResponse;
 
   if (!result.access_token || !result.refresh_token) {
-    await clearTokenSet();
+    await clearTokens();
+
     throw new Error('Microsoft Graph token refresh returned an unexpected payload');
   }
 
   const expiresInSeconds = result.expires_in ?? 0;
-  const expiresAt = Date.now() + Math.max(0, expiresInSeconds - 60) * 1000; // 60-second safety window
+  const obtainedAt = Date.now();
 
-  await saveTokenSet({
-    encryptedAccessToken: encryptText(result.access_token),
-    encryptedRefreshToken: encryptText(result.refresh_token),
-    expiresAt,
-    scope: result.scope,
-    tokenType: result.token_type,
+  await saveTokens({
+    access_token_enc: serializeEncryptedPayload(encryptText(result.access_token)),
+    refresh_token_enc: serializeEncryptedPayload(encryptText(result.refresh_token)),
+    expires_in: expiresInSeconds,
+    obtained_at: obtainedAt,
+    account: tokenSet.account,
+
   });
 
   return result.access_token;
