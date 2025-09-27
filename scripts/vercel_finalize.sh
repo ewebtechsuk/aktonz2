@@ -39,7 +39,7 @@ az ad app update --id "$APP_ID" --web-redirect-uris "https://aktonz.com/api/micr
 NEW_SECRET="$(
   az ad app credential reset \
     --id "$APP_ID" \
-    --display-name "aktonz-prod-$(date +%Y%m%d)" \
+    --display-name "aktonz-email-connector-$(date +%Y%m%d)" \
     --years 2 \
     --query password -o tsv
 )"
