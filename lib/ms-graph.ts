@@ -4,7 +4,61 @@ import { clearTokens, readTokens, saveTokens } from './token-store';
 
 export const MS_CLIENT_ID = '04651e3a-82c5-4e03-ba50-574b2bb79cac';
 export const MS_TENANT_ID = '60737a1b-9707-4d7f-9909-0ee943a1ffff';
-export const MS_REDIRECT_URI = 'https://aktonz.com/api/microsoft/callback';
+
+const DEFAULT_PROD_REDIRECT_URI = 'https://aktonz.com/api/microsoft/callback';
+const DEFAULT_DEV_REDIRECT_URI = 'http://localhost:3000/api/admin/email/microsoft/callback';
+
+const PROD_REDIRECT_ENV_KEYS = [
+  'MS_REDIRECT_URI',
+  'MICROSOFT_REDIRECT_URI',
+  'MICROSOFT_REDIRECT_URL',
+  'NEXT_PUBLIC_MICROSOFT_REDIRECT_URI',
+  'NEXT_PUBLIC_MICROSOFT_REDIRECT_URL',
+  'AZURE_AD_REDIRECT_URI',
+  'AZURE_AD_REDIRECT_URL',
+];
+
+const DEV_REDIRECT_ENV_KEYS = [
+  'MS_DEV_REDIRECT_URI',
+  'MICROSOFT_DEV_REDIRECT_URI',
+  'MICROSOFT_DEV_REDIRECT_URL',
+  'NEXT_PUBLIC_MICROSOFT_DEV_REDIRECT_URI',
+  'NEXT_PUBLIC_MICROSOFT_DEV_REDIRECT_URL',
+];
+
+function requireAbsoluteUrl(value: string, label: string): string {
+  const trimmed = value.trim();
+
+  try {
+    const url = new URL(trimmed);
+    if (!url.protocol || !url.host) {
+      throw new Error();
+    }
+
+    return url.toString();
+  } catch {
+    throw new Error(`${label} must be set to a valid absolute URL`);
+  }
+}
+
+function pickEnvValue(keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (typeof value === 'string' && value.trim() !== '') {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+function getRedirectUri(envKeys: string[], fallback: string, label: string): string {
+  const value = pickEnvValue(envKeys) ?? fallback;
+  return requireAbsoluteUrl(value, label);
+}
+
+export const MS_REDIRECT_URI = getRedirectUri(PROD_REDIRECT_ENV_KEYS, DEFAULT_PROD_REDIRECT_URI, 'MS_REDIRECT_URI');
+export const MS_DEV_REDIRECT_URI = getRedirectUri(DEV_REDIRECT_ENV_KEYS, DEFAULT_DEV_REDIRECT_URI, 'MS_DEV_REDIRECT_URI');
 export const SCOPES = 'offline_access Mail.Send User.Read';
 export const ALLOWED_UPN = 'info@aktonz.com';
 
