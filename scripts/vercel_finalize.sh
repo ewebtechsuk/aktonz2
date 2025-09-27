@@ -2,11 +2,12 @@
 set -euo pipefail
 
 # 0) Vars
-APP_ID='04651e3a-82c5-4e03-ba50-574b2bb79cac'
-TENANT_ID='60737a1b-9707-4d7f-9909-0ee943a1ffff'
-BASE_URL='https://aktonz.com'
-REDIS_URL='rediss://<USER>:<PASS>@<HOST>.redis-cloud.com:<PORT>'
-TOKEN_ENCRYPTION_KEY='<LONG_RANDOM_BASE64_FROM_OPENSSL>'
+APP_ID="${APP_ID:-04651e3a-82c5-4e03-ba50-574b2bb79cac}"
+TENANT_ID="${TENANT_ID:-60737a1b-9707-4d7f-9909-0ee943a1ffff}"
+BASE_URL="${BASE_URL:-https://aktonz.com}"
+REDIS_URL="${REDIS_URL:-rediss://<USER>:<PASS>@<HOST>.redis-cloud.com:<PORT>}"
+TOKEN_ENCRYPTION_KEY="${TOKEN_ENCRYPTION_KEY:-<LONG_RANDOM_BASE64_FROM_OPENSSL>}"
+
 
 # 1) Deps
 npm i ioredis
