@@ -2,7 +2,7 @@ import { encryptText, decryptText, deserializeEncryptedPayload, serializeEncrypt
 import { clearTokens, readTokens, saveTokens } from './token-store';
 
 
-const DEFAULT_CLIENT_ID = '04651e3a-82c5-4e03-ba50-574b2bb79cac';
+const DEFAULT_CLIENT_ID = '28c9d37b-2c2b-4d49-9ac4-4c180967bc7c';
 const DEFAULT_SCOPES = 'offline_access Mail.Send User.Read';
 
 export const MS_CLIENT_ID = process.env.MS_CLIENT_ID ?? DEFAULT_CLIENT_ID;

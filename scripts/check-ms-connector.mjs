@@ -75,7 +75,7 @@ function reportGroup(label, keys, { optional = false, fallback = null } = {}) {
 }
 
 const DEFAULTS = {
-  clientId: '04651e3a-82c5-4e03-ba50-574b2bb79cac',
+  clientId: '28c9d37b-2c2b-4d49-9ac4-4c180967bc7c',
   redirectUri: 'https://aktonz.com/api/microsoft/callback',
   devRedirectUri: 'http://localhost:3000/api/admin/email/microsoft/callback',
   tenantId: '60737a1b-9707-4d7f-9909-0ee943a1ffff',

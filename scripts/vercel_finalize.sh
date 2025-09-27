@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # 0) Vars
-APP_ID="${APP_ID:-04651e3a-82c5-4e03-ba50-574b2bb79cac}"
+APP_ID="${APP_ID:-28c9d37b-2c2b-4d49-9ac4-4c180967bc7c}"
 TENANT_ID="${TENANT_ID:-60737a1b-9707-4d7f-9909-0ee943a1ffff}"
 BASE_URL="${BASE_URL:-https://aktonz.com}"
 
@@ -45,7 +45,7 @@ NEW_SECRET="$(
 )"
 
 # 5) Vercel envs
-printf '%s\n' '04651e3a-82c5-4e03-ba50-574b2bb79cac' | vercel env add MS_CLIENT_ID
+printf '%s\n' '28c9d37b-2c2b-4d49-9ac4-4c180967bc7c' | vercel env add MS_CLIENT_ID
 printf '%s\n' '60737a1b-9707-4d7f-9909-0ee943a1ffff' | vercel env add MS_TENANT_ID
 printf '%s\n' 'https://aktonz.com/api/microsoft/callback' | vercel env add MS_REDIRECT_URI
 printf '%s\n' 'offline_access Mail.Send User.Read' | vercel env add MS_SCOPES
