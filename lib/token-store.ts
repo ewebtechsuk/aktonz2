@@ -1,4 +1,5 @@
 import Redis from 'ioredis';
+
 import {
   EncryptedPayload,
   deserializeEncryptedPayload,
@@ -26,6 +27,7 @@ function getRedisClient(): Redis {
   return redisClient;
 }
 
+
 export interface StoredTokenSet {
   encryptedAccessToken: EncryptedPayload;
   encryptedRefreshToken: EncryptedPayload;
@@ -38,6 +40,7 @@ export async function saveTokenSet(tokenSet: StoredTokenSet): Promise<void> {
   const client = getRedisClient();
 
   await client.hset(TOKEN_KEY, {
+
     access: serializeEncryptedPayload(tokenSet.encryptedAccessToken),
     refresh: serializeEncryptedPayload(tokenSet.encryptedRefreshToken),
     expiresAt: tokenSet.expiresAt.toString(),
@@ -57,6 +60,7 @@ export async function loadTokenSet(): Promise<StoredTokenSet | null> {
     !record.refresh ||
     !record.expiresAt
   ) {
+
     return null;
   }
 
@@ -72,4 +76,5 @@ export async function loadTokenSet(): Promise<StoredTokenSet | null> {
 export async function clearTokenSet(): Promise<void> {
   const client = getRedisClient();
   await client.del(TOKEN_KEY);
+
 }
