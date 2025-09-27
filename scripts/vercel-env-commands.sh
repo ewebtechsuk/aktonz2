@@ -2,7 +2,7 @@
 npm uninstall @vercel/kv
 npm install ioredis
 
-printf "04651e3a-82c5-4e03-ba50-574b2bb79cac" | vercel env add MS_CLIENT_ID
+printf "28c9d37b-2c2b-4d49-9ac4-4c180967bc7c" | vercel env add MS_CLIENT_ID
 printf "60737a1b-9707-4d7f-9909-0ee943a1ffff" | vercel env add MS_TENANT_ID
 printf "https://aktonz.com/api/microsoft/callback" | vercel env add MS_REDIRECT_URI
 printf "offline_access Mail.Send User.Read" | vercel env add MS_SCOPES
