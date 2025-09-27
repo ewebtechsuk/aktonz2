@@ -1,16 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { MS_CLIENT_ID, MS_DEV_REDIRECT_URI, MS_REDIRECT_URI, MS_TENANT_ID, SCOPES } from '../../../lib/ms-graph';
-
-function resolveRedirectUri(req: NextApiRequest): string {
-  const forwardedHost = req.headers['x-forwarded-host'];
-  const hostHeader = Array.isArray(forwardedHost)
-    ? forwardedHost[0]
-    : forwardedHost ?? req.headers.host ?? '';
-
-  const host = hostHeader.trim().toLowerCase();
-  const isLocal = host.includes('localhost') || host.startsWith('127.0.0.1');
-  return isLocal ? MS_DEV_REDIRECT_URI : MS_REDIRECT_URI;
-}
+import { MS_CLIENT_ID, MS_TENANT_ID, SCOPES } from '../../../lib/ms-graph';
+import { resolveMicrosoftRedirectUri } from '../../../lib/ms-redirect';
 
 export default function handler(req: NextApiRequest, res: NextApiResponse): void {
   if (req.method !== 'GET') {
@@ -19,7 +9,16 @@ export default function handler(req: NextApiRequest, res: NextApiResponse): void
     return;
   }
 
-  const redirectUri = resolveRedirectUri(req);
+  let redirectUri: string;
+  try {
+    redirectUri = resolveMicrosoftRedirectUri(req);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'invalid_redirect_uri';
+    console.error('Microsoft connect redirect URI error', message);
+    res.status(500).json({ error: 'invalid_redirect_uri' });
+    return;
+  }
+
   const params = new URLSearchParams({
     client_id: MS_CLIENT_ID,
     response_type: 'code',
