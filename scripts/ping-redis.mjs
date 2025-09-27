@@ -17,7 +17,7 @@ try {
 }
 
 const needsTls = parsedUrl.protocol === 'rediss:' || parsedUrl.hostname.endsWith('redis-cloud.com');
-const options = needsTls ? { tls: { rejectUnauthorized: false } } : undefined;
+const options = needsTls ? { tls: { servername: parsedUrl.hostname } } : undefined;
 
 const redis = new Redis(redisUrl, options);
 
