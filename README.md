@@ -116,6 +116,31 @@ MS_SCOPES="offline_access Mail.Send User.Read"
 TOKEN_ENCRYPTION_KEY=<generate a long random string>
 ```
 
+#### Error: `AADSTS700016` when signing in
+
+If Microsoft returns **AADSTS700016** with the message *"Application with
+identifier '04651e3a-82c5-4e03-ba50-574b2bb79cac' was not found in the
+directory 'Aktonz'"*, the sign-in attempt is still using the deprecated default
+app registration ID. Resolve it with the checklist below:
+
+1. **Update the client ID.** Set `MS_CLIENT_ID` (or any of the accepted
+   aliases) to `28c9d37b-2c2b-4d49-9ac4-4c180967bc7c`. Redeploy or restart the
+   server after changing the environment variable.
+2. **Double-check tenant routing.** For the single-tenant connector keep
+   `MS_TENANT_ID` set to `60737a1b-9707-4d7f-9909-0ee943a1ffff`. If you prefer
+   multi-tenant sign-in, remove the variable entirely so the code falls back to
+   `common`.
+3. **Confirm the redirect URIs.** Ensure the production
+   `https://aktonz.com/api/microsoft/callback` and local development
+   `http://localhost:3000/api/admin/email/microsoft/callback` URLs are still
+   registered under **Authentication → Web** in the Azure portal.
+4. **Retry the connection.** Clear any cached auth tabs, then click **Connect
+   Microsoft** again. The login prompt should now reference the updated client
+   ID.
+
+Running `npm run check-ms-connector` after updating the environment variables
+verifies that the connector will no longer fall back to the old identifier.
+
 > **Current production secret (September 2025):** `aktonz-email-connector-2`
 > (secret ID `5ac90759-6286-48c0-98b2-5a2aa19d7e6d`). Copy the secret **Value**
 > directly from Azure and update the `MS_CLIENT_SECRET` environment variable in

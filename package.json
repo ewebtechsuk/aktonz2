@@ -11,6 +11,7 @@
     "start": "next start",
     "cache": "node scripts/cacheListings.mjs",
     "check-pr": "node scripts/check-pr.mjs",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint --ext .js,.ts,.tsx lib scripts",
     "check-ms-connector": "node scripts/check-ms-connector.mjs",
     "monitor": "node scripts/monitor-prices.js",
     "ping-redis": "node scripts/ping-redis.mjs",
@@ -38,6 +39,8 @@
   "devDependencies": {
     "@turf/turf": "^7.2.0",
     "@types/react": "19.1.14",
+    "eslint": "^9.36.0",
+    "eslint-config-next": "^15.5.4",
     "https-proxy-agent": "^7.0.6",
     "jest": "^30.1.3",
     "typescript": "5.9.2"
