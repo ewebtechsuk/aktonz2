@@ -52,9 +52,38 @@ export default function AdminDashboard() {
   const [updatingId, setUpdatingId] = useState(null);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [logoutError, setLogoutError] = useState(null);
+  const [integrationStatus, setIntegrationStatus] = useState('idle');
+  const [connectRedirecting, setConnectRedirecting] = useState(false);
   const router = useRouter();
   const { user, loading: sessionLoading, clearSession, refresh } = useSession();
   const isAdmin = user?.role === 'admin';
+
+  useEffect(() => {
+    if (!router.isReady) {
+      return;
+    }
+
+    if (router.query.connected === '1') {
+      setIntegrationStatus('success');
+      setConnectRedirecting(false);
+    } else if (typeof router.query.error !== 'undefined') {
+      setIntegrationStatus('error');
+      setConnectRedirecting(false);
+    } else {
+      setIntegrationStatus('idle');
+    }
+  }, [router.isReady, router.query]);
+
+  const integrationStatusMessage = useMemo(() => {
+    switch (integrationStatus) {
+      case 'success':
+        return 'Microsoft Graph connection updated successfully.';
+      case 'error':
+        return 'Unable to complete Microsoft Graph connection. Please try again.';
+      default:
+        return null;
+    }
+  }, [integrationStatus]);
 
   const loadData = useCallback(async () => {
     if (!isAdmin) {
@@ -177,6 +206,11 @@ export default function AdminDashboard() {
     () => offers.filter((offer) => offer.type === 'rent'),
     [offers],
   );
+
+  const handleConnectClick = useCallback(() => {
+    setConnectRedirecting(true);
+    window.location.href = '/api/microsoft/connect';
+  }, []);
 
   const handleLogout = useCallback(async () => {
     setLogoutError(null);
@@ -320,11 +354,28 @@ export default function AdminDashboard() {
             <p>Connect the info@aktonz.com mailbox so Aktonz can send website forms through Microsoft Graph.</p>
           </div>
           <div className={styles.integrationActions}>
-            <Link href="/api/microsoft/connect" className={styles.integrationButton}>
-              Connect Microsoft 365
-            </Link>
+            <button
+              type="button"
+              onClick={handleConnectClick}
+              className={styles.integrationButton}
+              disabled={connectRedirecting}
+            >
+              {connectRedirecting ? 'Redirecting…' : 'Connect Microsoft 365'}
+            </button>
           </div>
         </div>
+        {integrationStatusMessage ? (
+          <p
+            role="status"
+            className={`${styles.integrationAlert} ${
+              integrationStatus === 'success'
+                ? styles.integrationAlertSuccess
+                : styles.integrationAlertError
+            }`}
+          >
+            {integrationStatusMessage}
+          </p>
+        ) : null}
         <div className={styles.integrationDetails}>
           <ul className={styles.integrationList}>
             <li>Sign in with info@aktonz.com when Microsoft prompts for an account.</li>
