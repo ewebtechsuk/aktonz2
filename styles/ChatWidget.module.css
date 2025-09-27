@@ -19,7 +19,6 @@
   overflow: hidden;
   transform: translateY(12px);
   opacity: 0;
-  pointer-events: none;
   transition: opacity 0.25s ease, transform 0.25s ease;
   display: flex;
   flex-direction: column;
@@ -28,7 +27,6 @@
 .panelOpen {
   opacity: 1;
   transform: translateY(0);
-  pointer-events: auto;
 }
 
 .header {
