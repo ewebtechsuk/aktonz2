@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import Link from 'next/link';
 import styles from '../../styles/RentProtection.module.css';
 
 const terms = [
@@ -62,12 +63,12 @@ export default function RentProtection() {
             our experienced lettings specialists.
           </p>
           <div className={styles.heroActions}>
-            <a className={styles.primaryButton} href="/contact">
+            <Link className={styles.primaryButton} href="/contact">
               Speak to our team
-            </a>
-            <a className={styles.secondaryButton} href="/valuation">
+            </Link>
+            <Link className={styles.secondaryButton} href="/valuation">
               Request a valuation
-            </a>
+            </Link>
           </div>
         </div>
         <div className={styles.heroImage} aria-hidden="true" />
@@ -118,7 +119,7 @@ export default function RentProtection() {
             Combine rent protection with our fully managed lettings package for end-to-end support including marketing, compliance tracking and
             maintenance coordination.
           </p>
-          <a href="/landlords">Explore landlord services</a>
+          <Link href="/landlords">Explore landlord services</Link>
         </aside>
       </section>
 
@@ -193,11 +194,11 @@ export default function RentProtection() {
         <h2>Explore Aktonz</h2>
         <div className={styles.exploreGrid}>
           {exploreLinks.map((link) => (
-            <a key={link.title} href={link.href} className={styles.exploreCard}>
+            <Link key={link.title} href={link.href} className={styles.exploreCard}>
               <h3>{link.title}</h3>
               <p>{link.description}</p>
               <span>Learn more →</span>
-            </a>
+            </Link>
           ))}
         </div>
       </section>

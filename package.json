@@ -9,6 +9,7 @@
     "build": "next build",
     "postbuild": "mkdir -p out && touch out/.nojekyll",
     "start": "next start",
+    "lint": "next lint",
     "cache": "node scripts/cacheListings.mjs",
     "check-pr": "node scripts/check-pr.mjs",
     "check-ms-connector": "node scripts/check-ms-connector.mjs",
@@ -30,7 +31,7 @@
     "react-icons": "^4.12.0",
     "react-responsive-carousel": "^3.2.23",
     "react-slick": "^0.31.0",
-    "redis": "^5.8.2",
+    "redis": "^4.7.1",
     "slick-carousel": "^1.8.1",
     "stripe": "^17.3.0",
     "undici": "^6.19.5"
@@ -38,6 +39,8 @@
   "devDependencies": {
     "@turf/turf": "^7.2.0",
     "@types/react": "19.1.14",
+    "eslint": "^9.36.0",
+    "eslint-config-next": "^15.5.4",
     "https-proxy-agent": "^7.0.6",
     "jest": "^30.1.3",
     "typescript": "5.9.2"
