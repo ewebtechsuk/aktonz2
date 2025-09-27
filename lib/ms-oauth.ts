@@ -2,6 +2,7 @@ import { encryptText, serializeEncryptedPayload } from './crypto-util';
 import { ALLOWED_UPN, MS_CLIENT_ID, MS_TENANT_ID, SCOPES, getClientSecret } from './ms-graph';
 import { saveTokens } from './token-store';
 
+
 const TOKEN_ENDPOINT = `https://login.microsoftonline.com/${MS_TENANT_ID}/oauth2/v2.0/token`;
 const GRAPH_ME_ENDPOINT = 'https://graph.microsoft.com/v1.0/me?$select=displayName,userPrincipalName,mail';
 
@@ -41,6 +42,7 @@ export async function handleOAuthCallback(code: string, redirectUri: string): Pr
     expires_in: expiresInSeconds,
     obtained_at: obtainedAt,
     account: profile.userPrincipalName ?? profile.mail ?? ALLOWED_UPN,
+
   });
 
   return {

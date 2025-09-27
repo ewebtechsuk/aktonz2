@@ -8,6 +8,7 @@ export type StoredTokens = {
   account: string;
 };
 
+
 const TOKEN_KEY = 'aktonz:ms:tokens';
 
 let redisClient: Redis | null = null;
@@ -64,6 +65,7 @@ export async function readTokens(): Promise<StoredTokens | null> {
   const { access_token_enc, refresh_token_enc, expires_in, obtained_at, account } = record;
 
   if (!access_token_enc || !refresh_token_enc || !expires_in || !obtained_at || !account) {
+
     return null;
   }
 
@@ -79,4 +81,5 @@ export async function readTokens(): Promise<StoredTokens | null> {
 export async function clearTokens(): Promise<void> {
   const client = getRedisClient();
   await client.del(TOKEN_KEY);
+
 }

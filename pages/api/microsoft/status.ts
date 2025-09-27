@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { readTokens } from '../../../lib/token-store';
 
+
 interface StatusResponse {
   connected: boolean;
   expiresAt?: number;
@@ -23,6 +24,7 @@ export default async function handler(
     const tokens = await readTokens();
 
     if (!tokens) {
+
       res.status(200).json({ connected: false });
       return;
     }
@@ -36,6 +38,7 @@ export default async function handler(
       expiresInSeconds,
       scope: null,
       tokenType: null,
+
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';

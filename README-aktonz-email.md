@@ -13,6 +13,7 @@ Set the following in the Production and Preview environments:
 - `TOKEN_ENCRYPTION_KEY` – 32-byte random value encoded with `openssl rand -base64 32`.
 - `REDIS_URL` – connection string from Redis Cloud (must start with `rediss://`).
 
+
 ## Redirect URIs
 - Production: `https://aktonz.com/api/microsoft/callback`
 - Local development: `http://localhost:3000/api/admin/email/microsoft/callback`
@@ -20,6 +21,7 @@ Set the following in the Production and Preview environments:
 ## Test plan (6 steps)
 1. Navigate to `/admin` and click **Connect to Microsoft**; sign in with `info@aktonz.com` and grant consent.
 2. In Redis Cloud, verify the `aktonz:ms:tokens` hash contains `access`, `refresh`, and `expiresAt` fields.
+
 3. Submit `/api/contact` with sample data and confirm an email arrives in the `info@aktonz.com` mailbox.
 4. Submit `/api/book-viewing`, `/api/offers`, and `/api/valuations` to ensure each sends mail to the correct recipient list.
 5. Wait for the access token to age, then trigger another form submission to confirm automatic refresh works.

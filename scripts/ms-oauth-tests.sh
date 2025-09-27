@@ -49,3 +49,4 @@ curl -fsS -X POST "$BASE_URL/api/valuations" \
 echo
 
 echo "🎉 All smoke tests completed."
+

@@ -1,6 +1,7 @@
 import { encryptText, decryptText, deserializeEncryptedPayload, serializeEncryptedPayload } from './crypto-util';
 import { clearTokens, readTokens, saveTokens } from './token-store';
 
+
 export const MS_CLIENT_ID = '04651e3a-82c5-4e03-ba50-574b2bb79cac';
 export const MS_TENANT_ID = '60737a1b-9707-4d7f-9909-0ee943a1ffff';
 export const MS_REDIRECT_URI = 'https://aktonz.com/api/microsoft/callback';
@@ -31,6 +32,7 @@ export function getClientSecret(): string {
 export async function getValidAccessToken(): Promise<string> {
   const tokenSet = await readTokens();
 
+
   if (!tokenSet) {
     throw new Error('Microsoft Graph connector is not yet configured. Connect via the admin dashboard.');
   }
@@ -45,6 +47,7 @@ export async function getValidAccessToken(): Promise<string> {
 
   const encryptedRefresh = deserializeEncryptedPayload(tokenSet.refresh_token_enc);
   const refreshToken = decryptText(encryptedRefresh);
+
   const params = new URLSearchParams({
     client_id: MS_CLIENT_ID,
     scope: SCOPES,
@@ -61,6 +64,7 @@ export async function getValidAccessToken(): Promise<string> {
 
   if (!response.ok) {
     await clearTokens();
+
     throw new Error(`Failed to refresh Microsoft Graph tokens (${response.status})`);
   }
 
@@ -68,6 +72,7 @@ export async function getValidAccessToken(): Promise<string> {
 
   if (!result.access_token || !result.refresh_token) {
     await clearTokens();
+
     throw new Error('Microsoft Graph token refresh returned an unexpected payload');
   }
 
@@ -80,6 +85,7 @@ export async function getValidAccessToken(): Promise<string> {
     expires_in: expiresInSeconds,
     obtained_at: obtainedAt,
     account: tokenSet.account,
+
   });
 
   return result.access_token;
