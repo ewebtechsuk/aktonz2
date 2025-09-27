@@ -29,7 +29,7 @@ export default async function handler(
       return;
     }
 
-    const expiresAt = tokens.obtained_at + tokens.expires_in * 1000;
+    const expiresAt = (tokens.obtained_at + tokens.expires_in) * 1000;
     const expiresInSeconds = Math.max(0, Math.round((expiresAt - Date.now()) / 1000));
 
     res.status(200).json({
