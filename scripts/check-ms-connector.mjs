@@ -18,6 +18,8 @@ const REDIRECT_URI_ENV_KEYS = [
   'AZURE_AD_REDIRECT_URL',
 ];
 
+const DEV_REDIRECT_URI_ENV_KEYS = ['MS_DEV_REDIRECT_URI'];
+
 const TENANT_ID_ENV_KEYS = [
   'MS_TENANT_ID',
   'MICROSOFT_TENANT_ID',
@@ -72,15 +74,35 @@ function reportGroup(label, keys, { optional = false, fallback = null } = {}) {
   };
 }
 
+const DEFAULTS = {
+  clientId: '04651e3a-82c5-4e03-ba50-574b2bb79cac',
+  redirectUri: 'https://aktonz.com/api/microsoft/callback',
+  devRedirectUri: 'http://localhost:3000/api/admin/email/microsoft/callback',
+  tenantId: '60737a1b-9707-4d7f-9909-0ee943a1ffff',
+  scopes: 'offline_access Mail.Send User.Read',
+};
+
 const results = [
-  reportGroup('Microsoft client ID', CLIENT_ID_ENV_KEYS),
-  reportGroup('Redirect URI', REDIRECT_URI_ENV_KEYS, {
-    fallback: 'derived from the incoming request origin (e.g. https://<host>/api/admin/email/microsoft/callback)',
+  reportGroup('Microsoft client ID', CLIENT_ID_ENV_KEYS, {
+    fallback: `built-in default (${DEFAULTS.clientId})`,
   }),
-  reportGroup('Tenant ID', TENANT_ID_ENV_KEYS, { optional: true, fallback: 'Microsoft multi-tenant endpoint (common)' }),
+  reportGroup('Redirect URI', REDIRECT_URI_ENV_KEYS, {
+    fallback: `built-in default (${DEFAULTS.redirectUri})`,
+  }),
+  reportGroup('Local redirect URI', DEV_REDIRECT_URI_ENV_KEYS, {
+    fallback: `built-in default (${DEFAULTS.devRedirectUri})`,
+    optional: true,
+  }),
+  reportGroup('Tenant ID', TENANT_ID_ENV_KEYS, {
+    optional: true,
+    fallback: `built-in default (${DEFAULTS.tenantId})`,
+  }),
   reportGroup('Scopes', ['MS_SCOPES', 'MICROSOFT_SCOPES'], {
     optional: true,
-    fallback: 'offline_access https://graph.microsoft.com/.default',
+    fallback: DEFAULTS.scopes,
+  }),
+  reportGroup('Client secret', ['MS_CLIENT_SECRET'], {
+    optional: false,
   }),
 ];
 
