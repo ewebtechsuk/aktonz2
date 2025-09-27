@@ -10,6 +10,7 @@
     "postbuild": "mkdir -p out && touch out/.nojekyll",
     "start": "next start",
     "cache": "node scripts/cacheListings.mjs",
+    "check-pr": "node scripts/check-pr.mjs",
     "monitor": "node scripts/monitor-prices.js",
     "sync:scraye": "node scripts/syncScraye.mjs"
   },
