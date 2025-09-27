@@ -213,7 +213,7 @@ environment variables (or share them with the wider team, if needed):
 | **Application (client) ID** | Azure portal → **Azure Active Directory** → **App registrations** → *Your registration* → **Overview**. Copy the **Application (client) ID** value and store it as `MS_CLIENT_ID` (or one of the accepted aliases such as `MICROSOFT_CLIENT_ID`). |
 | **Directory (tenant) ID** | The same Overview screen lists **Directory (tenant) ID**. Copy it if you intend to keep the app single-tenant and configure it as `MS_TENANT_ID` (or `MICROSOFT_TENANT_ID` if you prefer the older naming); otherwise you can leave the environment variable unset to default to `common` for multi-tenant sign-in. |
 | **Client secret value** | Azure portal → *Your registration* → **Certificates & secrets** → **Client secrets**. Select **New client secret**, give it a description/expiry, click **Add**, then immediately copy the **Value** column (this is the only time Azure reveals it). Store the value securely—this repo does **not** commit secrets. |
-| **Redirect URI** | Use `https://<your-domain>/api/admin/email/microsoft/callback`. This matches the server route implemented in `pages/api/admin/email/microsoft/connect.js` when it resolves the callback URL. Register this exact URI under **Authentication → Web** so the OAuth flow succeeds. |
+| **Redirect URI** | Use `https://<your-domain>/api/microsoft/callback` for production and `http://localhost:3000/api/admin/email/microsoft/callback` when testing locally. Register both under **Authentication → Web** so Azure AD recognises each environment. |
 | **Single-tenant or multi-tenant?** | Step 4 of the registration form controls this. Keeping **Accounts in this organizational directory only** selected produces a single-tenant app scoped to `aktonz.com`. Switch to multi-tenant only if you plan to allow other Azure AD tenants. |
 
 > 💡 Tip: keep a secure record (e.g. password manager entry) with the client ID,
@@ -227,29 +227,29 @@ These answers cover the follow-up questions about the Next.js project itself:
 | Topic | Answer |
 | --- | --- |
 | **Next.js version** | The project runs on Next.js `15.5.2` per `package.json`. It uses the **Pages Router** (see the `pages/` directory) rather than the App Router. |
-| **Persistence layer** | There is **no database** connection. Property data is fetched from the Apex27 API and, for static deploys, cached into JSON under `data/`. All form submissions are sent via SMTP using `lib/mailer.mjs`; nothing is stored server-side. |
-| **Who can send mail?** | Outbound messages are sent through the credentials provided in `SMTP_USER`/`SMTP_PASS`. By default `EMAIL_FROM` is set to `info@aktonz.com`, so every form submission appears to originate from that mailbox. Allowing additional senders would require supplying different credentials (e.g. per-user) and updating the environment variables accordingly. |
-| **Which forms send email?** | The Contact form (`pages/api/contact.js` via `lib/api/contact-handler.mjs`), the Book a Viewing workflow (`pages/api/book-viewing.js`), the Offers form (`pages/api/offers.js`), and the Valuation request (`pages/api/valuations.js`) all invoke `sendMailOrThrow` from `lib/mailer.mjs`. Configure SMTP/Microsoft OAuth before enabling these pages in production. |
-| **From address behaviour** | Each API handler builds the message with `from: process.env.EMAIL_FROM` (see `lib/api/contact-handler.mjs` and `pages/api/book-viewing.js`). Unless you override that variable, all outgoing mail will display as `info@aktonz.com`. Sending “on behalf of” the authenticated user would require code changes to accept dynamic `From` headers and to delegate send permissions in Microsoft 365. |
+| **Persistence layer** | There is **no database** connection. Property data is fetched from the Apex27 API and cached into JSON under `data/`. Microsoft OAuth tokens are encrypted and written to `.aktonz-ms-tokens.json` by `lib/token-store.js`, letting API routes refresh them without external storage. |
+| **Who can send mail?** | Only `info@aktonz.com` may authorise the connector. Outbound messages are delivered through Microsoft Graph with the access token granted to that mailbox, so every email is sent directly from `info@aktonz.com`. |
+| **Which forms send email?** | The Contact (`pages/api/contact.js`), Book a Viewing (`pages/api/book-viewing.js`), Offers (`pages/api/offers.js`), and Valuation (`pages/api/valuations.js`) endpoints all call `sendMailGraph` from `lib/ms-graph.js` to dispatch Microsoft 365 email. |
+| **From address behaviour** | Microsoft Graph sends each message as `info@aktonz.com`. The HTML bodies include the visitor's contact details; altering the `From` header would require delegated send permissions for another mailbox. |
 
 ### Token handling and storage guidance
 
-The Microsoft OAuth entry point (`pages/api/admin/email/microsoft/connect.js`) only
-creates the authorization URL and does **not** yet persist tokens. Before moving
-to production, decide how you will protect the credentials Microsoft returns:
+The Microsoft OAuth flow is implemented in `pages/api/microsoft/connect.js`,
+`pages/api/microsoft/callback.js`, and `pages/api/admin/email/microsoft/callback.js`.
+`lib/ms-oauth.js` performs the token exchange, verifies that the signed-in user is
+`info@aktonz.com`, and saves the encrypted bundle through `lib/token-store.js`.
 
-* **Encryption helper** – the codebase currently lacks an AES or similar helper
-  for encrypting secrets at rest. If you store refresh tokens in your own
-  database, introduce a key-management strategy (for example, AES-256-GCM with a
-  key stored in an environment variable supplied by your hosting provider).
-* **Storage location** – plan where long-lived refresh tokens will live. The
-  simplest option is an application database table keyed by admin user, but you
-  can also offload storage to Azure Key Vault or another managed secrets
-  manager. Ensure the storage is writeable from your Next.js API routes.
-* **Rotation and revocation** – document how administrators can revoke the
-  client secret and refresh tokens if a leak is suspected. Microsoft allows you
-  to delete the client secret in the App Registration and issue a new one; be
-  ready to update your environment variables and redeploy immediately.
+* **Encryption helper** – `lib/ms-graph.js` provides `encryptToken` and
+  `decryptToken`, using AES-256-GCM with the key from `TOKEN_ENCRYPTION_KEY`.
+  Generate a long, random value (for example `openssl rand -base64 48`) and set
+  it in `.env.local` or your hosting dashboard before connecting.
+* **Storage location** – tokens are written to `.aktonz-ms-tokens.json` in the
+  project root. Ensure the deployment target allows read/write access to this
+  path and treat the file as sensitive information.
+* **Rotation and revocation** – to revoke access, delete
+  `.aktonz-ms-tokens.json`, rotate the Azure client secret or invalidate the
+  refresh token, update the environment variables, and reconnect via the admin
+  dashboard.
 
 If the site is deployed to a static host where Next.js API routes are not
 available, set `NEXT_PUBLIC_BOOK_VIEWING_API` to the base listings URL for
