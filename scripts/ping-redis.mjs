@@ -41,6 +41,7 @@ console.log('Connecting to', formatUrlForDisplay(connectionUrl));
 
 const redis = new Redis(connectionUrl, options);
 
+
 async function main() {
   try {
     const response = await redis.ping();
