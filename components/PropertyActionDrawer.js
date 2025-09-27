@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { useId } from 'react';
 import { FaBath, FaBed, FaCouch } from 'react-icons/fa';
 import { formatRentFrequency } from '../lib/format.mjs';
@@ -56,10 +57,13 @@ export default function PropertyActionDrawer({
           <div className={styles.summary}>
             <div className={styles.imageWrapper}>
               {imageUrl ? (
-                <img
+                <Image
                   src={imageUrl}
                   alt={summary.title || 'Property image'}
+                  fill
+                  className={styles.image}
                   referrerPolicy="no-referrer"
+                  sizes="120px"
                 />
               ) : (
                 <div className={styles.placeholder}>No image</div>

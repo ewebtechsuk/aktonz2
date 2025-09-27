@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import PropertyList from '../../components/PropertyList';
 import agents from '../../data/agents.json';
 import { fetchProperties } from '../../lib/apex27.mjs';
@@ -14,10 +15,18 @@ export default function AgentPage({ agent, listings }) {
   return (
     <main>
       {agent.photo && (
-        <img
+        <Image
           src={agent.photo}
           alt={agent.name}
-          style={{ maxWidth: 'var(--size-avatar)' }}
+          width={150}
+          height={150}
+          style={{
+            maxWidth: 'var(--size-avatar)',
+            height: 'auto',
+            borderRadius: '50%',
+            objectFit: 'cover',
+          }}
+          sizes="(max-width: 600px) 120px, 150px"
         />
       )}
       <h1>{agent.name}</h1>

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { formatRentFrequency } from '../lib/format.mjs';
 
@@ -9,19 +9,26 @@ export default function PropertyMap({
   mapId = 'property-map',
 }) {
   const router = useRouter();
-  const centerKey = Array.isArray(center) ? center.join(',') : '';
-  const propertiesKey = JSON.stringify(
-    properties.map((p) => ({
-      id: p.id,
-      lat: p.lat,
-      lng: p.lng,
-      price: p.price,
-      rentFrequency: p.rentFrequency,
-      tenure: p.tenure,
-      image: p.image,
-      title: p.title,
-      propertyType: p.propertyType,
-    }))
+  const sanitizedCenter = useMemo(() => {
+    if (Array.isArray(center) && center.length === 2) {
+      return center;
+    }
+    return [51.5, -0.1];
+  }, [center]);
+  const sanitizedProperties = useMemo(
+    () =>
+      properties.map((p) => ({
+        id: p.id,
+        lat: p.lat,
+        lng: p.lng,
+        price: p.price,
+        rentFrequency: p.rentFrequency,
+        tenure: p.tenure,
+        image: p.image,
+        title: p.title,
+        propertyType: p.propertyType,
+      })),
+    [properties]
   );
 
   useEffect(() => {
@@ -55,13 +62,13 @@ export default function PropertyMap({
         return;
       }
 
-      map = L.map(mapId).setView(center, zoom);
+      map = L.map(mapId).setView(sanitizedCenter, zoom);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
-      properties.forEach((p) => {
+      sanitizedProperties.forEach((p) => {
         if (typeof p.lat === 'number' && typeof p.lng === 'number') {
           const marker = L.marker([p.lat, p.lng], {
             icon: getIcon(p.propertyType),
@@ -90,7 +97,7 @@ export default function PropertyMap({
     return () => {
       if (map) map.remove();
     };
-  }, [propertiesKey, centerKey, zoom, router.basePath, mapId]);
+  }, [mapId, router.basePath, sanitizedCenter, sanitizedProperties, zoom]);
 
   return <div id={mapId} style={{ height: 'var(--map-height)', width: '100%' }} />;
 }

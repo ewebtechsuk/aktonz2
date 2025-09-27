@@ -1,4 +1,6 @@
+import Image from 'next/image';
 import Head from 'next/head';
+import Link from 'next/link';
 import styles from '../../styles/RentProtection.module.css';
 
 const terms = [
@@ -62,12 +64,12 @@ export default function RentProtection() {
             our experienced lettings specialists.
           </p>
           <div className={styles.heroActions}>
-            <a className={styles.primaryButton} href="/contact">
+            <Link className={styles.primaryButton} href="/contact">
               Speak to our team
-            </a>
-            <a className={styles.secondaryButton} href="/valuation">
+            </Link>
+            <Link className={styles.secondaryButton} href="/valuation">
               Request a valuation
-            </a>
+            </Link>
           </div>
         </div>
         <div className={styles.heroImage} aria-hidden="true" />
@@ -118,17 +120,19 @@ export default function RentProtection() {
             Combine rent protection with our fully managed lettings package for end-to-end support including marketing, compliance tracking and
             maintenance coordination.
           </p>
-          <a href="/landlords">Explore landlord services</a>
+          <Link href="/landlords">Explore landlord services</Link>
         </aside>
       </section>
 
       <section className={styles.infoGrid}>
         <article className={styles.infoPanel}>
           <div className={styles.panelImage}>
-            <img
-              src="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&amp;fit=crop&amp;w=900&amp;q=80"
+            <Image
+              src="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=900&q=80"
               alt="Landlord reviewing documents with an adviser"
-              loading="lazy"
+              fill
+              className={styles.panelPhoto}
+              sizes="(max-width: 768px) 100vw, 480px"
             />
           </div>
           <div className={styles.infoContent}>
@@ -146,10 +150,12 @@ export default function RentProtection() {
         </article>
         <article className={styles.infoPanel}>
           <div className={styles.panelImage}>
-            <img
-              src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&amp;fit=crop&amp;w=900&amp;q=80"
+            <Image
+              src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=900&q=80"
               alt="Aktonz team supporting landlords"
-              loading="lazy"
+              fill
+              className={styles.panelPhoto}
+              sizes="(max-width: 768px) 100vw, 480px"
             />
           </div>
           <div className={styles.infoContent}>
@@ -193,11 +199,11 @@ export default function RentProtection() {
         <h2>Explore Aktonz</h2>
         <div className={styles.exploreGrid}>
           {exploreLinks.map((link) => (
-            <a key={link.title} href={link.href} className={styles.exploreCard}>
+            <Link key={link.title} href={link.href} className={styles.exploreCard}>
               <h3>{link.title}</h3>
               <p>{link.description}</p>
               <span>Learn more →</span>
-            </a>
+            </Link>
           ))}
         </div>
       </section>

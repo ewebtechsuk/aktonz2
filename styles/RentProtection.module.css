@@ -188,11 +188,14 @@
   flex-direction: column;
 }
 
-.panelImage img {
+.panelImage {
+  position: relative;
   width: 100%;
   height: 240px;
+}
+
+.panelPhoto {
   object-fit: cover;
-  display: block;
 }
 
 .infoContent {

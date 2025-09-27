@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { formatRentFrequency, formatPricePrefix } from '../lib/format.mjs';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
@@ -147,10 +148,13 @@ export default function PropertyCard({ property }) {
         {hasImages ? (
           <div className={`property-card-gallery${hasMultipleImages ? '' : ' single'}`}>
             {activeImage && (
-              <img
+              <Image
                 src={activeImage}
                 alt={`${title} image ${currentImage + 1}`}
+                fill
                 referrerPolicy="no-referrer"
+                sizes="(max-width: 768px) 100vw, 400px"
+                style={{ objectFit: 'cover' }}
               />
             )}
             {hasMultipleImages && (

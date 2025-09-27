@@ -159,6 +159,36 @@ async function loadPrebuildPropertyIds(limit = 24) {
 }
 
 export default function Property({ property, recommendations }) {
+  const hasLocation = property?.latitude != null && property?.longitude != null;
+  const mapProperties = useMemo(() => {
+    if (!hasLocation || !property) return [];
+    const {
+      id,
+      title,
+      price,
+      rentFrequency,
+      tenure,
+      image,
+      propertyType,
+      type,
+      latitude,
+      longitude,
+    } = property;
+    return [
+      {
+        id,
+        title,
+        price,
+        rentFrequency,
+        tenure: tenure ?? null,
+        image: image ?? null,
+        propertyType: propertyType ?? type ?? null,
+        lat: latitude,
+        lng: longitude,
+      },
+    ];
+  }, [hasLocation, property]);
+
   if (!property) {
     return (
       <>
@@ -189,43 +219,10 @@ export default function Property({ property, recommendations }) {
   const scrayeReference = !property.rentFrequency
     ? property.scrayeReference ?? property._scraye?.reference ?? null
     : null;
-  const hasLocation =
-    property.latitude != null && property.longitude != null;
   const pricePrefixLabel =
     !property.rentFrequency && property.pricePrefix
       ? formatPricePrefix(property.pricePrefix)
       : '';
-  const mapProperties = useMemo(
-    () => {
-      if (!hasLocation) return [];
-      return [
-        {
-          id: property.id,
-          title: property.title,
-          price: property.price,
-          rentFrequency: property.rentFrequency,
-          tenure: property.tenure ?? null,
-          image: property.image ?? null,
-          propertyType: property.propertyType ?? property.type ?? null,
-          lat: property.latitude,
-          lng: property.longitude,
-        },
-      ];
-    },
-    [
-      hasLocation,
-      property.id,
-      property.image,
-      property.latitude,
-      property.longitude,
-      property.price,
-      property.rentFrequency,
-      property.tenure,
-      property.title,
-      property.propertyType,
-      property.type,
-    ]
-  );
 
   return (
     <>

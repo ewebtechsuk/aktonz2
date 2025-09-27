@@ -1,4 +1,5 @@
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import styles from '../styles/MediaGallery.module.css';
 
 const Carousel = dynamic(
@@ -67,10 +68,13 @@ function renderMedia(url, index) {
   }
   return (
     <div key={index} className={styles.slide}>
-      <img
+      <Image
         src={url}
         alt={`Property media item ${index + 1}`}
+        fill
+        className={styles.image}
         referrerPolicy="no-referrer"
+        sizes="(max-width: 768px) 100vw, 800px"
       />
     </div>
   );

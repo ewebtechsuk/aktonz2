@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import styles from '../styles/Sell.module.css';
 
@@ -77,10 +78,12 @@ export default function Sell() {
       <section className={`${styles.section} ${styles.hero}`}>
         <div className={`${styles.constrained} ${styles.heroInner}`}>
           <div className={styles.heroMedia}>
-            <img
+            <Image
               src="https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80"
               alt="Townhouses on a sunny London street"
-              loading="lazy"
+              fill
+              className={styles.mediaImage}
+              sizes="(max-width: 768px) 100vw, 600px"
             />
           </div>
           <div className={styles.heroContent}>
@@ -151,10 +154,12 @@ export default function Sell() {
             </ul>
           </div>
           <div className={styles.sectionMedia}>
-            <img
+            <Image
               src="https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1200&q=80"
               alt="Aktonz agent capturing marketing photography"
-              loading="lazy"
+              fill
+              className={styles.mediaImage}
+              sizes="(max-width: 768px) 100vw, 600px"
             />
           </div>
         </div>
@@ -164,10 +169,12 @@ export default function Sell() {
         <div className={styles.constrained}>
           <div className={styles.twoColumn}>
             <div className={styles.sectionMedia}>
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1523475472560-d2df97ec485c?auto=format&fit=crop&w=1200&q=80"
                 alt="Seller reviewing the My Aktonz dashboard on a tablet"
-                loading="lazy"
+                fill
+                className={styles.mediaImage}
+                sizes="(max-width: 768px) 100vw, 600px"
               />
             </div>
             <div>

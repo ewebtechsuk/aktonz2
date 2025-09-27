@@ -104,15 +104,22 @@ const staticHeaders = [
   },
 ];
 
+const remoteImagePatterns = [
+  { protocol: 'https', hostname: 'images.unsplash.com' },
+  { protocol: 'https', hostname: 'via.placeholder.com' },
+  { protocol: 'https', hostname: '**.apex27.co.uk' },
+];
+
 const nextConfig = {
   ...(shouldExport
     ? {
         output: 'export',
-        images: { unoptimized: true },
+        images: { unoptimized: true, remotePatterns: remoteImagePatterns },
         basePath: isProd && repo ? `/${repo}` : undefined,
         assetPrefix: isProd && repo ? `/${repo}/` : undefined,
       }
     : {
+        images: { remotePatterns: remoteImagePatterns },
         async headers() {
           return staticHeaders;
         },

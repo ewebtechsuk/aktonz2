@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import mapData from '../data/area-map.json';
 import styles from '../styles/AreaGuides.module.css';
@@ -6,13 +6,16 @@ import styles from '../styles/AreaGuides.module.css';
 export default function AreaMap({ regions = [] }) {
   const router = useRouter();
 
-  const findSlug = (name) => {
-    const base = name.replace(/ London$/i, '').toLowerCase();
-    const match = regions.find(
-      (r) => r.name.replace(/ London$/i, '').toLowerCase() === base
-    );
-    return match ? match.slug : null;
-  };
+  const findSlug = useCallback(
+    (name) => {
+      const base = name.replace(/ London$/i, '').toLowerCase();
+      const match = regions.find(
+        (r) => r.name.replace(/ London$/i, '').toLowerCase() === base
+      );
+      return match ? match.slug : null;
+    },
+    [regions]
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -125,7 +128,7 @@ export default function AreaMap({ regions = [] }) {
     return () => {
       if (map) map.remove();
     };
-  }, [regions, router]);
+  }, [findSlug, regions, router]);
 
   return <div id="area-map" className={styles.map} />;
 }

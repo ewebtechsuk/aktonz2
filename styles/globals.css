@@ -74,7 +74,7 @@ body {
   background: var(--color-surface);
 }
 
-.property-card .property-card-gallery img {
+.property-card .property-card-gallery :global(img) {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -174,7 +174,7 @@ body {
   text-transform: capitalize;
 }
 
-.property-card.archived .image-wrapper img {
+.property-card.archived .image-wrapper :global(img) {
   filter: grayscale(1);
 }
 
