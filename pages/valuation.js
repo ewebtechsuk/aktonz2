@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
@@ -212,7 +213,7 @@ export default function Valuation() {
         <ul>
           <li>Local experts across London</li>
           <li>Thousands of buyers and tenants ready to move</li>
-          <li>No obligation – it's completely free</li>
+          <li>No obligation – it&rsquo;s completely free</li>
         </ul>
       </section>
 
@@ -229,9 +230,9 @@ export default function Valuation() {
       <section className={styles.cta}>
         <h2>Book a house or flat valuation with Aktonz</h2>
         <p>Contact our team today and receive a detailed valuation report.</p>
-        <a className={styles.ctaButton} href="/contact">
+        <Link className={styles.ctaButton} href="/contact">
           Find your nearest office
-        </a>
+        </Link>
       </section>
 
       <section className={styles.opening}>

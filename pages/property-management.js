@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import Link from 'next/link';
 import styles from '../styles/PropertyManagement.module.css';
 
 export default function PropertyManagement() {
@@ -39,7 +40,7 @@ export default function PropertyManagement() {
       </section>
 
       <section className={styles.included}>
-        <h2>What's included?</h2>
+        <h2>What&rsquo;s included?</h2>
         <table className={styles.table}>
           <thead>
             <tr>
@@ -118,16 +119,16 @@ export default function PropertyManagement() {
 
       <section className={styles.testimonial}>
         <blockquote>
-          “Aktonz handled everything for my rental – I couldn’t be happier.”
+          “Aktonz handled everything for my rental – I couldn&rsquo;t be happier.”
         </blockquote>
         <p className={styles.cite}>– Happy Landlord</p>
       </section>
 
       <section className={styles.cta}>
         <h2>Choose Aktonz to manage your property</h2>
-        <a className={styles.ctaButton} href="/contact">
+        <Link className={styles.ctaButton} href="/contact">
           Get in touch
-        </a>
+        </Link>
       </section>
     </main>
   );

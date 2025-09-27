@@ -79,7 +79,7 @@ export default function AccountDashboard() {
 
           <div className={styles.registerGrid}>
             <div className={styles.formGroup}>
-              <span className={styles.groupLabel}>Please share the price range you'd like</span>
+              <span className={styles.groupLabel}>Please share the price range you&rsquo;d like</span>
               <div className={styles.rangeControls}>
                 <label className={styles.selectWrap}>
                   <span className={styles.selectCaption}>Min</span>
