@@ -20,6 +20,7 @@ if [[ -n "$ORIG_TOKEN_ENCRYPTION_KEY" ]]; then
   TOKEN_ENCRYPTION_KEY="$ORIG_TOKEN_ENCRYPTION_KEY"
 fi
 
+
 # 1) Deps
 npm i ioredis
 npm un @vercel/kv || true
