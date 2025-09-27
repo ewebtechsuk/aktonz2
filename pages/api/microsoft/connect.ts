@@ -2,7 +2,12 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { MS_CLIENT_ID, MS_DEV_REDIRECT_URI, MS_REDIRECT_URI, MS_TENANT_ID, SCOPES } from '../../../lib/ms-graph';
 
 function resolveRedirectUri(req: NextApiRequest): string {
-  const host = req.headers.host ?? '';
+  const forwardedHost = req.headers['x-forwarded-host'];
+  const hostHeader = Array.isArray(forwardedHost)
+    ? forwardedHost[0]
+    : forwardedHost ?? req.headers.host ?? '';
+
+  const host = hostHeader.trim().toLowerCase();
   const isLocal = host.includes('localhost') || host.startsWith('127.0.0.1');
   return isLocal ? MS_DEV_REDIRECT_URI : MS_REDIRECT_URI;
 }

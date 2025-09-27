@@ -8,21 +8,59 @@ export const MS_TENANT_ID = '60737a1b-9707-4d7f-9909-0ee943a1ffff';
 const DEFAULT_PROD_REDIRECT_URI = 'https://aktonz.com/api/microsoft/callback';
 const DEFAULT_DEV_REDIRECT_URI = 'http://localhost:3000/api/admin/email/microsoft/callback';
 
+const PROD_REDIRECT_ENV_KEYS = [
+  'MS_REDIRECT_URI',
+  'MICROSOFT_REDIRECT_URI',
+  'MICROSOFT_REDIRECT_URL',
+  'NEXT_PUBLIC_MICROSOFT_REDIRECT_URI',
+  'NEXT_PUBLIC_MICROSOFT_REDIRECT_URL',
+  'AZURE_AD_REDIRECT_URI',
+  'AZURE_AD_REDIRECT_URL',
+];
+
+const DEV_REDIRECT_ENV_KEYS = [
+  'MS_DEV_REDIRECT_URI',
+  'MICROSOFT_DEV_REDIRECT_URI',
+  'MICROSOFT_DEV_REDIRECT_URL',
+  'NEXT_PUBLIC_MICROSOFT_DEV_REDIRECT_URI',
+  'NEXT_PUBLIC_MICROSOFT_DEV_REDIRECT_URL',
+];
+
 function requireAbsoluteUrl(value: string, label: string): string {
+  const trimmed = value.trim();
+
   try {
-    return new URL(value).toString();
+    const url = new URL(trimmed);
+    if (!url.protocol || !url.host) {
+      throw new Error();
+    }
+
+    return url.toString();
+
   } catch {
     throw new Error(`${label} must be set to a valid absolute URL`);
   }
 }
 
-function getRedirectUri(envKey: string, fallback: string): string {
-  const value = process.env[envKey] ?? fallback;
-  return requireAbsoluteUrl(value, envKey);
+function pickEnvValue(keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (typeof value === 'string' && value.trim() !== '') {
+      return value;
+    }
+  }
+
+  return undefined;
 }
 
-export const MS_REDIRECT_URI = getRedirectUri('MS_REDIRECT_URI', DEFAULT_PROD_REDIRECT_URI);
-export const MS_DEV_REDIRECT_URI = getRedirectUri('MS_DEV_REDIRECT_URI', DEFAULT_DEV_REDIRECT_URI);
+function getRedirectUri(envKeys: string[], fallback: string, label: string): string {
+  const value = pickEnvValue(envKeys) ?? fallback;
+  return requireAbsoluteUrl(value, label);
+}
+
+export const MS_REDIRECT_URI = getRedirectUri(PROD_REDIRECT_ENV_KEYS, DEFAULT_PROD_REDIRECT_URI, 'MS_REDIRECT_URI');
+export const MS_DEV_REDIRECT_URI = getRedirectUri(DEV_REDIRECT_ENV_KEYS, DEFAULT_DEV_REDIRECT_URI, 'MS_DEV_REDIRECT_URI');
+
 export const SCOPES = 'offline_access Mail.Send User.Read';
 export const ALLOWED_UPN = 'info@aktonz.com';
 
