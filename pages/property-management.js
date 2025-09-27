@@ -41,6 +41,7 @@ export default function PropertyManagement() {
 
       <section className={styles.included}>
         <h2>What&rsquo;s included?</h2>
+
         <table className={styles.table}>
           <thead>
             <tr>

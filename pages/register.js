@@ -101,6 +101,7 @@ export default function Register() {
           <h1>Aktonz</h1>
           <p>Insight. Information. Control. Wherever you are.</p>
           <p className={styles.subtitle}>Stay on top of what&rsquo;s happening with your property.</p>
+
         </div>
         <div className={styles.formSection}>
           <Link href="/">← Back</Link>

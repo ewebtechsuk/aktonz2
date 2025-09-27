@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 import styles from '../styles/Valuation.module.css';
 import MortgageCalculator from '../components/MortgageCalculator';
@@ -214,6 +215,7 @@ export default function Valuation() {
           <li>Local experts across London</li>
           <li>Thousands of buyers and tenants ready to move</li>
           <li>No obligation – it&rsquo;s completely free</li>
+
         </ul>
       </section>
 
