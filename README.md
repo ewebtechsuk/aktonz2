@@ -69,9 +69,9 @@ resulting identifiers through environment variables:
      directory only** unless you explicitly need multi-tenant access.
    * **Redirect URI:** choose **Web** and enter
      `https://<your-domain>/api/microsoft/callback` for production (replace
-     `<your-domain>` with the host serving your admin dashboard). You can add
-     the local testing URL (`http://localhost:3000/api/microsoft/callback`) in a
-     later step.
+     `<your-domain>` with the host serving your admin dashboard). Keep the
+     local-testing URI (`http://localhost:3000/api/microsoft/callback`) handy—you
+     will add it alongside the production URL in a moment.
    * On the **Register an application** screen (the one shown in the screenshot),
      double-check the values, then press **Register** in the bottom-left corner to
      create the app registration.
@@ -82,11 +82,11 @@ resulting identifiers through environment variables:
    menu (the screen shown in your latest screenshot). If the web redirect URI
    you entered earlier is not listed, click **Add a platform** → **Web**, paste
    `https://<your-domain>/api/microsoft/callback`, and press **Configure**.
-   After the production URL is in place, click **Add URI** and include the local
-   development callback `http://localhost:3000/api/microsoft/callback` so Azure
-   recognises both environments. Confirm the platform now appears under
-   **Redirect URIs**, then choose **Save** at the bottom of the page so Azure
-   accepts the change.
+   With the production URL saved, click **Add URI** on the same card and include
+   the local development callback `http://localhost:3000/api/microsoft/callback`
+   so Azure recognises both environments. Confirm the platform now appears
+   under **Redirect URIs**, then choose **Save** at the bottom of the page so
+   Azure accepts the change.
 7. Add the value to `.env.local` for local development or to your hosting
    platform’s environment variable manager for production. Restart the server
    or redeploy so the new configuration is loaded.
@@ -132,7 +132,7 @@ settings.
 | Variable | Description |
 | --- | --- |
 | `MS_CLIENT_ID` | The **Application (client) ID** from Azure App Registration. Equivalent fallbacks supported: `MICROSOFT_CLIENT_ID`, `NEXT_PUBLIC_MICROSOFT_CLIENT_ID`, `AZURE_AD_CLIENT_ID`, `MSAL_CLIENT_ID`. |
-| `MS_REDIRECT_URI` | The production redirect URI you configure on the app registration. Use `https://<your-domain>/api/microsoft/callback` and register the local testing URI `http://localhost:3000/api/microsoft/callback` under the same platform. Public fallbacks are supported: `MICROSOFT_REDIRECT_URI`, `NEXT_PUBLIC_MICROSOFT_REDIRECT_URI`, `NEXT_PUBLIC_MICROSOFT_REDIRECT_URL`, `AZURE_AD_REDIRECT_URI`, `AZURE_AD_REDIRECT_URL`. |
+| `MS_REDIRECT_URI` | The production redirect URI you configure on the app registration. Use `https://<your-domain>/api/microsoft/callback` and register the local testing URI `http://localhost:3000/api/microsoft/callback` under the same platform. If unset, the code falls back to `https://aktonz.com/api/microsoft/callback` (see `lib/ms-redirect.js`). Public fallbacks are supported: `MICROSOFT_REDIRECT_URI`, `NEXT_PUBLIC_MICROSOFT_REDIRECT_URI`, `NEXT_PUBLIC_MICROSOFT_REDIRECT_URL`, `AZURE_AD_REDIRECT_URI`, `AZURE_AD_REDIRECT_URL`. |
 | `MS_TENANT_ID` | (Optional) Your tenant ID. Leave unset to default to `common` for multi-tenant apps. Synonymous environment keys such as `MICROSOFT_TENANT_ID`, `AZURE_DIRECTORY_ID`, `AZURE_TENANT_ID`, or `AZURE_AD_TENANT_ID` are also detected. Values like `"undefined"` or `"null"` are ignored so a blank dashboard setting does not break sign-in. |
 | `MS_SCOPES` | (Optional) Custom OAuth scopes. Defaults to `offline_access https://graph.microsoft.com/.default`. |
 
@@ -250,8 +250,8 @@ These answers cover the follow-up questions about the Next.js project itself:
 ### Token handling and storage guidance
 
 The Microsoft OAuth flow is implemented in `pages/api/microsoft/connect.js`,
-`pages/api/microsoft/callback.js`, and the legacy-compatible route
-`pages/api/admin/email/microsoft/callback.js`.
+`pages/api/microsoft/callback.js`, and the legacy/local-compatible route
+`pages/api/admin/email/microsoft/callback.js` (kept for older admin dashboards).
 `lib/ms-oauth.js` performs the token exchange, verifies that the signed-in user is
 `info@aktonz.com`, and saves the encrypted bundle through `lib/token-store.js`.
 
