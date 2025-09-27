@@ -2,7 +2,10 @@ import { encryptText, decryptText, deserializeEncryptedPayload, serializeEncrypt
 import { clearTokens, readTokens, saveTokens } from './token-store';
 
 
-export const MS_CLIENT_ID = '04651e3a-82c5-4e03-ba50-574b2bb79cac';
+const DEFAULT_CLIENT_ID = '04651e3a-82c5-4e03-ba50-574b2bb79cac';
+const DEFAULT_SCOPES = 'offline_access Mail.Send User.Read';
+
+export const MS_CLIENT_ID = process.env.MS_CLIENT_ID ?? DEFAULT_CLIENT_ID;
 
 const TENANT_ENV_KEYS = [
   'MS_TENANT_ID',
@@ -100,7 +103,7 @@ function getRedirectUri(envKeys: string[], fallback: string, label: string): str
 export const MS_REDIRECT_URI = getRedirectUri(PROD_REDIRECT_ENV_KEYS, DEFAULT_PROD_REDIRECT_URI, 'MS_REDIRECT_URI');
 export const MS_DEV_REDIRECT_URI = getRedirectUri(DEV_REDIRECT_ENV_KEYS, DEFAULT_DEV_REDIRECT_URI, 'MS_DEV_REDIRECT_URI');
 
-export const SCOPES = 'offline_access Mail.Send User.Read';
+export const SCOPES = process.env.MS_SCOPES ?? DEFAULT_SCOPES;
 export const ALLOWED_UPN = 'info@aktonz.com';
 
 const TOKEN_ENDPOINT = `https://login.microsoftonline.com/${MS_TENANT_ID}/oauth2/v2.0/token`;
