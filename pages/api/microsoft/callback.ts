@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { MS_REDIRECT_URI } from '../../../lib/ms-graph';
+import { resolveMicrosoftRedirectUri } from '../../../lib/ms-redirect';
 import { handleOAuthCallback } from '../../../lib/ms-oauth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
@@ -21,8 +21,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
+  let redirectUri: string;
   try {
-    await handleOAuthCallback(code, MS_REDIRECT_URI);
+    redirectUri = resolveMicrosoftRedirectUri(req);
+  } catch (resolveError) {
+    const message = resolveError instanceof Error ? resolveError.message : 'invalid_redirect_uri';
+    console.error('Microsoft callback redirect URI error', message);
+    res.status(500).json({ error: 'invalid_redirect_uri' });
+    return;
+  }
+
+  try {
+    await handleOAuthCallback(code, redirectUri);
     res.redirect(302, '/admin?connected=1');
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Microsoft Graph connection failed';
