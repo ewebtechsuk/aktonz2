@@ -91,17 +91,19 @@ resulting identifiers through environment variables:
 For the existing Aktonz email connector registration you will need to capture
 these identifiers from Azure:
 
-* **Application (client) ID:** copy it from the registration **Overview** page.
+* **Application (client) ID:** `28c9d37b-2c2b-4d49-9ac4-4c180967bc7c`.
+
 * **Client secret value:** create (or rotate) a secret under **Certificates &
   secrets**, then copy the **Value** column immediately—Azure will not display
   it again.
 * **Directory (tenant) ID:** available on the same **Overview** page.
 
-Add them to your environment configuration—never commit the real values to Git
-or documentation. Replace the placeholders below with your actual details:
+Add them to your environment configuration. The Aktonz connector currently uses
+these values (update the secret and tenant ID if you rotate them in Azure):
 
 ```
-MS_CLIENT_ID=<application client id>
+MS_CLIENT_ID=28c9d37b-2c2b-4d49-9ac4-4c180967bc7c
+
 MS_CLIENT_SECRET=<client secret value>
 MS_TENANT_ID=<directory tenant id>
 MS_REDIRECT_URI=https://aktonz.com/api/microsoft/callback
@@ -128,6 +130,20 @@ Once the environment variables are present, restart the server and press
 **Connect Microsoft** on the admin page. The browser is redirected to Microsoft
 to finish authorization—no sensitive tenant information needs to be shared with
 the application maintainers.
+
+#### Verify your configuration from the command line
+
+If you are unsure whether the admin **Connect Microsoft** button has everything
+it needs, run the lightweight checker:
+
+```
+npm run check-ms-connector
+```
+
+The script inspects the supported environment variable aliases and calls out
+any mandatory settings (such as `MS_CLIENT_ID`/`MICROSOFT_CLIENT_ID`) that are
+still missing.
+
 
 ### Troubleshooting pull request creation
 
