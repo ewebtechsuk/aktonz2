@@ -35,6 +35,7 @@ function setStateCookie(res, value) {
 }
 
 const CLIENT_ID_ENV_KEYS = [
+  'MS_CLIENT_ID',
   'MICROSOFT_CLIENT_ID',
   'NEXT_PUBLIC_MICROSOFT_CLIENT_ID',
   'AZURE_AD_CLIENT_ID',
@@ -42,6 +43,7 @@ const CLIENT_ID_ENV_KEYS = [
 ];
 
 const REDIRECT_URI_ENV_KEYS = [
+  'MS_REDIRECT_URI',
   'MICROSOFT_REDIRECT_URI',
   'NEXT_PUBLIC_MICROSOFT_REDIRECT_URI',
   'NEXT_PUBLIC_MICROSOFT_REDIRECT_URL',
@@ -50,6 +52,7 @@ const REDIRECT_URI_ENV_KEYS = [
 ];
 
 const TENANT_ID_ENV_KEYS = [
+  'MS_TENANT_ID',
   'MICROSOFT_TENANT_ID',
   'NEXT_PUBLIC_MICROSOFT_TENANT_ID',
   'AZURE_AD_TENANT_ID',
@@ -144,7 +147,9 @@ function getOAuthConfiguration(req) {
   const redirectUri = resolveRedirectUri(req);
   const tenant = resolveEnvValue(TENANT_ID_ENV_KEYS) || 'common';
   const scopes =
-    process.env.MICROSOFT_SCOPES || 'offline_access https://graph.microsoft.com/.default';
+    process.env.MS_SCOPES ||
+    process.env.MICROSOFT_SCOPES ||
+    'offline_access https://graph.microsoft.com/.default';
 
   const missing = [];
   if (!clientId) {
