@@ -12,7 +12,6 @@
     "cache": "node scripts/cacheListings.mjs",
     "check-pr": "node scripts/check-pr.mjs",
     "check-ms-connector": "node scripts/check-ms-connector.mjs",
-
     "monitor": "node scripts/monitor-prices.js",
     "sync:scraye": "node scripts/syncScraye.mjs"
   },
@@ -20,6 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@vercel/kv": "^3.0.0",
     "leaflet": "^1.9.4",
     "next": "^15.5.2",
     "nodemailer": "^6.9.11",
@@ -35,7 +35,9 @@
   },
   "devDependencies": {
     "@turf/turf": "^7.2.0",
+    "@types/react": "19.1.14",
     "https-proxy-agent": "^7.0.6",
-    "jest": "^30.1.3"
+    "jest": "^30.1.3",
+    "typescript": "5.9.2"
   }
 }
