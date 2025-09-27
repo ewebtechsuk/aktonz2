@@ -3,7 +3,46 @@ import { clearTokens, readTokens, saveTokens } from './token-store';
 
 
 export const MS_CLIENT_ID = '04651e3a-82c5-4e03-ba50-574b2bb79cac';
-export const MS_TENANT_ID = '60737a1b-9707-4d7f-9909-0ee943a1ffff';
+
+const TENANT_ENV_KEYS = [
+  'MS_TENANT_ID',
+  'MICROSOFT_TENANT_ID',
+  'MICROSOFT_TENANT',
+  'AZURE_TENANT_ID',
+  'AZURE_DIRECTORY_ID',
+  'AZURE_AD_TENANT_ID',
+  'MS_DIRECTORY_ID',
+  'MS_TENANT',
+  'NEXT_PUBLIC_MS_TENANT_ID',
+  'NEXT_PUBLIC_MICROSOFT_TENANT_ID',
+];
+
+const DEFAULT_TENANT_ID = 'common';
+
+function normalizeTenantId(raw: string | undefined): string {
+  if (!raw) {
+    return DEFAULT_TENANT_ID;
+  }
+
+  const trimmed = raw.trim();
+  if (trimmed === '') {
+    return DEFAULT_TENANT_ID;
+  }
+
+  const lowered = trimmed.toLowerCase();
+  if (lowered === 'undefined' || lowered === 'null') {
+    return DEFAULT_TENANT_ID;
+  }
+
+  return trimmed;
+}
+
+export function resolveTenantId(): string {
+  const envValue = pickEnvValue(TENANT_ENV_KEYS);
+  return normalizeTenantId(envValue);
+}
+
+export const MS_TENANT_ID = resolveTenantId();
 
 const DEFAULT_PROD_REDIRECT_URI = 'https://aktonz.com/api/microsoft/callback';
 const DEFAULT_DEV_REDIRECT_URI = 'http://localhost:3000/api/admin/email/microsoft/callback';

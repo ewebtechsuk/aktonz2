@@ -1,9 +1,10 @@
 const { resolveMicrosoftRedirectUri } = require("../../../lib/ms-redirect");
+const { resolveTenantId } = require("../../../lib/ms-graph");
 
 module.exports = function handler(req, res) {
   const clientId = process.env.MS_CLIENT_ID;
   const scopes = process.env.MS_SCOPES || 'offline_access Mail.Send User.Read';
-  const tenant = process.env.MS_TENANT_ID || 'common';
+  const tenant = resolveTenantId();
 
   if (!clientId) {
     res.status(500).json({ error: "missing_ms_config" });
