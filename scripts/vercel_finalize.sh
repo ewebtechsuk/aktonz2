@@ -8,6 +8,7 @@ BASE_URL="${BASE_URL:-https://aktonz.com}"
 REDIS_URL="${REDIS_URL:-rediss://<USER>:<PASS>@<HOST>.redis-cloud.com:<PORT>}"
 TOKEN_ENCRYPTION_KEY="${TOKEN_ENCRYPTION_KEY:-<LONG_RANDOM_BASE64_FROM_OPENSSL>}"
 
+
 # 1) Deps
 npm i ioredis
 npm un @vercel/kv || true
