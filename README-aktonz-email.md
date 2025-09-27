@@ -20,7 +20,7 @@ After updating the `REDIS_URL`, confirm the connection with:
 npm run ping-redis
 ```
 
-The script automatically enables TLS when the URL begins with `rediss://` or the host ends with `redis-cloud.com`, sends `PING`, and prints the Redis response.
+The script automatically enables TLS when the URL begins with `rediss://` or the host ends with `redis-cloud.com`, upgrades `redis://` URLs to `rediss://` when needed, sends `PING`, and prints the Redis response.
 
 
 ## Redirect URIs

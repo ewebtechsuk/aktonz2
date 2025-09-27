@@ -17,9 +17,14 @@ try {
 }
 
 const needsTls = parsedUrl.protocol === 'rediss:' || parsedUrl.hostname.endsWith('redis-cloud.com');
+
+if (needsTls && parsedUrl.protocol !== 'rediss:') {
+  parsedUrl.protocol = 'rediss:';
+}
+
 const options = needsTls ? { tls: { servername: parsedUrl.hostname } } : undefined;
 
-const redis = new Redis(redisUrl, options);
+const redis = new Redis(parsedUrl.toString(), options);
 
 async function main() {
   try {
