@@ -1,12 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { MS_CLIENT_ID, MS_REDIRECT_URI, MS_TENANT_ID, SCOPES } from '../../../lib/ms-graph';
-
-const DEV_REDIRECT_URI = 'http://localhost:3000/api/admin/email/microsoft/callback';
+import { MS_CLIENT_ID, MS_DEV_REDIRECT_URI, MS_REDIRECT_URI, MS_TENANT_ID, SCOPES } from '../../../lib/ms-graph';
 
 function resolveRedirectUri(req: NextApiRequest): string {
   const host = req.headers.host ?? '';
   const isLocal = host.includes('localhost') || host.startsWith('127.0.0.1');
-  return isLocal ? DEV_REDIRECT_URI : MS_REDIRECT_URI;
+  return isLocal ? MS_DEV_REDIRECT_URI : MS_REDIRECT_URI;
 }
 
 export default function handler(req: NextApiRequest, res: NextApiResponse): void {
