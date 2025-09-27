@@ -13,6 +13,15 @@ Set the following in the Production and Preview environments:
 - `TOKEN_ENCRYPTION_KEY` – 32-byte random value encoded with `openssl rand -base64 32`.
 - `REDIS_URL` – connection string from Redis Cloud (must start with `rediss://`).
 
+### Redis connectivity sanity check
+After updating the `REDIS_URL`, confirm the connection with:
+
+```bash
+npm run ping-redis
+```
+
+The script automatically enables TLS when the URL begins with `rediss://` or the host ends with `redis-cloud.com`, upgrades `redis://` URLs to `rediss://` when needed, sends `PING`, and prints the Redis response.
+
 
 ## Redirect URIs
 - Production: `https://aktonz.com/api/microsoft/callback`
