@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getRedisClient } from '@/lib/redis-client';
+import { getRedisClient } from '../../../lib/redis-client';
 
 export async function POST() {
   const redis = getRedisClient();
