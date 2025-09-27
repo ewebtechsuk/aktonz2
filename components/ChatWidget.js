@@ -644,11 +644,13 @@ export default function ChatWidget() {
   const isAuthenticated = Boolean(user);
   const panelId = useId();
   const [isOpen, setIsOpen] = useState(false);
+  const [isPanelRendered, setIsPanelRendered] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef(null);
   const typingTimeoutRef = useRef();
+  const panelVisibilityTimeoutRef = useRef();
   const previousAuthState = useRef(isAuthenticated);
 
   const defaultMessages = useMemo(
@@ -1043,97 +1045,121 @@ export default function ChatWidget() {
     [renderMessageContent],
   );
 
+  useEffect(() => {
+    if (isOpen) {
+      setIsPanelRendered(true);
+      if (panelVisibilityTimeoutRef.current) {
+        clearTimeout(panelVisibilityTimeoutRef.current);
+        panelVisibilityTimeoutRef.current = null;
+      }
+    } else if (isPanelRendered) {
+      panelVisibilityTimeoutRef.current = setTimeout(() => {
+        setIsPanelRendered(false);
+        panelVisibilityTimeoutRef.current = null;
+      }, 250);
+    }
+
+    return () => {
+      if (panelVisibilityTimeoutRef.current) {
+        clearTimeout(panelVisibilityTimeoutRef.current);
+        panelVisibilityTimeoutRef.current = null;
+      }
+    };
+  }, [isOpen, isPanelRendered]);
+
   return (
     <div className={styles.container} aria-live="polite">
-      <div
-        id={panelId}
-        className={`${styles.panel} ${isOpen ? styles.panelOpen : ''}`}
-        role="dialog"
-        aria-modal="false"
-        aria-label="Aktonz live support"
-        aria-hidden={!isOpen}
-      >
-        <div className={styles.header}>
-          <div className={styles.headerContent}>
-            <div className={styles.headerTitle}>
-              <FaRobot aria-hidden="true" />
-              <span>Aktonz AI Support</span>
-            </div>
-            <div className={styles.headerStatus}>
-              <span className={styles.statusDot} />
-              Online now
-            </div>
-          </div>
-          <button
-            type="button"
-            className={styles.closeButton}
-            onClick={() => setIsOpen(false)}
-            aria-label="Close chat"
-            disabled={!isOpen}
-          >
-            <FaTimes />
-          </button>
-        </div>
-
-        <div className={styles.messages} ref={scrollRef}>
-          {messages.map((message) => (
-            <div key={message.id} className={styles.messageRow}>
-              {renderMessage(message)}
-            </div>
-          ))}
-          {isTyping ? (
-            <div className={styles.messageRow}>
-              <div className={`${styles.messageBubble} ${styles.messageBot}`}>
-                <span className={styles.typingDot} />
-                <span className={styles.typingDot} />
-                <span className={styles.typingDot} />
+      {isPanelRendered ? (
+        <div
+          id={panelId}
+          className={`${styles.panel} ${isOpen ? styles.panelOpen : ''}`}
+          role="dialog"
+          aria-modal="false"
+          aria-label="Aktonz live support"
+          aria-hidden={!isOpen}
+        >
+          <div className={styles.header}>
+            <div className={styles.headerContent}>
+              <div className={styles.headerTitle}>
+                <FaRobot aria-hidden="true" />
+                <span>Aktonz AI Support</span>
+              </div>
+              <div className={styles.headerStatus}>
+                <span className={styles.statusDot} />
+                Online now
               </div>
             </div>
-          ) : null}
-        </div>
-
-        <div className={styles.suggestions}>
-          {suggestions.map((suggestion) => (
             <button
-              key={suggestion}
               type="button"
-              className={styles.suggestion}
-              onClick={() => sendMessage(suggestion)}
+              className={styles.closeButton}
+              onClick={() => setIsOpen(false)}
+              aria-label="Close chat"
               disabled={!isOpen}
             >
-              <FaCheckCircle aria-hidden="true" />
-              {suggestion}
+              <FaTimes />
             </button>
-          ))}
-        </div>
+          </div>
 
-        <div className={styles.inputArea}>
-          <textarea
-            className={styles.input}
-            value={inputValue}
-            onChange={(event) => setInputValue(event.target.value)}
-            placeholder={
-              isAuthenticated
-                ? 'Ask about clients, viewings, offers or listings...'
-                : 'Ask about listings, viewings or Aktonz...'
-            }
+          <div className={styles.messages} ref={scrollRef}>
+            {messages.map((message) => (
+              <div key={message.id} className={styles.messageRow}>
+                {renderMessage(message)}
+              </div>
+            ))}
+            {isTyping ? (
+              <div className={styles.messageRow}>
+                <div className={`${styles.messageBubble} ${styles.messageBot}`}>
+                  <span className={styles.typingDot} />
+                  <span className={styles.typingDot} />
+                  <span className={styles.typingDot} />
+                </div>
+              </div>
+            ) : null}
+          </div>
 
-            onKeyDown={handleKeyDown}
-            rows={2}
-            aria-label="Message Aktonz support"
-            disabled={!isOpen}
-          />
-          <button
-            type="button"
-            className={styles.sendButton}
-            onClick={() => sendMessage()}
-            aria-label="Send message"
-            disabled={!isOpen || !inputValue.trim()}
-          >
-            <FaPaperPlane />
-          </button>
+          <div className={styles.suggestions}>
+            {suggestions.map((suggestion) => (
+              <button
+                key={suggestion}
+                type="button"
+                className={styles.suggestion}
+                onClick={() => sendMessage(suggestion)}
+                disabled={!isOpen}
+              >
+                <FaCheckCircle aria-hidden="true" />
+                {suggestion}
+              </button>
+            ))}
+          </div>
+
+          <div className={styles.inputArea}>
+            <textarea
+              className={styles.input}
+              value={inputValue}
+              onChange={(event) => setInputValue(event.target.value)}
+              placeholder={
+                isAuthenticated
+                  ? 'Ask about clients, viewings, offers or listings...'
+                  : 'Ask about listings, viewings or Aktonz...'
+              }
+
+              onKeyDown={handleKeyDown}
+              rows={2}
+              aria-label="Message Aktonz support"
+              disabled={!isOpen}
+            />
+            <button
+              type="button"
+              className={styles.sendButton}
+              onClick={() => sendMessage()}
+              aria-label="Send message"
+              disabled={!isOpen || !inputValue.trim()}
+            >
+              <FaPaperPlane />
+            </button>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <button
         type="button"
