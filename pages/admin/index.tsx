@@ -53,7 +53,8 @@ const AdminPage: NextPage = () => {
         <p style={{ marginBottom: '1.5rem', lineHeight: 1.5 }}>
           Connect the aktonz.com shared mailbox to Microsoft Graph. You will be redirected to sign in
           with the authorised account (<strong>info@aktonz.com</strong>). Once completed, encrypted tokens are
-          stored in Vercel KV for sending transactional emails.
+          stored securely in Redis Cloud for sending transactional emails.
+
         </p>
         <button
           onClick={handleConnectClick}

@@ -1,4 +1,5 @@
-import { kv } from '@vercel/kv';
+import Redis from 'ioredis';
+
 import {
   EncryptedPayload,
   deserializeEncryptedPayload,
@@ -6,6 +7,26 @@ import {
 } from './crypto-util';
 
 const TOKEN_KEY = 'aktonz:ms:tokens';
+
+let redisClient: Redis | null = null;
+
+function getRedisClient(): Redis {
+  if (!redisClient) {
+    const redisUrl = process.env.REDIS_URL;
+
+    if (!redisUrl) {
+      throw new Error('REDIS_URL environment variable must be set');
+    }
+
+    redisClient = new Redis(redisUrl, {
+      maxRetriesPerRequest: 2,
+      enableOfflineQueue: false,
+    });
+  }
+
+  return redisClient;
+}
+
 
 export interface StoredTokenSet {
   encryptedAccessToken: EncryptedPayload;
@@ -16,7 +37,10 @@ export interface StoredTokenSet {
 }
 
 export async function saveTokenSet(tokenSet: StoredTokenSet): Promise<void> {
-  await kv.hset(TOKEN_KEY, {
+  const client = getRedisClient();
+
+  await client.hset(TOKEN_KEY, {
+
     access: serializeEncryptedPayload(tokenSet.encryptedAccessToken),
     refresh: serializeEncryptedPayload(tokenSet.encryptedRefreshToken),
     expiresAt: tokenSet.expiresAt.toString(),
@@ -26,9 +50,17 @@ export async function saveTokenSet(tokenSet: StoredTokenSet): Promise<void> {
 }
 
 export async function loadTokenSet(): Promise<StoredTokenSet | null> {
-  const record = await kv.hgetall<Record<string, string>>(TOKEN_KEY);
+  const client = getRedisClient();
+  const record = await client.hgetall(TOKEN_KEY);
 
-  if (!record || !record.access || !record.refresh || !record.expiresAt) {
+  if (
+    !record ||
+    Object.keys(record).length === 0 ||
+    !record.access ||
+    !record.refresh ||
+    !record.expiresAt
+  ) {
+
     return null;
   }
 
@@ -42,5 +74,7 @@ export async function loadTokenSet(): Promise<StoredTokenSet | null> {
 }
 
 export async function clearTokenSet(): Promise<void> {
-  await kv.del(TOKEN_KEY);
+  const client = getRedisClient();
+  await client.del(TOKEN_KEY);
+
 }
