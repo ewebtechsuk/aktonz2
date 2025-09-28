@@ -1,5 +1,13 @@
 import { encryptText, serializeEncryptedPayload } from './crypto-util';
-import { ALLOWED_UPN, MS_CLIENT_ID, MS_TENANT_ID, SCOPES, getClientSecret } from './ms-graph';
+import {
+  ALLOWED_UPN,
+  ALLOWED_UPNS,
+  MS_CLIENT_ID,
+  MS_TENANT_ID,
+  SCOPES,
+  getClientSecret,
+  isUpnAllowed,
+} from './ms-graph';
 import { saveTokens } from './token-store';
 
 
@@ -27,10 +35,14 @@ export interface OAuthResult {
 export async function handleOAuthCallback(code: string, redirectUri: string): Promise<OAuthResult> {
   const tokens = await exchangeAuthorizationCode(code, redirectUri);
   const profile = await fetchProfile(tokens.access_token);
-  const accountUpn = (profile.userPrincipalName ?? profile.mail ?? '').toLowerCase();
+  const accountUpnRaw = profile.userPrincipalName ?? profile.mail ?? '';
+  const accountUpn = accountUpnRaw.trim().toLowerCase();
 
-  if (accountUpn !== ALLOWED_UPN.toLowerCase()) {
-    throw new Error('The signed-in account is not authorised for aktonz.com');
+  if (!isUpnAllowed(accountUpn)) {
+    const attempted = accountUpnRaw || 'unknown account';
+    throw new Error(
+      `The signed-in account (${attempted}) is not authorised for aktonz.com. Allowed accounts: ${ALLOWED_UPNS.join(', ')}`,
+    );
   }
 
   const expiresInSeconds = tokens.expires_in ?? 0;
