@@ -269,14 +269,14 @@ These answers cover the follow-up questions about the Next.js project itself:
 | **Next.js version** | The project runs on Next.js `15.5.2` per `package.json`. It uses the **Pages Router** (see the `pages/` directory) rather than the App Router. |
 | **Persistence layer** | There is **no database** connection. Property data is fetched from the Apex27 API and cached into JSON under `data/`. Microsoft OAuth tokens are encrypted and written to `.aktonz-ms-tokens.json` by `lib/token-store.js`, letting API routes refresh them without external storage. |
 | **Who can send mail?** | Only `info@aktonz.com` may authorise the connector. Outbound messages are delivered through Microsoft Graph with the access token granted to that mailbox, so every email is sent directly from `info@aktonz.com`. |
-| **Which forms send email?** | The Contact (`pages/api/contact.js`), Book a Viewing (`pages/api/book-viewing.js`), Offers (`pages/api/offers.js`), and Valuation (`pages/api/valuations.js`) endpoints all call `sendMailGraph` from `lib/ms-graph.js` to dispatch Microsoft 365 email. |
+| **Which forms send email?** | The Contact (`pages/api/contact.ts`), Book a Viewing (`pages/api/book-viewing.ts`), Offers (`pages/api/offers.ts`), and Valuation (`pages/api/valuations.ts`) endpoints all call `sendMailGraph` from `lib/ms-graph.js` to dispatch Microsoft 365 email. |
 | **From address behaviour** | Microsoft Graph sends each message as `info@aktonz.com`. The HTML bodies include the visitor's contact details; altering the `From` header would require delegated send permissions for another mailbox. |
 
 ### Token handling and storage guidance
 
-The Microsoft OAuth flow is implemented in `pages/api/microsoft/connect.js`,
-`pages/api/microsoft/callback.js`, and the legacy/local-compatible route
-`pages/api/admin/email/microsoft/callback.js` (kept for older admin dashboards).
+The Microsoft OAuth flow is implemented in `pages/api/microsoft/connect.ts`,
+`pages/api/microsoft/callback.ts`, and the legacy/local-compatible route
+`pages/api/admin/email/microsoft/callback.ts` (kept for older admin dashboards).
 `lib/ms-oauth.js` performs the token exchange, verifies that the signed-in user is
 `info@aktonz.com`, and saves the encrypted bundle through `lib/token-store.js`.
 
