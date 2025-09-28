@@ -21,20 +21,37 @@ const TENANT_ENV_KEYS = [
 ];
 
 const DEFAULT_TENANT_ID = 'common';
+const DEFAULT_CLIENT_TENANT_ID = '60737a1b-9707-4d7f-9909-0ee943a1ffff';
+
+function resolveBundledClientId(): string {
+  const rawClientId = process.env.MS_CLIENT_ID;
+  if (typeof rawClientId === 'string' && rawClientId.trim() !== '') {
+    return rawClientId.trim();
+  }
+  return DEFAULT_CLIENT_ID;
+}
+
+function determineDefaultTenantId(): string {
+  const clientId = resolveBundledClientId();
+  if (clientId === DEFAULT_CLIENT_ID) {
+    return DEFAULT_CLIENT_TENANT_ID;
+  }
+  return DEFAULT_TENANT_ID;
+}
 
 function normalizeTenantId(raw: string | undefined): string {
   if (!raw) {
-    return DEFAULT_TENANT_ID;
+    return determineDefaultTenantId();
   }
 
   const trimmed = raw.trim();
   if (trimmed === '') {
-    return DEFAULT_TENANT_ID;
+    return determineDefaultTenantId();
   }
 
   const lowered = trimmed.toLowerCase();
   if (lowered === 'undefined' || lowered === 'null') {
-    return DEFAULT_TENANT_ID;
+    return determineDefaultTenantId();
   }
 
   return trimmed;
