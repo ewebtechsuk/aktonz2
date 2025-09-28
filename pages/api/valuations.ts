@@ -195,6 +195,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.status(200).json({ ok: true });
   } catch (error) {
+    if (isGraphConnectorNotConfiguredError(error)) {
+      console.warn('Valuation email skipped: Microsoft Graph connector not configured.');
+      res.status(202).json({ ok: true, delivered: false, reason: 'graph_not_configured' });
+      return;
+    }
+
     res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to send email' });
   }
+}
+
+function isGraphConnectorNotConfiguredError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+
+  return (
+    message.includes('microsoft graph connector is not yet configured') ||
+    message.includes('not_connected') ||
+    message.includes('missing_ms_config')
+  );
 }
