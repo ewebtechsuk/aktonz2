@@ -1,10 +1,14 @@
-require('./helpers/register-ts');
-
 const mockSendMailGraph = jest.fn();
 
-jest.mock('../lib/ms-graph', () => ({
-  sendMailGraph: (...args) => mockSendMailGraph(...args),
-}));
+const loadTs = require('./helpers/load-ts');
+
+const msGraphRequest = '../../lib/ms-graph';
+const resolvedMsGraphPath = require.resolve('../lib/ms-graph');
+
+const createOverrides = () => ({
+  [msGraphRequest]: { sendMailGraph: (...args) => mockSendMailGraph(...args) },
+  [resolvedMsGraphPath]: { sendMailGraph: (...args) => mockSendMailGraph(...args) },
+});
 
 const createMockRes = () => {
   const res = {};
@@ -39,19 +43,19 @@ describe('contact API email delivery', () => {
     };
     const res = createMockRes();
 
-    await jest.isolateModulesAsync(async () => {
-      const handler = require('../pages/api/contact.cjs');
+    const handler = loadTs('../pages/api/contact.ts', __dirname, {
+      overrides: createOverrides(),
+    }).default;
 
-      await handler(req, res);
-    });
+    await handler(req, res);
 
+    expect(mockSendMailGraph).toHaveBeenCalledTimes(1);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ ok: true });
-    expect(mockSendMailGraph).toHaveBeenCalledTimes(1);
     expect(mockSendMailGraph).toHaveBeenCalledWith(
       expect.objectContaining({
         to: ['info@aktonz.com'],
-        subject: 'New contact from Buyer',
+        subject: 'aktonz.com contact form',
       })
     );
   });
@@ -69,14 +73,14 @@ describe('contact API email delivery', () => {
     };
     const res = createMockRes();
 
-    await jest.isolateModulesAsync(async () => {
-      const handler = require('../pages/api/contact.cjs');
+    const handler = loadTs('../pages/api/contact.ts', __dirname, {
+      overrides: createOverrides(),
+    }).default;
 
-      await handler(req, res);
-    });
+    await handler(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ ok: false, error: 'Graph error' });
     expect(mockSendMailGraph).toHaveBeenCalledTimes(1);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Failed to send email' });
   });
 });

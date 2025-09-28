@@ -1,9 +1,13 @@
-
+const loadTs = require('./helpers/load-ts');
 const mockSendMailGraph = jest.fn();
 
-jest.mock('../lib/ms-graph', () => ({
-  sendMailGraph: (...args) => mockSendMailGraph(...args),
-}));
+const msGraphRequest = '../../lib/ms-graph';
+const resolvedMsGraphPath = require.resolve('../lib/ms-graph');
+
+const createOverrides = () => ({
+  [msGraphRequest]: { sendMailGraph: (...args) => mockSendMailGraph(...args) },
+  [resolvedMsGraphPath]: { sendMailGraph: (...args) => mockSendMailGraph(...args) },
+});
 
 const createMockRes = () => {
   const res = {};
@@ -44,15 +48,15 @@ describe('offer API email delivery', () => {
     };
     const res = createMockRes();
 
-    await jest.isolateModulesAsync(async () => {
-      const handler = require('../pages/api/offers.cjs');
+    const handler = loadTs('../pages/api/offers.ts', __dirname, {
+      overrides: createOverrides(),
+    }).default;
 
-      await handler(req, res);
-    });
+    await handler(req, res);
 
+    expect(mockSendMailGraph).toHaveBeenCalledTimes(1);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ ok: true });
-    expect(mockSendMailGraph).toHaveBeenCalledTimes(1);
 
     const call = mockSendMailGraph.mock.calls[0][0];
     expect(call.to).toEqual(['info@aktonz.com']);
