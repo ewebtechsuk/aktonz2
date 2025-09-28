@@ -1,0 +1,45 @@
+const path = require('path');
+const Module = require('module');
+const { readFileSync } = require('fs');
+const { transpileModule, ModuleKind, ScriptTarget, JsxEmit } = require('typescript');
+
+module.exports = (relativePath, callerDir = __dirname, options = {}) => {
+  const filename = path.resolve(callerDir, relativePath);
+  const source = readFileSync(filename, 'utf8');
+
+  const { overrides = {} } = options;
+
+  const { outputText } = transpileModule(source, {
+    compilerOptions: {
+      module: ModuleKind.CommonJS,
+      target: ScriptTarget.ES2019,
+      esModuleInterop: true,
+      jsx: JsxEmit.React,
+      resolveJsonModule: true,
+      isolatedModules: true,
+    },
+    fileName: filename,
+  });
+
+  const parentModule = module;
+  const compiledModule = new Module(filename, parentModule);
+  compiledModule.filename = filename;
+  compiledModule.paths = Module._nodeModulePaths(path.dirname(filename));
+
+  const customRequire = (request) => {
+    if (request in overrides) {
+      return overrides[request];
+    }
+
+    const resolved = Module._resolveFilename(request, compiledModule);
+    if (resolved in overrides) {
+      return overrides[resolved];
+    }
+
+    return Module._load(resolved, compiledModule, false);
+  };
+
+  compiledModule.require = customRequire;
+  compiledModule._compile(outputText, filename);
+  return compiledModule.exports;
+};
