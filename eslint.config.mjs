@@ -1,5 +1,8 @@
 import js from '@eslint/js';
+import nextPlugin from '@next/eslint-plugin-next';
 import globals from 'globals';
+import tsParser from '@typescript-eslint/parser';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
 
 const sharedLanguageOptions = {
   ecmaVersion: 2023,
@@ -11,14 +14,36 @@ const sharedLanguageOptions = {
   },
 };
 
+const ignoredPaths = [
+  'node_modules/**',
+  '.next/**',
+  'out/**',
+  'coverage/**',
+  'lib/admin-users.mjs',
+];
+
+const appAndPagesGlobs = [
+  'app/**/*.{js,jsx}',
+  'components/**/*.{js,jsx}',
+  'lib/**/*.{js,mjs}',
+  'pages/**/*.{js,jsx}',
+  'scripts/**/*.{js,mjs}',
+];
+
+const appAndPagesTypeScriptGlobs = [
+  'app/**/*.{ts,tsx}',
+  'components/**/*.{ts,tsx}',
+  'lib/**/*.{ts,tsx}',
+  'pages/**/*.{ts,tsx}',
+  'scripts/**/*.{ts,tsx}',
+];
+
 export default [
   {
-    files: [
-      'lib/googleMapsLoader.mjs',
-      'pages/valuation.js',
-      '__tests__/googleMapsLoader.test.js',
-      '__tests__/app.test.tsx',
-    ],
+    ignores: [...ignoredPaths, '**/*.d.ts'],
+  },
+  {
+    files: appAndPagesGlobs,
     languageOptions: {
       ...sharedLanguageOptions,
       globals: {
@@ -26,13 +51,40 @@ export default [
         ...globals.node,
       },
     },
+    plugins: {
+      '@next/next': nextPlugin,
+    },
     rules: {
       ...js.configs.recommended.rules,
+      ...nextPlugin.configs.recommended.rules,
+      'no-empty': 'off',
       'no-unused-vars': 'off',
     },
   },
   {
-    files: ['__tests__/**/*.{js,ts,tsx}'],
+    files: appAndPagesTypeScriptGlobs,
+    languageOptions: {
+      ...sharedLanguageOptions,
+      parser: tsParser,
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+    plugins: {
+      '@next/next': nextPlugin,
+      '@typescript-eslint': tsPlugin,
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      ...nextPlugin.configs.recommended.rules,
+      'no-empty': 'off',
+      'no-undef': 'off',
+      'no-unused-vars': 'off',
+    },
+  },
+  {
+    files: ['__tests__/**/*.{js,jsx}'],
     languageOptions: {
       ...sharedLanguageOptions,
       globals: {
@@ -43,6 +95,28 @@ export default [
     },
     rules: {
       ...js.configs.recommended.rules,
+      'no-empty': 'off',
+      'no-unused-vars': 'off',
+    },
+  },
+  {
+    files: ['__tests__/**/*.{ts,tsx}'],
+    languageOptions: {
+      ...sharedLanguageOptions,
+      parser: tsParser,
+      globals: {
+        ...globals.jest,
+        ...globals.node,
+        ...globals.browser,
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      'no-empty': 'off',
+      'no-undef': 'off',
       'no-unused-vars': 'off',
     },
   },
