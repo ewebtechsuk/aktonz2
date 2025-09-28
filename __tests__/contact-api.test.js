@@ -38,7 +38,7 @@ describe('contact API email delivery', () => {
     const res = createMockRes();
 
     await jest.isolateModulesAsync(async () => {
-      const handler = require('../pages/api/contact.js');
+      const handler = require('../pages/api/contact.cjs');
       await handler(req, res);
     });
 
@@ -67,7 +67,7 @@ describe('contact API email delivery', () => {
     const res = createMockRes();
 
     await jest.isolateModulesAsync(async () => {
-      const handler = require('../pages/api/contact.js');
+      const handler = require('../pages/api/contact.cjs');
       await handler(req, res);
     });
 
