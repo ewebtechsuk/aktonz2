@@ -1,12 +1,17 @@
 const loadTs = require('./helpers/load-ts');
 const mockSendMailGraph = jest.fn();
+const mockAddOffer = jest.fn();
 
 const msGraphRequest = '../../lib/ms-graph';
 const resolvedMsGraphPath = require.resolve('../lib/ms-graph');
+const offersModulePath = '../../lib/offers.js';
+const resolvedOffersPath = require.resolve('../lib/offers.js');
 
 const createOverrides = () => ({
   [msGraphRequest]: { sendMailGraph: (...args) => mockSendMailGraph(...args) },
   [resolvedMsGraphPath]: { sendMailGraph: (...args) => mockSendMailGraph(...args) },
+  [offersModulePath]: { addOffer: (...args) => mockAddOffer(...args) },
+  [resolvedOffersPath]: { addOffer: (...args) => mockAddOffer(...args) },
 });
 
 const createMockRes = () => {
@@ -27,10 +32,28 @@ const createMockRes = () => {
 describe('offer API email delivery', () => {
   beforeEach(() => {
     mockSendMailGraph.mockReset();
+    mockAddOffer.mockReset();
   });
 
   it('sends offer submissions with amount and contact details', async () => {
     mockSendMailGraph.mockResolvedValueOnce(undefined);
+    const savedOffer = {
+      id: 'offer-123',
+      propertyId: 'AKT-123',
+      propertyTitle: 'Sample Property',
+      price: 450000,
+      frequency: 'pcm',
+      name: 'Buyer Example',
+      email: 'buyer@example.com',
+      status: 'new',
+      paymentStatus: 'pending',
+      depositAmount: 1200,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+      notes: '',
+      payments: [],
+    };
+    mockAddOffer.mockResolvedValueOnce(savedOffer);
 
     const req = {
       method: 'POST',
@@ -55,8 +78,15 @@ describe('offer API email delivery', () => {
     await handler(req, res);
 
     expect(mockSendMailGraph).toHaveBeenCalledTimes(1);
+    expect(mockAddOffer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        propertyId: 'AKT-123',
+        offerAmount: 450000,
+        depositAmount: '1200',
+      })
+    );
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({ ok: true });
+    expect(res.json).toHaveBeenCalledWith({ offer: savedOffer });
 
     const call = mockSendMailGraph.mock.calls[0][0];
     expect(call.to).toEqual(['info@aktonz.com']);
