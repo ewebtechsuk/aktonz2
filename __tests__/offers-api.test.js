@@ -1,4 +1,3 @@
-require('./helpers/register-ts');
 
 const mockSendMailGraph = jest.fn();
 
@@ -46,7 +45,8 @@ describe('offer API email delivery', () => {
     const res = createMockRes();
 
     await jest.isolateModulesAsync(async () => {
-      const handler = require('../pages/api/offers.ts').default;
+      const handler = require('../pages/api/offers.cjs');
+
       await handler(req, res);
     });
 

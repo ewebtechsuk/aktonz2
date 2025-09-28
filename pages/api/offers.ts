@@ -147,6 +147,14 @@ function buildHtml(body: FormBody): string {
   `;
 }
 
+function resolveSubject(body: FormBody): string {
+  if (body.propertyId) {
+    return `Offer for ${body.propertyId}: ${hasValue(body.offerAmount) ? formatCurrency(body.offerAmount) : 'N/A'}`;
+  }
+
+  return SUBJECT;
+}
+
 function resolveReplyTo(email: unknown): string | undefined {
   if (typeof email !== 'string') {
     return undefined;
@@ -174,7 +182,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     await sendMailGraph({
-      subject: SUBJECT,
+      subject: resolveSubject(body),
       html: buildHtml(body),
       to: RECIPIENTS,
       replyTo: resolveReplyTo(body.email),
