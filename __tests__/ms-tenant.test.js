@@ -11,13 +11,15 @@ const TENANT_ENV_KEYS = [
   'NEXT_PUBLIC_MICROSOFT_TENANT_ID',
 ];
 
-const DEFAULT_TENANT = 'common';
+const DEFAULT_TENANT = '60737a1b-9707-4d7f-9909-0ee943a1ffff';
+const COMMON_TENANT = 'common';
 const ORIGINAL_ENV = process.env;
 
 function clearTenantEnv() {
   for (const key of TENANT_ENV_KEYS) {
     delete process.env[key];
   }
+  delete process.env.MS_CLIENT_ID;
 }
 
 function loadResolver() {
@@ -35,9 +37,15 @@ describe('resolveTenantId', () => {
     process.env = ORIGINAL_ENV;
   });
 
-  test('defaults to common when tenant is not provided', () => {
+  test('defaults to bundled tenant when tenant is not provided', () => {
     const resolveTenantId = loadResolver();
     expect(resolveTenantId()).toBe(DEFAULT_TENANT);
+  });
+
+  test('defaults to common when using a custom client ID', () => {
+    process.env.MS_CLIENT_ID = 'custom-client-id';
+    const resolveTenantId = loadResolver();
+    expect(resolveTenantId()).toBe(COMMON_TENANT);
   });
 
   test('trims whitespace around tenant values', () => {
