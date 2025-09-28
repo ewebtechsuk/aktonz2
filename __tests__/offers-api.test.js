@@ -1,3 +1,5 @@
+require('./helpers/register-ts');
+
 const mockSendMailGraph = jest.fn();
 
 jest.mock('../lib/ms-graph', () => ({
@@ -44,7 +46,7 @@ describe('offer API email delivery', () => {
     const res = createMockRes();
 
     await jest.isolateModulesAsync(async () => {
-      const handler = require('../pages/api/offers.js');
+      const handler = require('../pages/api/offers.ts').default;
       await handler(req, res);
     });
 
