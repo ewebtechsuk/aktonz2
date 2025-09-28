@@ -6,7 +6,7 @@ import styles from '../styles/OfferDrawer.module.css';
 export default function OfferDrawer({ property }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [price, setPrice] = useState('');
+  const [offerAmount, setOfferAmount] = useState('');
   const transactionType = property?.transactionType
     ? String(property.transactionType).toLowerCase()
     : null;
@@ -17,6 +17,8 @@ export default function OfferDrawer({ property }) {
   const [frequency, setFrequency] = useState(defaultFrequency);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [message, setMessage] = useState('');
   const [status, setStatus] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [offer, setOffer] = useState(null);
@@ -31,10 +33,12 @@ export default function OfferDrawer({ property }) {
   }, [defaultFrequency, propertyId]);
 
   const resetFields = () => {
-    setPrice('');
+    setOfferAmount('');
     setFrequency(defaultFrequency);
     setName('');
     setEmail('');
+    setPhone('');
+    setMessage('');
   };
 
   const handleClose = () => {
@@ -65,10 +69,12 @@ export default function OfferDrawer({ property }) {
         body: JSON.stringify({
           propertyId,
           propertyTitle,
-          price,
+          offerAmount,
           ...(isSaleListing ? {} : { frequency }),
           name,
           email,
+          ...(phone ? { phone } : {}),
+          ...(message ? { message } : {}),
           depositAmount: isSaleListing ? 0 : undefined,
         }),
       });
@@ -152,9 +158,9 @@ export default function OfferDrawer({ property }) {
                 id="offer-price"
                 type="number"
                 min="0"
-                name="price"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                name="offerAmount"
+                value={offerAmount}
+                onChange={(e) => setOfferAmount(e.target.value)}
                 autoComplete="off"
                 inputMode="decimal"
                 required
@@ -199,6 +205,29 @@ export default function OfferDrawer({ property }) {
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
                 required
+              />
+            </div>
+          </div>
+          <div className={styles.fieldRow}>
+            <div className={styles.field}>
+              <label htmlFor="offer-phone">Phone number (optional)</label>
+              <input
+                id="offer-phone"
+                type="tel"
+                name="phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                autoComplete="tel"
+              />
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="offer-message">Message (optional)</label>
+              <textarea
+                id="offer-message"
+                name="message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                rows={3}
               />
             </div>
           </div>
