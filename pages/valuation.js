@@ -85,10 +85,25 @@ export default function Valuation() {
     setStatus({ type: 'pending', message: '' });
 
     try {
+      const { firstName, lastName, email, phone, address, notes, ...rest } = formValues;
+      const name = [firstName, lastName]
+        .map((part) => part.trim())
+        .filter(Boolean)
+        .join(' ');
+
+      const requestBody = {
+        ...rest,
+        name,
+        email,
+        phone,
+        propertyAddress: address,
+        message: notes,
+      };
+
       const response = await fetch('/api/valuations', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(formValues),
+        body: JSON.stringify(requestBody),
       });
 
       const body = await response.json().catch(() => null);
