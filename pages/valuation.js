@@ -6,6 +6,7 @@ import Link from 'next/link';
 import styles from '../styles/Valuation.module.css';
 import MortgageCalculator from '../components/MortgageCalculator';
 import RentAffordability from '../components/RentAffordability';
+
 import { loadGoogleMaps } from '../lib/googleMapsLoader';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
