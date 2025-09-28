@@ -43,6 +43,10 @@ export const DEFAULT_ACCOUNT_TABS = [
     href: '/account/saved-searches',
   },
   {
+    label: 'Favourites',
+    href: '/account/favourites',
+  },
+  {
     label: 'Offers & viewings',
     disabled: true,
   },
@@ -91,6 +95,7 @@ export default function AccountLayout({
     () => [
       { label: 'Profile', href: '/account/profile' },
       { label: 'Alerts', href: '/account/saved-searches' },
+      { label: 'Favourites', href: '/account/favourites' },
       { label: 'Contacts', href: '/contact' },
     ],
     [],
