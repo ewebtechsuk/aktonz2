@@ -1,11 +1,14 @@
 import Head from 'next/head';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 
 import styles from '../styles/Valuation.module.css';
 import MortgageCalculator from '../components/MortgageCalculator';
 import RentAffordability from '../components/RentAffordability';
+import { loadGoogleMaps } from '../lib/googleMapsLoader';
+
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 const INITIAL_FORM = {
   firstName: '',
@@ -21,6 +24,47 @@ export default function Valuation() {
   const [formValues, setFormValues] = useState(INITIAL_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState({ type: 'idle', message: '' });
+  const addressInputRef = useRef(null);
+
+  useEffect(() => {
+    let autocomplete;
+    let isCancelled = false;
+
+    loadGoogleMaps(GOOGLE_MAPS_API_KEY)
+      .then((google) => {
+        if (isCancelled || !google?.maps?.places || !addressInputRef.current) {
+          return;
+        }
+
+        autocomplete = new google.maps.places.Autocomplete(addressInputRef.current, {
+          fields: ['formatted_address', 'address_components', 'name'],
+          types: ['geocode'],
+          componentRestrictions: { country: ['uk'] },
+        });
+
+        autocomplete.addListener('place_changed', () => {
+          const place = autocomplete.getPlace();
+          const formattedAddress = place?.formatted_address || place?.name;
+
+          if (formattedAddress) {
+            setFormValues((current) => ({
+              ...current,
+              address: formattedAddress,
+            }));
+          }
+        });
+      })
+      .catch((error) => {
+        console.error('Failed to load Google Maps for address autocomplete', error);
+      });
+
+    return () => {
+      isCancelled = true;
+      if (autocomplete) {
+        window.google?.maps?.event.clearInstanceListeners(autocomplete);
+      }
+    };
+  }, []);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -165,6 +209,7 @@ export default function Valuation() {
               name="address"
               type="text"
               autoComplete="street-address"
+              ref={addressInputRef}
               value={formValues.address}
               onChange={handleChange}
               required
