@@ -160,6 +160,7 @@ settings.
 | `MS_REDIRECT_URI` | The production redirect URI you configure on the app registration. Use `https://<your-domain>/api/microsoft/callback` and register the local testing URI `http://localhost:3000/api/microsoft/callback` under the same platform. If unset, the code falls back to `https://aktonz.com/api/microsoft/callback` (see `lib/ms-redirect.js`). Public fallbacks are supported: `MICROSOFT_REDIRECT_URI`, `NEXT_PUBLIC_MICROSOFT_REDIRECT_URI`, `NEXT_PUBLIC_MICROSOFT_REDIRECT_URL`, `AZURE_AD_REDIRECT_URI`, `AZURE_AD_REDIRECT_URL`. |
 | `MS_TENANT_ID` | (Optional) Your tenant ID. When using the bundled Aktonz app registration (`MS_CLIENT_ID` defaults to `28c9d37b-2c2b-4d49-9ac4-4c180967bc7c`), the connector automatically falls back to the Aktonz tenant (`60737a1b-9707-4d7f-9909-0ee943a1ffff`) so a missing configuration still signs in correctly. For custom app registrations, leave unset to default to `common` for multi-tenant apps. Synonymous environment keys such as `MICROSOFT_TENANT_ID`, `AZURE_DIRECTORY_ID`, `AZURE_TENANT_ID`, or `AZURE_AD_TENANT_ID` are also detected. Values like `"undefined"` or `"null"` are ignored so a blank dashboard setting does not break sign-in. |
 | `MS_SCOPES` | (Optional) Custom OAuth scopes. Defaults to `offline_access https://graph.microsoft.com/.default`. |
+| `MS_ALLOWED_UPNS` | (Optional) Comma, semicolon, or newline separated list of user principal names permitted to complete the Microsoft connection. Defaults to `info@aktonz.com`. Use this when the authorised account differs between environments (e.g. `operations@aktonz.com`). |
 
 Once the environment variables are present, restart the server and press
 **Connect Microsoft** on the admin page. The browser is redirected to Microsoft
@@ -270,6 +271,7 @@ These answers cover the follow-up questions about the Next.js project itself:
 | **Persistence layer** | There is **no database** connection. Property data is fetched from the Apex27 API and cached into JSON under `data/`. Microsoft OAuth tokens are encrypted and written to `.aktonz-ms-tokens.json` by `lib/token-store.js`, letting API routes refresh them without external storage. |
 | **Who can send mail?** | Only `info@aktonz.com` may authorise the connector. Outbound messages are delivered through Microsoft Graph with the access token granted to that mailbox, so every email is sent directly from `info@aktonz.com`. |
 | **Which forms send email?** | The Contact (`pages/api/contact.cjs`), Book a Viewing (`pages/api/book-viewing.cjs`), Offers (`pages/api/offers.cjs`), and Valuation (`pages/api/valuations.cjs`) endpoints all call `sendMailGraph` from `lib/ms-graph.js` to dispatch Microsoft 365 email. |
+
 | **From address behaviour** | Microsoft Graph sends each message as `info@aktonz.com`. The HTML bodies include the visitor's contact details; altering the `From` header would require delegated send permissions for another mailbox. |
 
 ### Token handling and storage guidance

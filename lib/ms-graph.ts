@@ -5,6 +5,17 @@ import { clearTokens, readTokens, saveTokens } from './token-store';
 const DEFAULT_CLIENT_ID = '28c9d37b-2c2b-4d49-9ac4-4c180967bc7c';
 const DEFAULT_SCOPES = 'offline_access Mail.Send User.Read';
 
+const ALLOWED_UPN_ENV_KEYS = [
+  'MS_ALLOWED_UPNS',
+  'MS_ALLOWED_UPN',
+  'MICROSOFT_ALLOWED_UPNS',
+  'MICROSOFT_ALLOWED_UPN',
+  'AZURE_AD_ALLOWED_UPNS',
+  'AZURE_AD_ALLOWED_UPN',
+];
+
+export const DEFAULT_ALLOWED_UPNS = ['info@aktonz.com'];
+
 export const MS_CLIENT_ID = process.env.MS_CLIENT_ID ?? DEFAULT_CLIENT_ID;
 
 const TENANT_ENV_KEYS = [
@@ -120,8 +131,34 @@ function getRedirectUri(envKeys: string[], fallback: string, label: string): str
 export const MS_REDIRECT_URI = getRedirectUri(PROD_REDIRECT_ENV_KEYS, DEFAULT_PROD_REDIRECT_URI, 'MS_REDIRECT_URI');
 export const MS_DEV_REDIRECT_URI = getRedirectUri(DEV_REDIRECT_ENV_KEYS, DEFAULT_DEV_REDIRECT_URI, 'MS_DEV_REDIRECT_URI');
 
+function parseAllowedUpns(): string[] {
+  const envValue = pickEnvValue(ALLOWED_UPN_ENV_KEYS);
+  if (!envValue) {
+    return DEFAULT_ALLOWED_UPNS;
+  }
+
+  const parsed = envValue
+    .split(/[\n,;]+/)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+
+  return parsed.length > 0 ? parsed : DEFAULT_ALLOWED_UPNS;
+}
+
+export const ALLOWED_UPNS = parseAllowedUpns();
+export const ALLOWED_UPN = ALLOWED_UPNS[0] ?? DEFAULT_ALLOWED_UPNS[0];
+
+const NORMALISED_ALLOWED_UPNS = new Set(ALLOWED_UPNS.map((entry) => entry.toLowerCase()));
+
+export function isUpnAllowed(upn: string | undefined | null): boolean {
+  if (!upn) {
+    return false;
+  }
+
+  return NORMALISED_ALLOWED_UPNS.has(upn.trim().toLowerCase());
+}
+
 export const SCOPES = process.env.MS_SCOPES ?? DEFAULT_SCOPES;
-export const ALLOWED_UPN = 'info@aktonz.com';
 
 const TOKEN_ENDPOINT = `https://login.microsoftonline.com/${MS_TENANT_ID}/oauth2/v2.0/token`;
 const GRAPH_BASE_URL = 'https://graph.microsoft.com/v1.0';

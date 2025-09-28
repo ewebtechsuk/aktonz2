@@ -1,52 +1,94 @@
-import fs from 'node:fs/promises';
-import path from 'path';
+const { readContactEntries, updateContactEntries } = require('../../lib/account-storage.js');
+const { readSession } = require('../../lib/session.js');
 
-const FILE_PATH = path.join(process.cwd(), 'data', 'saved-searches.json');
+const STORE_NAME = 'saved-searches.json';
 
-async function readSearches() {
-  try {
-    const data = await fs.readFile(FILE_PATH, 'utf8');
-    return JSON.parse(data);
-  } catch {
-    return [];
+function requireContact(req, res) {
+  const session = readSession(req);
+  const contactId = session?.contactId;
+
+  if (!contactId) {
+    res.status(401).json({ error: 'Not authenticated' });
+    return null;
   }
+
+  return contactId;
 }
 
-async function writeSearches(data) {
-  await fs.mkdir(path.dirname(FILE_PATH), { recursive: true });
-  await fs.writeFile(FILE_PATH, JSON.stringify(data, null, 2));
-}
-
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method === 'GET') {
-    const searches = await readSearches();
-    return res.status(200).json(searches);
+    const contactId = requireContact(req, res);
+    if (!contactId) {
+      return;
+    }
+
+    const entries = await readContactEntries(STORE_NAME, contactId);
+    res.status(200).json(entries);
+    return;
   }
 
   if (req.method === 'POST') {
-    const params = req.body || {};
-    const searches = await readSearches();
-    const id = Date.now().toString();
-    searches.push({ id, params });
-    await writeSearches(searches);
+    const contactId = requireContact(req, res);
+    if (!contactId) {
+      return;
+    }
 
-    // Placeholder for scheduling a notification job
-    console.log('Schedule notification job for search', params);
+    const params = (req.body && typeof req.body === 'object' ? req.body : {}) || {};
+    const entry = {
+      id: Date.now().toString(),
+      params,
+      createdAt: new Date().toISOString(),
+    };
 
-    return res.status(200).json({ id });
+    await updateContactEntries(STORE_NAME, contactId, (existing) => {
+      return [...existing, entry];
+    });
+
+    console.log('Schedule notification job for saved search', { contactId, params });
+
+    res.status(200).json(entry);
+    return;
   }
 
   if (req.method === 'DELETE') {
-    const { id } = req.query || {};
-    if (!id) {
-      return res.status(400).json({ error: 'Missing id' });
+    const contactId = requireContact(req, res);
+    if (!contactId) {
+      return;
     }
-    const searches = await readSearches();
-    const filtered = searches.filter((s) => s.id !== id);
-    await writeSearches(filtered);
-    return res.status(200).json({ ok: true });
+
+    const id =
+      typeof req.query?.id === 'string'
+        ? req.query.id
+        : typeof req.body?.id === 'string'
+          ? req.body.id
+          : null;
+
+    if (!id) {
+      res.status(400).json({ error: 'Missing id' });
+      return;
+    }
+
+    let removed = false;
+    await updateContactEntries(STORE_NAME, contactId, (existing) => {
+      const filtered = existing.filter((entry) => {
+        const match = entry?.id === id;
+        if (match) {
+          removed = true;
+        }
+        return !match;
+      });
+      return filtered;
+    });
+
+    if (!removed) {
+      res.status(404).json({ error: 'Search not found' });
+      return;
+    }
+
+    res.status(200).json({ ok: true });
+    return;
   }
 
   res.setHeader('Allow', ['GET', 'POST', 'DELETE']);
-  return res.status(405).end('Method Not Allowed');
-}
+  res.status(405).end('Method Not Allowed');
+};
