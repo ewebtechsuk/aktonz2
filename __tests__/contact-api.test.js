@@ -1,3 +1,5 @@
+require('./helpers/register-ts');
+
 const mockSendMailGraph = jest.fn();
 
 jest.mock('../lib/ms-graph', () => ({
@@ -38,7 +40,7 @@ describe('contact API email delivery', () => {
     const res = createMockRes();
 
     await jest.isolateModulesAsync(async () => {
-      const handler = require('../pages/api/contact.js');
+      const handler = require('../pages/api/contact.ts').default;
       await handler(req, res);
     });
 
@@ -67,7 +69,7 @@ describe('contact API email delivery', () => {
     const res = createMockRes();
 
     await jest.isolateModulesAsync(async () => {
-      const handler = require('../pages/api/contact.js');
+      const handler = require('../pages/api/contact.ts').default;
       await handler(req, res);
     });
 
