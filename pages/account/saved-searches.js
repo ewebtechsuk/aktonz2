@@ -34,37 +34,94 @@ function normaliseValue(value) {
   return String(value);
 }
 
+function parseDate(timestamp, createdAt) {
+  if (createdAt) {
+    const date = new Date(createdAt);
+    if (!Number.isNaN(date.getTime())) {
+      return date;
+    }
+  }
+
+  if (timestamp) {
+    const date = new Date(Number(timestamp));
+    if (!Number.isNaN(date.getTime())) {
+      return date;
+    }
+  }
+
+  return null;
+}
+
 export default function SavedSearchesPage() {
   const [searches, setSearches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [actionError, setActionError] = useState('');
 
   useEffect(() => {
+    let active = true;
+
     async function load() {
+      setLoading(true);
+      setError('');
       try {
-        const res = await fetch('/api/save-search');
-        if (!res.ok) throw new Error('Failed to load');
+        const res = await fetch('/api/save-search', { credentials: 'include' });
+        if (!active) return;
+
+        if (res.status === 401) {
+          setSearches([]);
+          setError('Sign in to view your saved searches.');
+          return;
+        }
+
+        if (!res.ok) {
+          throw new Error('Failed to load saved searches');
+        }
+
         const data = await res.json();
-        setSearches(data);
-      } catch {
-        const data = JSON.parse(localStorage.getItem('savedSearches') || '[]');
-        setSearches(data);
+        if (!active) return;
+        setSearches(Array.isArray(data) ? data : []);
+      } catch (err) {
+        if (!active) return;
+        console.error('Failed to load saved searches', err);
+        setError('We were unable to load your saved searches. Please try again.');
       } finally {
-        setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     }
+
     load();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   async function handleDelete(id) {
+    setActionError('');
     try {
-      const res = await fetch(`/api/save-search?id=${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed');
+      const res = await fetch('/api/save-search', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id }),
+      });
+
+      if (res.status === 401) {
+        setActionError('Please sign in to manage saved searches.');
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error('Failed to delete saved search');
+      }
+
       setSearches((prev) => prev.filter((s) => s.id !== id));
-    } catch {
-      const stored = JSON.parse(localStorage.getItem('savedSearches') || '[]');
-      const updated = stored.filter((s) => s.id !== id);
-      localStorage.setItem('savedSearches', JSON.stringify(updated));
-      setSearches(updated);
+    } catch (err) {
+      console.error('Failed to delete saved search', err);
+      setActionError('We could not delete this search. Please try again.');
     }
   }
 
@@ -96,11 +153,13 @@ export default function SavedSearchesPage() {
       <div className={styles.list}>
         {searches.map((search) => {
           const entries = Object.entries(search.params || {});
+          const savedDate = parseDate(search.id, search.createdAt);
+          const savedLabel = savedDate ? savedDate.toLocaleDateString('en-GB') : 'Recently';
           return (
             <article key={search.id} className={styles.searchCard}>
               <div className={styles.cardHeader}>
                 <h2>Lettings search</h2>
-                <span className={styles.savedOn}>Saved {new Date(Number(search.id)).toLocaleDateString('en-GB')}</span>
+                <span className={styles.savedOn}>Saved {savedLabel}</span>
               </div>
               {entries.length ? (
                 <ul className={styles.paramList}>
@@ -143,6 +202,16 @@ export default function SavedSearchesPage() {
         href: '/to-rent',
       }}
     >
+      {error ? (
+        <div className={`${styles.feedback} ${styles.feedbackError}`} role="alert">
+          {error}
+        </div>
+      ) : null}
+      {actionError ? (
+        <div className={`${styles.feedback} ${styles.feedbackError}`} role="alert">
+          {actionError}
+        </div>
+      ) : null}
       {content}
     </AccountLayout>
   );
