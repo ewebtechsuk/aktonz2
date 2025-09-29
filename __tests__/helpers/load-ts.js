@@ -1,6 +1,7 @@
 const path = require('path');
 const Module = require('module');
 const { readFileSync } = require('fs');
+const { pathToFileURL } = require('url');
 const { transpileModule, ModuleKind, ScriptTarget, JsxEmit } = require('typescript');
 
 module.exports = (relativePath, callerDir = __dirname, options = {}) => {
@@ -9,7 +10,7 @@ module.exports = (relativePath, callerDir = __dirname, options = {}) => {
 
   const { overrides = {} } = options;
 
-  const { outputText } = transpileModule(source, {
+  let { outputText } = transpileModule(source, {
     compilerOptions: {
       module: ModuleKind.CommonJS,
       target: ScriptTarget.ES2019,
@@ -20,6 +21,13 @@ module.exports = (relativePath, callerDir = __dirname, options = {}) => {
     },
     fileName: filename,
   });
+
+  if (outputText.includes('import.meta')) {
+    const shimDeclaration = `const importMetaShim = { url: ${JSON.stringify(
+      pathToFileURL(filename).href
+    )} };\n`;
+    outputText = shimDeclaration + outputText.replace(/import\.meta/g, 'importMetaShim');
+  }
 
   const parentModule = module;
   const compiledModule = new Module(filename, parentModule);
