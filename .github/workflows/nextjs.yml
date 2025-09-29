@@ -31,6 +31,10 @@ jobs:
     env:
       APEX27_API_KEY: ${{ secrets.APEX27_API_KEY }}
       APEX27_BRANCH_ID: ${{ secrets.APEX27_BRANCH_ID }}
+      APEX27_API_TOKEN: ${{ secrets.APEX27_API_TOKEN }}
+      APEX27_ACCESS_TOKEN: ${{ secrets.APEX27_ACCESS_TOKEN }}
+      NEXT_PUBLIC_APEX27_API_KEY: ${{ secrets.APEX27_API_KEY }}
+      NEXT_PUBLIC_APEX27_BRANCH_ID: ${{ secrets.APEX27_BRANCH_ID }}
       NEXT_EXPORT: true
     steps:
       - name: Checkout
@@ -73,6 +77,12 @@ jobs:
         run: ${{ steps.detect-package-manager.outputs.manager }} run cache
       - name: Build with Next.js
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
+      - name: Verify static export output
+        run: |
+          if [ ! -d "./out" ]; then
+            echo "::error::Build output ./out does not exist. Ensure the build completed successfully and static export is enabled."
+            exit 1
+          fi
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
