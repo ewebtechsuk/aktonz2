@@ -29,7 +29,23 @@ loadEnvLocal();
 
 const { fetchProperties } = await import('../lib/apex27.mjs');
 
+function requireSecrets() {
+  const missing = [];
+  if (!process.env.APEX27_API_KEY || process.env.APEX27_API_KEY.trim() === '') {
+    missing.push('APEX27_API_KEY');
+  }
+
+  if (missing.length > 0) {
+    console.error(`Missing required environment variables: ${missing.join(', ')}`);
+    console.error(
+      'Add them to your .env.local for local development or configure them as GitHub Actions secrets before deploying.'
+    );
+    process.exit(1);
+  }
+}
+
 async function cacheListings() {
+  requireSecrets();
   const properties = await fetchProperties();
   const filePath = path.join(process.cwd(), 'data', 'listings.json');
   await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
