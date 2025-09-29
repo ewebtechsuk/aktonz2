@@ -32,7 +32,7 @@ import {
   parsePriceNumber,
   rentToMonthly,
   formatPropertyPriceLabel,
-} from '../../lib/rent.mjs';
+} from '../../lib/rent.js';
 
 function normalizeScrayeReference(value) {
   if (value == null) {
