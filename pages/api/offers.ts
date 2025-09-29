@@ -139,7 +139,7 @@ function validateBody(body: FormBody): { data?: ValidatedOffer; errors?: string[
 
   return {
     data: {
-      propertyId,
+      propertyId: propertyId!,
       propertyTitle,
       offerAmount: offerAmount!,
       frequency: frequency || undefined,
