@@ -101,7 +101,7 @@ describe('admin offers API', () => {
     expect(savedEntry).toBeDefined();
     expect(savedEntry).toEqual(
       expect.objectContaining({
-        amount: '£1800 Per month',
+        amount: '£1,800 Per month',
         date: savedOffer.createdAt,
         type: 'rent',
         price: savedOffer.price,
