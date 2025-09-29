@@ -1,5 +1,7 @@
 /** @jest-environment jsdom */
 
+const loadTs = require('./helpers/load-ts');
+
 describe('offer frequency helpers', () => {
   test('defaults pcm rentals to per month cadence', async () => {
     const { resolveOfferFrequency } = await import('../lib/offer-frequency.mjs');
@@ -69,6 +71,9 @@ describe('offer frequency presentation', () => {
           return value;
         },
       }));
+      jest.doMock('../lib/offers.js', () => ({
+        addOffer: jest.fn(),
+      }));
 
       const { buildHtml } = await import('../pages/api/offers.ts');
 
@@ -85,11 +90,20 @@ describe('offer frequency presentation', () => {
 
   });
 
-  test('admin offer amount formatting uses the annual label', async () => {
-    const { formatOfferAmount } = await import('../lib/offers-admin.mjs');
+  test('admin offer amount formatting uses the annual label', () => {
+    const offersModule = loadTs('../lib/offers.js', __dirname);
+    const offersAdminModule = loadTs('../lib/offers-admin.mjs', __dirname, {
+      overrides: {
+        './offers.js': offersModule,
+        [require.resolve('../lib/offers.js')]: offersModule,
+      },
+    });
 
     expect(
-      formatOfferAmount({ price: 5000, frequency: 'per annum' }, 'rent')
+      offersAdminModule.formatOfferAmount(
+        { price: 5000, frequency: 'per annum' },
+        'rent'
+      )
     ).toBe('£5000 Per annum');
   });
 
