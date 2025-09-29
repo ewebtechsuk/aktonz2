@@ -43,3 +43,11 @@ module.exports = (relativePath, callerDir = __dirname, options = {}) => {
   compiledModule._compile(outputText, filename);
   return compiledModule.exports;
 };
+
+if (typeof describe === 'function') {
+  describe('load-ts helper', () => {
+    test('exposes a loader function', () => {
+      expect(typeof module.exports).toBe('function');
+    });
+  });
+}
