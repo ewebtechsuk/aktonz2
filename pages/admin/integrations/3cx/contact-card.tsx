@@ -41,7 +41,11 @@ function normaliseQueryValue(value: string | string[] | undefined): string | nul
 
 const AdminIntegrationContactCardPage = () => {
   const router = useRouter();
-  const { user, loading: sessionLoading } = useSession();
+  const session = useSession() as {
+    user: { role?: string | null } | null;
+    loading: boolean;
+  };
+  const { user, loading: sessionLoading } = session;
   const isAdmin = Boolean(user?.role === 'admin');
 
   const [lookup, setLookup] = useState<LookupDetails>({ token: null, phone: null, countryCode: null });
