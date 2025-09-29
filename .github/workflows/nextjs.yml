@@ -35,6 +35,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          missing=()
+          for name in APEX27_API_KEY APEX27_BRANCH_ID; do
+            if [ -z "${!name}" ]; then
+              missing+=("$name")
+            fi
+          done
+          if [ ${#missing[@]} -ne 0 ]; then
+            printf '::error::Missing required secrets: %s\n' "${missing[*]}"
+            echo "Required secrets are missing. Configure them in Settings → Secrets and variables → Actions."
+            exit 1
+          fi
       - name: Detect package manager
         id: detect-package-manager
         run: |
