@@ -1,11 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { sendMailGraph } from '../../lib/ms-graph';
+import { addOffer } from '../../lib/offers.js';
 
 type FormBody = {
   name?: string;
   email?: string;
   phone?: string;
-  offerAmount?: string;
+  offerAmount?: string | number;
   propertyId?: string;
   message?: string;
   propertyTitle?: string;
@@ -81,6 +82,74 @@ function hasValue(value: unknown): boolean {
   }
 
   return true;
+}
+
+function normaliseString(value: unknown): string | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed === '' ? undefined : trimmed;
+}
+
+type ValidatedOffer = {
+  propertyId: string;
+  propertyTitle?: string;
+  offerAmount: number;
+  frequency?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  message?: string;
+  depositAmount?: string | number;
+};
+
+function validateBody(body: FormBody): { data?: ValidatedOffer; errors?: string[] } {
+  const errors: string[] = [];
+
+  const propertyId = normaliseString(body.propertyId);
+  if (!propertyId) {
+    errors.push('Property reference is required.');
+  }
+
+  const offerAmount = toNumber(body.offerAmount);
+  if (offerAmount === null || offerAmount <= 0) {
+    errors.push('Offer amount must be a positive number.');
+  }
+
+  const name = normaliseString(body.name);
+  if (!name) {
+    errors.push('Name is required.');
+  }
+
+  const email = normaliseString(body.email);
+  if (!email) {
+    errors.push('Email is required.');
+  }
+
+  if (errors.length > 0) {
+    return { errors };
+  }
+
+  const frequency = normaliseString(body.frequency);
+  const propertyTitle = normaliseString(body.propertyTitle);
+  const phone = normaliseString(body.phone);
+  const message = normaliseString(body.message);
+
+  return {
+    data: {
+      propertyId: propertyId!,
+      propertyTitle,
+      offerAmount: offerAmount!,
+      frequency: frequency || undefined,
+      name: name!,
+      email: email!,
+      phone: phone || undefined,
+      message: message || undefined,
+      depositAmount: body.depositAmount,
+    },
+  };
 }
 
 function buildHtml(body: FormBody): string {
@@ -181,14 +250,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    await sendMailGraph({
-      subject: resolveSubject(body),
-      html: buildHtml(body),
-      to: RECIPIENTS,
-      replyTo: resolveReplyTo(body.email),
+    const { data, errors } = validateBody(body);
+    if (!data || errors) {
+      res.status(400).json({
+        error: 'Invalid request body',
+        details: errors,
+      });
+      return;
+    }
+
+    const offer = await addOffer({
+      propertyId: data.propertyId,
+      propertyTitle: data.propertyTitle,
+      offerAmount: data.offerAmount,
+      frequency: data.frequency,
+      name: data.name,
+      email: data.email,
+      depositAmount: data.depositAmount,
     });
 
-    res.status(200).json({ ok: true });
+    const emailBody: FormBody = {
+      ...body,
+      propertyId: data.propertyId,
+      propertyTitle: data.propertyTitle,
+      offerAmount: offer.price ?? data.offerAmount,
+      frequency: data.frequency,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      message: data.message,
+      depositAmount: offer.depositAmount,
+    };
+
+    await sendMailGraph({
+      subject: resolveSubject(emailBody),
+      html: buildHtml(emailBody),
+      to: RECIPIENTS,
+      replyTo: resolveReplyTo(data.email),
+    });
+
+    res.status(200).json({ offer });
   } catch (error) {
     res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to send email' });
   }

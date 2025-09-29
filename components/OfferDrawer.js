@@ -75,13 +75,14 @@ export default function OfferDrawer({ property }) {
           email,
           ...(phone ? { phone } : {}),
           ...(message ? { message } : {}),
-          depositAmount: isSaleListing ? 0 : undefined,
         }),
       });
 
       if (!res.ok) throw new Error('Request failed');
       const payload = await res.json();
-      setOffer(payload?.offer || null);
+      if (payload?.offer) {
+        setOffer(payload.offer);
+      }
       setStatus({
         tone: 'success',
         message: 'Offer submitted successfully. We will be in touch shortly.',
