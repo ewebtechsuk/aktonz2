@@ -2,7 +2,7 @@ import { useId } from 'react';
 import { FaBath, FaBed, FaCouch } from 'react-icons/fa';
 import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
 import styles from '../styles/PropertyActionDrawer.module.css';
-import { formatPropertyPriceLabel } from '../lib/rent.mjs';
+import { formatPropertyPriceLabel } from '../lib/rent.js';
 
 export default function PropertyActionDrawer({
   open,
