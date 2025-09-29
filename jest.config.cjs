@@ -1,6 +1,7 @@
 module.exports = {
   testEnvironment: 'node',
   transform: {
-    '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.js' }],
+    '^.+\\.(?:mjs|cjs|[jt]sx?)$': ['babel-jest', { configFile: './babel.config.js' }],
   },
+  extensionsToTreatAsEsm: [],
 };

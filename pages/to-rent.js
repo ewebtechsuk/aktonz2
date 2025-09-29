@@ -11,6 +11,7 @@ import { fetchPropertiesByTypeCachedFirst } from '../lib/apex27.mjs';
 import agentsData from '../data/agents.json';
 import homeStyles from '../styles/Home.module.css';
 import rentStyles from '../styles/ToRent.module.css';
+import { formatOfferFrequencyLabel } from '../lib/offer-frequency.mjs';
 import { formatPriceGBP, formatRentFrequency } from '../lib/format.mjs';
 
 function normalizeStatus(value) {
@@ -322,8 +323,10 @@ export default function ToRent({ properties, agents }) {
   };
 
   const heroAreaCount = insights.topAreas.length;
+  const defaultRentFrequencyLabel = formatOfferFrequencyLabel('pcm') || 'pcm';
+
   const heroAverageRent = insights.averagePrice
-    ? `${formatPriceGBP(insights.averagePrice)} pcm`
+    ? `${formatPriceGBP(insights.averagePrice)} ${defaultRentFrequencyLabel}`
     : '—';
   const heroPopularType = insights.propertyTypes[0]?.label
     ? insights.propertyTypes[0].label
@@ -337,8 +340,16 @@ export default function ToRent({ properties, agents }) {
       const existing = counts.get(freq) ?? 0;
       counts.set(freq, existing + 1);
     });
-    const [topFrequency] = Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0] || [];
-    return topFrequency || 'pcm';
+    const [topFrequency] =
+      Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0] || [];
+    const label = formatOfferFrequencyLabel(topFrequency || '');
+    if (label) {
+      return label;
+    }
+    if (topFrequency) {
+      return topFrequency;
+    }
+    return defaultRentFrequencyLabel;
   })();
 
   return (

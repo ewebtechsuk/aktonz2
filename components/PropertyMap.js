@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { formatRentFrequency } from '../lib/format.mjs';
+import { formatOfferFrequencyLabel } from '../lib/offer-frequency.mjs';
 
 export default function PropertyMap({
   properties = [],
@@ -67,13 +67,19 @@ export default function PropertyMap({
             icon: getIcon(p.propertyType),
           }).addTo(map);
 
-          const priceText = p.price
-            ? p.rentFrequency
-              ? `${p.price} ${formatRentFrequency(p.rentFrequency)}`
-              : p.tenure
-              ? `${p.price} ${p.tenure}`
-              : p.price
-            : '';
+          const priceText = (() => {
+            if (!p.price) {
+              return '';
+            }
+            if (p.rentFrequency) {
+              const frequencyLabel = formatOfferFrequencyLabel(p.rentFrequency);
+              return frequencyLabel ? `${p.price} ${frequencyLabel}` : p.price;
+            }
+            if (p.tenure) {
+              return `${p.price} ${p.tenure}`;
+            }
+            return p.price;
+          })();
 
           const imgHtml = p.image
             ? `<img src="${p.image}" alt="${p.title}" style="width:100px;height:auto;display:block;"/>`

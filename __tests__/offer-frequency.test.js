@@ -38,6 +38,125 @@ describe('offer frequency helpers', () => {
   });
 });
 
+describe('formatOfferFrequencyLabel', () => {
+  test('maps quarterly inputs to the per quarter label', async () => {
+    const { formatOfferFrequencyLabel } = await import('../lib/offer-frequency.mjs');
+
+    expect(formatOfferFrequencyLabel('Q')).toBe('Per quarter');
+    expect(formatOfferFrequencyLabel('pq')).toBe('Per quarter');
+    expect(formatOfferFrequencyLabel('quarterly')).toBe('Per quarter');
+  });
+
+  test('maps annual inputs to the per annum label', async () => {
+    const { formatOfferFrequencyLabel } = await import('../lib/offer-frequency.mjs');
+
+    expect(formatOfferFrequencyLabel('pa')).toBe('Per annum');
+    expect(formatOfferFrequencyLabel('per annum')).toBe('Per annum');
+    expect(formatOfferFrequencyLabel('annually')).toBe('Per annum');
+  });
+});
+
+describe('offer frequency presentation', () => {
+  test('offer emails display the formatted quarterly label', async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock('../lib/offer-frequency.mjs', () => ({
+        formatOfferFrequencyLabel: (value) => {
+          if (!value) return '';
+          const normalized = String(value).toLowerCase();
+          if (normalized.startsWith('quarter')) {
+            return 'Per quarter';
+          }
+          return value;
+        },
+      }));
+
+      const { buildHtml } = await import('../pages/api/offers.ts');
+
+      const html = buildHtml({
+        name: 'Quarter Tenant',
+        email: 'tenant@example.com',
+        frequency: 'quarterly',
+      });
+
+      expect(html).toContain('Offer frequency');
+      expect(html).toContain('Per quarter');
+      expect(html).not.toContain('quarterly');
+    });
+  });
+
+  test('admin offer amount formatting uses the annual label', async () => {
+    const { formatOfferAmount } = await import('../lib/offers-admin.mjs');
+
+    expect(
+      formatOfferAmount({ price: 5000, frequency: 'per annum' }, 'rent')
+    ).toBe('£5000 Per annum');
+  });
+
+  test('property cards surface the annual frequency label', async () => {
+    const property = {
+      title: 'Annual rental property',
+      price: '£5250',
+      rentFrequency: 'pa',
+    };
+
+    const previousActEnv = global.IS_REACT_ACT_ENVIRONMENT;
+
+    try {
+      jest.resetModules();
+      global.IS_REACT_ACT_ENVIRONMENT = true;
+
+      await jest.isolateModulesAsync(async () => {
+        jest.doMock('../lib/offer-frequency.mjs', () => ({
+          formatOfferFrequencyLabel: (value) => {
+            if (!value) return '';
+            const normalized = String(value).toLowerCase();
+            return normalized === 'pa' || normalized === 'per annum'
+              ? 'Per annum'
+              : value;
+          },
+        }));
+        jest.doMock('../lib/format.mjs', () => ({
+          formatPricePrefix: () => '',
+        }));
+        jest.doMock('../lib/property-type.mjs', () => ({
+          formatPropertyTypeLabel: () => '',
+        }));
+        const React = await import('react');
+        const { act } = React;
+        const { createRoot } = await import('react-dom/client');
+        const PropertyCardModule = await import('../components/PropertyCard.js');
+        const propertyCardExport = PropertyCardModule.default ?? PropertyCardModule;
+        const PropertyCard =
+          typeof propertyCardExport === 'object' && propertyCardExport !== null
+            ? propertyCardExport.default ?? propertyCardExport
+            : propertyCardExport;
+
+        const container = document.createElement('div');
+        document.body.appendChild(container);
+        const root = createRoot(container);
+
+        await act(async () => {
+          root.render(React.createElement(PropertyCard, { property }));
+        });
+
+        const priceElement = container.querySelector('.price');
+        expect(priceElement).toBeTruthy();
+        expect(priceElement.textContent).toContain('Per annum');
+
+        act(() => {
+          root.unmount();
+        });
+        container.remove();
+      });
+    } finally {
+      jest.dontMock('../lib/offer-frequency.mjs');
+      jest.dontMock('../lib/format.mjs');
+      jest.dontMock('../lib/property-type.mjs');
+      global.IS_REACT_ACT_ENVIRONMENT = previousActEnv;
+    }
+  });
+});
+
 describe('OfferDrawer frequency selection', () => {
   test('preselects quarterly frequency and preserves submission token', async () => {
     const property = {
@@ -65,6 +184,14 @@ describe('OfferDrawer frequency selection', () => {
         jest.doMock('../lib/offer-frequency.mjs', () => ({
           isSaleListing: () => false,
           resolveOfferFrequency: () => 'pq',
+          formatOfferFrequencyLabel: (value) => {
+            if (!value) return '';
+            const normalized = String(value).toLowerCase();
+            if (normalized === 'q' || normalized === 'pq') {
+              return 'Per quarter';
+            }
+            return String(value);
+          },
           OFFER_FREQUENCY_OPTIONS: [
             { value: 'pw', label: 'Per week' },
             { value: 'pcm', label: 'Per month' },

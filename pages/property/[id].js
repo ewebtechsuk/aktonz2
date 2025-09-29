@@ -27,11 +27,8 @@ import {
 } from '../../lib/property-type.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
-import {
-  formatRentFrequency,
-  formatPriceGBP,
-  formatPricePrefix,
-} from '../../lib/format.mjs';
+import { formatOfferFrequencyLabel } from '../../lib/offer-frequency.mjs';
+import { formatPriceGBP, formatPricePrefix } from '../../lib/format.mjs';
 
 function parsePriceNumber(value) {
   return Number(String(value).replace(/[^0-9.]/g, '')) || 0;
@@ -160,6 +157,9 @@ async function loadPrebuildPropertyIds(limit = 24) {
 
 export default function Property({ property, recommendations }) {
   const hasLocation = property?.latitude != null && property?.longitude != null;
+  const rentFrequencyLabel = property?.rentFrequency
+    ? formatOfferFrequencyLabel(property.rentFrequency)
+    : '';
   const mapProperties = useMemo(
     () => {
       if (!hasLocation || !property) return [];
@@ -278,8 +278,7 @@ export default function Property({ property, recommendations }) {
             <p className={styles.price}>
               {property.price}
               {pricePrefixLabel && ` ${pricePrefixLabel}`}
-              {property.rentFrequency &&
-                ` ${formatRentFrequency(property.rentFrequency)}`}
+              {rentFrequencyLabel && ` ${rentFrequencyLabel}`}
             </p>
           )}
           <div className={styles.actions}>
