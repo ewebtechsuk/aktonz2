@@ -1,8 +1,20 @@
 const repo = process.env.GITHUB_REPOSITORY?.split('/')[1] || '';
 const isProd = process.env.NODE_ENV === 'production';
 // Default to a serverful build so API routes like /api/register work.
-// Use NEXT_EXPORT=true if a static export is explicitly required.
-const shouldExport = process.env.NEXT_EXPORT === 'true';
+// Use NEXT_EXPORT=true if a static export is explicitly required and compatible.
+const requestedStaticExport = process.env.NEXT_EXPORT === 'true';
+
+const serverRuntimeOnlyRoutes = ['/integrations/3cx/contact-card'];
+const hasServerOnlyRoutes = serverRuntimeOnlyRoutes.length > 0;
+
+if (requestedStaticExport && hasServerOnlyRoutes) {
+  console.warn(
+    'NEXT_EXPORT requested but the following routes require server rendering and cannot be exported:',
+    serverRuntimeOnlyRoutes.join(', ')
+  );
+}
+
+const shouldExport = requestedStaticExport && !hasServerOnlyRoutes;
 
 /** @type {import('next').NextConfig} */
 function withNoSniff(headers) {
