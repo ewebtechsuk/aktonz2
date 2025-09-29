@@ -1,5 +1,5 @@
 import { applyApiHeaders, handlePreflight } from '../../../../lib/api-helpers.js';
-import { lookupContactByPhone } from '../../../../lib/apex27-portal.js';
+import { loadContactContext, lookupContactByPhone } from '../../../../lib/apex27-portal.js';
 
 const SECRET_HEADER = 'x-3cx-secret';
 
@@ -114,5 +114,36 @@ export default async function handler(req, res) {
     return;
   }
 
-  res.status(200).json({ contact });
+  const contactId =
+    contact?.contactId ??
+    contact?.ContactId ??
+    contact?.contactID ??
+    contact?.ContactID ??
+    contact?.id ??
+    contact?.Id ??
+    contact?.ID ??
+    null;
+
+  if (!contactId) {
+    console.error('Resolved contact is missing an identifier', { contact });
+    res.status(500).json({ error: 'Failed to resolve contact context' });
+    return;
+  }
+
+  let context;
+  try {
+    context = await loadContactContext({ contactId });
+  } catch (err) {
+    console.error('Failed to load Apex27 contact context', err);
+    res.status(502).json({ error: 'Failed to load contact context' });
+    return;
+  }
+
+  res.status(200).json({
+    contact,
+    properties: context?.properties ?? [],
+    viewings: context?.viewings ?? [],
+    appointments: context?.appointments ?? [],
+    financial: context?.financial ?? [],
+  });
 }
