@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { formatPricePrefix } from '../lib/format.mjs';
-import { formatOfferFrequencyLabel } from '../lib/offer-frequency.mjs';
+import { formatPropertyPriceLabel } from '../lib/rent.mjs';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
 import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
 
@@ -108,9 +108,7 @@ export default function PropertyCard({ property }) {
       ? formatPricePrefix(property.pricePrefix)
       : '';
 
-  const rentFrequencyLabel = property.rentFrequency
-    ? formatOfferFrequencyLabel(property.rentFrequency)
-    : '';
+  const priceLabel = formatPropertyPriceLabel(property);
 
   const isSaleListing = property?.transactionType
     ? String(property.transactionType).toLowerCase() === 'sale'
@@ -218,11 +216,10 @@ export default function PropertyCard({ property }) {
             Scraye ref: <span>{scrayeReference}</span>
           </p>
         )}
-        {property.price && (
+        {priceLabel && (
           <p className="price">
-            {property.price}
+            {priceLabel}
             {pricePrefixLabel && ` ${pricePrefixLabel}`}
-            {rentFrequencyLabel && ` ${rentFrequencyLabel}`}
           </p>
         )}
         {(property.receptions != null || property.bedrooms != null || property.bathrooms != null) && (

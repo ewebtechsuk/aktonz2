@@ -1,17 +1,8 @@
 import { useId } from 'react';
 import { FaBath, FaBed, FaCouch } from 'react-icons/fa';
-import { formatOfferFrequencyLabel } from '../lib/offer-frequency.mjs';
 import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
 import styles from '../styles/PropertyActionDrawer.module.css';
-
-function formatPrice(property = {}) {
-  if (!property?.price) return '';
-  if (property?.rentFrequency) {
-    const frequencyLabel = formatOfferFrequencyLabel(property.rentFrequency);
-    return frequencyLabel ? `${property.price} ${frequencyLabel}` : `${property.price}`;
-  }
-  return property.price;
-}
+import { formatPropertyPriceLabel } from '../lib/rent.mjs';
 
 export default function PropertyActionDrawer({
   open,
@@ -29,7 +20,7 @@ export default function PropertyActionDrawer({
       ? 'To rent'
       : 'For sale'
     : '';
-  const priceLabel = formatPrice(summary);
+  const priceLabel = formatPropertyPriceLabel(summary);
   const typeLabel =
     summary.typeLabel ??
     summary.propertyTypeLabel ??
