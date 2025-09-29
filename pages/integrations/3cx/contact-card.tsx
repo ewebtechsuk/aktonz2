@@ -128,60 +128,54 @@ const ContactCardPage = () => {
 
     const abortController = new AbortController();
 
-    setStatus('loading');
-    setContext(null);
-    setError(null);
+    const fetchContactContext = async () => {
+      setStatus('loading');
+      setContext(null);
+      setError(null);
 
-    fetch(`/api/integrations/3cx/contact-context?${requestKey}`, {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-      },
-      signal: abortController.signal,
-    })
-      .then(async (response) => {
+      try {
+        const response = await fetch(`/api/integrations/3cx/contact-context?${requestKey}`, {
+          method: 'GET',
+          headers: {
+            accept: 'application/json',
+          },
+          cache: 'no-store',
+          signal: abortController.signal,
+        });
+
         if (abortController.signal.aborted) {
-          return { status: 'aborted' as const };
-        }
-
-        if (response.status === 404) {
-          return { status: 'not-found' as const };
-        }
-
-        if (!response.ok) {
-          return { status: 'error' as const, message: `Lookup failed with status ${response.status}.` };
-        }
-
-        try {
-          const payload = (await response.json()) as { context?: ContactContext | null } | null;
-          return { status: 'success' as const, context: payload?.context ?? null };
-        } catch (jsonError) {
-          return {
-            status: 'error' as const,
-            message: jsonError instanceof Error ? jsonError.message : 'Failed to parse lookup response.',
-          };
-        }
-      })
-      .then((result) => {
-        if (!result || abortController.signal.aborted || result.status === 'aborted') {
           return;
         }
 
-        if (result.status === 'not-found') {
+        if (response.status === 404) {
           setStatus('not-found');
           setContext(null);
           setError(null);
           return;
         }
 
-        if (result.status === 'error') {
+        if (!response.ok) {
           setStatus('error');
           setContext(null);
-          setError(result.message);
+          setError(`Lookup failed with status ${response.status}.`);
           return;
         }
 
-        if (!result.context) {
+        let payload: { context?: ContactContext | null } | null = null;
+        try {
+          payload = (await response.json()) as { context?: ContactContext | null } | null;
+        } catch (jsonError) {
+          if (!abortController.signal.aborted) {
+            setStatus('error');
+            setContext(null);
+            setError(
+              jsonError instanceof Error ? jsonError.message : 'Failed to parse lookup response.'
+            );
+          }
+          return;
+        }
+
+        if (!payload?.context) {
           setStatus('not-found');
           setContext(null);
           setError(null);
@@ -189,10 +183,9 @@ const ContactCardPage = () => {
         }
 
         setStatus('success');
-        setContext(result.context);
+        setContext(payload.context ?? null);
         setError(null);
-      })
-      .catch((fetchError) => {
+      } catch (fetchError) {
         if (abortController.signal.aborted) {
           return;
         }
@@ -200,7 +193,10 @@ const ContactCardPage = () => {
         setStatus('error');
         setContext(null);
         setError(fetchError instanceof Error ? fetchError.message : 'Unknown error');
-      });
+      }
+    };
+
+    fetchContactContext();
 
     return () => {
       abortController.abort();
