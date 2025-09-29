@@ -27,7 +27,7 @@ export default function ListingInsights({ stats, searchTerm, variant = 'sale' })
 
   const averagePriceLabel = isRent
     ? averagePrice
-      ? `${formatPriceGBP(averagePrice)} pcm`
+      ? `${formatPriceGBP(averagePrice, { isSale: true })} pcm`
       : '—'
     : averagePrice
     ? formatPriceGBP(averagePrice, { isSale: true })
@@ -35,7 +35,7 @@ export default function ListingInsights({ stats, searchTerm, variant = 'sale' })
 
   const medianPriceLabel = isRent
     ? medianPrice
-      ? `Median: ${formatPriceGBP(medianPrice)} pcm`
+      ? `Median: ${formatPriceGBP(medianPrice, { isSale: true })} pcm`
       : 'Median rent unavailable'
     : medianPrice
     ? `Median: ${formatPriceGBP(medianPrice, { isSale: true })}`

@@ -1,0 +1,319 @@
+.wrapper {
+  min-height: 100vh;
+  margin: 0;
+  padding: 1.75rem clamp(1rem, 4vw, 2.25rem);
+  background: linear-gradient(180deg, #f6fbfa 0%, #f1f7f5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.wrapperInner {
+  width: min(440px, 100%);
+}
+
+.statePanel {
+  background: #ffffff;
+  border: 1px solid #cde4e0;
+  border-radius: 18px;
+  box-shadow: 0 25px 60px rgba(13, 86, 75, 0.08);
+  padding: 1.75rem 1.75rem 1.5rem;
+  text-align: center;
+  color: #1b403a;
+}
+
+.statePanel h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.statePanel p {
+  margin: 0;
+  color: #49645f;
+  line-height: 1.45;
+}
+
+.statePanel.loading h1 {
+  color: #0b7c6d;
+}
+
+.statePanel.loading {
+  border-color: #9ed7ce;
+}
+
+.statePanel.notFound h1 {
+  color: #8f241d;
+}
+
+.statePanel.notFound {
+  background: #fff8f4;
+  border-color: #f4d7c2;
+}
+
+.statePanel.error h1 {
+  color: #b4411f;
+}
+
+.statePanel.error {
+  background: #fff5f3;
+  border-color: #f3c0b3;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #cde4e0;
+  box-shadow: 0 25px 60px rgba(13, 86, 75, 0.08);
+  padding: clamp(1.5rem, 3vw, 2rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  color: #1d3834;
+}
+
+.header {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e4f3f0;
+}
+
+.initials {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #0b7c6d;
+  color: #ffffff;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.headerContent {
+  flex: 1;
+}
+
+.name {
+  margin: 0;
+  font-size: 1.35rem;
+  color: #16312d;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.pill {
+  background: rgba(11, 124, 109, 0.12);
+  color: #0b7c6d;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.metaText {
+  color: #49645f;
+  font-size: 0.85rem;
+}
+
+.searchFocus {
+  margin: 0.6rem 0 0;
+  color: #49645f;
+  line-height: 1.5;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: #0b7c6d;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.contactGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.5rem;
+}
+
+.contactLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.65rem 0.85rem;
+  background: #f4fbf9;
+  border-radius: 10px;
+  color: #0b7c6d;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.contactLink:hover,
+.contactLink:focus-visible {
+  background: #0b7c6d;
+  color: #ffffff;
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.tagList li {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: #edf7f5;
+  color: #1b403a;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.propertyList,
+.appointmentList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.propertyItem,
+.appointmentItem {
+  border: 1px solid #e5f2ef;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  background: #f9fdfc;
+  box-shadow: 0 10px 30px rgba(13, 86, 75, 0.08);
+}
+
+.propertyPrimary {
+  font-weight: 600;
+  color: #16312d;
+}
+
+.propertySecondary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  color: #49645f;
+  font-size: 0.85rem;
+}
+
+.appointmentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.appointmentType {
+  font-weight: 600;
+  color: #0b7c6d;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.appointmentHeader time {
+  color: #49645f;
+  font-size: 0.85rem;
+}
+
+.appointmentDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+  color: #1d3834;
+}
+
+.appointmentDetails p {
+  margin: 0;
+  color: #49645f;
+}
+
+.financialList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  border-top: 1px solid #e5f2ef;
+  padding-top: 1rem;
+}
+
+.financialItem {
+  background: #f2fbf8;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d8eee9;
+}
+
+.financialItem dt {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5a7b75;
+}
+
+.financialItem dd {
+  margin: 0.35rem 0 0;
+  font-weight: 600;
+  color: #0b7c6d;
+  font-size: 1.05rem;
+}
+
+.notes {
+  margin: 0;
+  color: #49645f;
+  line-height: 1.6;
+}
+
+@media (max-width: 520px) {
+  .wrapper {
+    padding: 1.25rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .header {
+    gap: 1rem;
+  }
+
+  .avatar,
+  .initials {
+    width: 56px;
+    height: 56px;
+  }
+}

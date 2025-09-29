@@ -9,6 +9,28 @@ npm install
 npm run dev
 ```
 
+### 3CX contact pop-up
+
+Use the compact contact card when configuring 3CX screen-pops so agents can
+see caller context without loading the full CRM. The route accepts either a
+one-time lookup token or the raw caller ID:
+
+```
+/integrations/3cx/contact-card?token=<lookup-token>
+/integrations/3cx/contact-card?phone=<e164-number>
+```
+
+When hosted at `https://aktonz.com`, reference the page directly in the 3CX
+management console (Settings → CRM → Screen Pop URL). For example, to pop on
+incoming calls using the caller ID placeholder:
+
+```
+https://aktonz.com/integrations/3cx/contact-card?phone=[Call.CallerID]
+```
+
+If your workflow issues time-limited lookup tokens, swap the `phone` query for
+`token` and inject the secure token variable provided by your middleware.
+
 ## Environment Variables
 
 Create a `.env.local` file and set `APEX27_API_KEY` (and optionally `APEX27_BRANCH_ID` for your branch) to fetch real property data from the Apex27 API. Without these variables, no listings will be shown.
@@ -26,6 +48,7 @@ The route accepts `phone` and optional `countryCode` query parameters, normalise
 for a matching contact. Responses are returned with `Cache-Control: no-store` to avoid stale screen pops, `200 OK` when the
 contact exists, and `404 Not Found` otherwise.
 
+
 **Example 3CX configuration:**
 
 1. In the 3CX Management Console, open **Settings → CRM** and choose **Add** to create a new HTTP contact lookup.
@@ -33,6 +56,7 @@ contact exists, and `404 Not Found` otherwise.
 3. Under **Request Headers**, add `X-3CX-Secret` with the same secret configured in `THREECX_WEBHOOK_SECRET`.
 4. Choose **JSON** as the response format and map the required contact fields (e.g. name, email, reference) from the `contact`
    object returned by the API.
+
 5. Save and assign the CRM integration to the desired extensions so incoming calls trigger the lookup and display the contact
    context automatically.
 
