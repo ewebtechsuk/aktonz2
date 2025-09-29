@@ -82,6 +82,7 @@ describe('offer frequency presentation', () => {
       expect(html).toContain('Per quarter');
       expect(html).not.toContain('quarterly');
     });
+
   });
 
   test('admin offer amount formatting uses the annual label', async () => {
@@ -121,6 +122,7 @@ describe('offer frequency presentation', () => {
         jest.doMock('../lib/property-type.mjs', () => ({
           formatPropertyTypeLabel: () => '',
         }));
+
         const React = await import('react');
         const { act } = React;
         const { createRoot } = await import('react-dom/client');
@@ -152,6 +154,7 @@ describe('offer frequency presentation', () => {
       jest.dontMock('../lib/offer-frequency.mjs');
       jest.dontMock('../lib/format.mjs');
       jest.dontMock('../lib/property-type.mjs');
+
       global.IS_REACT_ACT_ENVIRONMENT = previousActEnv;
     }
   });
