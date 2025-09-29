@@ -1,6 +1,7 @@
 import { applyApiHeaders, handlePreflight } from '../../../../lib/api-helpers.js';
 import { lookupContactByPhone } from '../../../../lib/apex27-portal.js';
 
+
 const SECRET_HEADER = 'x-3cx-secret';
 
 function readHeaderValue(req, name) {
@@ -88,7 +89,9 @@ export default async function handler(req, res) {
   const rawCountryCode = firstQueryValue(req.query.countryCode);
 
   const normalisedPhone = normalisePhoneDigits(rawPhone);
-  if (!normalisedPhone && (!rawPhone || !String(rawPhone).trim())) {
+
+  if (!normalisedPhone) {
+
     res.status(400).json({ error: 'Missing or invalid phone query parameter' });
     return;
   }
@@ -97,10 +100,9 @@ export default async function handler(req, res) {
 
   let contact = null;
   try {
-    contact = await lookupContactByPhone({
-      phone: normalisedPhone ?? rawPhone,
-      countryCode: normalisedCountryCode,
-    });
+
+    contact = await lookupContactByPhone({ phone: normalisedPhone, countryCode: normalisedCountryCode });
+
   } catch (err) {
     console.error('Failed to query Apex27 contact by phone', err);
     res.status(502).json({ error: 'Failed to lookup contact' });
@@ -115,4 +117,5 @@ export default async function handler(req, res) {
   }
 
   res.status(200).json({ contact });
+
 }

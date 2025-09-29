@@ -1,5 +1,6 @@
 import Head from 'next/head';
-import type { GetServerSideProps } from 'next';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/router';
 import ContactCard from '../../../components/contacts/ContactCard';
 import styles from '../../../styles/ContactCard.module.css';
 
@@ -58,14 +59,6 @@ type ContactCardPageProps = {
   };
 };
 
-function buildBaseUrl(req: Parameters<GetServerSideProps>[0]['req']): string {
-  const forwardedProto = (req.headers['x-forwarded-proto'] as string | undefined)?.split(',')[0]?.trim();
-  const forwardedHost = (req.headers['x-forwarded-host'] as string | undefined)?.split(',')[0]?.trim();
-  const host = forwardedHost || req.headers.host || 'localhost:3000';
-  const proto = forwardedProto || (host.startsWith('localhost') || host.startsWith('127.') ? 'http' : 'https');
-  return `${proto}://${host}`;
-}
-
 function normaliseQueryValue(value: string | string[] | undefined): string | undefined {
   if (!value) {
     return undefined;
@@ -78,13 +71,141 @@ function normaliseQueryValue(value: string | string[] | undefined): string | und
   return value.trim() || undefined;
 }
 
-const ContactCardPage = ({ status, context, error, lookup }: ContactCardPageProps) => {
-  const title =
-    status === 'success'
+const ContactCardPage = () => {
+  const router = useRouter();
+  const [status, setStatus] = useState<ContactCardPageProps['status']>('loading');
+  const [context, setContext] = useState<ContactContext | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [lookup, setLookup] = useState<ContactCardPageProps['lookup']>({ token: null, phone: null });
+  const lastRequestKey = useRef<string | null>(null);
+
+  const title = useMemo(() => {
+    return status === 'success'
       ? `${context?.contact?.name ?? 'Contact'} · Aktonz`
       : status === 'not-found'
         ? 'Contact not found · Aktonz'
         : 'Contact lookup · Aktonz';
+  }, [context?.contact?.name, status]);
+
+  useEffect(() => {
+    if (!router.isReady) {
+      return;
+    }
+
+    const token =
+      normaliseQueryValue(router.query.token as string | string[] | undefined) ||
+      normaliseQueryValue(router.query.lookup as string | string[] | undefined) ||
+      normaliseQueryValue(router.query.lookupToken as string | string[] | undefined);
+    const phone =
+      normaliseQueryValue(router.query.phone as string | string[] | undefined) ||
+      normaliseQueryValue(router.query.callerId as string | string[] | undefined) ||
+      normaliseQueryValue(router.query.callerid as string | string[] | undefined);
+
+    const nextLookup = { token: token ?? null, phone: phone ?? null };
+    setLookup(nextLookup);
+
+    if (!nextLookup.token && !nextLookup.phone) {
+      setStatus('not-found');
+      setContext(null);
+      setError('Missing lookup token or phone number.');
+      lastRequestKey.current = null;
+      return;
+    }
+
+    const searchParams = new URLSearchParams();
+    if (nextLookup.token) {
+      searchParams.set('token', nextLookup.token);
+    }
+    if (nextLookup.phone) {
+      searchParams.set('phone', nextLookup.phone);
+    }
+
+    const requestKey = searchParams.toString();
+    if (lastRequestKey.current === requestKey) {
+      return;
+    }
+    lastRequestKey.current = requestKey;
+
+    const abortController = new AbortController();
+
+    setStatus('loading');
+    setContext(null);
+    setError(null);
+
+    fetch(`/api/integrations/3cx/contact-context?${requestKey}`, {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+      },
+      signal: abortController.signal,
+    })
+      .then(async (response) => {
+        if (abortController.signal.aborted) {
+          return { status: 'aborted' as const };
+        }
+
+        if (response.status === 404) {
+          return { status: 'not-found' as const };
+        }
+
+        if (!response.ok) {
+          return { status: 'error' as const, message: `Lookup failed with status ${response.status}.` };
+        }
+
+        try {
+          const payload = (await response.json()) as { context?: ContactContext | null } | null;
+          return { status: 'success' as const, context: payload?.context ?? null };
+        } catch (jsonError) {
+          return {
+            status: 'error' as const,
+            message: jsonError instanceof Error ? jsonError.message : 'Failed to parse lookup response.',
+          };
+        }
+      })
+      .then((result) => {
+        if (!result || abortController.signal.aborted || result.status === 'aborted') {
+          return;
+        }
+
+        if (result.status === 'not-found') {
+          setStatus('not-found');
+          setContext(null);
+          setError(null);
+          return;
+        }
+
+        if (result.status === 'error') {
+          setStatus('error');
+          setContext(null);
+          setError(result.message);
+          return;
+        }
+
+        if (!result.context) {
+          setStatus('not-found');
+          setContext(null);
+          setError(null);
+          return;
+        }
+
+        setStatus('success');
+        setContext(result.context);
+        setError(null);
+      })
+      .catch((fetchError) => {
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        setStatus('error');
+        setContext(null);
+        setError(fetchError instanceof Error ? fetchError.message : 'Unknown error');
+      });
+
+    return () => {
+      abortController.abort();
+    };
+  }, [router.isReady, router.query]);
 
   return (
     <>
@@ -138,108 +259,6 @@ const ContactCardPage = ({ status, context, error, lookup }: ContactCardPageProp
       </main>
     </>
   );
-};
-
-export const getServerSideProps: GetServerSideProps<ContactCardPageProps> = async (context) => {
-  const { req, res, query } = context;
-  const token =
-    normaliseQueryValue(query.token as string | string[] | undefined) ||
-    normaliseQueryValue(query.lookup as string | string[] | undefined) ||
-    normaliseQueryValue(query.lookupToken as string | string[] | undefined);
-  const phone =
-    normaliseQueryValue(query.phone as string | string[] | undefined) ||
-    normaliseQueryValue(query.callerId as string | string[] | undefined) ||
-    normaliseQueryValue(query.callerid as string | string[] | undefined);
-
-  const lookup = { token: token ?? null, phone: phone ?? null };
-
-  if (!lookup.token && !lookup.phone) {
-    return {
-      props: {
-        status: 'not-found',
-        context: null,
-        error: 'Missing lookup token or phone number.',
-        lookup,
-      },
-    };
-  }
-
-  res.setHeader('Cache-Control', 'no-store, max-age=0');
-
-  const baseUrl = buildBaseUrl(req);
-  const searchParams = new URLSearchParams();
-  if (lookup.token) {
-    searchParams.set('token', lookup.token);
-  }
-  if (lookup.phone) {
-    searchParams.set('phone', lookup.phone);
-  }
-
-  const apiUrl = `${baseUrl}/api/integrations/3cx/contact-context?${searchParams.toString()}`;
-
-  try {
-    const response = await fetch(apiUrl, {
-      headers: {
-        cookie: req.headers.cookie ?? '',
-        accept: 'application/json',
-      },
-      method: 'GET',
-    });
-
-    if (response.status === 404) {
-      return {
-        props: {
-          status: 'not-found',
-          context: null,
-          error: null,
-          lookup,
-        },
-      };
-    }
-
-    if (!response.ok) {
-      return {
-        props: {
-          status: 'error',
-          context: null,
-          error: `Lookup failed with status ${response.status}.`,
-          lookup,
-        },
-      };
-    }
-
-    const payload = (await response.json()) as { context?: ContactContext | null } | null;
-    const contactContext = payload?.context ?? null;
-
-    if (!contactContext) {
-      return {
-        props: {
-          status: 'not-found',
-          context: null,
-          error: null,
-          lookup,
-        },
-      };
-    }
-
-    return {
-      props: {
-        status: 'success',
-        context: contactContext,
-        error: null,
-        lookup,
-      },
-    };
-  } catch (error) {
-    return {
-      props: {
-        status: 'error',
-        context: null,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        lookup,
-      },
-    };
-  }
 };
 
 export default ContactCardPage;

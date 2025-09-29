@@ -326,7 +326,7 @@ export default function ToRent({ properties, agents }) {
   const defaultRentFrequencyLabel = formatOfferFrequencyLabel('pcm') || 'pcm';
 
   const heroAverageRent = insights.averagePrice
-    ? `${formatPriceGBP(insights.averagePrice)} ${defaultRentFrequencyLabel}`
+    ? `${formatPriceGBP(insights.averagePrice, { isSale: true })} ${defaultRentFrequencyLabel}`
     : '—';
   const heroPopularType = insights.propertyTypes[0]?.label
     ? insights.propertyTypes[0].label
