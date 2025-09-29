@@ -13,6 +13,29 @@ npm run dev
 
 Create a `.env.local` file and set `APEX27_API_KEY` (and optionally `APEX27_BRANCH_ID` for your branch) to fetch real property data from the Apex27 API. Without these variables, no listings will be shown.
 
+### 3CX contact lookup webhook
+
+Configure `THREECX_WEBHOOK_SECRET` to protect the private contact lookup endpoint used by the 3CX phone system. Requests without
+the matching secret are rejected with **401 Unauthorized**.
+
+**Endpoint:** `https://<your-domain>/api/integrations/3cx/contact`
+
+**Authentication header:** `X-3CX-Secret: <value of THREECX_WEBHOOK_SECRET>` (alternatively `Authorization: Bearer <secret>`)
+
+The route accepts `phone` and optional `countryCode` query parameters, normalises them to digits, and searches the Apex27 portal
+for a matching contact. Responses are returned with `Cache-Control: no-store` to avoid stale screen pops, `200 OK` when the
+contact exists, and `404 Not Found` otherwise.
+
+**Example 3CX configuration:**
+
+1. In the 3CX Management Console, open **Settings → CRM** and choose **Add** to create a new HTTP contact lookup.
+2. Set the **Match** URL to `https://<your-domain>/api/integrations/3cx/contact?phone=%CallerNumber%&countryCode=%CallerIDCountry%` and select the **GET** method.
+3. Under **Request Headers**, add `X-3CX-Secret` with the same secret configured in `THREECX_WEBHOOK_SECRET`.
+4. Choose **JSON** as the response format and map the required contact fields (e.g. name, email, reference) from the `contact`
+   object returned by the API.
+5. Save and assign the CRM integration to the desired extensions so incoming calls trigger the lookup and display the contact
+   context automatically.
+
 ### Email configuration
 
 The contact, offer, and viewing forms send transactional email through SMTP. Configure these environment variables wherever the Next.js server runs:
