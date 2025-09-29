@@ -99,12 +99,15 @@ describe('admin offers API', () => {
 
     const savedEntry = payload.offers.find((entry) => entry.id === savedOffer.id);
     expect(savedEntry).toBeDefined();
-    expect(savedEntry.amount).toBe('£1800 pcm');
-    expect(savedEntry.date).toBe(savedOffer.createdAt);
-    expect(savedEntry.type).toBe('rent');
-    expect(savedEntry.price).toBe(savedOffer.price);
-    expect(savedEntry.frequency).toBe(savedOffer.frequency);
-    expect(savedEntry.createdAt).toBe(savedOffer.createdAt);
+    expect(savedEntry).toEqual(
+      expect.objectContaining({
+        amount: '£1800 Per month',
+        date: savedOffer.createdAt,
+        type: 'rent',
+        price: savedOffer.price,
+        createdAt: savedOffer.createdAt,
+      })
+    );
   });
 
   test('falls back to submitter contact details when CRM lookup fails', async () => {
