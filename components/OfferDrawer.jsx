@@ -5,6 +5,7 @@ import styles from '../styles/OfferDrawer.module.css';
 import {
   isSaleListing as determineSaleListing,
   resolveOfferFrequency,
+  OFFER_FREQUENCY_OPTIONS,
 } from '../lib/offer-frequency.mjs';
 
 export default function OfferDrawer({ property }) {
@@ -21,7 +22,23 @@ export default function OfferDrawer({ property }) {
     () => resolveOfferFrequency(property),
     [propertyId, property?.rentFrequency, property?.transactionType]
   );
-  const [frequency, setFrequency] = useState(defaultFrequency);
+  const availableFrequencyValues = useMemo(
+    () => OFFER_FREQUENCY_OPTIONS.map((option) => option.value),
+    []
+  );
+  const normalizedDefaultFrequency = useMemo(() => {
+    if (isSaleListing) {
+      return '';
+    }
+    if (
+      defaultFrequency &&
+      availableFrequencyValues.includes(defaultFrequency)
+    ) {
+      return defaultFrequency;
+    }
+    return availableFrequencyValues[0] ?? '';
+  }, [availableFrequencyValues, defaultFrequency, isSaleListing]);
+  const [frequency, setFrequency] = useState(normalizedDefaultFrequency);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -33,12 +50,12 @@ export default function OfferDrawer({ property }) {
   const [paymentError, setPaymentError] = useState(null);
 
   useEffect(() => {
-    setFrequency(defaultFrequency);
-  }, [defaultFrequency, propertyId]);
+    setFrequency(normalizedDefaultFrequency);
+  }, [normalizedDefaultFrequency, propertyId]);
 
   const resetFields = () => {
     setOfferAmount('');
-    setFrequency(defaultFrequency);
+    setFrequency(normalizedDefaultFrequency);
     setName('');
     setEmail('');
     setPhone('');
@@ -181,8 +198,11 @@ export default function OfferDrawer({ property }) {
                   onChange={(e) => setFrequency(e.target.value)}
                   autoComplete="off"
                 >
-                  <option value="pw">Per week</option>
-                  <option value="pcm">Per month</option>
+                  {OFFER_FREQUENCY_OPTIONS.map(({ value, label }) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
                 </select>
               </div>
             )}
