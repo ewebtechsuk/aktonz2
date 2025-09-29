@@ -27,9 +27,12 @@ import {
 } from '../../lib/property-type.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
-import { formatOfferFrequencyLabel } from '../../lib/offer-frequency.mjs';
 import { formatPriceGBP, formatPricePrefix } from '../../lib/format.mjs';
-import { parsePriceNumber, rentToMonthly } from '../../lib/rent.mjs';
+import {
+  parsePriceNumber,
+  rentToMonthly,
+  formatPropertyPriceLabel,
+} from '../../lib/rent.mjs';
 
 function normalizeScrayeReference(value) {
   if (value == null) {
@@ -138,9 +141,7 @@ async function loadPrebuildPropertyIds(limit = 24) {
 
 export default function Property({ property, recommendations }) {
   const hasLocation = property?.latitude != null && property?.longitude != null;
-  const rentFrequencyLabel = property?.rentFrequency
-    ? formatOfferFrequencyLabel(property.rentFrequency)
-    : '';
+  const priceLabel = formatPropertyPriceLabel(property);
   const mapProperties = useMemo(
     () => {
       if (!hasLocation || !property) return [];
@@ -255,11 +256,10 @@ export default function Property({ property, recommendations }) {
               </span>
             )}
           </div>
-          {property.price && (
+          {priceLabel && (
             <p className={styles.price}>
-              {property.price}
+              {priceLabel}
               {pricePrefixLabel && ` ${pricePrefixLabel}`}
-              {rentFrequencyLabel && ` ${rentFrequencyLabel}`}
             </p>
           )}
           <div className={styles.actions}>
