@@ -89,6 +89,7 @@ export default async function handler(req, res) {
   const rawCountryCode = firstQueryValue(req.query.countryCode);
 
   const normalisedPhone = normalisePhoneDigits(rawPhone);
+
   if (!normalisedPhone) {
 
     res.status(400).json({ error: 'Missing or invalid phone query parameter' });
@@ -99,6 +100,7 @@ export default async function handler(req, res) {
 
   let contact = null;
   try {
+
     contact = await lookupContactByPhone({ phone: normalisedPhone, countryCode: normalisedCountryCode });
 
   } catch (err) {
