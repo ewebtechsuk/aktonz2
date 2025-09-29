@@ -9,6 +9,28 @@ npm install
 npm run dev
 ```
 
+### 3CX contact pop-up
+
+Use the compact contact card when configuring 3CX screen-pops so agents can
+see caller context without loading the full CRM. The route accepts either a
+one-time lookup token or the raw caller ID:
+
+```
+/integrations/3cx/contact-card?token=<lookup-token>
+/integrations/3cx/contact-card?phone=<e164-number>
+```
+
+When hosted at `https://aktonz.com`, reference the page directly in the 3CX
+management console (Settings → CRM → Screen Pop URL). For example, to pop on
+incoming calls using the caller ID placeholder:
+
+```
+https://aktonz.com/integrations/3cx/contact-card?phone=[Call.CallerID]
+```
+
+If your workflow issues time-limited lookup tokens, swap the `phone` query for
+`token` and inject the secure token variable provided by your middleware.
+
 ## Environment Variables
 
 Create a `.env.local` file and set `APEX27_API_KEY` (and optionally `APEX27_BRANCH_ID` for your branch) to fetch real property data from the Apex27 API. Without these variables, no listings will be shown.
