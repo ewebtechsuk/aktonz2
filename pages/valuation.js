@@ -1,6 +1,5 @@
 import Head from 'next/head';
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/router';
 import Link from 'next/link';
 
 import styles from '../styles/Valuation.module.css';
@@ -21,7 +20,6 @@ const INITIAL_FORM = {
 };
 
 export default function Valuation() {
-  const router = useRouter();
   const [formValues, setFormValues] = useState(INITIAL_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState({ type: 'idle', message: '' });
@@ -113,32 +111,15 @@ export default function Valuation() {
         throw new Error(errorMessage);
       }
 
-      const notifications = body?.notifications;
-      const emailsSent = notifications?.sent !== false;
+      const emailNotification = extractEmailNotification(body);
+      const emailDelivered = emailNotification.delivered !== false;
 
-      const successMessages = emailsSent
-        ? {
-            redirect:
-              'Thanks! Please check your email to activate your account. Redirecting you to your dashboard…',
-            fallback:
-              'Thanks! Please check your email to activate your account. You can continue to your account at /account.',
-          }
-        : {
-            redirect:
-              'Thanks! Your valuation request has been received. Email notifications are currently unavailable, but our team will follow up shortly. Redirecting you to your dashboard…',
-            fallback:
-              'Thanks! Your valuation request has been received. Email notifications are currently unavailable. You can continue to your account at /account.',
-          };
+      const successMessage = emailDelivered
+        ? 'Thanks! Your valuation request is on its way to our local experts. We\'ll be in touch shortly.'
+        : 'Thanks! Your valuation request has been received. Email notifications are currently unavailable, but our team will follow up shortly.';
 
       setFormValues(INITIAL_FORM);
-      setStatus({ type: 'success', message: successMessages.redirect });
-
-      try {
-        await router.push('/account');
-      } catch (navigationError) {
-        console.error('Failed to redirect to account after valuation submission', navigationError);
-        setStatus({ type: 'success', message: successMessages.fallback });
-      }
+      setStatus({ type: 'success', message: successMessage });
     } catch (error) {
       setStatus({
         type: 'error',
@@ -318,5 +299,46 @@ export default function Valuation() {
     </main>
     </>
   );
+}
+
+function extractEmailNotification(body) {
+  if (!body || typeof body !== 'object') {
+    return { delivered: true };
+  }
+
+  const resultNotifications = body?.result?.notifications;
+  if (Array.isArray(resultNotifications) && resultNotifications.length > 0) {
+    const emailResult = resultNotifications.find((entry) => entry?.channel === 'email');
+    if (emailResult && typeof emailResult === 'object') {
+      return {
+        delivered: emailResult.delivered,
+        reason: emailResult.reason,
+      };
+    }
+
+    const firstResult = resultNotifications[0];
+    if (firstResult && typeof firstResult === 'object') {
+      return {
+        delivered: firstResult.delivered,
+        reason: firstResult.reason,
+      };
+    }
+  }
+
+  if (typeof body.delivered === 'boolean') {
+    return { delivered: body.delivered, reason: body.reason };
+  }
+
+  if (body.notifications && typeof body.notifications === 'object') {
+    const { delivered, sent, reason } = body.notifications;
+    if (typeof delivered === 'boolean') {
+      return { delivered, reason };
+    }
+    if (typeof sent === 'boolean') {
+      return { delivered: sent, reason };
+    }
+  }
+
+  return { delivered: true };
 }
 
