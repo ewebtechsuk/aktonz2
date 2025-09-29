@@ -266,6 +266,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       frequency: data.frequency,
       name: data.name,
       email: data.email,
+      phone: data.phone,
+      message: data.message,
       depositAmount: data.depositAmount,
     });
 

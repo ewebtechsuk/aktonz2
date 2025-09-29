@@ -97,4 +97,41 @@ describe('admin offers API', () => {
       ])
     );
   });
+
+  test('falls back to submitter contact details when CRM lookup fails', async () => {
+    const offersModule = loadTs('../lib/offers.js', __dirname);
+    const savedOffer = await offersModule.addOffer({
+      propertyId: 'AKT-NEW-001',
+      propertyTitle: 'Unlisted Property',
+      offerAmount: '2100',
+      frequency: 'pcm',
+      name: 'Fallback Tenant',
+      email: 'fallback@example.com',
+      phone: '+44 7700 900999',
+      message: 'Interested in arranging a viewing.',
+    });
+
+    const offersAdminModule = loadTs('../lib/offers-admin.mjs', __dirname, {
+      overrides: {
+        '../data/agents.json': agentsData,
+        '../data/ai-support.json': supportData,
+        './offers.js': offersModule,
+        [require.resolve('../data/agents.json')]: agentsData,
+        [require.resolve('../data/ai-support.json')]: supportData,
+        [require.resolve('../lib/offers.js')]: offersModule,
+      },
+    });
+
+    const entries = await offersAdminModule.listOffersForAdmin();
+    const entry = entries.find((item) => item.id === savedOffer.id);
+
+    expect(entry).toBeDefined();
+    expect(entry.contact).toEqual(
+      expect.objectContaining({
+        name: 'Fallback Tenant',
+        email: 'fallback@example.com',
+        phone: '+44 7700 900999',
+      })
+    );
+  });
 });

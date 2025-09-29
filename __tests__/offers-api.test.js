@@ -45,6 +45,8 @@ describe('offer API email delivery', () => {
       frequency: 'pcm',
       name: 'Buyer Example',
       email: 'buyer@example.com',
+      phone: '+44 7700 900123',
+      message: 'Please consider my offer.',
       status: 'new',
       paymentStatus: 'pending',
       depositAmount: 1200,
@@ -83,6 +85,8 @@ describe('offer API email delivery', () => {
         propertyId: 'AKT-123',
         offerAmount: 450000,
         depositAmount: '1200',
+        phone: '+44 7700 900123',
+        message: 'Please consider my offer.',
       })
     );
     expect(res.status).toHaveBeenCalledWith(200);
