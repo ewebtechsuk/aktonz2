@@ -48,13 +48,28 @@ The route accepts `phone` and optional `countryCode` query parameters, normalise
 for a matching contact. Responses are returned with `Cache-Control: no-store` to avoid stale screen pops, `200 OK` when the
 contact exists, and `404 Not Found` otherwise.
 
+When a contact is resolved the payload now includes the rich context needed by the pop-up UI:
+
+```json
+{
+  "contact": { /* Apex27 contact object */ },
+  "properties": [ /* properties linked to the contact */ ],
+  "viewings": [ /* viewing bookings for the contact */ ],
+  "appointments": [ /* appointments related to the contact */ ],
+  "financial": [ /* financial entries, e.g. offers or ledgers */ ]
+}
+```
+
+If the context lookup fails for any reason the API responds with a 5xx status so the phone system can retry or fall back.
+
 **Example 3CX configuration:**
 
 1. In the 3CX Management Console, open **Settings → CRM** and choose **Add** to create a new HTTP contact lookup.
 2. Set the **Match** URL to `https://<your-domain>/api/integrations/3cx/contact?phone=%CallerNumber%&countryCode=%CallerIDCountry%` and select the **GET** method.
 3. Under **Request Headers**, add `X-3CX-Secret` with the same secret configured in `THREECX_WEBHOOK_SECRET`.
 4. Choose **JSON** as the response format and map the required contact fields (e.g. name, email, reference) from the `contact`
-   object returned by the API.
+   object returned by the API. The additional arrays (`properties`, `viewings`, `appointments`, and `financial`) are available
+   for richer screen pops that show related activity alongside the basic contact details.
 5. Save and assign the CRM integration to the desired extensions so incoming calls trigger the lookup and display the contact
    context automatically.
 
