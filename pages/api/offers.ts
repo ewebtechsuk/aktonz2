@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { sendMailGraph } from '../../lib/ms-graph';
 import { addOffer } from '../../lib/offers.js';
+import { formatOfferFrequencyLabel } from '../../lib/offer-frequency.mjs';
 
 type FormBody = {
   name?: string;
@@ -163,7 +164,7 @@ function validateBody(body: FormBody): { data?: ValidatedOffer; errors?: string[
   };
 }
 
-function buildHtml(body: FormBody): string {
+export function buildHtml(body: FormBody): string {
   const rows: Array<[string, unknown]> = [
     ['Name', body.name ?? ''],
     ['Email', body.email ?? ''],
@@ -178,7 +179,9 @@ function buildHtml(body: FormBody): string {
   }
 
   if (hasValue(body.frequency)) {
-    rows.push(['Offer frequency', body.frequency ?? '']);
+    const frequencyLabel = formatOfferFrequencyLabel(body.frequency);
+    const displayFrequency = frequencyLabel || String(body.frequency ?? '');
+    rows.push(['Offer frequency', displayFrequency]);
   }
 
   if (hasValue(body.depositAmount)) {

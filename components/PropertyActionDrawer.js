@@ -1,13 +1,14 @@
 import { useId } from 'react';
 import { FaBath, FaBed, FaCouch } from 'react-icons/fa';
-import { formatRentFrequency } from '../lib/format.mjs';
+import { formatOfferFrequencyLabel } from '../lib/offer-frequency.mjs';
 import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
 import styles from '../styles/PropertyActionDrawer.module.css';
 
 function formatPrice(property = {}) {
   if (!property?.price) return '';
   if (property?.rentFrequency) {
-    return `${property.price} ${formatRentFrequency(property.rentFrequency)}`;
+    const frequencyLabel = formatOfferFrequencyLabel(property.rentFrequency);
+    return frequencyLabel ? `${property.price} ${frequencyLabel}` : `${property.price}`;
   }
   return property.price;
 }

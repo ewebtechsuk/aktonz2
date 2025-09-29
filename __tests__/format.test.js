@@ -16,6 +16,12 @@ describe('formatRentFrequency', () => {
     expect(formatRentFrequency('Y')).toBe('pa');
   });
 
+  test('normalizes descriptive rent cadence strings', () => {
+    expect(formatRentFrequency('per week')).toBe('pw');
+    expect(formatRentFrequency('Quarterly')).toBe('pq');
+    expect(formatRentFrequency('per annum')).toBe('pa');
+  });
+
   test('returns original value for unknown codes', () => {
     expect(formatRentFrequency('X')).toBe('X');
   });
