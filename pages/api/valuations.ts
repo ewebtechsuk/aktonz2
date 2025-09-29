@@ -185,6 +185,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
+  const simulateParam = Array.isArray(req.query.__simulate)
+    ? req.query.__simulate[0]
+    : req.query.__simulate;
+
+  if (process.env.NODE_ENV !== 'production' && typeof simulateParam === 'string') {
+    if (simulateParam === 'outage') {
+      res.status(202).json({
+        ok: true,
+        delivered: false,
+        reason: 'simulated_outage',
+        result: {
+          notifications: [
+            {
+              channel: 'email',
+              delivered: false,
+              reason: 'simulated_outage',
+            },
+          ],
+        },
+      });
+      return;
+    }
+
+    if (simulateParam === 'delivered') {
+      res.status(200).json({
+        ok: true,
+        delivered: true,
+        result: {
+          notifications: [
+            {
+              channel: 'email',
+              delivered: true,
+            },
+          ],
+        },
+      });
+      return;
+    }
+  }
+
   try {
     await sendMailGraph({
       subject: SUBJECT,
@@ -193,11 +233,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       replyTo: resolveReplyTo(body.email),
     });
 
-    res.status(200).json({ ok: true });
+    res.status(200).json({
+      ok: true,
+      delivered: true,
+      result: {
+        notifications: [
+          {
+            channel: 'email',
+            delivered: true,
+          },
+        ],
+      },
+    });
   } catch (error) {
     if (isGraphConnectorNotConfiguredError(error)) {
       console.warn('Valuation email skipped: Microsoft Graph connector not configured.');
-      res.status(202).json({ ok: true, delivered: false, reason: 'graph_not_configured' });
+      res.status(202).json({
+        ok: true,
+        delivered: false,
+        reason: 'graph_not_configured',
+        result: {
+          notifications: [
+            {
+              channel: 'email',
+              delivered: false,
+              reason: 'graph_not_configured',
+            },
+          ],
+        },
+      });
       return;
     }
 
