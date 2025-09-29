@@ -99,7 +99,7 @@ describe('offer API email delivery', () => {
     expect(call.html).toContain('£450,000.00');
     expect(call.html).toContain('+44 7700 900123');
     expect(call.html).toContain('Offer frequency');
-    expect(call.html).toContain('pcm');
+    expect(call.html).toContain('Per month');
     expect(call.html).toContain('Holding deposit');
     expect(call.html).toContain('£1,200.00');
     expect(call.html).toContain('Please consider my offer.');
