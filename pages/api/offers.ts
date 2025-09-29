@@ -10,6 +10,8 @@ type FormBody = {
   propertyId?: string;
   message?: string;
   propertyTitle?: string;
+  propertyAddress?: string;
+  address?: string;
   frequency?: string;
   depositAmount?: string | number;
   [key: string]: unknown;
@@ -96,6 +98,7 @@ function normaliseString(value: unknown): string | undefined {
 type ValidatedOffer = {
   propertyId: string;
   propertyTitle?: string;
+  propertyAddress?: string;
   offerAmount: number;
   frequency?: string;
   name: string;
@@ -134,6 +137,13 @@ function validateBody(body: FormBody): { data?: ValidatedOffer; errors?: string[
 
   const frequency = normaliseString(body.frequency);
   const propertyTitle = normaliseString(body.propertyTitle);
+  const propertyAddressInput =
+    typeof body.propertyAddress === 'string'
+      ? body.propertyAddress
+      : typeof body.address === 'string'
+        ? body.address
+        : undefined;
+  const propertyAddress = normaliseString(propertyAddressInput);
   const phone = normaliseString(body.phone);
   const message = normaliseString(body.message);
 
@@ -141,6 +151,7 @@ function validateBody(body: FormBody): { data?: ValidatedOffer; errors?: string[
     data: {
       propertyId: propertyId!,
       propertyTitle,
+      propertyAddress,
       offerAmount: offerAmount!,
       frequency: frequency || undefined,
       name: name!,
@@ -178,6 +189,10 @@ function buildHtml(body: FormBody): string {
     rows.push(['Property title', body.propertyTitle ?? '']);
   }
 
+  if (hasValue(body.propertyAddress)) {
+    rows.push(['Property address', body.propertyAddress ?? '']);
+  }
+
   rows.push(['Property ID', body.propertyId ?? '']);
 
   if (hasValue(body.message)) {
@@ -195,8 +210,10 @@ function buildHtml(body: FormBody): string {
           'propertyId',
           'message',
           'propertyTitle',
+          'propertyAddress',
           'frequency',
           'depositAmount',
+          'address',
         ].includes(key)
     )
     .map(([key, value]) => [key, value]);
@@ -262,6 +279,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const offer = await addOffer({
       propertyId: data.propertyId,
       propertyTitle: data.propertyTitle,
+      propertyAddress: data.propertyAddress,
       offerAmount: data.offerAmount,
       frequency: data.frequency,
       name: data.name,
@@ -277,6 +295,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ...body,
       propertyId: data.propertyId,
       propertyTitle: data.propertyTitle,
+      propertyAddress: data.propertyAddress,
       offerAmount: offer.price ?? data.offerAmount,
       frequency: data.frequency,
       name: data.name,

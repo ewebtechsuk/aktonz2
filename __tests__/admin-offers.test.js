@@ -143,4 +143,56 @@ describe('admin offers API', () => {
       })
     );
   });
+
+  test('provides fallback property details when CRM listing is missing', async () => {
+    const offersModule = loadTs('../lib/offers.js', __dirname);
+    const savedOffer = await offersModule.addOffer({
+      propertyId: 'OFFMARKET-001',
+      propertyTitle: 'Hidden Townhouse',
+      propertyAddress: '123 Example Street, London',
+      offerAmount: '575000',
+      name: 'Interested Buyer',
+      email: 'buyer@example.com',
+    });
+
+    const readSessionMock = jest.fn(() => ({ adminId: 'ops-admin', role: 'admin' }));
+    const offersAdminModule = loadTs('../lib/offers-admin.mjs', __dirname, {
+      overrides: {
+        '../data/agents.json': agentsData,
+        '../data/ai-support.json': supportData,
+        './offers.js': offersModule,
+        [require.resolve('../data/agents.json')]: agentsData,
+        [require.resolve('../data/ai-support.json')]: supportData,
+        [require.resolve('../lib/offers.js')]: offersModule,
+      },
+    });
+
+    const handler = loadTs('../pages/api/admin/offers.js', __dirname, {
+      overrides: {
+        '../../../lib/session.js': { readSession: readSessionMock },
+        '../../../lib/offers-admin.mjs': offersAdminModule,
+        [require.resolve('../lib/session.js')]: { readSession: readSessionMock },
+        [require.resolve('../lib/offers-admin.mjs')]: offersAdminModule,
+      },
+    }).default;
+
+    const req = { method: 'GET', headers: {} };
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledTimes(1);
+    const payload = res.json.mock.calls[0][0];
+    const entry = payload.offers.find((item) => item.id === savedOffer.id);
+
+    expect(entry).toBeDefined();
+    expect(entry.property).toEqual(
+      expect.objectContaining({
+        id: savedOffer.propertyId,
+        title: savedOffer.propertyTitle,
+        address: savedOffer.propertyAddress,
+      })
+    );
+  });
 });
