@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { formatPricePrefix } from '../lib/format.mjs';
-import { formatPropertyPriceLabel } from '../lib/rent.mjs';
+import { formatPropertyPriceLabel } from '../lib/rent.js';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
 import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
 

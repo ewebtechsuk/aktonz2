@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { formatPropertyPriceLabel } from '../lib/rent.mjs';
+import { formatPropertyPriceLabel } from '../lib/rent.js';
 
 export default function PropertyMap({
   properties = [],
