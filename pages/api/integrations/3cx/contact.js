@@ -89,7 +89,7 @@ export default async function handler(req, res) {
   const rawCountryCode = firstQueryValue(req.query.countryCode);
 
   const normalisedPhone = normalisePhoneDigits(rawPhone);
-  if (!normalisedPhone) {
+  if (!normalisedPhone && (!rawPhone || !String(rawPhone).trim())) {
 
     res.status(400).json({ error: 'Missing or invalid phone query parameter' });
     return;
@@ -99,7 +99,10 @@ export default async function handler(req, res) {
 
   let contact = null;
   try {
-    contact = await lookupContactByPhone({ phone: normalisedPhone, countryCode: normalisedCountryCode });
+    contact = await lookupContactByPhone({
+      phone: normalisedPhone ?? rawPhone,
+      countryCode: normalisedCountryCode,
+    });
 
   } catch (err) {
     console.error('Failed to query Apex27 contact by phone', err);
