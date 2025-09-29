@@ -370,6 +370,21 @@ commit them to the repository:
    ```
    The static site will be generated in the `out/` directory (e.g. `npx serve out`).
 
+### GitHub Actions deployment secrets
+
+The `Deploy Next.js site to Pages` workflow requires the following secrets to
+authenticate with Apex27 during the caching and static-generation steps:
+
+| Secret | Purpose |
+| --- | --- |
+| `APEX27_API_KEY` | API token used by `scripts/cacheListings.mjs` and the build to download live listings. |
+| `APEX27_BRANCH_ID` (optional) | Scope requests to a specific branch when your Apex27 tenant requires it. |
+
+Add these values in **Settings → Secrets and variables → Actions** before
+re-running the workflow. The build scripts will exit with a descriptive error if
+the secrets are missing so deployments fail fast instead of producing empty
+artifacts.
+
 ## API Testing
 
 Use [Dredd](https://dredd.org/) to verify the API blueprint against the Apex27 service.
