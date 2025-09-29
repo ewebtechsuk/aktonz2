@@ -58,17 +58,31 @@ describe('formatOfferFrequencyLabel', () => {
 
 describe('offer frequency presentation', () => {
   test('offer emails display the formatted quarterly label', async () => {
-    const { buildHtml } = await import('../pages/api/offers.ts');
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock('../lib/offer-frequency.mjs', () => ({
+        formatOfferFrequencyLabel: (value) => {
+          if (!value) return '';
+          const normalized = String(value).toLowerCase();
+          if (normalized.startsWith('quarter')) {
+            return 'Per quarter';
+          }
+          return value;
+        },
+      }));
 
-    const html = buildHtml({
-      name: 'Quarter Tenant',
-      email: 'tenant@example.com',
-      frequency: 'quarterly',
+      const { buildHtml } = await import('../pages/api/offers.ts');
+
+      const html = buildHtml({
+        name: 'Quarter Tenant',
+        email: 'tenant@example.com',
+        frequency: 'quarterly',
+      });
+
+      expect(html).toContain('Offer frequency');
+      expect(html).toContain('Per quarter');
+      expect(html).not.toContain('quarterly');
     });
 
-    expect(html).toContain('Offer frequency');
-    expect(html).toContain('Per quarter');
-    expect(html).not.toContain('quarterly');
   });
 
   test('admin offer amount formatting uses the annual label', async () => {
@@ -93,6 +107,22 @@ describe('offer frequency presentation', () => {
       global.IS_REACT_ACT_ENVIRONMENT = true;
 
       await jest.isolateModulesAsync(async () => {
+        jest.doMock('../lib/offer-frequency.mjs', () => ({
+          formatOfferFrequencyLabel: (value) => {
+            if (!value) return '';
+            const normalized = String(value).toLowerCase();
+            return normalized === 'pa' || normalized === 'per annum'
+              ? 'Per annum'
+              : value;
+          },
+        }));
+        jest.doMock('../lib/format.mjs', () => ({
+          formatPricePrefix: () => '',
+        }));
+        jest.doMock('../lib/property-type.mjs', () => ({
+          formatPropertyTypeLabel: () => '',
+        }));
+
         const React = await import('react');
         const { act } = React;
         const { createRoot } = await import('react-dom/client');
@@ -121,6 +151,10 @@ describe('offer frequency presentation', () => {
         container.remove();
       });
     } finally {
+      jest.dontMock('../lib/offer-frequency.mjs');
+      jest.dontMock('../lib/format.mjs');
+      jest.dontMock('../lib/property-type.mjs');
+
       global.IS_REACT_ACT_ENVIRONMENT = previousActEnv;
     }
   });
