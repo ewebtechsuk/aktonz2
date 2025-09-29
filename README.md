@@ -48,6 +48,7 @@ The route accepts `phone` and optional `countryCode` query parameters, normalise
 for a matching contact. Responses are returned with `Cache-Control: no-store` to avoid stale screen pops, `200 OK` when the
 contact exists, and `404 Not Found` otherwise.
 
+
 **Example 3CX configuration:**
 
 1. In the 3CX Management Console, open **Settings → CRM** and choose **Add** to create a new HTTP contact lookup.
@@ -55,6 +56,7 @@ contact exists, and `404 Not Found` otherwise.
 3. Under **Request Headers**, add `X-3CX-Secret` with the same secret configured in `THREECX_WEBHOOK_SECRET`.
 4. Choose **JSON** as the response format and map the required contact fields (e.g. name, email, reference) from the `contact`
    object returned by the API.
+
 5. Save and assign the CRM integration to the desired extensions so incoming calls trigger the lookup and display the contact
    context automatically.
 

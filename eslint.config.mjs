@@ -59,6 +59,7 @@ export default [
       ...nextPlugin.configs.recommended.rules,
       'no-empty': 'off',
       'no-unused-vars': 'off',
+      '@next/next/no-img-element': 'off',
     },
   },
   {
@@ -81,6 +82,7 @@ export default [
       'no-empty': 'off',
       'no-undef': 'off',
       'no-unused-vars': 'off',
+      '@next/next/no-img-element': 'off',
     },
   },
   {
