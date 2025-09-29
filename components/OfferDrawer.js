@@ -1,19 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import PropertyActionDrawer from './PropertyActionDrawer';
 import styles from '../styles/OfferDrawer.module.css';
+import {
+  isSaleListing as determineSaleListing,
+  resolveOfferFrequency,
+} from '../lib/offer-frequency.mjs';
 
 export default function OfferDrawer({ property }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [offerAmount, setOfferAmount] = useState('');
-  const transactionType = property?.transactionType
-    ? String(property.transactionType).toLowerCase()
-    : null;
-  const isSaleListing = transactionType
-    ? transactionType === 'sale'
-    : !property?.rentFrequency;
-  const defaultFrequency = isSaleListing ? '' : 'pw';
+  const propertyId = property?.id;
+  const propertyTitle = property?.title || '';
+  const isSaleListing = useMemo(
+    () => determineSaleListing(property),
+    [property?.rentFrequency, property?.transactionType]
+  );
+  const defaultFrequency = useMemo(
+    () => resolveOfferFrequency(property),
+    [propertyId, property?.rentFrequency, property?.transactionType]
+  );
   const [frequency, setFrequency] = useState(defaultFrequency);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -24,9 +31,6 @@ export default function OfferDrawer({ property }) {
   const [offer, setOffer] = useState(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError] = useState(null);
-
-  const propertyId = property?.id;
-  const propertyTitle = property?.title || '';
 
   useEffect(() => {
     setFrequency(defaultFrequency);
