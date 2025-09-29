@@ -29,26 +29,7 @@ import styles from '../../styles/PropertyDetails.module.css';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
 import { formatOfferFrequencyLabel } from '../../lib/offer-frequency.mjs';
 import { formatPriceGBP, formatPricePrefix } from '../../lib/format.mjs';
-
-function parsePriceNumber(value) {
-  return Number(String(value).replace(/[^0-9.]/g, '')) || 0;
-}
-
-function rentToMonthly(price, freq) {
-  const amount = parsePriceNumber(price);
-  switch (freq) {
-    case 'W':
-      return (amount * 52) / 12;
-    case 'M':
-      return amount;
-    case 'Q':
-      return amount / 3;
-    case 'Y':
-      return amount / 12;
-    default:
-      return amount;
-  }
-}
+import { parsePriceNumber, rentToMonthly } from '../../lib/rent.mjs';
 
 function normalizeScrayeReference(value) {
   if (value == null) {
