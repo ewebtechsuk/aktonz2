@@ -14,12 +14,28 @@ export default function AreaMap({ regions = [] }) {
     return match ? match.slug : null;
   };
 
+  const formatLabel = (name) => {
+    if (!name) return '';
+    const withoutLondon = name.replace(/\bLondon\b/gi, '').trim();
+    if (!withoutLondon) return 'LON';
+
+    const parts = withoutLondon
+      .split(/[^A-Za-z]+/)
+      .filter(Boolean)
+      .map((word) => word[0]);
+
+    if (parts.length === 0) return withoutLondon.slice(0, 3).toUpperCase();
+
+    return parts.join('').toUpperCase();
+  };
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     let map;
     let mainLayers = [];
     let subLayers = [];
+    let resetControl;
 
     async function initMap() {
       const L = (await import('leaflet')).default;
@@ -35,13 +51,53 @@ export default function AreaMap({ regions = [] }) {
         scrollWheelZoom: false,
       }).setView([51.5, -0.1], 10);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          '&copy; <a href="https://carto.com/attributions">CARTO</a>, © OpenStreetMap contributors',
       }).addTo(map);
 
       const shapes = mapData.mainRegions;
       const subAreas = mapData.subRegions;
+
+      const baseStyle = {
+        color: '#0a7c3b',
+        weight: 3,
+        fillColor: '#e6f5eb',
+        fillOpacity: 0.6,
+      };
+
+      const bindHover = (layer) => {
+        layer.on('mouseover', () =>
+          layer.setStyle({ ...baseStyle, fillOpacity: 0.75, weight: 4 })
+        );
+        layer.on('mouseout', () => layer.setStyle(baseStyle));
+      };
+
+      const ensureResetControl = () => {
+        if (!resetControl) {
+          resetControl = L.control({ position: 'topright' });
+          resetControl.onAdd = () => {
+            const container = L.DomUtil.create('div', styles.mapControl);
+            const button = L.DomUtil.create('button', styles.mapControlButton, container);
+            button.type = 'button';
+            button.textContent = 'Back to London regions';
+            button.addEventListener('click', (event) => {
+              event.preventDefault();
+              drawMain();
+            });
+            L.DomEvent.disableClickPropagation(container);
+            return container;
+          };
+        }
+
+        resetControl.addTo(map);
+      };
+
+      const removeResetControl = () => {
+        if (resetControl) {
+          map.removeControl(resetControl);
+        }
+      };
 
       const drawMain = () => {
         subLayers.forEach((layer) => map.removeLayer(layer));
@@ -49,15 +105,13 @@ export default function AreaMap({ regions = [] }) {
         mainLayers.forEach((layer) => map.removeLayer(layer));
         const group = L.featureGroup();
 
+        removeResetControl();
+
         mainLayers = shapes.map((s) => {
           const regionSlug = s.slug;
           const targetSlug = findSlug(s.name) || regionSlug;
 
-          const polygon = L.polygon(s.coords, {
-            color: '#2262CC',
-            weight: 1,
-            fillOpacity: 0.2,
-          })
+          const polygon = L.polygon(s.coords, baseStyle)
             .addTo(map)
             .on('click', () => {
               const subs = subAreas[regionSlug];
@@ -68,7 +122,9 @@ export default function AreaMap({ regions = [] }) {
               }
             });
 
-          polygon.bindTooltip(s.name.replace(/ London$/i, ''), {
+          bindHover(polygon);
+
+          polygon.bindTooltip(formatLabel(s.name), {
             permanent: true,
             direction: 'center',
             className: styles.mapTooltip,
@@ -92,16 +148,16 @@ export default function AreaMap({ regions = [] }) {
 
         const group = L.featureGroup();
 
+        ensureResetControl();
+
         subLayers = subs.map((s) => {
           const subSlug = findSlug(s.name) || s.slug;
 
-          const polygon = L.polygon(s.coords, {
-            color: '#2262CC',
-            weight: 1,
-            fillOpacity: 0.2,
-          })
+          const polygon = L.polygon(s.coords, baseStyle)
             .addTo(map)
             .on('click', () => router.push(`/area-guides/${subSlug}`));
+
+          bindHover(polygon);
 
           polygon.bindTooltip(s.name, {
             permanent: true,
@@ -124,6 +180,7 @@ export default function AreaMap({ regions = [] }) {
 
     return () => {
       if (map) map.remove();
+      resetControl = null;
     };
   }, [regions, router]);
 

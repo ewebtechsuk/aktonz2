@@ -40,16 +40,59 @@
   text-decoration: none;
 }
 .map {
-  max-width: 600px;
+  max-width: 720px;
+  width: 100%;
   margin: 0 auto var(--spacing-lg);
-  height: 400px;
+  height: 520px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #cfe3cf;
+  box-shadow: 0 12px 35px rgba(12, 124, 59, 0.12);
 }
 
 .mapTooltip {
-  background: transparent;
+  background: #ffffff;
+  border: 1px solid #0a7c3b;
+  box-shadow: 0 6px 18px rgba(12, 124, 59, 0.2);
+  color: #0a7c3b;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.mapTooltip::before {
+  display: none;
+}
+
+.mapControl {
+  margin: 16px 16px 0 0;
+}
+
+.mapControlButton {
+  background: #0a7c3b;
   border: none;
-  box-shadow: none;
-  color: inherit;
+  border-radius: 999px;
+  color: #ffffff;
+  cursor: pointer;
   font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 0.45rem 1rem;
+  box-shadow: 0 6px 18px rgba(12, 124, 59, 0.25);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.mapControlButton:hover,
+.mapControlButton:focus {
+  background: #096f34;
+  transform: translateY(-1px);
+}
+
+.mapControlButton:focus {
+  outline: 3px solid rgba(12, 124, 59, 0.4);
+  outline-offset: 2px;
 }
 
