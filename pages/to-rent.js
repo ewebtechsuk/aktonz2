@@ -16,6 +16,8 @@ import { formatPriceGBP, formatRentFrequency } from '../lib/format.mjs';
 
 const DEFAULT_RENT_FREQUENCY = 'pcm';
 
+const TRUTHY_QUERY_VALUES = new Set(['true', '1', 'yes', 'on']);
+
 function normalizeStatus(value) {
   return String(value || '').toLowerCase().replace(/\s+/g, '_');
 }
@@ -53,6 +55,48 @@ function getPriceValue(property) {
   }
   const numeric = Number(String(property?.price ?? '').replace(/[^0-9.]/g, ''));
   return Number.isFinite(numeric) ? numeric : 0;
+}
+
+function getNestedFlag(property, path) {
+  let current = property;
+  for (const key of path) {
+    if (!current || typeof current !== 'object') {
+      return null;
+    }
+    current = current[key];
+  }
+  return current;
+}
+
+function isTruthyFlagValue(value) {
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return false;
+    if (TRUTHY_QUERY_VALUES.has(normalized)) {
+      return true;
+    }
+    if (normalized === 'false' || normalized === '0' || normalized === 'no' || normalized === 'off') {
+      return false;
+    }
+  }
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && value > 0;
+  }
+  return Boolean(value);
+}
+
+function parseBooleanQueryParam(value) {
+  if (Array.isArray(value)) {
+    return value.some((entry) => parseBooleanQueryParam(entry));
+  }
+  if (typeof value !== 'string') {
+    return false;
+  }
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) {
+    return false;
+  }
+  return TRUTHY_QUERY_VALUES.has(normalized);
 }
 
 function computeMedian(values) {
@@ -220,6 +264,11 @@ export default function ToRent({ properties, agents }) {
       ? router.query.sort
       : 'recommended';
 
+  const petsAllowed = parseBooleanQueryParam(router.query.petsAllowed);
+  const allBillsIncluded = parseBooleanQueryParam(router.query.allBillsIncluded);
+  const hasPorterSecurity = parseBooleanQueryParam(router.query.hasPorterSecurity);
+  const hasAccessibilityFeatures = parseBooleanQueryParam(router.query.hasAccessibilityFeatures);
+
   const searchTerm = search.toLowerCase();
 
   const filtered = useMemo(() => {
@@ -251,12 +300,51 @@ export default function ToRent({ properties, agents }) {
         if (type !== propertyType) return false;
       }
 
+      if (petsAllowed) {
+        const flagValue = getNestedFlag(property, ['rentalFlags', 'petsAllowed']);
+        if (!isTruthyFlagValue(flagValue)) {
+          return false;
+        }
+      }
+
+      if (allBillsIncluded) {
+        const flagValue = getNestedFlag(property, ['rentalFlags', 'allBillsIncluded']);
+        if (!isTruthyFlagValue(flagValue)) {
+          return false;
+        }
+      }
+
+      if (hasPorterSecurity) {
+        const flagValue = getNestedFlag(property, ['residentialFlags', 'hasPorterSecurity']);
+        if (!isTruthyFlagValue(flagValue)) {
+          return false;
+        }
+      }
+
+      if (hasAccessibilityFeatures) {
+        const flagValue = getNestedFlag(property, ['residentialFlags', 'hasAccessibilityFeatures']);
+        if (!isTruthyFlagValue(flagValue)) {
+          return false;
+        }
+      }
+
       const status = normalizeStatus(property?.status || '');
       if (status.includes('pending')) return false;
 
       return true;
     });
-  }, [properties, searchTerm, minPrice, maxPrice, bedrooms, propertyType]);
+  }, [
+    properties,
+    searchTerm,
+    minPrice,
+    maxPrice,
+    bedrooms,
+    propertyType,
+    petsAllowed,
+    allBillsIncluded,
+    hasPorterSecurity,
+    hasAccessibilityFeatures,
+  ]);
 
   const sorted = useMemo(() => {
     const items = [...filtered];
@@ -311,8 +399,31 @@ export default function ToRent({ properties, agents }) {
         chips.push(`Property type: ${selected.label}`);
       }
     }
+    if (petsAllowed) {
+      chips.push('Pets allowed');
+    }
+    if (allBillsIncluded) {
+      chips.push('All bills included');
+    }
+    if (hasPorterSecurity) {
+      chips.push('Porter or on-site security');
+    }
+    if (hasAccessibilityFeatures) {
+      chips.push('Accessibility features');
+    }
     return chips;
-  }, [search, minPrice, maxPrice, bedrooms, propertyType, propertyTypeOptions]);
+  }, [
+    search,
+    minPrice,
+    maxPrice,
+    bedrooms,
+    propertyType,
+    propertyTypeOptions,
+    petsAllowed,
+    allBillsIncluded,
+    hasPorterSecurity,
+    hasAccessibilityFeatures,
+  ]);
 
   const currentFilters = useMemo(
     () => ({
@@ -321,8 +432,22 @@ export default function ToRent({ properties, agents }) {
       maxPrice: maxPrice != null ? String(maxPrice) : '',
       bedrooms: bedrooms != null ? String(bedrooms) : '',
       propertyType: propertyType ?? '',
+      petsAllowed,
+      allBillsIncluded,
+      hasPorterSecurity,
+      hasAccessibilityFeatures,
     }),
-    [search, minPrice, maxPrice, bedrooms, propertyType]
+    [
+      search,
+      minPrice,
+      maxPrice,
+      bedrooms,
+      propertyType,
+      petsAllowed,
+      allBillsIncluded,
+      hasPorterSecurity,
+      hasAccessibilityFeatures,
+    ]
   );
 
   const updateQuery = (filters, nextSort = sortOrder) => {
@@ -333,6 +458,10 @@ export default function ToRent({ properties, agents }) {
     if (filters.maxPrice) query.maxPrice = filters.maxPrice;
     if (filters.bedrooms) query.bedrooms = filters.bedrooms;
     if (filters.propertyType) query.propertyType = filters.propertyType;
+    if (filters.petsAllowed) query.petsAllowed = 'true';
+    if (filters.allBillsIncluded) query.allBillsIncluded = 'true';
+    if (filters.hasPorterSecurity) query.hasPorterSecurity = 'true';
+    if (filters.hasAccessibilityFeatures) query.hasAccessibilityFeatures = 'true';
     if (nextSort && nextSort !== 'recommended') query.sort = nextSort;
     router.push({ pathname: router.pathname, query }, undefined, { shallow: true });
   };
@@ -343,7 +472,17 @@ export default function ToRent({ properties, agents }) {
 
   const handleResetFilters = () => {
     updateQuery(
-      { search: '', minPrice: '', maxPrice: '', bedrooms: '', propertyType: '' },
+      {
+        search: '',
+        minPrice: '',
+        maxPrice: '',
+        bedrooms: '',
+        propertyType: '',
+        petsAllowed: false,
+        allBillsIncluded: false,
+        hasPorterSecurity: false,
+        hasAccessibilityFeatures: false,
+      },
       'recommended'
     );
   };
