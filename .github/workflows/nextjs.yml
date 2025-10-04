@@ -90,6 +90,14 @@ jobs:
         run: ${{ steps.detect-package-manager.outputs.manager }} run cache
       - name: Build with Next.js
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
+      - name: Export static site
+        run: ${{ steps.detect-package-manager.outputs.runner }} next export
+      - name: Verify export directory
+        run: |
+          if [ ! -d "./out" ]; then
+            echo "::error::Next.js static export directory ./out was not generated."
+            exit 1
+          fi
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
