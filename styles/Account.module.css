@@ -229,6 +229,7 @@
   position: absolute;
   top: 1rem;
   left: 1rem;
+  z-index: 650;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -263,6 +264,7 @@
   position: absolute;
   left: 1rem;
   bottom: 1rem;
+  z-index: 650;
   background: rgba(255, 255, 255, 0.94);
   color: #174734;
   font-weight: 600;
