@@ -53,7 +53,12 @@ jest.mock('../lib/format.mjs', () => {
 
 jest.mock('../lib/offer-frequency.mjs', () => ({
   __esModule: true,
-  formatOfferFrequencyLabel: jest.fn((freq) => (freq ? freq : 'pcm')),
+  formatOfferFrequencyLabel: jest.fn((freq) => {
+    if (!freq) return '';
+    if (freq === 'pcm') return 'Per month';
+    if (typeof freq === 'string') return freq;
+    return '';
+  }),
 }));
 
 jest.mock('../lib/apex27.mjs', () => ({
@@ -137,7 +142,7 @@ describe('ToRent page hero stats', () => {
       <ToRent properties={properties} agents={[]} />
     );
 
-    expect(markup).toContain('£2,100 pcm');
+    expect(markup).toContain('£2,100 Per month');
     expect(formatPriceGBP).toHaveBeenCalledWith(2100, { isSale: true });
   });
 });
