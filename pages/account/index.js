@@ -1,10 +1,19 @@
 import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import AccountLayout from '../../components/account/AccountLayout';
+import NeighbourhoodMap from '../../components/account/NeighbourhoodMap';
 import styles from '../../styles/Account.module.css';
+import { formatPriceGBP } from '../../lib/format.cjs';
+import { formatOfferFrequencyLabel } from '../../lib/offer-frequency.cjs';
 
-const PRICE_MIN_OPTIONS = ['£1,500 pcm', '£1,700 pcm', '£1,900 pcm', '£2,100 pcm'];
-const PRICE_MAX_OPTIONS = ['£2,600 pcm', '£2,900 pcm', '£3,200 pcm', '£3,500 pcm'];
+const DEFAULT_RENT_FREQUENCY = 'pcm';
+const DEFAULT_RENT_FREQUENCY_LABEL = formatOfferFrequencyLabel(DEFAULT_RENT_FREQUENCY);
+
+const formatRentPriceOption = (amount) => `${formatPriceGBP(amount)} ${DEFAULT_RENT_FREQUENCY_LABEL}`;
+
+const PRICE_MIN_OPTIONS = [1500, 1700, 1900, 2100].map(formatRentPriceOption);
+const PRICE_MAX_OPTIONS = [2600, 2900, 3200, 3500].map(formatRentPriceOption);
 const TENURE_OPTIONS = ['6 months', '12 months', '18 months', '24 months+'];
 
 const BEDROOM_OPTIONS = [
@@ -23,14 +32,6 @@ const PROPERTY_TYPES = [
   { label: 'Loft' },
 ];
 
-const AREA_CHOICES = [
-  { label: 'Shoreditch', active: true },
-  { label: 'Islington', active: true },
-  { label: 'Hackney', active: true },
-  { label: 'Dalston' },
-  { label: 'Canonbury' },
-];
-
 const FLEXIBILITY_CHOICES = [
   { label: 'Stick to my areas' },
   { label: 'Show nearby too', active: true },
@@ -38,20 +39,247 @@ const FLEXIBILITY_CHOICES = [
 
 ];
 
-const AREA_TAGS = [
-  { label: 'Shoreditch', active: true },
-  { label: 'Islington', active: true },
-  { label: 'Hackney', active: true },
-  { label: 'Highbury' },
-  { label: 'Canonbury' },
-];
+const BUDGET_MIN_OPTIONS = [1500, 1750, 1900, 2100].map(formatRentPriceOption);
+const BUDGET_MAX_OPTIONS = [2400, 2750, 3000, 3250, 3500].map(formatRentPriceOption);
+const SELECTED_MIN = formatRentPriceOption(1900);
+const SELECTED_MAX = formatRentPriceOption(3200);
 
-const BUDGET_MIN_OPTIONS = ['£1,500 pcm', '£1,750 pcm', '£1,900 pcm', '£2,100 pcm'];
-const BUDGET_MAX_OPTIONS = ['£2,400 pcm', '£2,750 pcm', '£3,000 pcm', '£3,250 pcm', '£3,500 pcm'];
-const SELECTED_MIN = '£1,900 pcm';
-const SELECTED_MAX = '£3,000 pcm';
+const AREAS_API_PATH = '/api/account/areas';
+
+function normalisePoint(point) {
+  if (!point || typeof point !== 'object') {
+    return null;
+  }
+  const lat = Number(point.lat ?? point.latitude ?? (Array.isArray(point) ? point[0] : null));
+  const lng = Number(point.lng ?? point.longitude ?? (Array.isArray(point) ? point[1] : null));
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return null;
+  }
+  return { lat, lng };
+}
+
+function normaliseAreaPayload(area) {
+  if (!area || typeof area !== 'object') {
+    return null;
+  }
+  const type = area.type === 'polygon' ? 'polygon' : 'pin';
+  const id = typeof area.id === 'string' && area.id ? area.id : `area-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const label = typeof area.label === 'string' ? area.label : null;
+
+  if (type === 'pin') {
+    const candidate = area.coordinates?.[0] ?? area.location ?? area.point ?? null;
+    const point = normalisePoint(candidate);
+    if (!point) {
+      return null;
+    }
+    return { id, type, coordinates: [point], label };
+  }
+
+  const raw = Array.isArray(area.coordinates) ? area.coordinates : [];
+  const points = raw.map((entry) => normalisePoint(entry)).filter(Boolean);
+  if (points.length < 3) {
+    return null;
+  }
+  return { id, type: 'polygon', coordinates: points, label };
+}
+
+function assignAreaLabels(nextAreas = [], previous = []) {
+  const previousMap = new Map(previous.map((area) => [area.id, area]));
+  let pinCount = 0;
+  let polygonCount = 0;
+
+  return nextAreas
+    .map((area) => normaliseAreaPayload(area))
+    .filter(Boolean)
+    .map((area) => {
+      const existing = previousMap.get(area.id);
+      let label = existing?.label || area.label || null;
+      if (area.type === 'pin') {
+        pinCount += 1;
+        label = label || `Pin ${pinCount}`;
+      } else if (area.type === 'polygon') {
+        polygonCount += 1;
+        label = label || `Area ${polygonCount}`;
+      }
+      return { ...area, label };
+    });
+}
+
+function cloneArea(area) {
+  return {
+    ...area,
+    coordinates: Array.isArray(area.coordinates)
+      ? area.coordinates.map((point) => ({ lat: point.lat, lng: point.lng }))
+      : [],
+  };
+}
+
+function areasEqual(current = [], previous = []) {
+  if (current.length !== previous.length) {
+    return false;
+  }
+  for (let index = 0; index < current.length; index += 1) {
+    const a = current[index];
+    const b = previous[index];
+    if (!a || !b) {
+      return false;
+    }
+    if (a.id !== b.id || a.type !== b.type || (a.label || null) !== (b.label || null)) {
+      return false;
+    }
+    const coordsA = Array.isArray(a.coordinates) ? a.coordinates : [];
+    const coordsB = Array.isArray(b.coordinates) ? b.coordinates : [];
+    if (coordsA.length !== coordsB.length) {
+      return false;
+    }
+    for (let pointIndex = 0; pointIndex < coordsA.length; pointIndex += 1) {
+      const pa = coordsA[pointIndex];
+      const pb = coordsB[pointIndex];
+      if (!pa || !pb) {
+        return false;
+      }
+      const latEqual = Number(pa.lat).toFixed(6) === Number(pb.lat).toFixed(6);
+      const lngEqual = Number(pa.lng).toFixed(6) === Number(pb.lng).toFixed(6);
+      if (!latEqual || !lngEqual) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
 
 export default function AccountDashboard() {
+  const [areas, setAreas] = useState([]);
+  const [editingAreaId, setEditingAreaId] = useState(null);
+  const [loadingAreas, setLoadingAreas] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [saveState, setSaveState] = useState({ saving: false, error: null });
+
+  const hydratedRef = useRef(false);
+  const lastPersistedRef = useRef([]);
+
+  const handleAreasChange = useCallback((nextAreas) => {
+    setAreas((prev) => assignAreaLabels(Array.isArray(nextAreas) ? nextAreas : [], prev));
+  }, []);
+
+  const handleRemoveArea = useCallback((id) => {
+    setAreas((prev) => assignAreaLabels(prev.filter((area) => area.id !== id), []));
+    setEditingAreaId((current) => (current === id ? null : current));
+  }, []);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingAreaId(null);
+  }, []);
+
+  const handleEditingComplete = useCallback(() => {
+    setEditingAreaId(null);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadAreas() {
+      setLoadingAreas(true);
+      try {
+        const res = await fetch(AREAS_API_PATH, { credentials: 'include' });
+        if (!res.ok) {
+          const detail = await res.text();
+          throw new Error(detail || 'Failed to load saved areas');
+        }
+        const payload = await res.json();
+        if (cancelled) {
+          return;
+        }
+        const incoming = Array.isArray(payload?.areas) ? payload.areas : [];
+        const normalised = assignAreaLabels(incoming, []);
+        setAreas(normalised);
+        setLoadError(null);
+        lastPersistedRef.current = normalised.map(cloneArea);
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+        console.error('Failed to load saved areas', error);
+        const message = error instanceof Error ? error.message : 'Failed to load saved areas';
+        setAreas([]);
+        setLoadError(message);
+        lastPersistedRef.current = [];
+      } finally {
+        if (!cancelled) {
+          setLoadingAreas(false);
+          hydratedRef.current = true;
+        }
+      }
+    }
+
+    loadAreas();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hydratedRef.current) {
+      return;
+    }
+    if (areasEqual(areas, lastPersistedRef.current)) {
+      return;
+    }
+
+    const controller = new AbortController();
+    let cancelled = false;
+
+    setSaveState({ saving: true, error: null });
+
+    async function persistAreas() {
+      try {
+        const res = await fetch(AREAS_API_PATH, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ areas }),
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          const detail = await res.text();
+          throw new Error(detail || 'Failed to save areas');
+        }
+        if (cancelled) {
+          return;
+        }
+        setSaveState({ saving: false, error: null });
+        lastPersistedRef.current = areas.map(cloneArea);
+      } catch (error) {
+        if (controller.signal.aborted || cancelled) {
+          return;
+        }
+        console.error('Failed to persist saved areas', error);
+        const message = error instanceof Error ? error.message : 'Failed to save areas';
+        setSaveState({ saving: false, error: message });
+      }
+    }
+
+    persistAreas();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [areas]);
+
+  const areaSummary = useMemo(() => {
+    if (loadingAreas) {
+      return 'Loading saved areas…';
+    }
+    if (!areas.length) {
+      return 'No areas selected yet.';
+    }
+    if (areas.length === 1) {
+      return '1 area selected';
+    }
+    return `${areas.length} areas selected`;
+  }, [areas.length, loadingAreas]);
+
   return (
     <AccountLayout
       heroSubtitle="Insights. Information. Control."
@@ -83,7 +311,7 @@ export default function AccountDashboard() {
               <div className={styles.rangeControls}>
                 <label className={styles.selectWrap}>
                   <span className={styles.selectCaption}>Min</span>
-                  <select className={styles.select} defaultValue="£1,900 pcm" aria-label="Minimum price per month">
+                  <select className={styles.select} defaultValue={SELECTED_MIN} aria-label="Minimum price per month">
                     {PRICE_MIN_OPTIONS.map((value) => (
                       <option key={value} value={value}>
                         {value}
@@ -93,7 +321,7 @@ export default function AccountDashboard() {
                 </label>
                 <label className={styles.selectWrap}>
                   <span className={styles.selectCaption}>Max</span>
-                  <select className={styles.select} defaultValue="£3,200 pcm" aria-label="Maximum price per month">
+                  <select className={styles.select} defaultValue={SELECTED_MAX} aria-label="Maximum price per month">
                     {PRICE_MAX_OPTIONS.map((value) => (
                       <option key={value} value={value}>
                         {value}
@@ -153,70 +381,31 @@ export default function AccountDashboard() {
               Add another area
             </Link>
           </header>
-
           <div className={styles.mapShell}>
-            <div className={styles.mapSurface}>
-              <div className={styles.mapToolbar}>
-                <button type="button" className={`${styles.mapMode} ${styles.mapModeActive}`} aria-pressed="true">
-                  Map
-                </button>
-                <button type="button" className={styles.mapMode} aria-pressed="false">
-                  Satellite
-                </button>
-              </div>
-              <svg
-                className={styles.mapIllustration}
-                viewBox="0 0 640 360"
-                role="presentation"
-                focusable="false"
-                aria-hidden="true"
-              >
-                <rect width="640" height="360" fill="#e8f5f0" />
-                <path
-                  d="M40 120c120-50 180 40 260 10s130-80 220-40 80 90 0 140-180-20-240-10-120 90-220 50"
-                  fill="none"
-                  stroke="#c3ddd3"
-                  strokeWidth="18"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M20 200c90 40 150-10 210-30s120-10 200 40 160 40 190-30"
-                  fill="none"
-                  stroke="#99c8b8"
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M100 40c40 70 140 70 210 50s150-30 220 20"
-                  fill="none"
-                  stroke="#70b39a"
-                  strokeWidth="6"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M280 140c40 40 80 40 140 20s120-20 180 60"
-                  fill="none"
-                  stroke="#54a48a"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                />
-                <g fill="#00965f">
-                  <circle cx="340" cy="150" r="12" />
-                  <circle cx="430" cy="120" r="12" />
-                  <circle cx="290" cy="210" r="12" />
-                </g>
-                <g fill="#ffffff" fontSize="14" fontWeight="700" textAnchor="middle" dominantBaseline="middle">
-                  <text x="340" y="150">S</text>
-                  <text x="430" y="120">I</text>
-                  <text x="290" y="210">H</text>
-                </g>
-              </svg>
-            </div>
+            <NeighbourhoodMap
+              value={areas}
+              onChange={handleAreasChange}
+              editingAreaId={editingAreaId}
+              onCancelEdit={handleCancelEdit}
+              onEditingComplete={handleEditingComplete}
+            />
 
             <div className={styles.mapFootnote}>
-              <strong>Search radius</strong>
-              <span>1.5 miles</span>
-              <p>We will alert you instantly when properties launch within this area.</p>
+              <strong>Saved areas</strong>
+              <span>{areaSummary}</span>
+              {loadError ? (
+                <p className={styles.mapError} role="alert">
+                  {loadError}
+                </p>
+              ) : saveState.error ? (
+                <p className={styles.mapError} role="alert">
+                  {saveState.error}
+                </p>
+              ) : saveState.saving ? (
+                <p className={styles.mapSaving}>Saving your areas…</p>
+              ) : (
+                <p>We will alert you instantly when properties launch within these areas.</p>
+              )}
             </div>
           </div>
 
@@ -241,14 +430,34 @@ export default function AccountDashboard() {
           </div>
 
           <div className={styles.areaChips}>
-            {AREA_CHOICES.map((area) => (
-              <span key={area.label} className={`${styles.areaChip} ${area.active ? styles.areaChipActive : ''}`}>
-                {area.label}
-                <span className={styles.chipRemove} aria-hidden="true">
-                  ×
-                </span>
-              </span>
-            ))}
+            {areas.length ? (
+              areas.map((area) => (
+                <div
+                  key={area.id}
+                  className={`${styles.areaChip} ${editingAreaId === area.id ? styles.areaChipActive : ''}`}
+                >
+                  <span className={styles.areaChipLabel}>{area.label}</span>
+                  <div className={styles.areaChipActions}>
+                    <button
+                      type="button"
+                      className={styles.areaChipButton}
+                      onClick={() => setEditingAreaId(area.id)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.areaChipButton}
+                      onClick={() => handleRemoveArea(area.id)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <span className={styles.areaChipEmpty}>Drop a pin or draw an outline to add an area.</span>
+            )}
           </div>
         </section>
 

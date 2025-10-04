@@ -1,20 +1,21 @@
 const repo = process.env.GITHUB_REPOSITORY?.split('/')[1] || '';
 const isProd = process.env.NODE_ENV === 'production';
 // Default to a serverful build so API routes like /api/register work.
-// Use NEXT_EXPORT=true if a static export is explicitly required and compatible.
+// Use NEXT_EXPORT=true if a static export is explicitly required.
 const requestedStaticExport = process.env.NEXT_EXPORT === 'true';
 
 const serverRuntimeOnlyRoutes = ['/integrations/3cx/contact-card'];
 const hasServerOnlyRoutes = serverRuntimeOnlyRoutes.length > 0;
 
-if (requestedStaticExport && hasServerOnlyRoutes) {
+if (hasServerOnlyRoutes) {
   console.warn(
-    'NEXT_EXPORT requested but the following routes require server rendering and cannot be exported:',
+    'NEXT_EXPORT requested; attempting a static export but the following routes rely on server rendering:',
     serverRuntimeOnlyRoutes.join(', ')
   );
+  console.warn('Those routes may not function correctly in the exported build.');
 }
 
-const shouldExport = requestedStaticExport && !hasServerOnlyRoutes;
+const shouldExport = requestedStaticExport;
 
 /** @type {import('next').NextConfig} */
 function withNoSniff(headers) {
@@ -117,19 +118,10 @@ const staticHeaders = [
 ];
 
 const nextConfig = {
-  ...(shouldExport
-    ? {
-        output: 'export',
-        images: { unoptimized: true },
-        basePath: isProd && repo ? `/${repo}` : undefined,
-        assetPrefix: isProd && repo ? `/${repo}/` : undefined,
-      }
-    : {
-        async headers() {
-          return staticHeaders;
-        },
-      }),
+  output: 'export',
+  images: { unoptimized: true },
+  basePath: isProd && repo ? `/${repo}` : undefined,
+  assetPrefix: isProd && repo ? `/${repo}/` : undefined,
 };
-
 
 export default nextConfig;

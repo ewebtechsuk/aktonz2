@@ -219,10 +219,17 @@
   min-height: 260px;
 }
 
+.mapCanvas {
+  width: 100%;
+  height: clamp(260px, 45vw, 420px);
+  min-height: inherit;
+}
+
 .mapToolbar {
   position: absolute;
   top: 1rem;
   left: 1rem;
+  z-index: 650;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -249,10 +256,22 @@
   box-shadow: 0 8px 18px rgba(0, 150, 95, 0.25);
 }
 
-.mapIllustration {
-  width: 100%;
-  height: 100%;
-  display: block;
+.mapActionButton {
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.mapStatus {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 650;
+  background: rgba(255, 255, 255, 0.94);
+  color: #174734;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(18, 80, 58, 0.18);
+  max-width: min(90%, 320px);
 }
 
 .mapFootnote {
@@ -265,6 +284,16 @@
 .mapFootnote strong {
   color: #174734;
   font-size: 0.95rem;
+}
+
+.mapSaving {
+  color: #0f6044;
+  font-weight: 600;
+}
+
+.mapError {
+  color: #c54536;
+  font-weight: 600;
 }
 
 .mapSearch {
@@ -326,6 +355,42 @@
   background: #00965f;
   border-color: #00965f;
   color: #ffffff;
+}
+
+.areaChipLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.areaChipActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.areaChipButton {
+  border: none;
+  background: transparent;
+  color: currentColor;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 0, 0, 0.2);
+  text-decoration-thickness: 1px;
+}
+
+.areaChipButton:hover,
+.areaChipButton:focus-visible {
+  color: #0c3c2d;
+  text-decoration-color: currentColor;
+}
+
+.areaChipEmpty {
+  color: #57766b;
+  font-weight: 500;
 }
 
 .chipRemove {
