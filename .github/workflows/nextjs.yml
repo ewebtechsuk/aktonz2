@@ -98,6 +98,7 @@ jobs:
             echo "::error::Next.js static export directory ./out was not generated."
             exit 1
           fi
+          touch ./out/.nojekyll
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
