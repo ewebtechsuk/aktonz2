@@ -72,29 +72,51 @@ export default function ListingFilters({
   bedroomsLabel = 'Bedrooms',
   propertyTypeLabel = 'Property type',
 }) {
-  const [formState, setFormState] = useState(() => ({
-    search: initialFilters?.search ?? '',
-    minPrice: initialFilters?.minPrice ?? '',
-    maxPrice: initialFilters?.maxPrice ?? '',
-    bedrooms: initialFilters?.bedrooms ?? '',
-    propertyType: initialFilters?.propertyType ?? '',
-  }));
+  const BOOLEAN_FILTER_KEYS = useMemo(
+    () => ['petsAllowed', 'allBillsIncluded', 'hasPorterSecurity', 'hasAccessibilityFeatures'],
+    []
+  );
+
+  const DEFAULT_FORM_STATE = useMemo(
+    () => ({
+      search: '',
+      minPrice: '',
+      maxPrice: '',
+      bedrooms: '',
+      propertyType: '',
+      petsAllowed: false,
+      allBillsIncluded: false,
+      hasPorterSecurity: false,
+      hasAccessibilityFeatures: false,
+    }),
+    []
+  );
+
+  const coerceBoolean = (value) => {
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      return ['true', '1', 'yes', 'on'].includes(normalized);
+    }
+    return Boolean(value);
+  };
+
+  const normalizeFormState = (filters = {}) => {
+    const nextState = { ...DEFAULT_FORM_STATE };
+    Object.keys(nextState).forEach((key) => {
+      if (key in filters) {
+        nextState[key] = BOOLEAN_FILTER_KEYS.includes(key)
+          ? coerceBoolean(filters[key])
+          : filters[key] ?? '';
+      }
+    });
+    return nextState;
+  };
+
+  const [formState, setFormState] = useState(() => normalizeFormState(initialFilters));
 
   useEffect(() => {
-    setFormState({
-      search: initialFilters?.search ?? '',
-      minPrice: initialFilters?.minPrice ?? '',
-      maxPrice: initialFilters?.maxPrice ?? '',
-      bedrooms: initialFilters?.bedrooms ?? '',
-      propertyType: initialFilters?.propertyType ?? '',
-    });
-  }, [
-    initialFilters?.search,
-    initialFilters?.minPrice,
-    initialFilters?.maxPrice,
-    initialFilters?.bedrooms,
-    initialFilters?.propertyType,
-  ]);
+    setFormState(normalizeFormState(initialFilters));
+  }, [initialFilters]);
 
   const propertyTypeOptions = useMemo(() => mergeOptions(propertyTypes), [propertyTypes]);
 
@@ -106,19 +128,21 @@ export default function ListingFilters({
     }));
   };
 
+  const handleCheckboxChange = (event) => {
+    const { name, checked } = event.target;
+    setFormState((prev) => ({
+      ...prev,
+      [name]: checked,
+    }));
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
     onApply?.(formState);
   };
 
   const handleReset = () => {
-    setFormState({
-      search: '',
-      minPrice: '',
-      maxPrice: '',
-      bedrooms: '',
-      propertyType: '',
-    });
+    setFormState(() => ({ ...DEFAULT_FORM_STATE }));
     onReset?.();
   };
 
@@ -205,6 +229,48 @@ export default function ListingFilters({
           </select>
         </label>
       </div>
+
+      <fieldset className={styles.flagGroup}>
+        <legend>Rental preferences</legend>
+        <div className={styles.flagOptions}>
+          <label className={styles.flagOption}>
+            <input
+              type="checkbox"
+              name="petsAllowed"
+              checked={formState.petsAllowed}
+              onChange={handleCheckboxChange}
+            />
+            <span>Pets allowed</span>
+          </label>
+          <label className={styles.flagOption}>
+            <input
+              type="checkbox"
+              name="allBillsIncluded"
+              checked={formState.allBillsIncluded}
+              onChange={handleCheckboxChange}
+            />
+            <span>All bills included</span>
+          </label>
+          <label className={styles.flagOption}>
+            <input
+              type="checkbox"
+              name="hasPorterSecurity"
+              checked={formState.hasPorterSecurity}
+              onChange={handleCheckboxChange}
+            />
+            <span>Porter or on-site security</span>
+          </label>
+          <label className={styles.flagOption}>
+            <input
+              type="checkbox"
+              name="hasAccessibilityFeatures"
+              checked={formState.hasAccessibilityFeatures}
+              onChange={handleCheckboxChange}
+            />
+            <span>Accessibility features</span>
+          </label>
+        </div>
+      </fieldset>
 
       <div className={styles.actions}>
         <button type="submit" className={styles.applyButton}>
