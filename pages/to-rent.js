@@ -14,6 +14,8 @@ import rentStyles from '../styles/ToRent.module.css';
 import { formatOfferFrequencyLabel } from '../lib/offer-frequency.mjs';
 import { formatPriceGBP, formatRentFrequency } from '../lib/format.mjs';
 
+const DEFAULT_RENT_FREQUENCY = 'pcm';
+
 function normalizeStatus(value) {
   return String(value || '').toLowerCase().replace(/\s+/g, '_');
 }
@@ -144,26 +146,54 @@ function collectPropertyTypes(properties) {
   return Array.from(counts.values()).sort((a, b) => b.count - a.count);
 }
 
+function resolveRentFrequencyLabel(frequency) {
+  const normalized = formatRentFrequency(frequency);
+  const resolved = normalized || DEFAULT_RENT_FREQUENCY;
+  const label = formatOfferFrequencyLabel(resolved);
+  if (label) {
+    return label;
+  }
+  if (frequency) {
+    const fallbackLabel = formatOfferFrequencyLabel(frequency);
+    if (fallbackLabel) {
+      return fallbackLabel;
+    }
+  }
+  return resolved || DEFAULT_RENT_FREQUENCY;
+}
+
+const DEFAULT_RENT_FREQUENCY_LABEL =
+  resolveRentFrequencyLabel(DEFAULT_RENT_FREQUENCY) || DEFAULT_RENT_FREQUENCY;
+
+function createRentPriceOption(amount, frequency = DEFAULT_RENT_FREQUENCY) {
+  const priceLabel = formatPriceGBP(amount, { isSale: true });
+  const frequencyLabel = resolveRentFrequencyLabel(frequency) || DEFAULT_RENT_FREQUENCY_LABEL;
+  return {
+    label: `${priceLabel} ${frequencyLabel}`.trim(),
+    value: String(amount),
+  };
+}
+
 const RENT_MIN_PRICE_OPTIONS = [
   { label: 'No minimum', value: '' },
-  { label: '£800 pcm', value: '800' },
-  { label: '£1,000 pcm', value: '1000' },
-  { label: '£1,250 pcm', value: '1250' },
-  { label: '£1,500 pcm', value: '1500' },
-  { label: '£2,000 pcm', value: '2000' },
-  { label: '£2,500 pcm', value: '2500' },
-  { label: '£3,000 pcm', value: '3000' },
+  createRentPriceOption(800),
+  createRentPriceOption(1000),
+  createRentPriceOption(1250),
+  createRentPriceOption(1500),
+  createRentPriceOption(2000),
+  createRentPriceOption(2500),
+  createRentPriceOption(3000),
 ];
 
 const RENT_MAX_PRICE_OPTIONS = [
   { label: 'No maximum', value: '' },
-  { label: '£1,500 pcm', value: '1500' },
-  { label: '£2,000 pcm', value: '2000' },
-  { label: '£2,500 pcm', value: '2500' },
-  { label: '£3,000 pcm', value: '3000' },
-  { label: '£3,500 pcm', value: '3500' },
-  { label: '£4,000 pcm', value: '4000' },
-  { label: '£5,000 pcm', value: '5000' },
+  createRentPriceOption(1500),
+  createRentPriceOption(2000),
+  createRentPriceOption(2500),
+  createRentPriceOption(3000),
+  createRentPriceOption(3500),
+  createRentPriceOption(4000),
+  createRentPriceOption(5000),
 ];
 
 export default function ToRent({ properties, agents }) {
@@ -267,10 +297,10 @@ export default function ToRent({ properties, agents }) {
       chips.push(`Keyword: “${search}”`);
     }
     if (minPrice != null) {
-      chips.push(`Min ${formatPriceGBP(minPrice)} pcm`);
+      chips.push(`Min ${formatPriceGBP(minPrice)} ${DEFAULT_RENT_FREQUENCY_LABEL}`);
     }
     if (maxPrice != null) {
-      chips.push(`Max ${formatPriceGBP(maxPrice)} pcm`);
+      chips.push(`Max ${formatPriceGBP(maxPrice)} ${DEFAULT_RENT_FREQUENCY_LABEL}`);
     }
     if (bedrooms != null) {
       chips.push(`${bedrooms}+ bedrooms`);
@@ -323,10 +353,8 @@ export default function ToRent({ properties, agents }) {
   };
 
   const heroAreaCount = insights.topAreas.length;
-  const defaultRentFrequencyLabel = formatOfferFrequencyLabel('pcm') || 'pcm';
-
   const heroAverageRent = insights.averagePrice
-    ? `${formatPriceGBP(insights.averagePrice, { isSale: true })} ${defaultRentFrequencyLabel}`
+    ? `${formatPriceGBP(insights.averagePrice, { isSale: true })} ${DEFAULT_RENT_FREQUENCY_LABEL}`
     : '—';
   const heroPopularType = insights.propertyTypes[0]?.label
     ? insights.propertyTypes[0].label
@@ -342,14 +370,14 @@ export default function ToRent({ properties, agents }) {
     });
     const [topFrequency] =
       Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0] || [];
-    const label = formatOfferFrequencyLabel(topFrequency || '');
+    const label = topFrequency ? resolveRentFrequencyLabel(topFrequency) : '';
     if (label) {
       return label;
     }
     if (topFrequency) {
       return topFrequency;
     }
-    return defaultRentFrequencyLabel;
+    return DEFAULT_RENT_FREQUENCY_LABEL;
   })();
 
   return (
