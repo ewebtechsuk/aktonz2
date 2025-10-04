@@ -5,6 +5,7 @@ import OfferDrawer from '../../components/OfferDrawer';
 import ViewingForm from '../../components/ViewingForm';
 import NeighborhoodInfo from '../../components/NeighborhoodInfo';
 import FavoriteButton from '../../components/FavoriteButton';
+import PropertySustainabilityPanel from '../../components/PropertySustainabilityPanel';
 
 import MortgageCalculator from '../../components/MortgageCalculator';
 import RentAffordability from '../../components/RentAffordability';
@@ -85,6 +86,197 @@ function deriveScrayeReference(rawProperty) {
   }
 
   return null;
+}
+
+function normalizeEpcScoreValue(value) {
+  if (value == null) {
+    return null;
+  }
+
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value) || value <= 0) {
+      return null;
+    }
+    return String(Math.round(value));
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const bandMatch = trimmed.match(/([A-G])$/i);
+    if (bandMatch) {
+      return bandMatch[1].toUpperCase();
+    }
+
+    const numeric = Number(trimmed);
+    if (Number.isFinite(numeric) && numeric > 0) {
+      return String(Math.round(numeric));
+    }
+
+    return trimmed;
+  }
+
+  return null;
+}
+
+function deriveEpcScore(rawProperty) {
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return null;
+  }
+
+  const candidates = [
+    rawProperty.epcScore,
+    rawProperty.epcRating,
+    rawProperty.epcBand,
+    rawProperty.epcEeCurrent,
+    rawProperty.epcEiCurrent,
+    rawProperty.epcArCurrent,
+    rawProperty.energyPerformance?.score,
+    rawProperty.energyPerformance?.currentScore,
+    rawProperty.energyPerformance?.rating,
+    rawProperty.energyPerformance?.currentRating,
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeEpcScoreValue(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return null;
+}
+
+function normalizeCouncilTaxBand(value) {
+  if (value == null) {
+    return null;
+  }
+
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value) || value <= 0) {
+      return null;
+    }
+    return String(value);
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const bandMatch = trimmed.match(/([A-H])$/i);
+    if (bandMatch) {
+      return bandMatch[1].toUpperCase();
+    }
+
+    return trimmed;
+  }
+
+  return null;
+}
+
+function deriveCouncilTaxBand(rawProperty) {
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return null;
+  }
+
+  const candidates = [
+    rawProperty.councilTaxBand,
+    rawProperty.council_tax_band,
+    rawProperty.councilTax?.band,
+    rawProperty.councilTax?.value,
+    rawProperty.councilTaxBanding,
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeCouncilTaxBand(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return null;
+}
+
+function normalizeBooleanFlag(value) {
+  if (value === true || value === false) {
+    return value;
+  }
+
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) {
+      return null;
+    }
+    if (value > 0) {
+      return true;
+    }
+    if (value === 0) {
+      return false;
+    }
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) {
+      return null;
+    }
+    if (['y', 'yes', 'true', '1', 'included'].includes(normalized)) {
+      return true;
+    }
+    if (['n', 'no', 'false', '0', 'excluded'].includes(normalized)) {
+      return false;
+    }
+  }
+
+  return null;
+}
+
+function deriveIncludedUtilities(rawProperty) {
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return {};
+  }
+
+  const sources = [
+    rawProperty.rentalFlags,
+    rawProperty.rentFlags,
+    rawProperty.lettingFlags,
+    rawProperty.lettings?.flags,
+  ];
+
+  const source = sources.find((value) => value && typeof value === 'object');
+  if (!source) {
+    return {};
+  }
+
+  const mapping = {
+    all: ['allBillsIncluded'],
+    water: ['waterBillIncluded', 'waterIncluded'],
+    gas: ['gasBillIncluded', 'gasIncluded'],
+    electricity: ['electricityBillIncluded', 'electricityIncluded'],
+    internet: ['internetBillIncluded', 'wifiIncluded', 'broadbandIncluded'],
+    councilTax: ['councilTaxIncluded'],
+    tvLicence: ['tvLicenceIncluded', 'tvLicenseIncluded'],
+  };
+
+  const result = {};
+  for (const [normalizedKey, candidateKeys] of Object.entries(mapping)) {
+    let value = null;
+    for (const key of candidateKeys) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
+        value = normalizeBooleanFlag(source[key]);
+        if (value != null) {
+          break;
+        }
+      }
+    }
+    result[normalizedKey] = value;
+  }
+
+  return result;
 }
 
 async function loadPrebuildPropertyIds(limit = 24) {
@@ -294,6 +486,8 @@ export default function Property({ property, recommendations }) {
         </section>
       )}
 
+      <PropertySustainabilityPanel property={property} />
+
       {property.description && (
         <section className={styles.description}>
           <h2>Description</h2>
@@ -431,6 +625,9 @@ export async function getStaticProps({ params }) {
       source: rawProperty.source ?? null,
       _scraye: rawProperty._scraye ?? null,
       scrayeReference: deriveScrayeReference(rawProperty),
+      epcScore: deriveEpcScore(rawProperty),
+      councilTaxBand: deriveCouncilTaxBand(rawProperty),
+      includedUtilities: deriveIncludedUtilities(rawProperty),
     };
   }
 
