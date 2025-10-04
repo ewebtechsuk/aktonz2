@@ -35,20 +35,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Validate required secrets
+      - name: Detect optional secrets
+        id: detect-secrets
         shell: bash
         run: |
-          missing=()
-          for name in APEX27_API_KEY APEX27_BRANCH_ID; do
-            if [ -z "${!name}" ]; then
-              missing+=("$name")
-            fi
-          done
-          if [ ${#missing[@]} -ne 0 ]; then
-            printf '::error::Missing required secrets: %s\n' "${missing[*]}"
-            echo "Required secrets are missing. Configure them in Settings → Secrets and variables → Actions."
-            exit 1
+          has_apex_key=false
+          if [ -n "${APEX27_API_KEY:-}" ]; then
+            has_apex_key=true
+          else
+            printf '::notice::APEX27_API_KEY is not configured. Using bundled fixture data instead of live API listings.\n'
           fi
+
+          if [ -n "${APEX27_BRANCH_ID:-}" ]; then
+            printf '::notice::APEX27_BRANCH_ID provided; listings cache will be branch scoped.\n'
+          fi
+
+          echo "has-apex-key=${has_apex_key}" >> "$GITHUB_OUTPUT"
       - name: Detect package manager
         id: detect-package-manager
         run: |
@@ -77,16 +79,24 @@ jobs:
           path: |
             .next/cache
           # Generate a new cache whenever packages or source files change.
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+          key: "${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-${{ hashFiles('**/*.[jt]s', '**/*.[jt]sx') }}"
           # If source files changed but packages didn't, rebuild from a prior cache.
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
       - name: Cache Apex27 listings
+        if: steps.detect-secrets.outputs.has-apex-key == 'true'
         run: ${{ steps.detect-package-manager.outputs.manager }} run cache
       - name: Build with Next.js
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
+      - name: Verify export directory
+        run: |
+          if [ ! -d "./out" ]; then
+            echo "::error::Next.js static export directory ./out was not generated."
+            exit 1
+          fi
+          touch ./out/.nojekyll
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
