@@ -104,7 +104,7 @@ describe('offer frequency presentation', () => {
         { price: 5000, frequency: 'per annum' },
         'rent'
       )
-    ).toBe('£5000 Per annum');
+    ).toBe('£5,000 Per annum');
   });
 
   test('property cards surface the annual frequency label', async () => {
