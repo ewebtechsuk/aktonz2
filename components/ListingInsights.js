@@ -1,5 +1,6 @@
 import styles from '../styles/ListingInsights.module.css';
 import { formatPriceGBP } from '../lib/format.mjs';
+import { formatOfferFrequencyLabel } from '../lib/offer-frequency.mjs';
 
 function formatLabel(value) {
   if (!value) return 'Other';
@@ -13,7 +14,15 @@ function formatLabel(value) {
 export default function ListingInsights({ stats, searchTerm, variant = 'sale' }) {
   if (!stats) return null;
 
-  const { averagePrice, medianPrice, propertyTypes, topAreas, averageBedrooms } = stats;
+  const {
+    averagePrice,
+    medianPrice,
+    propertyTypes,
+    topAreas,
+    averageBedrooms,
+    averagePriceFrequency,
+    medianPriceFrequency,
+  } = stats;
 
   const isRent = variant === 'rent';
 
@@ -25,9 +34,23 @@ export default function ListingInsights({ stats, searchTerm, variant = 'sale' })
     ? 'See how our rental homes perform across price brackets, property styles and the areas tenants ask for most.'
     : 'Understand how our listings compare across price points, property styles and the neighbourhoods buyers are looking at right now.';
 
+  const averageFrequencyLabel = isRent
+    ? formatOfferFrequencyLabel(
+        averagePriceFrequency ?? medianPriceFrequency ?? 'pcm'
+      )
+    : '';
+
+  const medianFrequencyLabel = isRent
+    ? formatOfferFrequencyLabel(
+        medianPriceFrequency ?? averagePriceFrequency ?? 'pcm'
+      )
+    : '';
+
   const averagePriceLabel = isRent
     ? averagePrice
-      ? `${formatPriceGBP(averagePrice, { isSale: true })} pcm`
+      ? `${formatPriceGBP(averagePrice, { isSale: true })}${
+          averageFrequencyLabel ? ` ${averageFrequencyLabel}` : ''
+        }`
       : '—'
     : averagePrice
     ? formatPriceGBP(averagePrice, { isSale: true })
@@ -35,7 +58,9 @@ export default function ListingInsights({ stats, searchTerm, variant = 'sale' })
 
   const medianPriceLabel = isRent
     ? medianPrice
-      ? `Median: ${formatPriceGBP(medianPrice, { isSale: true })} pcm`
+      ? `Median: ${formatPriceGBP(medianPrice, { isSale: true })}${
+          medianFrequencyLabel ? ` ${medianFrequencyLabel}` : ''
+        }`
       : 'Median rent unavailable'
     : medianPrice
     ? `Median: ${formatPriceGBP(medianPrice, { isSale: true })}`

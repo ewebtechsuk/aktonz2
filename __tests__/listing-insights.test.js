@@ -27,16 +27,44 @@ jest.mock('../lib/format.mjs', () => {
   };
 });
 
+jest.mock('../lib/offer-frequency.mjs', () => {
+  const formatOfferFrequencyLabel = jest.fn((value) => {
+    if (!value) return '';
+    const normalized = String(value).trim().toLowerCase();
+    switch (normalized) {
+      case 'pcm':
+      case 'per month':
+      case 'per calendar month':
+        return 'Per month';
+      case 'pq':
+      case 'per quarter':
+        return 'Per quarter';
+      case 'pa':
+      case 'per annum':
+        return 'Per annum';
+      default:
+        return value;
+    }
+  });
+  return {
+    __esModule: true,
+    formatOfferFrequencyLabel,
+  };
+});
+
 describe('ListingInsights rent formatting', () => {
   it('shows comma separators for four-digit rent figures', async () => {
     const componentModule = await import('../components/ListingInsights.js');
     const ListingInsights =
       componentModule.default?.default ?? componentModule.default ?? componentModule;
     const { formatPriceGBP } = jest.requireMock('../lib/format.mjs');
+    const { formatOfferFrequencyLabel } = jest.requireMock('../lib/offer-frequency.mjs');
 
     const stats = {
       averagePrice: 2100,
       medianPrice: 2100,
+      averagePriceFrequency: 'pcm',
+      medianPriceFrequency: 'pcm',
       propertyTypes: [],
       topAreas: [],
       averageBedrooms: null,
@@ -46,10 +74,13 @@ describe('ListingInsights rent formatting', () => {
       <ListingInsights stats={stats} searchTerm="" variant="rent" />
     );
 
-    expect(markup).toContain('£2,100 pcm');
-    expect(markup).toContain('Median: £2,100 pcm');
+    expect(markup).toContain('£2,100 Per month');
+    expect(markup).toContain('Median: £2,100 Per month');
     expect(formatPriceGBP).toHaveBeenCalledTimes(2);
     expect(formatPriceGBP).toHaveBeenNthCalledWith(1, 2100, { isSale: true });
     expect(formatPriceGBP).toHaveBeenNthCalledWith(2, 2100, { isSale: true });
+    expect(formatOfferFrequencyLabel).toHaveBeenCalledTimes(2);
+    expect(formatOfferFrequencyLabel).toHaveBeenNthCalledWith(1, 'pcm');
+    expect(formatOfferFrequencyLabel).toHaveBeenNthCalledWith(2, 'pcm');
   });
 });
