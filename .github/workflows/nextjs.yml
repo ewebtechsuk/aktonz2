@@ -90,6 +90,8 @@ jobs:
         run: ${{ steps.detect-package-manager.outputs.manager }} run cache
       - name: Build with Next.js
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
+      - name: Export static site
+        run: ${{ steps.detect-package-manager.outputs.runner }} next export
       - name: Verify export directory
         run: |
           if [ ! -d "./out" ]; then

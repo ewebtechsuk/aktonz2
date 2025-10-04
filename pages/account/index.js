@@ -2,9 +2,16 @@ import Link from 'next/link';
 
 import AccountLayout from '../../components/account/AccountLayout';
 import styles from '../../styles/Account.module.css';
+import { formatPriceGBP } from '../../lib/format.mjs';
+import { formatOfferFrequencyLabel } from '../../lib/offer-frequency.mjs';
 
-const PRICE_MIN_OPTIONS = ['£1,500 pcm', '£1,700 pcm', '£1,900 pcm', '£2,100 pcm'];
-const PRICE_MAX_OPTIONS = ['£2,600 pcm', '£2,900 pcm', '£3,200 pcm', '£3,500 pcm'];
+const DEFAULT_RENT_FREQUENCY = 'pcm';
+const DEFAULT_RENT_FREQUENCY_LABEL = formatOfferFrequencyLabel(DEFAULT_RENT_FREQUENCY);
+
+const formatRentPriceOption = (amount) => `${formatPriceGBP(amount)} ${DEFAULT_RENT_FREQUENCY_LABEL}`;
+
+const PRICE_MIN_OPTIONS = [1500, 1700, 1900, 2100].map(formatRentPriceOption);
+const PRICE_MAX_OPTIONS = [2600, 2900, 3200, 3500].map(formatRentPriceOption);
 const TENURE_OPTIONS = ['6 months', '12 months', '18 months', '24 months+'];
 
 const BEDROOM_OPTIONS = [
@@ -46,10 +53,10 @@ const AREA_TAGS = [
   { label: 'Canonbury' },
 ];
 
-const BUDGET_MIN_OPTIONS = ['£1,500 pcm', '£1,750 pcm', '£1,900 pcm', '£2,100 pcm'];
-const BUDGET_MAX_OPTIONS = ['£2,400 pcm', '£2,750 pcm', '£3,000 pcm', '£3,250 pcm', '£3,500 pcm'];
-const SELECTED_MIN = '£1,900 pcm';
-const SELECTED_MAX = '£3,000 pcm';
+const BUDGET_MIN_OPTIONS = [1500, 1750, 1900, 2100].map(formatRentPriceOption);
+const BUDGET_MAX_OPTIONS = [2400, 2750, 3000, 3250, 3500].map(formatRentPriceOption);
+const SELECTED_MIN = formatRentPriceOption(1900);
+const SELECTED_MAX = formatRentPriceOption(3200);
 
 export default function AccountDashboard() {
   return (
@@ -83,7 +90,7 @@ export default function AccountDashboard() {
               <div className={styles.rangeControls}>
                 <label className={styles.selectWrap}>
                   <span className={styles.selectCaption}>Min</span>
-                  <select className={styles.select} defaultValue="£1,900 pcm" aria-label="Minimum price per month">
+                  <select className={styles.select} defaultValue={SELECTED_MIN} aria-label="Minimum price per month">
                     {PRICE_MIN_OPTIONS.map((value) => (
                       <option key={value} value={value}>
                         {value}
@@ -93,7 +100,7 @@ export default function AccountDashboard() {
                 </label>
                 <label className={styles.selectWrap}>
                   <span className={styles.selectCaption}>Max</span>
-                  <select className={styles.select} defaultValue="£3,200 pcm" aria-label="Maximum price per month">
+                  <select className={styles.select} defaultValue={SELECTED_MAX} aria-label="Maximum price per month">
                     {PRICE_MAX_OPTIONS.map((value) => (
                       <option key={value} value={value}>
                         {value}
