@@ -4,6 +4,8 @@
 
 import { renderToStaticMarkup } from 'react-dom/server';
 
+const mockPropertyList = jest.fn();
+
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
 }));
@@ -15,7 +17,10 @@ jest.mock('next/head', () => ({
 
 jest.mock('../components/PropertyList', () => ({
   __esModule: true,
-  default: () => null,
+  default: (props) => {
+    mockPropertyList(props);
+    return null;
+  },
 }));
 
 jest.mock('../components/PropertyMap', () => ({
@@ -111,6 +116,7 @@ describe('ToRent page hero stats', () => {
       pathname: '/to-rent',
       isReady: true,
     });
+    mockPropertyList.mockClear();
   });
 
   afterEach(() => {
@@ -144,5 +150,78 @@ describe('ToRent page hero stats', () => {
 
     expect(markup).toContain('£2,100 Per month');
     expect(formatPriceGBP).toHaveBeenCalledWith(2100, { isSale: true });
+  });
+});
+
+describe('ToRent rental flag filters', () => {
+  beforeEach(() => {
+    mockPropertyList.mockClear();
+  });
+
+  const createProperties = () => [
+    {
+      id: 'match',
+      priceValue: 2500,
+      rentFrequency: 'pcm',
+      status: 'available',
+      propertyType: 'apartment',
+      bedrooms: 2,
+      city: 'London',
+      county: 'Greater London',
+      rentalFlags: {
+        petsAllowed: true,
+        allBillsIncluded: true,
+      },
+      residentialFlags: {
+        hasPorterSecurity: true,
+        hasAccessibilityFeatures: true,
+      },
+    },
+    {
+      id: 'other',
+      priceValue: 2600,
+      rentFrequency: 'pcm',
+      status: 'available',
+      propertyType: 'apartment',
+      bedrooms: 2,
+      city: 'London',
+      county: 'Greater London',
+      rentalFlags: {
+        petsAllowed: false,
+        allBillsIncluded: false,
+      },
+      residentialFlags: {
+        hasPorterSecurity: false,
+        hasAccessibilityFeatures: false,
+      },
+    },
+  ];
+
+  const renderWithQuery = async (query) => {
+    useRouter.mockReturnValue({
+      query,
+      push: jest.fn(),
+      pathname: '/to-rent',
+      isReady: true,
+    });
+
+    const pageModule = await import('../pages/to-rent.js');
+    const ToRent = pageModule.default?.default ?? pageModule.default ?? pageModule;
+
+    renderToStaticMarkup(<ToRent properties={createProperties()} agents={[]} />);
+  };
+
+  it.each([
+    ['petsAllowed'],
+    ['allBillsIncluded'],
+    ['hasPorterSecurity'],
+    ['hasAccessibilityFeatures'],
+  ])('filters properties when %s flag is required', async (flagKey) => {
+    await renderWithQuery({ [flagKey]: 'true' });
+
+    expect(mockPropertyList).toHaveBeenCalled();
+    const props = mockPropertyList.mock.calls[0][0];
+    expect(props.properties).toHaveLength(1);
+    expect(props.properties[0].id).toBe('match');
   });
 });
