@@ -31,7 +31,6 @@ jobs:
     env:
       APEX27_API_KEY: ${{ secrets.APEX27_API_KEY }}
       APEX27_BRANCH_ID: ${{ secrets.APEX27_BRANCH_ID }}
-      NEXT_EXPORT: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -57,12 +56,14 @@ jobs:
           if [ -f "${{ github.workspace }}/yarn.lock" ]; then
             echo "manager=yarn" >> $GITHUB_OUTPUT
             echo "command=install" >> $GITHUB_OUTPUT
+            echo "build=yarn build" >> $GITHUB_OUTPUT
             echo "runner=yarn" >> $GITHUB_OUTPUT
             exit 0
           elif [ -f "${{ github.workspace }}/package.json" ]; then
             echo "manager=npm" >> $GITHUB_OUTPUT
             echo "command=ci" >> $GITHUB_OUTPUT
-            echo "runner=npx --no-install" >> $GITHUB_OUTPUT
+            echo "build=npm run build" >> $GITHUB_OUTPUT
+            echo "runner=npx" >> $GITHUB_OUTPUT
             exit 0
           else
             echo "Unable to determine package manager"
@@ -88,10 +89,8 @@ jobs:
       - name: Cache Apex27 listings
         if: steps.detect-secrets.outputs.has-apex-key == 'true'
         run: ${{ steps.detect-package-manager.outputs.manager }} run cache
-      - name: Build with Next.js
+      - name: Build static site with Next.js
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
-      - name: Export static site
-        run: ${{ steps.detect-package-manager.outputs.runner }} next export
       - name: Verify export directory
         run: |
           if [ ! -d "./out" ]; then

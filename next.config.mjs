@@ -7,7 +7,7 @@ const requestedStaticExport = process.env.NEXT_EXPORT === 'true';
 const serverRuntimeOnlyRoutes = ['/integrations/3cx/contact-card'];
 const hasServerOnlyRoutes = serverRuntimeOnlyRoutes.length > 0;
 
-if (requestedStaticExport && hasServerOnlyRoutes) {
+if (hasServerOnlyRoutes) {
   console.warn(
     'NEXT_EXPORT requested; attempting a static export but the following routes rely on server rendering:',
     serverRuntimeOnlyRoutes.join(', ')
@@ -118,19 +118,10 @@ const staticHeaders = [
 ];
 
 const nextConfig = {
-  ...(shouldExport
-    ? {
-        output: 'export',
-        images: { unoptimized: true },
-        basePath: isProd && repo ? `/${repo}` : undefined,
-        assetPrefix: isProd && repo ? `/${repo}/` : undefined,
-      }
-    : {
-        async headers() {
-          return staticHeaders;
-        },
-      }),
+  output: 'export',
+  images: { unoptimized: true },
+  basePath: isProd && repo ? `/${repo}` : undefined,
+  assetPrefix: isProd && repo ? `/${repo}/` : undefined,
 };
-
 
 export default nextConfig;
