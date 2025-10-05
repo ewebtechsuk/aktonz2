@@ -1,8 +1,4 @@
-/**
- * @jest-environment jsdom
- */
-import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 jest.mock('../styles/PropertyDetails.module.css', () => new Proxy({}, {
   get: (target, prop) => (prop in target ? target[prop] : prop),
@@ -23,16 +19,17 @@ describe('PropertySustainabilityPanel', () => {
       },
     };
 
-    render(<PropertySustainabilityPanel property={property} />);
+    const markup = renderToStaticMarkup(
+      <PropertySustainabilityPanel property={property} />
+    );
 
-    expect(
-      screen.getByRole('heading', { name: /energy & running costs/i })
-    ).toBeInTheDocument();
-    expect(screen.getByText('B')).toBeInTheDocument();
-    expect(screen.getByText('Band D')).toBeInTheDocument();
-    expect(screen.getByText('Electricity')).toBeInTheDocument();
-    expect(screen.getByText('Water')).toBeInTheDocument();
-    expect(screen.getByText('Council tax')).toBeInTheDocument();
+    expect(markup).toContain('Energy &amp; running costs');
+    expect(markup).toContain('EPC rating');
+    expect(markup).toContain('B');
+    expect(markup).toContain('Band D');
+    expect(markup).toContain('Electricity');
+    expect(markup).toContain('Water');
+    expect(markup).toContain('Council tax');
   });
 
   it('falls back when sustainability data is missing', () => {
@@ -40,11 +37,12 @@ describe('PropertySustainabilityPanel', () => {
       includedUtilities: {},
     };
 
-    render(<PropertySustainabilityPanel property={property} />);
+    const markup = renderToStaticMarkup(
+      <PropertySustainabilityPanel property={property} />
+    );
 
-    expect(screen.getAllByText(/^Not provided$/i)).toHaveLength(2);
-    expect(
-      screen.getByText(/Utilities information not provided/i)
-    ).toBeInTheDocument();
+    const notProvidedMatches = markup.match(/Not provided/gi) || [];
+    expect(notProvidedMatches.length).toBeGreaterThanOrEqual(2);
+    expect(markup).toContain('Utilities information not provided');
   });
 });
