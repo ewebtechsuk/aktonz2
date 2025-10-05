@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
+import { hasSessionCookie } from '../lib/client-session.js';
+
 const SessionContext = createContext({
   user: null,
   loading: true,
@@ -12,6 +14,10 @@ const SessionContext = createContext({
 
 
 async function fetchSession() {
+  if (typeof window !== 'undefined' && !hasSessionCookie()) {
+    return { contact: null, email: null };
+  }
+
   const res = await fetch('/api/account/me', { credentials: 'include' });
 
   if (res.status === 401) {
