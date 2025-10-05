@@ -69,7 +69,9 @@ describe('PropertySustainabilityPanel', () => {
       includedUtilities: {},
     };
 
-    render(<PropertySustainabilityPanel property={property} />);
+    const markup = renderToStaticMarkup(
+      <PropertySustainabilityPanel property={property} />
+    );
 
     expect(findAllMatchingText(/^Not provided$/i)).toHaveLength(2);
     expect(findAllMatchingText(/Utilities information not provided/i)).not.toHaveLength(0);

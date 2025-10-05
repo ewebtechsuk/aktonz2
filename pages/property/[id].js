@@ -279,49 +279,60 @@ function deriveIncludedUtilities(rawProperty) {
   return result;
 }
 
-async function loadPrebuildPropertyIds(limit = 24) {
-  if (!limit || limit <= 0) {
-    return [];
-  }
+const RENT_PREBUILD_STATUSES = [
+  'available',
+  'under_offer',
+  'let_agreed',
+  'let',
+  'let_stc',
+  'let_by',
+];
 
+const SALE_PREBUILD_STATUSES = ['available', 'under_offer', 'sold'];
+
+async function loadPrebuildPropertyIds(limit = null) {
   try {
-    const fs = await import('node:fs/promises');
-    const pathMod = await import('path');
-    const filePath = pathMod.join(process.cwd(), 'data', 'listings.json');
-    const raw = await fs.readFile(filePath, 'utf8');
-    const data = JSON.parse(raw);
+    const [rentProperties, saleProperties] = await Promise.all([
+      fetchPropertiesByTypeCachedFirst('rent', {
+        statuses: RENT_PREBUILD_STATUSES,
+      }),
+      fetchPropertiesByTypeCachedFirst('sale', {
+        statuses: SALE_PREBUILD_STATUSES,
+      }),
+    ]);
 
     const ids = [];
     const seen = new Set();
 
-    if (Array.isArray(data)) {
-      for (const entry of data) {
-        const identifier = resolvePropertyIdentifier(entry);
-        if (!identifier) {
-          continue;
-        }
-
-        const normalized = String(identifier).trim();
-        if (!normalized) {
-          continue;
-        }
-
-        if (normalized.toLowerCase().startsWith('scraye-')) {
-          continue;
-        }
-
-        const dedupeKey = normalized.toLowerCase();
-        if (seen.has(dedupeKey)) {
-          continue;
-        }
-
-        seen.add(dedupeKey);
-        ids.push(normalized);
-
-        if (ids.length >= limit) {
-          break;
-        }
+    const addProperty = (property) => {
+      if (!property || typeof property !== 'object') {
+        return;
       }
+
+      const identifier = resolvePropertyIdentifier(property);
+      if (!identifier) {
+        return;
+      }
+
+      const normalized = String(identifier).trim();
+      if (!normalized) {
+        return;
+      }
+
+      const dedupeKey = normalized.toLowerCase();
+      if (seen.has(dedupeKey)) {
+        return;
+      }
+
+      seen.add(dedupeKey);
+      ids.push(normalized);
+    };
+
+    rentProperties.forEach(addProperty);
+    saleProperties.forEach(addProperty);
+
+    if (typeof limit === 'number' && Number.isFinite(limit) && limit > 0) {
+      return ids.slice(0, limit);
     }
 
     return ids;
@@ -529,11 +540,11 @@ export default function Property({ property, recommendations }) {
 }
 
 export async function getStaticPaths() {
-  const ids = await loadPrebuildPropertyIds(24);
+  const ids = await loadPrebuildPropertyIds();
   const paths = ids.map((id) => ({ params: { id: String(id) } }));
   return {
     paths,
-    fallback: 'blocking',
+    fallback: false,
   };
 }
 
