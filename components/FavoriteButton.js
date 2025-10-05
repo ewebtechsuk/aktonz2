@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
 
+import { hasSessionCookie } from '../lib/client-session.js';
+
 const FETCH_OPTIONS = { credentials: 'include' };
 
 export default function FavoriteButton({ propertyId, iconOnly = false, className = '' }) {
@@ -18,6 +20,14 @@ export default function FavoriteButton({ propertyId, iconOnly = false, className
       if (!propertyId) {
         setFavourite(false);
         setLoading(false);
+        return;
+      }
+
+      if (!hasSessionCookie()) {
+        setFavourite(false);
+        setLoading(false);
+        setStatusMessage('Sign in to save favourites.');
+        setStatusTone('info');
         return;
       }
 
@@ -85,6 +95,12 @@ export default function FavoriteButton({ propertyId, iconOnly = false, className
 
   const toggleFavourite = async () => {
     if (!propertyId || updating || loading) {
+      return;
+    }
+
+    if (!hasSessionCookie()) {
+      setStatusTone('error');
+      setStatusMessage('Please sign in to manage favourites.');
       return;
     }
 

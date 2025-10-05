@@ -2,6 +2,16 @@ import PropertyList from '../../components/PropertyList';
 import agents from '../../data/agents.json';
 import { fetchProperties } from '../../lib/apex27.mjs';
 
+const PLACEHOLDER_IMAGE = '/images/agent-placeholder.svg';
+
+function resolveAgentImage(agent) {
+  if (!agent || !agent.photo) {
+    return PLACEHOLDER_IMAGE;
+  }
+
+  return agent.photo;
+}
+
 export default function AgentPage({ agent, listings }) {
   if (!agent) {
     return (
@@ -11,15 +21,26 @@ export default function AgentPage({ agent, listings }) {
     );
   }
 
+  const photoSrc = resolveAgentImage(agent);
+
+  const handleImageError = (event) => {
+    const target = event.currentTarget;
+    if (target.dataset.fallbackApplied === 'true') {
+      return;
+    }
+    target.dataset.fallbackApplied = 'true';
+    target.src = PLACEHOLDER_IMAGE;
+  };
+
   return (
     <main>
-      {agent.photo && (
-        <img
-          src={agent.photo}
-          alt={agent.name}
-          style={{ maxWidth: 'var(--size-avatar)' }}
-        />
-      )}
+      <img
+        src={photoSrc}
+        alt={agent.name}
+        style={{ maxWidth: 'var(--size-avatar)' }}
+        onError={handleImageError}
+        data-fallback-applied="false"
+      />
       <h1>{agent.name}</h1>
       {agent.bio && <p>{agent.bio}</p>}
       {agent.phone && (
