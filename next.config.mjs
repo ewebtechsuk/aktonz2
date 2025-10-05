@@ -118,7 +118,7 @@ const staticHeaders = [
 ];
 
 const nextConfig = {
-  output: 'export',
+  ...(shouldExport ? { output: 'export' } : {}),
   images: { unoptimized: true },
   basePath: isProd && repo ? `/${repo}` : undefined,
   assetPrefix: isProd && repo ? `/${repo}/` : undefined,
