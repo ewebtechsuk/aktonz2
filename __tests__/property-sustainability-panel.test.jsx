@@ -69,7 +69,7 @@ describe('PropertySustainabilityPanel', () => {
       includedUtilities: {},
     };
 
-    const markup = renderToStaticMarkup(
+    render(
       <PropertySustainabilityPanel property={property} />
     );
 
