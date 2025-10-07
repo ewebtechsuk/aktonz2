@@ -38,6 +38,7 @@ import {
   rentToMonthly,
   formatPropertyPriceLabel,
 } from '../../lib/rent.js';
+import { formatOfferFrequencyLabel } from '../../lib/offer-frequency.mjs';
 
 function normalizeScrayeReference(value) {
   if (value == null) {
@@ -349,11 +350,11 @@ async function loadPrebuildPropertyIds(limit = null) {
 export default function Property({ property, recommendations }) {
   const hasLocation = property?.latitude != null && property?.longitude != null;
   const priceLabel = formatPropertyPriceLabel(property);
-  const rentFrequencyShort = useMemo(() => {
+  const rentFrequencyLabel = useMemo(() => {
     if (!property?.rentFrequency) {
       return '';
     }
-    return formatRentFrequency(property.rentFrequency);
+    return formatOfferFrequencyLabel(property.rentFrequency);
   }, [property?.rentFrequency]);
 
   const formattedPrimaryPrice = useMemo(() => {
@@ -388,8 +389,51 @@ export default function Property({ property, recommendations }) {
       return '';
     }
 
-    return `${formatPriceGBP(monthly, { isSale: true })} pcm`;
+    return `Approx. ${formatPriceGBP(monthly, { isSale: true })} per month`;
   }, [property?.price, property?.rentFrequency]);
+  const descriptionParagraphs = useMemo(() => {
+    if (!property?.description) {
+      return [];
+    }
+
+    return property.description
+      .split(/\r?\n\r?\n+/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean);
+  }, [property?.description]);
+  const summaryStats = useMemo(() => {
+    const stats = [];
+
+    if (property?.bedrooms != null) {
+      stats.push({
+        key: 'bedrooms',
+        icon: FaBed,
+        value: property.bedrooms,
+        label: property.bedrooms === 1 ? 'Bedroom' : 'Bedrooms',
+      });
+    }
+
+    if (property?.bathrooms != null) {
+      stats.push({
+        key: 'bathrooms',
+        icon: FaBath,
+        value: property.bathrooms,
+        label: property.bathrooms === 1 ? 'Bathroom' : 'Bathrooms',
+      });
+    }
+
+    if (property?.receptions != null) {
+      stats.push({
+        key: 'receptions',
+        icon: FaCouch,
+        value: property.receptions,
+        label: property.receptions === 1 ? 'Reception' : 'Receptions',
+      });
+    }
+
+    return stats;
+  }, [property?.bathrooms, property?.bedrooms, property?.receptions]);
+  const headlinePrice = formattedPrimaryPrice || priceLabel || '';
   const mapProperties = useMemo(
     () => {
       if (!hasLocation || !property) return [];
@@ -469,72 +513,77 @@ export default function Property({ property, recommendations }) {
               <MediaGallery images={property.images} media={property.media} />
             </div>
           )}
-        <div className={styles.summary}>
-          <div className={styles.summaryMain}>
-            <div className={styles.summaryHeader}>
-              <h1>{property.title}</h1>
-              {property.id && (
-                <FavoriteButton
-                  propertyId={property.id}
-                  iconOnly
-                  className={styles.favoriteButton}
-                />
-              )}
-            </div>
-            {displayType && <p className={styles.type}>{displayType}</p>}
-            {locationLabel && <p className={styles.location}>{locationLabel}</p>}
-            {property.description && (
-              <p className={styles.summaryDescription}>{property.description}</p>
-            )}
-            {scrayeReference && (
-              <p className={styles.reference}>
-                Scraye reference: <span>{scrayeReference}</span>
-              </p>
-            )}
-            <div className={styles.stats}>
-              {property.receptions != null && (
-                <span>
-                  <FaCouch /> {property.receptions}
-                </span>
-              )}
-              {property.bedrooms != null && (
-                <span>
-                  <FaBed /> {property.bedrooms}
-                </span>
-              )}
-              {property.bathrooms != null && (
-                <span>
-                  <FaBath /> {property.bathrooms}
-                </span>
-              )}
-            </div>
-          </div>
-          <aside className={styles.summarySidebar}>
-            {(pricePrefixLabel || formattedPrimaryPrice || priceLabel) && (
-              <div className={styles.priceCard}>
-                {pricePrefixLabel && (
-                  <span className={styles.pricePrefixBadge}>{pricePrefixLabel}</span>
+            <div className={styles.summary}>
+              <div className={styles.summaryMain}>
+                <div className={styles.summaryIntro}>
+                  {displayType && <span className={styles.typeBadge}>{displayType}</span>}
+                  {locationLabel && (
+                    <span className={styles.locationLabel}>{locationLabel}</span>
+                  )}
+                </div>
+                <div className={styles.titleRow}>
+                  <h1>{property.title}</h1>
+                  {property.id && (
+                    <FavoriteButton
+                      propertyId={property.id}
+                      iconOnly
+                      className={styles.favoriteButton}
+                    />
+                  )}
+                </div>
+                {descriptionParagraphs.length > 0 && (
+                  <div className={styles.summaryDescription}>
+                    {descriptionParagraphs.map((paragraph, index) => (
+                      <p key={index}>{paragraph}</p>
+                    ))}
+                  </div>
                 )}
-                {(formattedPrimaryPrice || priceLabel) && (
-                  <p className={styles.pricePrimary}>
-                    {formattedPrimaryPrice || priceLabel}
-                    {rentFrequencyShort && (
-                      <span className={styles.priceFrequency}>{rentFrequencyShort}</span>
-                    )}
+                {summaryStats.length > 0 && (
+                  <ul className={styles.statsList}>
+                    {summaryStats.map((stat) => (
+                      <li key={stat.key} className={styles.statItem}>
+                        <stat.icon aria-hidden="true" />
+                        <span>
+                          <strong>{stat.value}</strong> {stat.label}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {scrayeReference && (
+                  <p className={styles.reference}>
+                    Scraye reference: <span>{scrayeReference}</span>
                   </p>
                 )}
-                {secondaryRentLabel && (
-                  <p className={styles.priceSecondary}>{secondaryRentLabel}</p>
-                )}
               </div>
-            )}
-            <div className={styles.priceActions}>
-              <OfferDrawer property={property} />
-              <ViewingForm property={property} />
+              <aside className={styles.summarySidebar}>
+                <div className={styles.priceCard}>
+                  {(pricePrefixLabel || headlinePrice) && (
+                    <div className={styles.priceHeader}>
+                      {pricePrefixLabel && (
+                        <span className={styles.pricePrefixBadge}>{pricePrefixLabel}</span>
+                      )}
+                      {headlinePrice && (
+                        <div className={styles.priceHeadline}>
+                          <span className={styles.pricePrimaryValue}>{headlinePrice}</span>
+                          {rentFrequencyLabel && (
+                            <span className={styles.priceFrequency}>{rentFrequencyLabel}</span>
+                          )}
+                        </div>
+                      )}
+                      {secondaryRentLabel && (
+                        <p className={styles.priceSecondary}>{secondaryRentLabel}</p>
+                      )}
+                    </div>
+                  )}
+                  <div className={styles.priceActions}>
+                    <OfferDrawer property={property} />
+                    <ViewingForm property={property} />
+                  </div>
+                </div>
+              </aside>
             </div>
-          </aside>
-        </div>
-      </section>
+        </section>
 
       {hasLocation && (
         <section className={styles.mapSection}>

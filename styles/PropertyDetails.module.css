@@ -25,7 +25,11 @@
 .summaryMain {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border-radius: 18px;
+  background: var(--color-background);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
 }
 
 .summarySidebar {
@@ -35,45 +39,111 @@
   flex: 0 0 auto;
 }
 
-.summaryHeader {
+.summaryIntro {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-muted-text);
+  font-size: 0.95rem;
+}
+
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(0, 112, 243, 0.1);
+  color: var(--color-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.locationLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.summaryIntro > .locationLabel:not(:first-child)::before {
+  content: '•';
+  color: var(--color-border-light);
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
   gap: var(--spacing-sm);
 }
 
-.summaryHeader h1 {
+.titleRow h1 {
   flex: 1;
   margin: 0;
+  font-size: clamp(2rem, 2.6vw, 2.75rem);
+  line-height: 1.1;
 }
 
 .favoriteButton {
   flex-shrink: 0;
 }
 
-
 .summaryDescription {
-  margin-top: var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   color: var(--color-muted-text);
   font-size: 1.05rem;
-  line-height: 1.6;
-  white-space: pre-line;
+  line-height: 1.7;
 }
 
-.type {
+.summaryDescription p {
+  margin: 0;
+}
+
+.statsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.statItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.statItem svg {
   font-size: 1.1rem;
-  margin-top: var(--spacing-xs);
-  color: var(--color-muted-text);
+  color: var(--color-secondary);
 }
 
-.location {
-  margin-top: var(--spacing-xs);
-  color: var(--color-muted-text);
+.statItem span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.statItem strong {
+  font-size: 1.05rem;
 }
 
 .reference {
-  margin-top: var(--spacing-xs);
+  margin: 0;
   color: var(--color-muted-text);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .reference span {
@@ -81,24 +151,18 @@
   color: var(--color-secondary);
 }
 
-.stats {
-  display: flex;
-  gap: var(--spacing-md);
-  margin: var(--spacing-sm) 0;
-  color: var(--color-muted-text);
-}
-
-.stats span {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
 .priceCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
   padding: var(--spacing-lg);
+  border-radius: 18px;
   border: 1px solid var(--color-border-light);
-  border-radius: 12px;
-  background: var(--color-surface-alt);
+  background: var(--color-background);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.priceHeader {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
@@ -117,27 +181,31 @@
   letter-spacing: 0.05em;
 }
 
-.pricePrimary {
-  margin: 0;
-  font-size: 2rem;
+.priceHeadline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-sm);
+}
+
+.pricePrimaryValue {
+  font-size: clamp(2.2rem, 2.8vw, 3rem);
   font-weight: 700;
   color: var(--color-secondary);
-  display: flex;
-  align-items: baseline;
-  gap: var(--spacing-xs);
 }
 
 .priceFrequency {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--color-muted-text);
-  text-transform: uppercase;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .priceSecondary {
   margin: 0;
   color: var(--color-muted-text);
-  font-weight: 500;
+  font-size: 0.95rem;
 }
 
 .priceActions {
@@ -286,12 +354,17 @@
     width: 100%;
   }
 
-  .priceActions > * {
-    width: 100%;
+  .summaryMain {
+    padding: var(--spacing-md);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
   }
 
-  .stats {
-    gap: var(--spacing-sm);
+  .titleRow h1 {
+    font-size: clamp(1.85rem, 7vw, 2.35rem);
+  }
+
+  .priceCard {
+    padding: var(--spacing-md);
   }
 }
 
@@ -302,7 +375,9 @@
   }
 
   .summarySidebar {
-    min-width: 280px;
-    max-width: 340px;
+    min-width: 300px;
+    max-width: 360px;
+    position: sticky;
+    top: var(--spacing-lg);
   }
 }
