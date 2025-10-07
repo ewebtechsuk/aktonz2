@@ -48,11 +48,11 @@ export const DEFAULT_ACCOUNT_TABS = [
   },
   {
     label: 'Offers & viewings',
-    disabled: true,
+    href: '/account/offers',
   },
   {
     label: 'Documents',
-    disabled: true,
+    href: '/account/documents',
   },
 ];
 
