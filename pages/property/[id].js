@@ -550,15 +550,8 @@ export default function Property({ property, recommendations }) {
                     ))}
                   </ul>
                 )}
-                {scrayeReference && (
-                  <p className={styles.reference}>
-                    Scraye reference: <span>{scrayeReference}</span>
-                  </p>
-                )}
-              </div>
-              <aside className={styles.summarySidebar}>
-                <div className={styles.priceCard}>
-                  {(pricePrefixLabel || headlinePrice) && (
+                {(pricePrefixLabel || headlinePrice) && (
+                  <div className={styles.priceCard}>
                     <div className={styles.priceHeader}>
                       {pricePrefixLabel && (
                         <span className={styles.pricePrefixBadge}>{pricePrefixLabel}</span>
@@ -575,13 +568,18 @@ export default function Property({ property, recommendations }) {
                         <p className={styles.priceSecondary}>{secondaryRentLabel}</p>
                       )}
                     </div>
-                  )}
-                  <div className={styles.priceActions}>
-                    <OfferDrawer property={property} />
-                    <ViewingForm property={property} />
+                    <div className={styles.priceActions}>
+                      <OfferDrawer property={property} />
+                      <ViewingForm property={property} />
+                    </div>
                   </div>
-                </div>
-              </aside>
+                )}
+                {scrayeReference && (
+                  <p className={styles.reference}>
+                    Scraye reference: <span>{scrayeReference}</span>
+                  </p>
+                )}
+              </div>
             </div>
         </section>
 
