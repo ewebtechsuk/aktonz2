@@ -28,7 +28,11 @@ import {
 } from '../../lib/property-type.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
-import { formatPriceGBP, formatPricePrefix } from '../../lib/format.mjs';
+import {
+  formatPriceGBP,
+  formatPricePrefix,
+  formatRentFrequency,
+} from '../../lib/format.mjs';
 import {
   parsePriceNumber,
   rentToMonthly,
@@ -345,6 +349,47 @@ async function loadPrebuildPropertyIds(limit = null) {
 export default function Property({ property, recommendations }) {
   const hasLocation = property?.latitude != null && property?.longitude != null;
   const priceLabel = formatPropertyPriceLabel(property);
+  const rentFrequencyShort = useMemo(() => {
+    if (!property?.rentFrequency) {
+      return '';
+    }
+    return formatRentFrequency(property.rentFrequency);
+  }, [property?.rentFrequency]);
+
+  const formattedPrimaryPrice = useMemo(() => {
+    if (!property?.price) {
+      return '';
+    }
+
+    if (!property?.rentFrequency) {
+      return priceLabel || property.price;
+    }
+
+    const numericPrice = parsePriceNumber(property.price);
+    if (!numericPrice) {
+      return priceLabel || property.price;
+    }
+
+    return formatPriceGBP(numericPrice, { isSale: true });
+  }, [priceLabel, property?.price, property?.rentFrequency]);
+
+  const secondaryRentLabel = useMemo(() => {
+    if (!property?.rentFrequency || !property?.price) {
+      return '';
+    }
+
+    const normalized = formatRentFrequency(property.rentFrequency);
+    if (!normalized || normalized === 'pcm') {
+      return '';
+    }
+
+    const monthly = rentToMonthly(property.price, property.rentFrequency);
+    if (!Number.isFinite(monthly) || monthly <= 0) {
+      return '';
+    }
+
+    return `${formatPriceGBP(monthly, { isSale: true })} pcm`;
+  }, [property?.price, property?.rentFrequency]);
   const mapProperties = useMemo(
     () => {
       if (!hasLocation || !property) return [];
@@ -425,50 +470,69 @@ export default function Property({ property, recommendations }) {
             </div>
           )}
         <div className={styles.summary}>
-          <div className={styles.summaryHeader}>
-            <h1>{property.title}</h1>
-            {property.id && (
-              <FavoriteButton
-                propertyId={property.id}
-                iconOnly
-                className={styles.favoriteButton}
-              />
+          <div className={styles.summaryMain}>
+            <div className={styles.summaryHeader}>
+              <h1>{property.title}</h1>
+              {property.id && (
+                <FavoriteButton
+                  propertyId={property.id}
+                  iconOnly
+                  className={styles.favoriteButton}
+                />
+              )}
+            </div>
+            {displayType && <p className={styles.type}>{displayType}</p>}
+            {locationLabel && <p className={styles.location}>{locationLabel}</p>}
+            {property.description && (
+              <p className={styles.summaryDescription}>{property.description}</p>
             )}
+            {scrayeReference && (
+              <p className={styles.reference}>
+                Scraye reference: <span>{scrayeReference}</span>
+              </p>
+            )}
+            <div className={styles.stats}>
+              {property.receptions != null && (
+                <span>
+                  <FaCouch /> {property.receptions}
+                </span>
+              )}
+              {property.bedrooms != null && (
+                <span>
+                  <FaBed /> {property.bedrooms}
+                </span>
+              )}
+              {property.bathrooms != null && (
+                <span>
+                  <FaBath /> {property.bathrooms}
+                </span>
+              )}
+            </div>
           </div>
-          {displayType && <p className={styles.type}>{displayType}</p>}
-          {locationLabel && <p className={styles.location}>{locationLabel}</p>}
-          {scrayeReference && (
-            <p className={styles.reference}>
-              Scraye reference: <span>{scrayeReference}</span>
-            </p>
-          )}
-          <div className={styles.stats}>
-            {property.receptions != null && (
-              <span>
-                <FaCouch /> {property.receptions}
-              </span>
+          <aside className={styles.summarySidebar}>
+            {(pricePrefixLabel || formattedPrimaryPrice || priceLabel) && (
+              <div className={styles.priceCard}>
+                {pricePrefixLabel && (
+                  <span className={styles.pricePrefixBadge}>{pricePrefixLabel}</span>
+                )}
+                {(formattedPrimaryPrice || priceLabel) && (
+                  <p className={styles.pricePrimary}>
+                    {formattedPrimaryPrice || priceLabel}
+                    {rentFrequencyShort && (
+                      <span className={styles.priceFrequency}>{rentFrequencyShort}</span>
+                    )}
+                  </p>
+                )}
+                {secondaryRentLabel && (
+                  <p className={styles.priceSecondary}>{secondaryRentLabel}</p>
+                )}
+              </div>
             )}
-            {property.bedrooms != null && (
-              <span>
-                <FaBed /> {property.bedrooms}
-              </span>
-            )}
-            {property.bathrooms != null && (
-              <span>
-                <FaBath /> {property.bathrooms}
-              </span>
-            )}
-          </div>
-          {priceLabel && (
-            <p className={styles.price}>
-              {priceLabel}
-              {pricePrefixLabel && ` ${pricePrefixLabel}`}
-            </p>
-          )}
-          <div className={styles.actions}>
-            <OfferDrawer property={property} />
-            <ViewingForm property={property} />
-          </div>
+            <div className={styles.priceActions}>
+              <OfferDrawer property={property} />
+              <ViewingForm property={property} />
+            </div>
+          </aside>
         </div>
       </section>
 
@@ -498,13 +562,6 @@ export default function Property({ property, recommendations }) {
       )}
 
       <PropertySustainabilityPanel property={property} />
-
-      {property.description && (
-        <section className={styles.description}>
-          <h2>Description</h2>
-          <p>{property.description}</p>
-        </section>
-      )}
 
       <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
       {!property.rentFrequency && property.price && (

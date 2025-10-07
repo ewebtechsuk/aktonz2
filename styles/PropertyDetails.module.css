@@ -17,6 +17,22 @@
 
 .summary {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.summaryMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.summarySidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  flex: 0 0 auto;
 }
 
 .summaryHeader {
@@ -34,10 +50,13 @@
   flex-shrink: 0;
 }
 
-.actions {
-  display: flex;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-md);
+
+.summaryDescription {
+  margin-top: var(--spacing-sm);
+  color: var(--color-muted-text);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  white-space: pre-line;
 }
 
 .type {
@@ -75,10 +94,60 @@
   gap: var(--spacing-xs);
 }
 
-.price {
-  font-size: 1.5rem;
-  font-weight: bold;
+.priceCard {
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border-light);
+  border-radius: 12px;
+  background: var(--color-surface-alt);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.pricePrefixBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(0, 112, 243, 0.1);
   color: var(--color-secondary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pricePrimary {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-secondary);
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-xs);
+}
+
+.priceFrequency {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-muted-text);
+  text-transform: uppercase;
+}
+
+.priceSecondary {
+  margin: 0;
+  color: var(--color-muted-text);
+  font-weight: 500;
+}
+
+.priceActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.priceActions > * {
+  width: 100%;
 }
 
 .features,
@@ -217,16 +286,23 @@
     width: 100%;
   }
 
-  .actions {
-    flex-direction: column;
-    gap: var(--spacing-sm);
-  }
-
-  .actions > * {
+  .priceActions > * {
     width: 100%;
   }
 
   .stats {
     gap: var(--spacing-sm);
+  }
+}
+
+@media (min-width: 900px) {
+  .summary {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .summarySidebar {
+    min-width: 280px;
+    max-width: 340px;
   }
 }
