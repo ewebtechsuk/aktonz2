@@ -20,7 +20,6 @@ export default function Header() {
     router.pathname === href || router.pathname.startsWith(`${href}/`);
   const isSellActive = isSectionActive('/sell');
   const isLandlordsActive = isSectionActive('/landlords');
-  const isInsightsActive = isSectionActive('/insights');
 
   const toggleMenu = () => setMenuOpen((prev) => !prev);
   const closeMenu = () => {
@@ -152,16 +151,6 @@ export default function Header() {
         aria-current={isPathActive('/about') ? 'page' : undefined}
       >
         About
-      </Link>
-      <Link
-        href="/insights/foxtons-comparison"
-        className={`${styles.navLink} ${
-          isInsightsActive ? styles.active : ''
-        }`}
-        onClick={closeMenu}
-        aria-current={isInsightsActive ? 'page' : undefined}
-      >
-        Insights
       </Link>
       <Link
         href="/jobs"
