@@ -117,7 +117,11 @@ export default function Home({ sales, lettings, archiveSales }) {
   return (
     <>
       <Head>
-        <title>Property Portal</title>
+        <title>Aktonz | Fixed-Fee Estate Agents with Local Experts</title>
+        <meta
+          name="description"
+          content="Sell or let with Aktonz from £799 including VAT. Stay in control online 24/7 while our local experts handle valuations, viewings and negotiations."
+        />
       </Head>
       <main className={styles.main}>
         <Hero />

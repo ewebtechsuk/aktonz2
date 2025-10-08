@@ -145,8 +145,8 @@ export default function Valuation() {
           <h1>Book a free valuation with a local Aktonz expert</h1>
           <ul>
             <li>Free, no-obligation visit from an agent who knows your neighbourhood</li>
-            <li>Tailored plan outlining our fixed-fee marketing and negotiation strategy</li>
-            <li>Set up with 24/7 access to the Aktonz online portal for instant updates</li>
+            <li>Agree your fixed fee upfront and map out the best marketing and negotiation plan</li>
+            <li>Get set up with 24/7 access to the Aktonz online portal for instant updates</li>
           </ul>
         </div>
         <form className={styles.form} onSubmit={handleSubmit}>
