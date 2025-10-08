@@ -133,20 +133,20 @@ export default function Valuation() {
   return (
     <>
       <Head>
-        <title>Book a Property Valuation in London | Aktonz</title>
+        <title>Book a Fixed-Fee Property Valuation | Aktonz</title>
         <meta
           name="description"
-          content="Arrange a free Aktonz property valuation with a local expert and discover the best strategy to sell or let your home."
+          content="Arrange a free Aktonz property valuation with a local expert, discover our fixed-fee selling plans and manage your move online."
         />
       </Head>
       <main className={styles.main}>
       <section className={styles.hero}>
         <div className={styles.heroContent}>
-          <h1>Book a Property Valuation in London</h1>
+          <h1>Book a free valuation with a local Aktonz expert</h1>
           <ul>
-            <li>Free, no obligation appointment with a local expert</li>
-            <li>Clear marketing strategy for your property</li>
-            <li>14,000 buyers and tenants registered last month</li>
+            <li>Free, no-obligation visit from an agent who knows your neighbourhood</li>
+            <li>Agree your fixed fee upfront and map out the best marketing and negotiation plan</li>
+            <li>Get set up with 24/7 access to the Aktonz online portal for instant updates</li>
           </ul>
         </div>
         <form className={styles.form} onSubmit={handleSubmit}>

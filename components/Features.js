@@ -3,30 +3,30 @@ import styles from '../styles/Home.module.css';
 export default function Features() {
   const items = [
     {
-      icon: '🏠',
-      title: 'Let your property hassle free',
-      text: 'Our team handles everything from tenant search to management.'
+      icon: '💜',
+      title: 'Transparent fixed fees',
+      text: 'Instruct Aktonz from £799 including VAT and know exactly what you will pay from day one.'
     },
     {
-      icon: '💰',
-      title: "What's your home worth?",
-      text: 'Get an instant online valuation today.'
+      icon: '🧭',
+      title: 'Dedicated local expertise',
+      text: 'Work with an experienced agent who lives and negotiates in your neighbourhood.'
     },
     {
-      icon: '🔍',
-      title: 'Find the right property for you',
-      text: 'Browse thousands of homes across London.'
+      icon: '🕒',
+      title: '24/7 online control',
+      text: 'Track viewings, feedback and offers in real time with our digital seller portal.'
     },
     {
       icon: '🤝',
-      title: 'Need help? Ask our experts',
-      text: 'Our local agents are here to support you.'
+      title: 'Support when you need it',
+      text: 'Add hosted viewings, sales progression or mortgage advice to tailor your move.'
     }
   ];
 
   return (
     <section className={styles.featuresSection}>
-      <h2>When you need experts</h2>
+      <h2>Everything you need to move forward</h2>
       <div className={styles.featuresGrid}>
         {items.map((item) => (
           <div className={styles.featureCard} key={item.title}>

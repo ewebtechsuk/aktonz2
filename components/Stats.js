@@ -2,9 +2,9 @@ import styles from '../styles/Home.module.css';
 
 export default function Stats() {
   const items = [
-    { number: '200+', text: 'buyers registered each week' },
-    { number: '98%', text: 'customer satisfaction' },
-    { number: '30+', text: 'local experts across London' }
+    { number: '£799', text: 'Fixed selling fee including VAT' },
+    { number: 'Free', text: 'No-obligation valuations from local Aktonz experts' },
+    { number: '24/7', text: 'Online control of viewings, offers and updates' }
   ];
 
   return (
