@@ -19,6 +19,7 @@ body {
 
 .property-list--five-per-row {
   grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--spacing-md);
 }
 
 .property-list--scrollable {
@@ -112,6 +113,11 @@ body {
   width: 100%;
   aspect-ratio: 4 / 3;
   height: auto;
+}
+
+.property-list--five-per-row .property-card .image-wrapper {
+  aspect-ratio: 16 / 9;
+  max-height: 160px;
 }
 
 .property-card .property-card-gallery {
@@ -249,6 +255,11 @@ body {
   flex-grow: 1;
 }
 
+.property-list--five-per-row .property-card .details {
+  padding: var(--spacing-sm);
+  gap: 0.35rem;
+}
+
 .property-card .title {
   margin: 0;
   font-size: 1rem;
@@ -289,6 +300,11 @@ body {
   gap: 1rem;
   flex-wrap: wrap;
   font-size: 0.875rem;
+}
+
+.property-list--five-per-row .property-card .features {
+  font-size: 0.8rem;
+  gap: 0.75rem;
 }
 
 .property-card .feature {
@@ -430,18 +446,21 @@ body {
 }
 
 @media (min-width: 768px) {
-
-  .property-list {
+  .property-list:not(.property-list--five-per-row) {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
 
   .property-card .image-wrapper {
     aspect-ratio: 4 / 3;
   }
+
+  .property-list--five-per-row.property-list--scrollable {
+    grid-auto-columns: minmax(0, calc(100% / 5));
+  }
 }
 
 @media (min-width: 1200px) {
-  .property-card .image-wrapper {
+  .property-list:not(.property-list--five-per-row) .property-card .image-wrapper {
     aspect-ratio: auto;
     height: 300px;
   }
