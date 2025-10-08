@@ -3,7 +3,7 @@ import styles from '../styles/Home.module.css';
 export default function Stats() {
   const items = [
     { number: '£799', text: 'Fixed selling fee including VAT' },
-    { number: 'Free', text: 'No-obligation valuations with local experts' },
+    { number: 'Free', text: 'No-obligation valuations from local Aktonz experts' },
     { number: '24/7', text: 'Online control of viewings, offers and updates' }
   ];
 

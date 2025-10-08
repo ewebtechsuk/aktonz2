@@ -4,23 +4,23 @@ export default function Features() {
   const items = [
     {
       icon: '💜',
-      title: 'Fixed-fee selling',
-      text: 'Instruct Aktonz from £799 including VAT and keep more of your final sale price.'
+      title: 'Transparent fixed fees',
+      text: 'Instruct Aktonz from £799 including VAT and know exactly what you will pay from day one.'
     },
     {
       icon: '🧭',
-      title: 'Local experts on your street',
-      text: 'Partner with an experienced agent who knows your neighbourhood inside out.'
+      title: 'Dedicated local expertise',
+      text: 'Work with an experienced agent who lives and negotiates in your neighbourhood.'
     },
     {
       icon: '🕒',
-      title: '24/7 control',
-      text: 'Manage viewings, offers and updates in our online portal whenever it suits you.'
+      title: '24/7 online control',
+      text: 'Track viewings, feedback and offers in real time with our digital seller portal.'
     },
     {
       icon: '🤝',
-      title: 'Optional extras when you need them',
-      text: 'Add hosted viewings, sales progression or mortgage advice to suit your move.'
+      title: 'Support when you need it',
+      text: 'Add hosted viewings, sales progression or mortgage advice to tailor your move.'
     }
   ];
 
