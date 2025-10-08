@@ -115,12 +115,14 @@ function selectPropertiesOnSameRoad(properties, targetCount = FEATURED_COUNT) {
 
 export default function Home({ sales, lettings, archiveSales }) {
   return (
-    <>
-      <Head>
-        <title>Aktonz | Fixed-Fee Estate Agents with Local Experts</title>
-        <meta
-          name="description"
-          content="Sell or let with Aktonz from £799 including VAT. Stay in control online 24/7 while our local experts handle valuations, viewings and negotiations."
+    
+      <Head<Head>
+  <title>Aktonz – London Estate Agents & Property Experts</title>
+  <meta
+    name="description"
+    content="Your local London estatYour local London estate agent offering properties to rent and buy, including short and long lets, across the capital. Connect with our award-winning team for valuations, lettings and sales."
+  />
+</Head>tent="Sell or let with Aktonz from £799 including VAT. Stay in control online 24/7 while our local experts handle valuations, viewings and negotiations."
         />
       </Head>
       <main className={styles.main}>
