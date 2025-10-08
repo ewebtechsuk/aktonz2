@@ -5,8 +5,11 @@ export default function Hero() {
   return (
     <section className={styles.hero}>
       <div className={styles.heroContent}>
-        <h2>London&apos;s Estate Agent</h2>
-        <p className={styles.subtitle}>Get it done with London&apos;s number one</p>
+        <h2>Digital-first estate agency, powered by local experts</h2>
+        <p className={styles.subtitle}>
+          Sell or let with fixed fees, 24/7 control and dedicated support from an Aktonz expert in your
+          neighbourhood.
+        </p>
         <SearchBar />
       </div>
     </section>
