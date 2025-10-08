@@ -17,6 +17,53 @@ body {
   grid-auto-rows: 1fr;
 }
 
+.property-list--five-per-row {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.property-list--scrollable {
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, calc(100% / 5));
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.property-list--scrollable::-webkit-scrollbar {
+  display: none;
+}
+
+.property-list-slider {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.property-list-slider__control {
+  background: var(--color-muted-bg);
+  border: none;
+  color: var(--color-background);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.property-list-slider__control:hover,
+.property-list-slider__control:focus-visible {
+  background: var(--color-accent);
+  color: var(--color-text);
+}
+
+.property-list-slider__control:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
 
 .property-list .property-link {
   text-decoration: none;
