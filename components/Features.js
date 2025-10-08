@@ -3,36 +3,55 @@ import styles from '../styles/Home.module.css';
 export default function Features() {
   const items = [
     {
-      icon: '💜',
-      title: 'Transparent fixed fees',
-      text: 'Instruct Aktonz from £799 including VAT and know exactly what you will pay from day one.'
-    },
-    {
-      icon: '🧭',
-      title: 'Dedicated local expertise',
-      text: 'Work with an experienced agent who lives and negotiates in your neighbourhood.'
-    },
-    {
-      icon: '🕒',
-      title: '24/7 online control',
-      text: 'Track viewings, feedback and offers in real time with our digital seller portal.'
+      icon: '🎯',
+      title: 'Strategic marketing campaigns',
+      text: 'Professional photography, social ads and database alerts launch every listing with maximum impact.',
     },
     {
       icon: '🤝',
-      title: 'Support when you need it',
-      text: 'Add hosted viewings, sales progression or mortgage advice to tailor your move.'
-    }
+      title: 'Negotiators that fight your corner',
+      text: 'Our local experts secure an average of 98% of asking price thanks to real-time market insight.',
+    },
+    {
+      icon: '📊',
+      title: 'Live performance dashboard',
+      text: 'Track enquiries, viewing feedback and offers 24/7 so you can make confident decisions at speed.',
+    },
+    {
+      icon: '🛠️',
+      title: 'Move-ready partner network',
+      text: 'Surveyors, conveyancers and mortgage specialists integrate seamlessly to keep your sale on track.',
+    },
+    {
+      icon: '💡',
+      title: 'Flexible service add-ons',
+      text: 'Bolt on hosted viewings, premium staging or chain progression support whenever you need an extra hand.',
+    },
+    {
+      icon: '🔒',
+      title: 'Propertymark protected',
+      text: 'Your move is safeguarded by industry-leading compliance, client money protection and rigorous processes.',
+    },
   ];
 
   return (
     <section className={styles.featuresSection}>
-      <h2>Everything you need to move forward</h2>
+      <div className={styles.sectionHeading}>
+        <span className={styles.sectionEyebrow}>Why sellers choose Aktonz</span>
+        <h2>Everything you need to move forward with confidence</h2>
+        <p>
+          We blend human expertise with powerful technology so your property stands out, your buyers stay engaged and
+          your timeline keeps moving.
+        </p>
+      </div>
       <div className={styles.featuresGrid}>
         {items.map((item) => (
           <div className={styles.featureCard} key={item.title}>
             <div className={styles.featureIcon}>{item.icon}</div>
-            <h3>{item.title}</h3>
-            <p>{item.text}</p>
+            <div>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+            </div>
           </div>
         ))}
       </div>
