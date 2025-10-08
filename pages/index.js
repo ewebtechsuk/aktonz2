@@ -125,11 +125,15 @@ export default function Home({ sales, lettings, archiveSales }) {
         <Stats />
         <section className={styles.listings} id="listings">
           <h2>Featured Sales</h2>
-          <PropertyList properties={sales} />
+          <PropertyList properties={sales} layout="five-per-row" />
         </section>
         <section className={styles.listings}>
           <h2>Featured Lettings</h2>
-          <PropertyList properties={lettings} />
+          <PropertyList
+            properties={lettings}
+            layout="five-per-row"
+            enableSlider
+          />
         </section>
         {archiveSales.length > 0 && (
           <section className={styles.listings}>
