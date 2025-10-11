@@ -215,7 +215,9 @@ export default function Header() {
     <header className={styles.header}>
       <div className={styles.container}>
         <div className={styles.logo}>
-          <Link href="/">Aktonz</Link>
+          <Link href="/">
+            <img src="/aktonz-logo-modern.svg" alt="Aktonz logo" />
+          </Link>
         </div>
 
         <nav className={styles.nav}>{navLinks}</nav>
@@ -235,15 +237,12 @@ export default function Header() {
         </div>
       </div>
 
-
       <nav
         className={`${styles.mobileMenu} ${menuOpen ? styles.menuOpen : ''}`}
       >
         {navLinks}
         {actionLinks}
-
       </nav>
     </header>
   );
 }
-

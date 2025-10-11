@@ -2,8 +2,8 @@
   position: sticky;
   top: 0;
   width: 100%;
-  background: var(--color-background);
-  border-bottom: 1px solid var(--color-border-mid);
+  background: #0070f3;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   z-index: 1000;
 }
 
@@ -16,25 +16,29 @@
   padding: var(--spacing-md) var(--spacing-lg);
 }
 
-.logo a {
-  color: var(--color-primary);
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 1.25rem;
+.logo a,
+.logo img {
+  display: block;
+  height: 36px;
+  width: auto;
+}
+
+.logo img {
+  object-fit: contain;
 }
 
 .nav {
   display: none;
   gap: var(--spacing-lg);
-
 }
 
 .navLink {
   text-decoration: none;
-  color: var(--color-primary);
+  color: #ffe500;
   font-size: 1rem;
   position: relative;
   padding-bottom: var(--spacing-xs);
+  transition: color 0.2s ease;
 }
 
 .navButton {
@@ -44,10 +48,16 @@
   font: inherit;
   padding: 0;
   position: relative;
+  color: #ffe500;
+}
+
+.navLink:hover,
+.navButton:hover {
+  color: #fff5a0;
 }
 
 .active {
-  color: #0b6b67;
+  color: #fff5a0;
   font-weight: 600;
 }
 
@@ -59,7 +69,7 @@
   bottom: -6px;
   height: 3px;
   border-radius: 999px;
-  background: #0b6b67;
+  background: #ffe500;
 }
 
 .dropdown {
@@ -69,33 +79,30 @@
 .dropdownMenu {
   display: none;
   position: absolute;
-  top: 100%;
+  top: calc(100% + 8px);
   left: 0;
-  background: var(--color-background);
-  border: 1px solid var(--color-border-mid);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: #0059c1;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   padding: var(--spacing-md) var(--spacing-lg);
   flex-direction: column;
   gap: var(--spacing-sm);
+  min-width: 220px;
 }
 
 .dropdownMenu a {
-  color: var(--color-primary);
+  color: #ffe500;
   text-decoration: none;
   white-space: nowrap;
+  transition: color 0.2s ease;
 }
 
 .dropdownMenu a:hover {
-  text-decoration: underline;
+  color: #fff5a0;
 }
 
 .sellDropdownMenu {
-  background: var(--color-surface-alt);
-  border: none;
-  box-shadow: none;
-  border-radius: 12px;
-  padding: var(--spacing-lg);
-  min-width: 220px;
+  background: linear-gradient(135deg, #0063dc, #0047a6);
   gap: var(--spacing-md);
 }
 
@@ -104,12 +111,6 @@
   align-items: center;
   justify-content: space-between;
   font-size: 0.95rem;
-  text-decoration: none;
-  color: var(--color-primary);
-}
-
-.sellDropdownMenu a:hover {
-  text-decoration: none;
 }
 
 .show {
@@ -123,7 +124,7 @@
 
 .sellArrow::after {
   font-size: 1.25rem;
-  color: var(--color-muted-text);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .actions {
@@ -144,21 +145,28 @@
   width: 25px;
   height: 3px;
   margin: 4px 0;
-  background-color: var(--color-primary);
+  background-color: #ffe500;
+  transition: background-color 0.2s ease;
 }
 
 .cta {
-  background: var(--color-success);
-  color: var(--color-background);
+  background: #ffe500;
+  color: #003a82;
   padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: 4px;
+  border-radius: 999px;
   text-decoration: none;
+  font-weight: 600;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.cta:hover {
+  background: #fff173;
 }
 
 .login {
-  color: var(--color-primary);
-
+  color: #ffe500;
   text-decoration: none;
+  font-weight: 500;
 }
 
 .accountLink {
@@ -168,15 +176,15 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid var(--color-border-mid);
-  background: var(--color-background);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: transparent;
+  color: #ffe500;
 }
 
 .accountIcon {
   display: inline-flex;
   width: 18px;
   height: 18px;
-  color: var(--color-primary);
 }
 
 .accountIcon svg {
@@ -189,6 +197,7 @@
   display: none;
   margin-left: var(--spacing-sm);
   font-size: 0.95rem;
+  color: #ffe500;
 }
 
 .actions .cta,
@@ -202,10 +211,10 @@
   top: 0;
   right: 0;
   height: 100vh;
-  width: 200px;
-  background: var(--color-background);
-  color: var(--color-primary);
-  box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+  width: 240px;
+  background: #003a82;
+  color: #ffe500;
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.3);
   padding: var(--spacing-lg) var(--spacing-md);
   transform: translateX(100%);
   transition: transform 0.3s ease-in-out;
@@ -220,7 +229,7 @@
 }
 
 .mobileMenu a {
-  color: var(--color-primary);
+  color: #ffe500;
   text-decoration: none;
   font-size: 1rem;
 }
@@ -229,7 +238,6 @@
 .mobileMenu .login,
 .mobileMenu .accountLink {
   display: block;
-
 }
 
 .mobileMenu .accountLink {
@@ -237,14 +245,14 @@
   align-items: center;
   gap: var(--spacing-sm);
   width: 100%;
-  border: none;
-  padding: var(--spacing-xs) 0;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 999px;
 }
 
 .mobileMenu .accountIcon {
   width: 20px;
   height: 20px;
-  color: var(--color-primary);
 }
 
 .mobileMenu .accountText {
@@ -260,11 +268,11 @@
   border: none;
   box-shadow: none;
   padding: 0 0 0 var(--spacing-lg);
+  background: transparent;
 }
 
 .mobileMenu .sellDropdownMenu {
   background: none;
-  border-radius: 0;
   gap: var(--spacing-sm);
 }
 
@@ -275,13 +283,12 @@
 @media (min-width: 768px) {
   .nav {
     display: flex;
-
   }
 
   .actions .cta,
   .actions .login,
   .actions .accountLink {
-    display: inline-block;
+    display: inline-flex;
   }
 
   .hamburger {
@@ -290,5 +297,16 @@
 
   .mobileMenu {
     display: none;
+  }
+
+  .accountLink {
+    width: auto;
+    padding: 0 var(--spacing-sm);
+    border-radius: 999px;
+    gap: var(--spacing-xs);
+  }
+
+  .accountText {
+    display: inline;
   }
 }
