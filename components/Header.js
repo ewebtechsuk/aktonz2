@@ -216,7 +216,7 @@ export default function Header() {
       <div className={styles.container}>
         <div className={styles.logo}>
           <Link href="/">
-            <img src="/aktonz-logo-modern.svg" alt="Aktonz logo" />
+            <img src="/images/aktonz-logo-modern.png" alt="Aktonz logo" />
           </Link>
         </div>
 
