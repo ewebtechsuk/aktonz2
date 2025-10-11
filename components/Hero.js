@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import styles from '../styles/Home.module.css';
 import SearchBar from './SearchBar';
 
@@ -19,12 +20,12 @@ export default function Hero() {
             valuation to handing over the keys, we combine powerful technology with real people who know your street.
           </p>
           <div className={styles.heroActions}>
-            <a href="/valuation" className={styles.primaryButton}>
+            <Link href="/valuation" className={styles.primaryButton}>
               Book a valuation
-            </a>
-            <a href="#listings" className={styles.secondaryButton}>
+            </Link>
+            <Link href="#listings" className={styles.secondaryButton}>
               Explore properties
-            </a>
+            </Link>
           </div>
           <ul className={styles.heroHighlights}>
             {HIGHLIGHTS.map((item) => (
