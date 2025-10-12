@@ -1,0 +1,374 @@
+{
+  "generatedAt": "2025-03-19T09:45:00Z",
+  "contacts": [
+    {
+      "id": "apx-contact-001",
+      "firstName": "Sophie",
+      "lastName": "Turner",
+      "type": "tenant",
+      "stage": "hot",
+      "pipeline": "lettings",
+      "source": "Website enquiry",
+      "createdAt": "2025-03-03T09:15:00Z",
+      "lastActivityAt": "2025-03-18T14:05:00Z",
+      "nextStep": {
+        "description": "Send tenancy application pack",
+        "dueAt": "2025-03-19T11:00:00Z"
+      },
+      "email": "sophie.turner@example.com",
+      "phone": "+44 7700 900123",
+      "locationFocus": "Shoreditch, Islington",
+      "requirements": [
+        "Two equally sized double bedrooms",
+        "Pet friendly with nearby green space",
+        "Move-in window between April and May"
+      ],
+      "budget": {
+        "rentMax": 2300
+      },
+      "tags": ["Pet friendly", "Tech professional"],
+      "assignedAgentId": "1723"
+    },
+    {
+      "id": "apx-contact-002",
+      "firstName": "Daniel",
+      "lastName": "Reed",
+      "type": "buyer",
+      "stage": "warm",
+      "pipeline": "sales",
+      "source": "Referral",
+      "createdAt": "2025-02-20T11:40:00Z",
+      "lastActivityAt": "2025-03-13T11:10:00Z",
+      "nextStep": {
+        "description": "Share revised comparables",
+        "dueAt": "2025-03-20T10:00:00Z"
+      },
+      "email": "daniel.reed@urbanaxis.co.uk",
+      "phone": "+44 7700 900456",
+      "locationFocus": "Earls Court, Kensington",
+      "requirements": [
+        "Prime Zone 1 one-bedroom apartments",
+        "Short-let flexibility six weeks a year",
+        "Strong rental yield"
+      ],
+      "budget": {
+        "saleMax": 520000
+      },
+      "tags": ["Investor", "Repeat client"],
+      "assignedAgentId": "1724"
+    },
+    {
+      "id": "apx-contact-003",
+      "firstName": "Priya",
+      "lastName": "Patel",
+      "type": "buyer",
+      "stage": "hot",
+      "pipeline": "sales",
+      "source": "Rightmove",
+      "createdAt": "2025-03-08T08:55:00Z",
+      "lastActivityAt": "2025-03-18T17:45:00Z",
+      "nextStep": {
+        "description": "Confirm second viewing on Artillery Lane",
+        "dueAt": "2025-03-20T09:30:00Z"
+      },
+      "email": "priya.patel@finleyventures.co.uk",
+      "phone": "+44 7700 900789",
+      "locationFocus": "Spitalfields, Wapping",
+      "requirements": [
+        "2-bedroom warehouse conversion",
+        "Secure parking",
+        "Budget up to £1.3m"
+      ],
+      "budget": {
+        "saleMax": 1300000
+      },
+      "tags": ["Mortgage approved", "Chain free"],
+      "assignedAgentId": "1724"
+    },
+    {
+      "id": "apx-contact-004",
+      "firstName": "Oliver",
+      "lastName": "Grant",
+      "type": "vendor",
+      "stage": "client",
+      "pipeline": "sales",
+      "source": "Past client",
+      "createdAt": "2025-01-28T15:25:00Z",
+      "lastActivityAt": "2025-03-15T16:20:00Z",
+      "nextStep": {
+        "description": "Prepare marketing launch checklist",
+        "dueAt": "2025-03-22T13:00:00Z"
+      },
+      "email": "oliver.grant@example.com",
+      "phone": "020 7946 0777",
+      "locationFocus": "Bermondsey",
+      "requirements": [
+        "4-bedroom townhouse sale",
+        "Premium staging required"
+      ],
+      "budget": {},
+      "tags": ["Instruction won", "Professional photos"],
+      "assignedAgentId": ""
+    },
+    {
+      "id": "apx-contact-005",
+      "firstName": "Amelia",
+      "lastName": "Ashcroft",
+      "type": "vendor",
+      "stage": "nurture",
+      "pipeline": "sales",
+      "source": "Acaboom presentation",
+      "createdAt": "2025-03-17T10:05:00Z",
+      "lastActivityAt": "2025-03-17T12:15:00Z",
+      "nextStep": {
+        "description": "Follow up after valuation presentation",
+        "dueAt": "2025-03-21T10:30:00Z"
+      },
+      "email": "amelia.ashcroft@example.com",
+      "phone": "020 7946 0888",
+      "locationFocus": "Dalston",
+      "requirements": [
+        "Considering dual track sale/rent",
+        "Requires comparables"
+      ],
+      "budget": {},
+      "tags": ["Dual track", "Awaiting decision"],
+      "assignedAgentId": "1724"
+    },
+    {
+      "id": "apx-contact-006",
+      "firstName": "Marcus",
+      "lastName": "Lowe",
+      "type": "tenant",
+      "stage": "warm",
+      "pipeline": "lettings",
+      "source": "Zoopla",
+      "createdAt": "2025-02-24T09:05:00Z",
+      "lastActivityAt": "2025-03-16T18:30:00Z",
+      "nextStep": {
+        "description": "Arrange virtual viewing for Canada Water",
+        "dueAt": "2025-03-19T15:00:00Z"
+      },
+      "email": "marcus.lowe@example.com",
+      "phone": "+44 7700 900612",
+      "locationFocus": "Canada Water, Rotherhithe",
+      "requirements": [
+        "2-bedroom apartment",
+        "Gym access",
+        "Budget up to £2,000 pcm"
+      ],
+      "budget": {
+        "rentMax": 2000
+      },
+      "tags": ["Remote worker"],
+      "assignedAgentId": "1723"
+    },
+    {
+      "id": "apx-contact-007",
+      "firstName": "Emily",
+      "lastName": "Harris",
+      "type": "buyer",
+      "stage": "new",
+      "pipeline": "sales",
+      "source": "Instagram",
+      "createdAt": "2025-03-18T07:20:00Z",
+      "lastActivityAt": "2025-03-18T07:20:00Z",
+      "nextStep": {
+        "description": "Qualify budget and timescales",
+        "dueAt": "2025-03-19T10:15:00Z"
+      },
+      "email": "emily.harris@example.com",
+      "phone": "+44 7700 900834",
+      "locationFocus": "Clerkenwell",
+      "requirements": [
+        "Loft apartment",
+        "Close to Farringdon station"
+      ],
+      "budget": {
+        "saleMax": 850000
+      },
+      "tags": ["First-time buyer"],
+      "assignedAgentId": ""
+    },
+    {
+      "id": "apx-contact-008",
+      "firstName": "Noah",
+      "lastName": "Klein",
+      "type": "landlord",
+      "stage": "hot",
+      "pipeline": "lettings",
+      "source": "Google Ads",
+      "createdAt": "2025-03-05T13:10:00Z",
+      "lastActivityAt": "2025-03-18T09:50:00Z",
+      "nextStep": {
+        "description": "Send management proposal",
+        "dueAt": "2025-03-19T13:30:00Z"
+      },
+      "email": "noah.klein@orioncap.co.uk",
+      "phone": "020 3389 8020",
+      "locationFocus": "Southbank portfolio",
+      "requirements": [
+        "Full management for 12 units",
+        "Wants quarterly reporting"
+      ],
+      "budget": {},
+      "tags": ["Portfolio landlord", "Corporate"],
+      "assignedAgentId": "1724"
+    },
+    {
+      "id": "apx-contact-009",
+      "firstName": "Layla",
+      "lastName": "Ahmed",
+      "type": "tenant",
+      "stage": "nurture",
+      "pipeline": "lettings",
+      "source": "Walk-in",
+      "createdAt": "2025-02-14T16:45:00Z",
+      "lastActivityAt": "2025-03-12T12:25:00Z",
+      "nextStep": {
+        "description": "Check referencing progress",
+        "dueAt": "2025-03-21T12:00:00Z"
+      },
+      "email": "layla.ahmed@example.com",
+      "phone": "+44 7700 900945",
+      "locationFocus": "Brixton, Herne Hill",
+      "requirements": [
+        "Garden flat",
+        "Budget up to £2,100 pcm"
+      ],
+      "budget": {
+        "rentMax": 2100
+      },
+      "tags": ["Pet considered", "Relocating"],
+      "assignedAgentId": "1723"
+    },
+    {
+      "id": "apx-contact-010",
+      "firstName": "George",
+      "lastName": "McKay",
+      "type": "buyer",
+      "stage": "past_client",
+      "pipeline": "sales",
+      "source": "Past client",
+      "createdAt": "2023-09-02T12:30:00Z",
+      "lastActivityAt": "2025-03-10T09:00:00Z",
+      "nextStep": null,
+      "email": "george.mckay@example.com",
+      "phone": "+44 7700 901102",
+      "locationFocus": "Fulham",
+      "requirements": [
+        "Considering remortgage",
+        "Wants market update"
+      ],
+      "budget": {
+        "saleMax": 950000
+      },
+      "tags": ["Newsletter"],
+      "assignedAgentId": "1724"
+    },
+    {
+      "id": "apx-contact-011",
+      "firstName": "Harper",
+      "lastName": "Lewis",
+      "type": "vendor",
+      "stage": "warm",
+      "pipeline": "sales",
+      "source": "Website valuation form",
+      "createdAt": "2025-03-11T08:10:00Z",
+      "lastActivityAt": "2025-03-17T15:40:00Z",
+      "nextStep": {
+        "description": "Book photography slot",
+        "dueAt": "2025-03-20T14:00:00Z"
+      },
+      "email": "harper.lewis@example.com",
+      "phone": "+44 7700 901256",
+      "locationFocus": "Stoke Newington",
+      "requirements": [
+        "3-bedroom maisonette sale",
+        "Needs weekend open house"
+      ],
+      "budget": {},
+      "tags": ["High intent"],
+      "assignedAgentId": "1723"
+    },
+    {
+      "id": "apx-contact-012",
+      "firstName": "Isabella",
+      "lastName": "Rowe",
+      "type": "tenant",
+      "stage": "hot",
+      "pipeline": "lettings",
+      "source": "Rightmove",
+      "createdAt": "2025-03-15T10:25:00Z",
+      "lastActivityAt": "2025-03-18T19:05:00Z",
+      "nextStep": {
+        "description": "Collect holding deposit",
+        "dueAt": "2025-03-19T17:00:00Z"
+      },
+      "email": "isabella.rowe@example.com",
+      "phone": "+44 7700 901389",
+      "locationFocus": "Wapping",
+      "requirements": [
+        "Riverside 1-bed",
+        "Budget up to £2,150 pcm"
+      ],
+      "budget": {
+        "rentMax": 2150
+      },
+      "tags": ["Couple", "Move-in April"],
+      "assignedAgentId": "1723"
+    },
+    {
+      "id": "apx-contact-013",
+      "firstName": "Leo",
+      "lastName": "Sanders",
+      "type": "landlord",
+      "stage": "nurture",
+      "pipeline": "lettings",
+      "source": "Landlord seminar",
+      "createdAt": "2025-01-17T14:50:00Z",
+      "lastActivityAt": "2025-03-09T11:45:00Z",
+      "nextStep": {
+        "description": "Follow up on compliance pack",
+        "dueAt": "2025-03-21T09:45:00Z"
+      },
+      "email": "leo.sanders@example.com",
+      "phone": "020 3389 8033",
+      "locationFocus": "Stratford",
+      "requirements": [
+        "Wants rent guarantee",
+        "Two vacant units"
+      ],
+      "budget": {},
+      "tags": ["Compliance"],
+      "assignedAgentId": "1724"
+    },
+    {
+      "id": "apx-contact-014",
+      "firstName": "Maya",
+      "lastName": "Chen",
+      "type": "buyer",
+      "stage": "hot",
+      "pipeline": "sales",
+      "source": "Corporate relocation",
+      "createdAt": "2025-03-12T09:05:00Z",
+      "lastActivityAt": "2025-03-18T13:25:00Z",
+      "nextStep": {
+        "description": "Arrange video tour for Charterhouse Square",
+        "dueAt": "2025-03-19T12:30:00Z"
+      },
+      "email": "maya.chen@example.com",
+      "phone": "+44 7700 901477",
+      "locationFocus": "City of London",
+      "requirements": [
+        "Pied-à-terre near office",
+        "Budget up to £1.1m"
+      ],
+      "budget": {
+        "saleMax": 1100000
+      },
+      "tags": ["International", "Mortgage in principle"],
+      "assignedAgentId": "1724"
+    }
+  ]
+}

@@ -275,6 +275,11 @@ export default function AdminDashboard() {
                   </a>
                 </li>
                 <li>
+                  <Link href="/admin/contacts" className={styles.adminNavLink}>
+                    Contacts
+                  </Link>
+                </li>
+                <li>
                   <a className={styles.adminNavLink} href="#offers">
                     Offers
                   </a>
