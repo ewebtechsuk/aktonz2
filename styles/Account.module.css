@@ -7,10 +7,10 @@
 .panel {
   background: #ffffff;
   border-radius: 22px;
-  border: 1px solid #d7ebe3;
+  border: 1px solid rgba(27, 40, 64, 0.15);
 
   padding: clamp(1.75rem, 3vw, 2.75rem);
-  box-shadow: 0 18px 45px rgba(20, 80, 60, 0.08);
+  box-shadow: 0 18px 45px rgba(27, 40, 64, 0.08);
   display: flex;
   flex-direction: column;
   gap: clamp(1.5rem, 2.5vw, 2.25rem);
@@ -19,7 +19,7 @@
 .panel h2,
 .panel h3 {
   margin: 0;
-  color: #174734;
+  color: var(--color-primary);
   font-size: clamp(1.4rem, 2.6vw, 1.95rem);
 }
 
@@ -29,7 +29,7 @@
 
 .panel p {
   margin: 0;
-  color: #5f7d73;
+  color: var(--color-muted-text);
   line-height: 1.6;
 }
 
@@ -48,19 +48,19 @@
 .primaryCta {
 
   align-self: center;
-  background: #00965f;
+  background: var(--color-primary);
   color: #ffffff;
   padding: 0.85rem 1.8rem;
   border-radius: 999px;
   font-weight: 600;
   text-decoration: none;
-  box-shadow: 0 20px 35px rgba(0, 150, 95, 0.18);
+  box-shadow: 0 20px 35px rgba(27, 40, 64, 0.18);
   transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .primaryCta:hover,
 .primaryCta:focus-visible {
-  background: #007e50;
+  background: var(--color-primary-dark);
   transform: translateY(-1px);
 }
 
@@ -79,13 +79,13 @@
 
 .groupLabel {
   font-weight: 600;
-  color: #184435;
+  color: var(--color-primary);
   font-size: 0.96rem;
 }
 
 .groupHint {
   margin: -0.4rem 0 0;
-  color: #6f8d83;
+  color: var(--color-muted-text);
   font-size: 0.84rem;
 }
 
@@ -106,20 +106,20 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-weight: 700;
-  color: #6f8d83;
+  color: var(--color-muted-text);
 }
 
 .select {
   appearance: none;
   border-radius: 12px;
-  border: 1px solid #cfe4db;
-  background: #f7fbf8;
-  color: #184435;
+  border: 1px solid rgba(27, 40, 64, 0.15);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
   font-weight: 600;
   padding: 0.7rem 1rem;
   min-width: 160px;
-  background-image: linear-gradient(45deg, transparent 50%, #184435 50%),
-    linear-gradient(135deg, #184435 50%, transparent 50%);
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-primary) 50%),
+    linear-gradient(135deg, var(--color-primary) 50%, transparent 50%);
   background-position: calc(100% - 20px) center, calc(100% - 14px) center;
   background-size: 8px 8px;
   background-repeat: no-repeat;
@@ -130,7 +130,7 @@
 }
 
 .select:focus {
-  outline: 2px solid rgba(0, 150, 95, 0.25);
+  outline: 2px solid rgba(27, 40, 64, 0.25);
   outline-offset: 2px;
 }
 
@@ -150,9 +150,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  border: 1px solid #cfe4db;
+  border: 1px solid rgba(27, 40, 64, 0.15);
   background: #ffffff;
-  color: #194536;
+  color: var(--color-primary);
   font-weight: 600;
   font-size: 0.9rem;
   padding: 0.55rem 1.2rem;
@@ -167,10 +167,10 @@
 .pillOptionActive,
 .flexOptionActive,
 .chipOptionActive {
-  background: #00965f;
-  border-color: #00965f;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
   color: #ffffff;
-  box-shadow: 0 12px 30px rgba(0, 150, 95, 0.22);
+  box-shadow: 0 12px 30px rgba(27, 40, 64, 0.22);
 }
 
 .mapPanel {
@@ -191,8 +191,8 @@
 
 .ghostButton {
   border-radius: 999px;
-  border: 1px solid #cfe4db;
-  color: #194536;
+  border: 1px solid rgba(27, 40, 64, 0.15);
+  color: var(--color-primary);
   font-weight: 600;
   padding: 0.7rem 1.4rem;
   text-decoration: none;
@@ -201,8 +201,8 @@
 
 .ghostButton:hover,
 .ghostButton:focus-visible {
-  background: #e8f5f0;
-  color: #0c3c2d;
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
 }
 
 .mapShell {
@@ -213,9 +213,9 @@
 .mapSurface {
   position: relative;
   border-radius: 20px;
-  border: 1px solid #cfe4db;
+  border: 1px solid rgba(27, 40, 64, 0.15);
   overflow: hidden;
-  background: #e9f6f1;
+  background: var(--color-primary-light);
   min-height: 260px;
 }
 
@@ -236,14 +236,14 @@
   background: rgba(255, 255, 255, 0.92);
   border-radius: 999px;
   padding: 0.3rem;
-  border: 1px solid #d6ebe3;
-  box-shadow: 0 10px 25px rgba(17, 70, 54, 0.12);
+  border: 1px solid rgba(27, 40, 64, 0.15);
+  box-shadow: 0 10px 25px rgba(27, 40, 64, 0.12);
 }
 
 .mapMode {
   border: none;
   background: transparent;
-  color: #356856;
+  color: var(--color-muted-text);
   font-weight: 600;
   border-radius: 999px;
   padding: 0.45rem 1rem;
@@ -251,9 +251,9 @@
 }
 
 .mapModeActive {
-  background: #00965f;
+  background: var(--color-primary);
   color: #ffffff;
-  box-shadow: 0 8px 18px rgba(0, 150, 95, 0.25);
+  box-shadow: 0 8px 18px rgba(27, 40, 64, 0.25);
 }
 
 .mapActionButton {
@@ -266,28 +266,28 @@
   bottom: 1rem;
   z-index: 650;
   background: rgba(255, 255, 255, 0.94);
-  color: #174734;
+  color: var(--color-primary);
   font-weight: 600;
   padding: 0.6rem 1rem;
   border-radius: 14px;
-  box-shadow: 0 12px 28px rgba(18, 80, 58, 0.18);
+  box-shadow: 0 12px 28px rgba(27, 40, 64, 0.18);
   max-width: min(90%, 320px);
 }
 
 .mapFootnote {
   display: grid;
   gap: 0.2rem;
-  color: #3b6153;
+  color: var(--color-muted-text);
   font-size: 0.88rem;
 }
 
 .mapFootnote strong {
-  color: #174734;
+  color: var(--color-primary);
   font-size: 0.95rem;
 }
 
 .mapSaving {
-  color: #0f6044;
+  color: var(--color-primary);
   font-weight: 600;
 }
 
@@ -306,7 +306,7 @@
   align-items: center;
   gap: 0.75rem;
   border-radius: 999px;
-  border: 1px solid #cfe4db;
+  border: 1px solid rgba(27, 40, 64, 0.15);
   padding: 0.8rem 1.1rem;
   background: #ffffff;
   max-width: 420px;
@@ -317,7 +317,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #00965f;
+  color: var(--color-primary);
 }
 
 .searchField {
@@ -325,7 +325,7 @@
   border: none;
   background: transparent;
   font-size: 0.95rem;
-  color: #194536;
+  color: var(--color-primary);
   font-weight: 600;
 }
 
@@ -335,7 +335,7 @@
 
 .helperText {
   margin: 0;
-  color: #6f8d83;
+  color: var(--color-muted-text);
   font-size: 0.82rem;
 }
 
@@ -344,16 +344,16 @@
   align-items: center;
   gap: 0.45rem;
   border-radius: 999px;
-  border: 1px solid #cfe4db;
-  background: #f0f8f4;
-  color: #194536;
+  border: 1px solid rgba(27, 40, 64, 0.15);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
   font-weight: 600;
   padding: 0.55rem 1.05rem;
 }
 
 .areaChipActive {
-  background: #00965f;
-  border-color: #00965f;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
   color: #ffffff;
 }
 
@@ -384,12 +384,12 @@
 
 .areaChipButton:hover,
 .areaChipButton:focus-visible {
-  color: #0c3c2d;
+  color: var(--color-primary-dark);
   text-decoration-color: currentColor;
 }
 
 .areaChipEmpty {
-  color: #57766b;
+  color: var(--color-muted-text);
   font-weight: 500;
 }
 
@@ -402,19 +402,19 @@
 .textArea {
   width: 100%;
   border-radius: 18px;
-  border: 1px solid #cfe4db;
+  border: 1px solid rgba(27, 40, 64, 0.15);
   padding: 1.1rem 1.2rem;
   font-size: 1rem;
 
   line-height: 1.6;
-  color: #184435;
-  background: #f7fbf8;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
   resize: vertical;
   min-height: 160px;
 }
 
 .textArea:focus {
-  outline: 2px solid rgba(0, 150, 95, 0.25);
+  outline: 2px solid rgba(27, 40, 64, 0.25);
 
   outline-offset: 2px;
 }

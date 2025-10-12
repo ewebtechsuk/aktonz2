@@ -46,15 +46,15 @@
   height: 520px;
   border-radius: 16px;
   overflow: hidden;
-  border: 1px solid #cfe3cf;
-  box-shadow: 0 12px 35px rgba(12, 124, 59, 0.12);
+  border: 1px solid rgba(27, 40, 64, 0.2);
+  box-shadow: 0 12px 35px rgba(27, 40, 64, 0.12);
 }
 
 .mapTooltip {
   background: #ffffff;
-  border: 1px solid #0a7c3b;
-  box-shadow: 0 6px 18px rgba(12, 124, 59, 0.2);
-  color: #0a7c3b;
+  border: 1px solid rgba(27, 40, 64, 0.45);
+  box-shadow: 0 6px 18px rgba(27, 40, 64, 0.2);
+  color: #1b2840;
   font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -72,7 +72,7 @@
 }
 
 .mapControlButton {
-  background: #0a7c3b;
+  background: #1b2840;
   border: none;
   border-radius: 999px;
   color: #ffffff;
@@ -81,18 +81,18 @@
   font-weight: 600;
   letter-spacing: 0.03em;
   padding: 0.45rem 1rem;
-  box-shadow: 0 6px 18px rgba(12, 124, 59, 0.25);
+  box-shadow: 0 6px 18px rgba(27, 40, 64, 0.25);
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .mapControlButton:hover,
 .mapControlButton:focus {
-  background: #096f34;
+  background: #162136;
   transform: translateY(-1px);
 }
 
 .mapControlButton:focus {
-  outline: 3px solid rgba(12, 124, 59, 0.4);
+  outline: 3px solid rgba(27, 40, 64, 0.35);
   outline-offset: 2px;
 }
 
