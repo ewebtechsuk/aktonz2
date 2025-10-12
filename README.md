@@ -23,7 +23,9 @@ python scripts/create_aktonz_lettings_brochure.py --public
 
 Because neither output is version-controlled, remember to rerun the command
 before `npm run build` whenever you want the static export to include the latest
-brochure.
+brochure. The `public/brochures` directory is tracked with a placeholder so the
+build has somewhere to copy the generated PDF—keep that folder in place even if
+you are cleaning up other assets.
 
 During CI, the `Deploy Next.js site to Pages` workflow publishes the freshly
 rendered PDF twice: once within the static site export at
