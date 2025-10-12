@@ -240,6 +240,65 @@
   background: var(--color-surface);
 }
 
+.brochureSection {
+  background: var(--color-background);
+  border-radius: 16px;
+  padding: var(--spacing-xl) var(--spacing-lg);
+  border: 1px solid var(--color-border-light);
+  display: grid;
+  gap: var(--spacing-xl);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  align-items: start;
+}
+
+.brochureIntro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  max-width: 560px;
+}
+
+.brochureDownload {
+  margin: 0;
+  font-weight: 600;
+}
+
+.brochureDownload a {
+  color: var(--color-primary);
+}
+
+.flipbookShell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border-radius: 14px;
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+  min-height: 420px;
+}
+
+.flipbookStatus {
+  color: var(--color-muted-text);
+  text-align: center;
+  font-size: 1rem;
+}
+
+.flipbookError {
+  color: var(--color-error, #b71c1c);
+  background: rgba(183, 28, 28, 0.08);
+  border-radius: 12px;
+  padding: var(--spacing-md);
+  text-align: center;
+  display: grid;
+  gap: var(--spacing-xs);
+}
+
+.flipbookShell :global(canvas) {
+  border-radius: 8px;
+}
+
 .cta {
   background: var(--color-primary);
   color: var(--color-background);
@@ -314,5 +373,15 @@
 
   .timelineItem {
     grid-template-columns: 1fr;
+  }
+
+  .brochureSection {
+    padding: var(--spacing-lg) var(--spacing-md);
+    grid-template-columns: 1fr;
+  }
+
+  .flipbookShell {
+    padding: var(--spacing-sm);
+    min-height: 360px;
   }
 }

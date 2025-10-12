@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import styles from '../styles/About.module.css';
 
 const highlights = [
@@ -144,6 +145,35 @@ const services = [
   },
 ];
 
+function BrochureViewerError({ file }) {
+  return (
+    <div role="alert" className={styles.flipbookError}>
+      <p>We couldn&rsquo;t load the interactive brochure this time.</p>
+      <p>
+        Please <a href={file}>download the PDF brochure</a> to read it at your leisure.
+      </p>
+    </div>
+  );
+}
+
+const BrochureFlipbook = dynamic(
+  () =>
+    import('../components/BrochureFlipbook.client').catch((error) => {
+      if (typeof window !== 'undefined') {
+        console.error('Failed to initialise brochure flipbook', error);
+      }
+      return { default: (props) => <BrochureViewerError {...props} /> };
+    }),
+  {
+    ssr: false,
+    loading: () => (
+      <div role="status" className={styles.flipbookStatus}>
+        Loading brochure experience…
+      </div>
+    ),
+  }
+);
+
 export default function About() {
   return (
     <>
@@ -260,6 +290,28 @@ export default function About() {
             <Link href="/valuation" className={styles.secondaryButton}>
               Book a valuation
             </Link>
+          </div>
+        </section>
+
+        <section className={styles.brochureSection} aria-labelledby="brochure-heading">
+          <div className={styles.brochureIntro}>
+            <span className={styles.eyebrow}>Lettings brochure</span>
+            <h2 id="brochure-heading" className={styles.sectionTitle}>
+              Explore our lettings service in depth
+            </h2>
+            <p className={styles.sectionSubtitle}>
+              Flip through our latest lettings brochure to see how Aktonz markets homes, nurtures tenancies and delivers award-winning client care.
+            </p>
+            <p className={styles.brochureDownload}>
+              Prefer a copy of your own?{' '}
+              <a href="/brochures/aktonz-lettings-brochure.pdf" download>
+                Download the brochure as a PDF
+              </a>
+              .
+            </p>
+          </div>
+          <div className={styles.flipbookShell}>
+            <BrochureFlipbook file="/brochures/aktonz-lettings-brochure.pdf" />
           </div>
         </section>
       </main>
