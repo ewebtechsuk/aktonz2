@@ -29,15 +29,19 @@ class PDFBuilder:
         if any(obj is None for obj in self.objects):
             raise ValueError("Not all objects have been set")
         pdf = bytearray(b"%PDF-1.4\n")
-        offsets = [0]
-        for obj in self.objects:
+        offsets = []
+        for index, obj in enumerate(self.objects, start=1):
             assert obj is not None
             offsets.append(len(pdf))
+            pdf.extend(f"{index} 0 obj\n".encode("ascii"))
             pdf.extend(obj)
+            if not obj.endswith(b"\n"):
+                pdf.extend(b"\n")
+            pdf.extend(b"endobj\n")
         xref_offset = len(pdf)
         pdf.extend(f"xref\n0 {len(self.objects) + 1}\n".encode("ascii"))
         pdf.extend(b"0000000000 65535 f \n")
-        for off in offsets[1:]:
+        for off in offsets:
             pdf.extend(f"{off:010d} 00000 n \n".encode("ascii"))
         trailer = (
             f"trailer\n<< /Size {len(self.objects) + 1} /Root {self.root_object} 0 R >>\n"
@@ -58,9 +62,9 @@ def build_brochure(output_path: Path) -> None:
     builder = PDFBuilder()
 
     # Fonts
-    regular_font_obj = builder.add_object(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n")
-    bold_font_obj = builder.add_object(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>\nendobj\n")
-    italic_font_obj = builder.add_object(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique >>\nendobj\n")
+    regular_font_obj = builder.add_object(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\n")
+    bold_font_obj = builder.add_object(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>\n")
+    italic_font_obj = builder.add_object(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique >>\n")
 
     font_resources = (
         f"<< /Font << /F1 {regular_font_obj} 0 R /F2 {bold_font_obj} 0 R /F3 {italic_font_obj} 0 R >> >>"
@@ -358,7 +362,7 @@ ET
     for page_obj, content_obj in zip(page_objects, page_streams):
         builder.set_object(
             page_obj,
-            f"<< /Type /Page /Parent {pages_obj} 0 R /MediaBox {media_box} /Resources {font_resources} /Contents {content_obj} 0 R >>\nendobj\n".encode(
+            f"<< /Type /Page /Parent {pages_obj} 0 R /MediaBox {media_box} /Resources {font_resources} /Contents {content_obj} 0 R >>\n".encode(
                 "ascii"
             ),
         )
@@ -366,11 +370,11 @@ ET
     kids = "[" + " ".join(f"{obj} 0 R" for obj in page_objects) + "]"
     builder.set_object(
         pages_obj,
-        f"<< /Type /Pages /Kids {kids} /Count {len(page_objects)} /MediaBox {media_box} >>\nendobj\n".encode("ascii"),
+        f"<< /Type /Pages /Kids {kids} /Count {len(page_objects)} /MediaBox {media_box} >>\n".encode("ascii"),
     )
 
     catalog_obj = builder.add_object(
-        f"<< /Type /Catalog /Pages {pages_obj} 0 R >>\nendobj\n".encode("ascii")
+        f"<< /Type /Catalog /Pages {pages_obj} 0 R >>\n".encode("ascii")
     )
     builder.set_root(catalog_obj)
 
