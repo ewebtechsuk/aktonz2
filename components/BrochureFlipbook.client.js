@@ -16,6 +16,9 @@ function loadPdfjs() {
 
   if (window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions) {
     window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_SRC;
+    if (typeof window.pdfjsLib.disableWorker === 'boolean') {
+      window.pdfjsLib.disableWorker = false;
+    }
     return Promise.resolve(window.pdfjsLib);
   }
 
@@ -27,6 +30,9 @@ function loadPdfjs() {
         const lib = window.pdfjsLib ?? window['pdfjs-dist/build/pdf'];
         if (lib && lib.GlobalWorkerOptions) {
           lib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_SRC;
+          if (typeof lib.disableWorker === 'boolean') {
+            lib.disableWorker = false;
+          }
           if (!window.pdfjsLib) {
             window.pdfjsLib = lib;
           }
@@ -59,6 +65,7 @@ function loadPdfjs() {
       const script = document.createElement('script');
       script.src = PDFJS_SCRIPT_SRC;
       script.async = true;
+      script.crossOrigin = 'anonymous';
       script.addEventListener('load', handleReady, { once: true });
       script.addEventListener('error', () => reject(new Error('Failed to load PDF.js script.')), { once: true });
       document.head.appendChild(script);
@@ -69,6 +76,47 @@ function loadPdfjs() {
   }
 
   return pdfjsLoaderPromise;
+}
+
+function isPdfWorkerBootstrapError(error) {
+  if (!error) return false;
+  const message = typeof error === 'string' ? error : error?.message ?? '';
+  if (!message) return false;
+  return (
+    message.includes('Setting up fake worker failed') ||
+    message.includes('Cannot load script') ||
+    message.includes('Worker is disabled')
+  );
+}
+
+async function openPdfDocument(source, { disableWorker = false } = {}) {
+  const pdfjs = await loadPdfjs();
+
+  if (pdfjs.GlobalWorkerOptions) {
+    if (disableWorker) {
+      pdfjs.GlobalWorkerOptions.workerSrc = null;
+      if (typeof pdfjs.disableWorker === 'boolean') {
+        pdfjs.disableWorker = true;
+      }
+    } else {
+      pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_SRC;
+      if (typeof pdfjs.disableWorker === 'boolean') {
+        pdfjs.disableWorker = false;
+      }
+    }
+  }
+
+  const loadingTask = pdfjs.getDocument(source);
+
+  try {
+    const pdf = await loadingTask.promise;
+    return { pdf, loadingTask };
+  } catch (error) {
+    if (typeof loadingTask.destroy === 'function') {
+      loadingTask.destroy();
+    }
+    throw error;
+  }
 }
 
 const TARGET_WIDTH = 480;
@@ -161,23 +209,38 @@ export default function BrochureFlipbook({ file, className = '' }) {
       setLoadError(null);
       setPdfDocument(null);
 
-      try {
-        const pdfjs = await loadPdfjs();
-        loadingTask = pdfjs.getDocument(resolvedFile);
-        const pdf = await loadingTask.promise;
-        if (isCancelled) {
-          await pdf.destroy();
-          return;
+      let attemptDisableWorker = false;
+
+      while (!isCancelled) {
+        loadingTask = undefined;
+        try {
+          const { pdf, loadingTask: task } = await openPdfDocument(resolvedFile, {
+            disableWorker: attemptDisableWorker,
+          });
+          loadingTask = task;
+          if (isCancelled) {
+            await pdf.destroy();
+            return;
+          }
+          setPdfDocument(pdf);
+          break;
+        } catch (error) {
+          if (!attemptDisableWorker && isPdfWorkerBootstrapError(error)) {
+            if (typeof window !== 'undefined') {
+              console.warn('PDF worker failed to start; retrying with worker disabled.', error);
+            }
+            attemptDisableWorker = true;
+            continue;
+          }
+          if (!isCancelled) {
+            setLoadError(error);
+          }
+          break;
         }
-        setPdfDocument(pdf);
-      } catch (error) {
-        if (!isCancelled) {
-          setLoadError(error);
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsLoading(false);
-        }
+      }
+
+      if (!isCancelled) {
+        setIsLoading(false);
       }
     };
 
