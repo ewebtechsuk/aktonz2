@@ -1,0 +1,64 @@
+.flipbookContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+.flipbook {
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--color-background);
+}
+
+.flipPage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface);
+  padding: var(--spacing-sm);
+}
+
+.pdfPage {
+  width: 100%;
+}
+
+.statusMessage {
+  color: var(--color-muted-text);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.errorMessage {
+  color: var(--color-error, #b71c1c);
+  font-weight: 600;
+  text-align: center;
+  padding: var(--spacing-sm);
+  background: rgba(183, 28, 28, 0.08);
+  border-radius: 8px;
+}
+
+.noscriptMessage {
+  font-size: 0.9rem;
+  color: var(--color-muted-text);
+  text-align: center;
+}
+
+.pdfPage :global(canvas) {
+  width: 100% !important;
+  height: auto !important;
+  border-radius: 8px;
+}
+
+@media (max-width: 767px) {
+  .flipbook {
+    width: min(100%, 320px) !important;
+    height: auto !important;
+  }
+
+  .flipPage {
+    padding: var(--spacing-xs);
+  }
+}
