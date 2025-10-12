@@ -60,9 +60,9 @@ export default function AreaMap({ regions = [] }) {
       const subAreas = mapData.subRegions;
 
       const baseStyle = {
-        color: '#0a7c3b',
+        color: '#1b2840',
         weight: 3,
-        fillColor: '#e6f5eb',
+        fillColor: '#dce2ee',
         fillOpacity: 0.6,
       };
 
