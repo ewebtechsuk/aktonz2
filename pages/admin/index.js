@@ -352,6 +352,11 @@ export default function AdminDashboard() {
           <div>
             <h2>Microsoft 365 email</h2>
             <p>Connect the info@aktonz.com mailbox so Aktonz can send website forms through Microsoft Graph.</p>
+            <div className={styles.panelLinks}>
+              <Link href="/admin/email" className={styles.panelLink}>
+                Open email settings
+              </Link>
+            </div>
           </div>
           <div className={styles.integrationActions}>
             <button
