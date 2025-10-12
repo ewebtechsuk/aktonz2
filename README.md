@@ -20,6 +20,13 @@ the exported file to emails or upload it to sharing tools as required. Pass
 python scripts/create_aktonz_lettings_brochure.py --public
 ```
 
+During CI, the `Deploy Next.js site to Pages` workflow publishes the freshly
+rendered PDF twice: once within the static site export at
+`out/brochures/aktonz-lettings-brochure.pdf` and again as a standalone
+workflow artifact named **aktonz-lettings-brochure**. Download that artifact
+from the workflow run summary whenever you need to retrieve the brochure
+without building it locally.
+
 ### Restore the Aktonz logo asset
 
 Binary files are not tracked in this repository. The high-resolution logo used
