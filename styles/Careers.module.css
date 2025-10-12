@@ -11,7 +11,7 @@
   position: relative;
   overflow: hidden;
   border-radius: 24px;
-  background: linear-gradient(135deg, #0b6b67 0%, #022d2a 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: var(--color-background);
   padding: calc(var(--spacing-xl) * 1.4) var(--spacing-lg);
 }
@@ -21,7 +21,7 @@
   position: absolute;
   inset: 0;
   background: radial-gradient(circle at 20% 20%, rgba(255, 229, 0, 0.25), transparent 45%),
-    radial-gradient(circle at 80% 30%, rgba(0, 176, 155, 0.35), transparent 55%);
+    radial-gradient(circle at 80% 30%, rgba(27, 40, 64, 0.35), transparent 55%);
   pointer-events: none;
 }
 
@@ -112,7 +112,7 @@
 .highlightValue {
   font-size: 2rem;
   font-weight: 700;
-  color: #0b6b67;
+  color: var(--color-primary);
 }
 
 .highlightLabel {
@@ -215,14 +215,14 @@
 
 .teamVacancies {
   font-weight: 600;
-  color: #0b6b67;
+  color: var(--color-primary);
 }
 
 .teamLink {
   align-self: flex-start;
   margin-top: var(--spacing-sm);
   font-weight: 600;
-  color: #0b6b67;
+  color: var(--color-primary);
   text-decoration: none;
 }
 
@@ -285,7 +285,7 @@
 }
 
 .step {
-  border-left: 4px solid #0b6b67;
+  border-left: 4px solid var(--color-primary);
   padding: var(--spacing-md);
   background: var(--color-surface);
   border-radius: 12px;
