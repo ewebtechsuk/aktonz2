@@ -160,7 +160,6 @@ const BrochureFlipbook = dynamic(
   () =>
     import('../components/BrochureFlipbook.client').catch((error) => {
       if (typeof window !== 'undefined') {
-        // eslint-disable-next-line no-console
         console.error('Failed to initialise brochure flipbook', error);
       }
       return { default: (props) => <BrochureViewerError {...props} /> };

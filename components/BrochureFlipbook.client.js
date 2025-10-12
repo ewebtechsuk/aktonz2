@@ -5,15 +5,16 @@ import dynamic from 'next/dynamic';
 import { Document, Page, pdfjs } from 'react-pdf';
 import styles from './BrochureFlipbook.module.css';
 
-const FlipBook = dynamic(() => import('react-pageflip'), { ssr: false });
+const FlipBook = dynamic(() => import('react-pageflip').then((mod) => mod.HTMLFlipBook ?? mod.default), {
+  ssr: false,
+});
 
-try {
-  if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-    pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdf.worker.min.js', import.meta.url).toString();
+if (typeof window !== 'undefined' && !pdfjs.GlobalWorkerOptions.workerSrc) {
+  try {
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.js', import.meta.url).toString();
+  } catch (error) {
+    console.warn('Failed to configure PDF.js worker', error);
   }
-} catch (error) {
-  // eslint-disable-next-line no-console
-  console.warn('Failed to configure PDF.js worker', error);
 }
 
 export default function BrochureFlipbook({ file, className = '' }) {
