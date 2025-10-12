@@ -1,5 +1,9 @@
 node_modules
+__pycache__/
+.pytest_cache/
 .next
 out
 .env
 .env.*
+docs/aktonz-lettings-brochure.pdf
+public/aktonz-logo-modern-transparent.png

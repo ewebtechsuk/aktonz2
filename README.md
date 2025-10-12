@@ -2,6 +2,33 @@
 
 A minimal Next.js application for an estate and letting agent powered by the Apex27 CRM.
 
+## Aktonz lettings brochure
+
+Generate the print-ready landlord brochure locally so the binary PDF never has to
+be committed to the repository:
+
+```
+python scripts/create_aktonz_lettings_brochure.py
+```
+
+The script writes `docs/aktonz-lettings-brochure.pdf` (ignored by git). Attach
+the exported file to emails or upload it to sharing tools as required.
+
+### Restore the Aktonz logo asset
+
+Binary files are not tracked in this repository. The high-resolution logo used
+by the brochure lives as an embedded base64 string instead. Run the helper
+below whenever you need the physical PNG under `public/` (for example when
+previewing the brochure artwork or sharing the standalone logo file):
+
+```
+python scripts/restore_aktonz_logo_asset.py
+```
+
+`create_aktonz_lettings_brochure.py` automatically falls back to the embedded
+data if the PNG is absent, so brochure generation continues to work without
+restoring the file.
+
 ## Development
 
 ```
