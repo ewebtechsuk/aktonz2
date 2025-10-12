@@ -603,7 +603,11 @@ export default function AdminDashboard() {
                       >
                         Review this offer
                       </Link>
-                      {offer.notes ? <p className={styles.note}>{offer.notes}</p> : null}
+                      {Array.isArray(offer.notes) && offer.notes.length ? (
+                        <p className={styles.note}>
+                          {offer.notes[offer.notes.length - 1].note}
+                        </p>
+                      ) : null}
                     </td>
                   </tr>
                 ))}

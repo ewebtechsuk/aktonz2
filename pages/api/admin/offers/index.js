@@ -1,6 +1,6 @@
-import { listOffersForAdmin } from '../../../lib/offers-admin.mjs';
-import { getAdminFromSession } from '../../../lib/admin-users.mjs';
-import { readSession } from '../../../lib/session.js';
+import { listOffersForAdmin } from '../../../../lib/offers-admin.mjs';
+import { getAdminFromSession } from '../../../../lib/admin-users.mjs';
+import { readSession } from '../../../../lib/session.js';
 
 function requireAdmin(req, res) {
   const session = readSession(req);
