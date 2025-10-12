@@ -42,17 +42,18 @@ body {
 }
 
 .property-list-slider {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
+  position: relative;
   width: 100%;
 }
 
 .property-list-slider .property-list {
-  flex: 1 1 auto;
+  width: 100%;
 }
 
 .property-list-slider__control {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   background: var(--color-muted-bg);
   border: none;
   color: var(--color-background);
@@ -64,6 +65,7 @@ body {
   justify-content: center;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
+  z-index: 1;
 }
 
 .property-list-slider__control:hover,
@@ -75,6 +77,21 @@ body {
 .property-list-slider__control:focus-visible {
   outline: 2px solid var(--color-text);
   outline-offset: 2px;
+}
+
+.property-list-slider__control--prev {
+  left: var(--spacing-sm);
+}
+
+.property-list-slider__control--next {
+  right: var(--spacing-sm);
+}
+
+@media (min-width: 768px) {
+  .property-list-slider__control {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 
