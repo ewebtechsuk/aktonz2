@@ -80,6 +80,23 @@
   gap: 0.5rem;
 }
 
+.inlineCheckbox {
+  align-self: flex-start;
+}
+
+.inlineCheckbox label {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.inlineCheckbox input {
+  width: auto;
+  height: auto;
+}
+
 .fieldGroup label {
   font-weight: 600;
   color: var(--color-primary);
@@ -209,10 +226,113 @@
   letter-spacing: 0.08em;
 }
 
+.statusBadge {
+  background: rgba(45, 99, 146, 0.12);
+  color: #164063;
+}
+
 .offerMessage,
 .viewingMessage {
   margin: 0;
   color: var(--color-muted-text);
+}
+
+.offerDetailsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.offerDetailsGrid div {
+  background: rgba(27, 40, 64, 0.04);
+  border-radius: 12px;
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.offerDetailsGrid dt {
+  margin: 0;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: rgba(27, 40, 64, 0.6);
+}
+
+.offerDetailsGrid dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.offerNoteBlock {
+  background: rgba(27, 40, 64, 0.05);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.offerNoteBlock h5 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-primary);
+}
+
+.offerNoteBlock p {
+  margin: 0;
+  color: var(--color-muted-text);
+}
+
+.timelineSection {
+  border-top: 1px solid rgba(27, 40, 64, 0.15);
+  padding-top: 1rem;
+}
+
+.timelineList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.timelineHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.timelineLabel {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.timelineActor {
+  font-size: 0.85rem;
+  color: rgba(27, 40, 64, 0.6);
+}
+
+.timelineNote {
+  margin: 0.35rem 0 0;
+  color: var(--color-muted-text);
+}
+
+.timelineDate {
+  display: inline-block;
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: rgba(27, 40, 64, 0.6);
+}
+
+.timelineEmpty {
+  color: var(--color-muted-text);
+  font-style: italic;
 }
 
 .offerFooter {

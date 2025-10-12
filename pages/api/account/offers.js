@@ -1,6 +1,11 @@
 import { randomUUID } from 'node:crypto';
 
 import { addOffer } from '../../../lib/offers.js';
+import {
+  DEFAULT_OFFER_STATUS,
+  formatOfferStatusLabel,
+  normaliseOfferStatus,
+} from '../../../lib/offer-statuses.js';
 import { readSession } from '../../../lib/session.js';
 import { readContactEntries, updateContactEntries } from '../../../lib/account-storage.js';
 
@@ -29,6 +34,56 @@ function normaliseString(value) {
     return '';
   }
   return String(value).trim();
+}
+
+function normaliseBoolean(value) {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const normalised = value.trim().toLowerCase();
+    if (['true', '1', 'yes', 'on'].includes(normalised)) {
+      return true;
+    }
+    if (['false', '0', 'no', 'off'].includes(normalised)) {
+      return false;
+    }
+  }
+
+  if (typeof value === 'number') {
+    return value !== 0;
+  }
+
+  return false;
+}
+
+function normalisePositiveInteger(value) {
+  if (typeof value === 'number' && Number.isInteger(value) && value > 0) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isInteger(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
+function normaliseDateOnly(value) {
+  if (!value) {
+    return '';
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  return date.toISOString();
 }
 
 function normaliseAmount(value) {
@@ -80,13 +135,62 @@ function buildOfferPayload(input, defaults) {
     name: name || `Contact ${defaults?.contactId || ''}`.trim(),
     email,
     phone: normaliseString(input?.phone),
+    moveInDate: normaliseDateOnly(input?.moveInDate || input?.desiredMoveInDate),
+    householdSize: normalisePositiveInteger(input?.householdSize || input?.partySize),
+    hasPets: normaliseBoolean(input?.hasPets),
+    employmentStatus: normaliseString(input?.employmentStatus),
+    referencingConsent: normaliseBoolean(
+      input?.referencingConsent ?? input?.consentToReference,
+    ),
+    proofOfFunds: normaliseString(input?.proofOfFunds),
+    additionalConditions: normaliseString(input?.conditions || input?.specialConditions),
   };
 
   return { data: payload };
 }
 
+function formatStatusHistory(history) {
+  if (!Array.isArray(history)) {
+    return [];
+  }
+
+  return history
+    .map((entry) => {
+      if (!entry || typeof entry !== 'object') {
+        return null;
+      }
+
+      const status = normaliseOfferStatus(entry.status || DEFAULT_OFFER_STATUS);
+      return {
+        id: entry.id || randomUUID(),
+        status,
+        label: entry.label || formatOfferStatusLabel(status),
+        note: typeof entry.note === 'string' ? entry.note : '',
+        createdAt: entry.createdAt || entry.date || null,
+        actor: entry.actor && typeof entry.actor === 'object' ? entry.actor : null,
+        type: entry.type || 'status',
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+}
+
 function formatOfferEntry(offer) {
   if (!offer) return null;
+  const status = normaliseOfferStatus(offer.status || DEFAULT_OFFER_STATUS);
+  const statusLabel = offer.statusLabel || formatOfferStatusLabel(status);
+  const history = formatStatusHistory(offer.statusHistory);
+  const compliance = offer.compliance && typeof offer.compliance === 'object'
+    ? offer.compliance
+    : {
+        moveInDate: null,
+        householdSize: null,
+        hasPets: false,
+        employmentStatus: '',
+        referencingConsent: false,
+        proofOfFunds: '',
+        additionalConditions: '',
+      };
   return {
     id: offer.id,
     propertyId: offer.propertyId,
@@ -95,7 +199,22 @@ function formatOfferEntry(offer) {
     amount: offer.amount,
     frequency: offer.frequency || '',
     message: offer.message || '',
-    status: offer.status || 'submitted',
+    status,
+    statusLabel,
+    statusHistory: history.length
+      ? history
+      : [
+          {
+            id: randomUUID(),
+            status,
+            label: statusLabel,
+            note: 'Offer created',
+            createdAt: offer.createdAt || offer.updatedAt || null,
+            actor: null,
+            type: 'status',
+          },
+        ],
+    compliance,
     createdAt: offer.createdAt,
     updatedAt: offer.updatedAt || offer.createdAt,
   };
@@ -132,6 +251,18 @@ export default async function handler(req, res) {
 
     const now = new Date().toISOString();
     const id = randomUUID();
+    const resolvedStatus = normaliseOfferStatus(DEFAULT_OFFER_STATUS);
+    const statusLabel = formatOfferStatusLabel(resolvedStatus);
+    const statusEntry = {
+      id: randomUUID(),
+      status: resolvedStatus,
+      label: statusLabel,
+      note: 'Offer submitted via your Aktonz account.',
+      createdAt: now,
+      actor: { type: 'applicant', name: data.name, email: data.email },
+      type: 'status',
+    };
+
     const entry = {
       id,
       propertyId: data.propertyId,
@@ -140,7 +271,18 @@ export default async function handler(req, res) {
       amount: data.amount,
       frequency: data.frequency,
       message: data.message,
-      status: 'submitted',
+      status: resolvedStatus,
+      statusLabel,
+      statusHistory: [statusEntry],
+      compliance: {
+        moveInDate: data.moveInDate || null,
+        householdSize: data.householdSize,
+        hasPets: data.hasPets,
+        employmentStatus: data.employmentStatus,
+        referencingConsent: data.referencingConsent,
+        proofOfFunds: data.proofOfFunds,
+        additionalConditions: data.additionalConditions,
+      },
       createdAt: now,
       updatedAt: now,
     };
@@ -164,6 +306,13 @@ export default async function handler(req, res) {
         depositAmount: undefined,
         contactId: contact.contactId,
         agentId: undefined,
+        moveInDate: data.moveInDate || undefined,
+        householdSize: data.householdSize || undefined,
+        hasPets: data.hasPets || undefined,
+        employmentStatus: data.employmentStatus || undefined,
+        referencingConsent: data.referencingConsent,
+        proofOfFunds: data.proofOfFunds || undefined,
+        additionalConditions: data.additionalConditions || undefined,
       });
     } catch (error) {
       console.warn('Failed to persist offer to shared store', error);

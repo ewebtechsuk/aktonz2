@@ -38,6 +38,39 @@ function formatDate(value) {
   });
 }
 
+function formatDateOnly(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+  return date.toLocaleDateString('en-GB', { dateStyle: 'medium' });
+}
+
+function formatActor(actor) {
+  if (!actor) {
+    return '';
+  }
+
+  if (typeof actor === 'string') {
+    return actor;
+  }
+
+  if (actor.name) {
+    return actor.name;
+  }
+
+  if (actor.type === 'admin') {
+    return 'Aktonz team';
+  }
+
+  if (actor.type === 'applicant') {
+    return 'You';
+  }
+
+  return '';
+}
+
 function sortByDate(a, b) {
   return new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0);
 }
@@ -52,6 +85,13 @@ const defaultOfferForm = {
   name: '',
   email: '',
   phone: '',
+  moveInDate: '',
+  householdSize: '',
+  hasPets: false,
+  employmentStatus: '',
+  proofOfFunds: '',
+  referencingConsent: false,
+  additionalConditions: '',
 };
 
 const defaultViewingForm = {
@@ -175,6 +215,11 @@ export default function AccountOffersPage() {
   function handleOfferInputChange(event) {
     const { name, value } = event.target;
     setOfferForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  function handleOfferCheckboxChange(event) {
+    const { name, checked } = event.target;
+    setOfferForm((prev) => ({ ...prev, [name]: checked }));
   }
 
   function handleViewingInputChange(event) {
@@ -376,6 +421,88 @@ export default function AccountOffersPage() {
                   placeholder="Optional"
                 />
               </div>
+              <div className={styles.fieldRow}>
+                <div className={styles.fieldGroup}>
+                  <label htmlFor="offer-moveInDate">Preferred move-in date</label>
+                  <input
+                    id="offer-moveInDate"
+                    name="moveInDate"
+                    type="date"
+                    value={offerForm.moveInDate}
+                    onChange={handleOfferInputChange}
+                  />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label htmlFor="offer-householdSize">Occupants</label>
+                  <input
+                    id="offer-householdSize"
+                    name="householdSize"
+                    type="number"
+                    min="1"
+                    value={offerForm.householdSize}
+                    onChange={handleOfferInputChange}
+                    placeholder="Number of people"
+                  />
+                </div>
+              </div>
+              <div className={styles.fieldRow}>
+                <div className={`${styles.fieldGroup} ${styles.inlineCheckbox}`}>
+                  <label htmlFor="offer-hasPets">
+                    <input
+                      id="offer-hasPets"
+                      name="hasPets"
+                      type="checkbox"
+                      checked={offerForm.hasPets}
+                      onChange={handleOfferCheckboxChange}
+                    />
+                    Travelling with pets
+                  </label>
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label htmlFor="offer-employmentStatus">Employment status</label>
+                  <input
+                    id="offer-employmentStatus"
+                    name="employmentStatus"
+                    value={offerForm.employmentStatus}
+                    onChange={handleOfferInputChange}
+                    placeholder="e.g. Full-time employed"
+                  />
+                </div>
+              </div>
+              <div className={styles.fieldGroup}>
+                <label htmlFor="offer-proofOfFunds">Proof of funds & referencing notes</label>
+                <textarea
+                  id="offer-proofOfFunds"
+                  name="proofOfFunds"
+                  value={offerForm.proofOfFunds}
+                  onChange={handleOfferInputChange}
+                  rows={3}
+                  placeholder="Share details of your proof of funds or referencing status"
+                />
+              </div>
+              <div className={`${styles.fieldGroup} ${styles.inlineCheckbox}`}>
+                <label htmlFor="offer-referencingConsent">
+                  <input
+                    id="offer-referencingConsent"
+                    name="referencingConsent"
+                    type="checkbox"
+                    checked={offerForm.referencingConsent}
+                    onChange={handleOfferCheckboxChange}
+                  />
+                  I consent to Aktonz commencing referencing checks
+                </label>
+              </div>
+              <div className={styles.fieldGroup}>
+                <label htmlFor="offer-conditions">Move-in conditions</label>
+                <textarea
+                  id="offer-conditions"
+                  name="additionalConditions"
+                  value={offerForm.additionalConditions}
+                  onChange={handleOfferInputChange}
+                  rows={3}
+                  placeholder="Deposit expectations, break clauses or other conditions"
+                />
+              </div>
               <div className={styles.fieldGroup}>
                 <label htmlFor="offer-message">Supporting notes</label>
                 <textarea
@@ -407,26 +534,104 @@ export default function AccountOffersPage() {
               <p className={styles.placeholder}>No offers yet. Submit one using the form to get started.</p>
             ) : null}
             <ul className={styles.offerList}>
-              {offers.map((offer) => (
-                <li key={offer.id} className={styles.offerCard}>
-                  <header className={styles.offerHeader}>
-                    <div>
-                      <h4>Property {offer.propertyId}</h4>
-                      {offer.propertyTitle ? <p>{offer.propertyTitle}</p> : null}
-                      {offer.propertyAddress ? <p className={styles.subtle}>{offer.propertyAddress}</p> : null}
+              {offers.map((offer) => {
+                const compliance = offer.compliance || {};
+                const timeline = Array.isArray(offer.statusHistory) ? offer.statusHistory : [];
+                const moveInDate = compliance.moveInDate ? formatDateOnly(compliance.moveInDate) : '';
+                const consentLabel = compliance.referencingConsent
+                  ? 'Consent provided'
+                  : 'Consent pending';
+
+                return (
+                  <li key={offer.id} className={styles.offerCard}>
+                    <header className={styles.offerHeader}>
+                      <div>
+                        <h4>Property {offer.propertyId}</h4>
+                        {offer.propertyTitle ? <p>{offer.propertyTitle}</p> : null}
+                        {offer.propertyAddress ? (
+                          <p className={styles.subtle}>{offer.propertyAddress}</p>
+                        ) : null}
+                      </div>
+                      <div className={styles.offerMeta}>
+                        <span className={styles.offerAmount}>{formatCurrency(offer.amount)}</span>
+                        {offer.frequency ? <span className={styles.badge}>{offer.frequency}</span> : null}
+                        <span className={`${styles.badge} ${styles.statusBadge}`}>
+                          {offer.statusLabel || 'In review'}
+                        </span>
+                      </div>
+                    </header>
+
+                    <dl className={styles.offerDetailsGrid}>
+                      {moveInDate ? (
+                        <div>
+                          <dt>Move-in target</dt>
+                          <dd>{moveInDate}</dd>
+                        </div>
+                      ) : null}
+                      {compliance.householdSize ? (
+                        <div>
+                          <dt>Household size</dt>
+                          <dd>{compliance.householdSize}</dd>
+                        </div>
+                      ) : null}
+                      <div>
+                        <dt>Pets</dt>
+                        <dd>{compliance.hasPets ? 'Pets included' : 'No pets declared'}</dd>
+                      </div>
+                      {compliance.employmentStatus ? (
+                        <div>
+                          <dt>Employment</dt>
+                          <dd>{compliance.employmentStatus}</dd>
+                        </div>
+                      ) : null}
+                      <div>
+                        <dt>Referencing</dt>
+                        <dd>{consentLabel}</dd>
+                      </div>
+                    </dl>
+
+                    {offer.message ? (
+                      <p className={styles.offerMessage}>{offer.message}</p>
+                    ) : null}
+                    {compliance.proofOfFunds ? (
+                      <div className={styles.offerNoteBlock}>
+                        <h5>Proof of funds</h5>
+                        <p>{compliance.proofOfFunds}</p>
+                      </div>
+                    ) : null}
+                    {compliance.additionalConditions ? (
+                      <div className={styles.offerNoteBlock}>
+                        <h5>Conditions</h5>
+                        <p>{compliance.additionalConditions}</p>
+                      </div>
+                    ) : null}
+
+                    <div className={styles.timelineSection}>
+                      <h5>Timeline</h5>
+                      <ol className={styles.timelineList}>
+                        {timeline.length ? (
+                          timeline.map((event) => (
+                            <li key={event.id}>
+                              <div className={styles.timelineHeader}>
+                                <span className={styles.timelineLabel}>{event.label}</span>
+                                {formatActor(event.actor) ? (
+                                  <span className={styles.timelineActor}>{formatActor(event.actor)}</span>
+                                ) : null}
+                              </div>
+                              {event.note ? <p className={styles.timelineNote}>{event.note}</p> : null}
+                              <time dateTime={event.createdAt || undefined} className={styles.timelineDate}>
+                                {formatDate(event.createdAt) || 'Pending'}
+                              </time>
+                            </li>
+                          ))
+                        ) : (
+                          <li className={styles.timelineEmpty}>Awaiting first update</li>
+                        )}
+                      </ol>
                     </div>
-                    <div className={styles.offerMeta}>
-                      <span className={styles.offerAmount}>{formatCurrency(offer.amount)}</span>
-                      {offer.frequency ? <span className={styles.badge}>{offer.frequency}</span> : null}
-                    </div>
-                  </header>
-                  {offer.message ? <p className={styles.offerMessage}>{offer.message}</p> : null}
-                  <footer className={styles.offerFooter}>
-                    <span>Status: {offer.status || 'submitted'}</span>
-                    <span>{formatDate(offer.createdAt) || 'Pending'}</span>
-                  </footer>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>

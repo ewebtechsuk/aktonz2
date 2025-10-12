@@ -490,13 +490,19 @@ const createBotReplies = (input, knowledge, formatters, options = {}) => {
         from: 'bot',
         type: 'events',
         title: 'Sales pipeline',
-        items: saleOffers.map((offer) => ({
-          id: offer.id,
-          title: `${offer.contact?.name || 'Buyer'} — ${offer.amount}`,
-          time: formatters.formatDateTime(offer.date),
-          description: `${offer.property?.title || 'Property'} • ${offer.status}`,
-          meta: offer.notes,
-        })),
+        items: saleOffers.map((offer) => {
+          const latestNote =
+            Array.isArray(offer.notes) && offer.notes.length
+              ? offer.notes[offer.notes.length - 1].note
+              : '';
+          return {
+            id: offer.id,
+            title: `${offer.contact?.name || 'Buyer'} — ${offer.amount}`,
+            time: formatters.formatDateTime(offer.date),
+            description: `${offer.property?.title || 'Property'} • ${offer.status}`,
+            meta: latestNote,
+          };
+        }),
       });
     } else {
       replies.push({
@@ -538,13 +544,19 @@ const createBotReplies = (input, knowledge, formatters, options = {}) => {
         from: 'bot',
         type: 'events',
         title: 'Tenancy offers',
-        items: rentalOffers.map((offer) => ({
-          id: offer.id,
-          title: `${offer.contact?.name || 'Client'} — ${offer.amount}`,
-          time: formatters.formatDateTime(offer.date),
-          description: `${offer.property?.title || 'Property'} • ${offer.status}`,
-          meta: offer.notes,
-        })),
+        items: rentalOffers.map((offer) => {
+          const latestNote =
+            Array.isArray(offer.notes) && offer.notes.length
+              ? offer.notes[offer.notes.length - 1].note
+              : '';
+          return {
+            id: offer.id,
+            title: `${offer.contact?.name || 'Client'} — ${offer.amount}`,
+            time: formatters.formatDateTime(offer.date),
+            description: `${offer.property?.title || 'Property'} • ${offer.status}`,
+            meta: latestNote,
+          };
+        }),
       });
     }
 
@@ -569,13 +581,19 @@ const createBotReplies = (input, knowledge, formatters, options = {}) => {
         from: 'bot',
         type: 'events',
         title: 'Offer pipeline',
-        items: knowledge.offers.map((offer) => ({
-          id: offer.id,
-          title: `${offer.contact?.name || 'Client'} — ${offer.amount}`,
-          time: formatters.formatDateTime(offer.date),
-          description: `${offer.property?.title || 'Property'} • ${offer.status}`,
-          meta: offer.notes,
-        })),
+        items: knowledge.offers.map((offer) => {
+          const latestNote =
+            Array.isArray(offer.notes) && offer.notes.length
+              ? offer.notes[offer.notes.length - 1].note
+              : '';
+          return {
+            id: offer.id,
+            title: `${offer.contact?.name || 'Client'} — ${offer.amount}`,
+            time: formatters.formatDateTime(offer.date),
+            description: `${offer.property?.title || 'Property'} • ${offer.status}`,
+            meta: latestNote,
+          };
+        }),
       });
     } else {
       replies.push({
