@@ -22,17 +22,29 @@ function loadPdfjs() {
     pdfjsLoaderPromise = new Promise((resolve, reject) => {
       const existingScript = document.querySelector(`script[src="${PDFJS_SCRIPT_SRC}"]`);
 
+      const resolvePdfjsLib = () => {
+        const lib = window.pdfjsLib ?? window['pdfjs-dist/build/pdf'];
+        if (lib && lib.GlobalWorkerOptions) {
+          lib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_SRC;
+          if (!window.pdfjsLib) {
+            window.pdfjsLib = lib;
+          }
+          resolve(lib);
+          return;
+        }
+        reject(new Error('PDF.js failed to initialise.'));
+      };
+
       const handleReady = () => {
-        if (window.pdfjsLib) {
-          window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_SRC;
-          resolve(window.pdfjsLib);
-        } else {
-          reject(new Error('PDF.js failed to initialise.'));
+        try {
+          resolvePdfjsLib();
+        } catch (error) {
+          reject(error);
         }
       };
 
       if (existingScript) {
-        if (window.pdfjsLib) {
+        if (window.pdfjsLib || window['pdfjs-dist/build/pdf']) {
           handleReady();
         } else {
           existingScript.addEventListener('load', handleReady, { once: true });
