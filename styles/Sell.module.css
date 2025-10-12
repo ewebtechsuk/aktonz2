@@ -15,7 +15,7 @@
 }
 
 .hero {
-  background: linear-gradient(135deg, #f3f7f9 0%, #ffffff 65%);
+  background: linear-gradient(135deg, #eef1f7 0%, #ffffff 65%);
   padding-top: calc(var(--spacing-xl) * 1.2);
 }
 
@@ -48,7 +48,7 @@
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-size: 0.75rem;
-  color: #0b6b67;
+  color: var(--color-primary);
   margin-bottom: var(--spacing-sm);
   font-weight: 600;
 }
@@ -85,31 +85,31 @@
 }
 
 .primaryCta {
-  background: #0b6b67;
+  background: var(--color-primary);
   color: #ffffff;
-  box-shadow: 0 10px 20px rgba(11, 107, 103, 0.25);
+  box-shadow: 0 10px 20px rgba(27, 40, 64, 0.25);
 }
 
 .primaryCta:hover,
 .primaryCta:focus-visible {
   transform: translateY(-1px);
-  box-shadow: 0 14px 24px rgba(11, 107, 103, 0.3);
+  box-shadow: 0 14px 24px rgba(27, 40, 64, 0.3);
 }
 
 .secondaryCta {
-  background: #e5f4f3;
-  color: #0b6b67;
-  border: 1px solid rgba(11, 107, 103, 0.25);
+  background: #e9ecf2;
+  color: var(--color-primary);
+  border: 1px solid rgba(27, 40, 64, 0.25);
 }
 
 .secondaryCta:hover,
 .secondaryCta:focus-visible {
   transform: translateY(-1px);
-  border-color: #0b6b67;
+  border-color: var(--color-primary);
 }
 
 .valuationSection {
-  background: #005c59;
+  background: #1b2840;
   color: #ffffff;
   text-align: center;
 }
@@ -212,7 +212,7 @@
 .checkList li::before {
   content: '\2713';
   font-weight: 700;
-  color: #0b6b67;
+  color: var(--color-secondary);
   margin-top: 0.1rem;
 }
 
@@ -246,11 +246,11 @@
 }
 
 .expertCard {
-  background: #0f7f7a;
+  background: #1b2840;
   color: #ffffff;
   border-radius: 18px;
   padding: var(--spacing-lg);
-  box-shadow: 0 18px 36px rgba(15, 127, 122, 0.25);
+  box-shadow: 0 18px 36px rgba(27, 40, 64, 0.25);
 }
 
 .expertCard h3 {
@@ -264,12 +264,12 @@
 }
 
 .ctaBand {
-  background: linear-gradient(120deg, #0f7f7a 0%, #0b6b67 100%);
+  background: linear-gradient(120deg, #1b2840 0%, #111a2b 100%);
   color: #ffffff;
   text-align: center;
   border-radius: 24px;
   padding: calc(var(--spacing-xl) * 0.8) var(--spacing-lg);
-  box-shadow: 0 20px 40px rgba(11, 107, 103, 0.25);
+  box-shadow: 0 20px 40px rgba(27, 40, 64, 0.25);
 }
 
 .ctaBand h2 {
@@ -309,7 +309,7 @@
 
 .quote::before,
 .quote::after {
-  color: #0b6b67;
+  color: var(--color-primary);
   font-weight: 700;
 }
 
