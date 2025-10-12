@@ -108,6 +108,7 @@ export default function PropertyList({
 
   return (
     <div className="property-list-slider">
+      {listContent}
       <button
         type="button"
         className="property-list-slider__control property-list-slider__control--prev"
@@ -116,7 +117,6 @@ export default function PropertyList({
       >
         &#8249;
       </button>
-      {listContent}
       <button
         type="button"
         className="property-list-slider__control property-list-slider__control--next"

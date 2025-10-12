@@ -7,9 +7,9 @@
 .searchCard {
   background: #ffffff;
   border-radius: 20px;
-  border: 1px solid #cde4e0;
+  border: 1px solid rgba(27, 40, 64, 0.12);
   padding: clamp(1.5rem, 3vw, 2.5rem);
-  box-shadow: 0 25px 60px rgba(13, 86, 75, 0.08);
+  box-shadow: 0 25px 60px rgba(27, 40, 64, 0.08);
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -26,14 +26,14 @@
 .cardHeader h2 {
   margin: 0;
   font-size: clamp(1.25rem, 2.5vw, 1.6rem);
-  color: #16312d;
+  color: var(--color-primary);
 }
 
 .savedOn {
   font-size: 0.85rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #6f8f89;
+  color: var(--color-muted-text);
 }
 
 .paramList {
@@ -46,10 +46,10 @@
 }
 
 .paramBadge {
-  background: #f1faf8;
+  background: var(--color-primary-light);
   border-radius: 999px;
   padding: 0.45rem 1rem;
-  border: 1px solid #cde4e0;
+  border: 1px solid rgba(27, 40, 64, 0.12);
   display: inline-flex;
   gap: 0.4rem;
   align-items: baseline;
@@ -58,16 +58,16 @@
 
 .paramKey {
   font-weight: 600;
-  color: #16312d;
+  color: var(--color-primary);
 }
 
 .paramValue {
-  color: #486561;
+  color: var(--color-muted-text);
 }
 
 .emptyParams {
   margin: 0;
-  color: #486561;
+  color: var(--color-muted-text);
   font-style: italic;
 }
 
@@ -80,7 +80,7 @@
 }
 
 .viewButton {
-  background: #0b7c6d;
+  background: var(--color-primary);
   color: #ffffff;
   padding: 0.75rem 1.6rem;
   border-radius: 999px;
@@ -91,7 +91,7 @@
 
 .viewButton:hover,
 .viewButton:focus-visible {
-  background: #095f52;
+  background: var(--color-primary-dark);
   transform: translateY(-1px);
 }
 
@@ -113,9 +113,9 @@
 .stateCard {
   background: #ffffff;
   border-radius: 20px;
-  border: 1px solid #cde4e0;
+  border: 1px solid rgba(27, 40, 64, 0.12);
   padding: clamp(1.75rem, 3vw, 2.75rem);
-  box-shadow: 0 25px 60px rgba(13, 86, 75, 0.08);
+  box-shadow: 0 25px 60px rgba(27, 40, 64, 0.08);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -126,18 +126,18 @@
 .stateCard h2 {
   margin: 0;
   font-size: clamp(1.4rem, 2.5vw, 1.8rem);
-  color: #16312d;
+  color: var(--color-primary);
 }
 
 .stateCard p {
   margin: 0;
-  color: #486561;
+  color: var(--color-muted-text);
   max-width: 520px;
   line-height: 1.6;
 }
 
 .stateButton {
-  background: #0b7c6d;
+  background: var(--color-primary);
   color: #ffffff;
   padding: 0.75rem 1.6rem;
   border-radius: 999px;
@@ -148,7 +148,7 @@
 
 .stateButton:hover,
 .stateButton:focus-visible {
-  background: #095f52;
+  background: var(--color-primary-dark);
   transform: translateY(-1px);
 }
 
