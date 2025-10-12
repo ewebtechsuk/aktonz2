@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import styles from './BrochureFlipbook.module.css';
 
@@ -110,6 +111,29 @@ function PageCanvas({ pdf, pageNumber, onDimensions }) {
 }
 
 export default function BrochureFlipbook({ file, className = '' }) {
+  const router = useRouter();
+  const resolvedFile = useMemo(() => {
+    if (!file) return file;
+    if (/^(?:https?:|data:)/.test(file)) {
+      return file;
+    }
+
+    const base = router?.basePath ?? '';
+    if (!base) {
+      return file;
+    }
+
+    if (file.startsWith(base)) {
+      return file;
+    }
+
+    if (file.startsWith('/')) {
+      return `${base}${file}`;
+    }
+
+    return `${base}/${file}`;
+  }, [file, router?.basePath]);
+
   const [pdfDocument, setPdfDocument] = useState(null);
   const [loadError, setLoadError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -127,7 +151,7 @@ export default function BrochureFlipbook({ file, className = '' }) {
 
       try {
         const pdfjs = await loadPdfjs();
-        loadingTask = pdfjs.getDocument(file);
+        loadingTask = pdfjs.getDocument(resolvedFile);
         const pdf = await loadingTask.promise;
         if (isCancelled) {
           await pdf.destroy();
@@ -153,7 +177,7 @@ export default function BrochureFlipbook({ file, className = '' }) {
         loadingTask.destroy();
       }
     };
-  }, [file]);
+  }, [resolvedFile]);
 
   useEffect(() => {
     return () => {
