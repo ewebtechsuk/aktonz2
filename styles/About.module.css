@@ -295,13 +295,8 @@
   gap: var(--spacing-xs);
 }
 
-.flipbookShell :global(.react-pageflip) {
-  margin: 0 auto;
-}
-
 .flipbookShell :global(canvas) {
   border-radius: 8px;
-  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.08);
 }
 
 .cta {
