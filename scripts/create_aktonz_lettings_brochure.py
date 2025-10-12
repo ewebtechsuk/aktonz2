@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List, Optional
+from typing import Iterable, List, Optional
+import xml.etree.ElementTree as ET
 
 
 class PDFBuilder:
@@ -28,8 +29,9 @@ class PDFBuilder:
             raise ValueError("Root object not set")
         if any(obj is None for obj in self.objects):
             raise ValueError("Not all objects have been set")
+
         pdf = bytearray(b"%PDF-1.4\n")
-        offsets = []
+        offsets: List[int] = []
         for index, obj in enumerate(self.objects, start=1):
             assert obj is not None
             offsets.append(len(pdf))
@@ -38,11 +40,13 @@ class PDFBuilder:
             if not obj.endswith(b"\n"):
                 pdf.extend(b"\n")
             pdf.extend(b"endobj\n")
+
         xref_offset = len(pdf)
         pdf.extend(f"xref\n0 {len(self.objects) + 1}\n".encode("ascii"))
         pdf.extend(b"0000000000 65535 f \n")
-        for off in offsets:
-            pdf.extend(f"{off:010d} 00000 n \n".encode("ascii"))
+        for offset in offsets:
+            pdf.extend(f"{offset:010d} 00000 n \n".encode("ascii"))
+
         trailer = (
             f"trailer\n<< /Size {len(self.objects) + 1} /Root {self.root_object} 0 R >>\n"
             f"startxref\n{xref_offset}\n%%EOF\n"
@@ -58,10 +62,151 @@ def make_stream(contents: str) -> bytes:
     return header + stream_data + footer
 
 
+# --- Layout helpers -------------------------------------------------------
+
+DEEP_BLUE = "0 0.294 0.553"
+DUSK_BLUE = "0.133 0.278 0.459"
+SOFT_BLUE = "0.925 0.953 0.976"
+PALE_BLUE = "0.878 0.933 0.972"
+GOLD = "0.812 0.682 0.396"
+WARM_GREY = "0.341 0.341 0.357"
+BLACK = "0 0 0"
+WHITE = "1 1 1"
+LOGO_GOLD = "1 0.898 0"
+
+
+def escape_pdf_text(text: str) -> str:
+    return text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+
+def text_block(
+    x: float,
+    y: float,
+    lines: Iterable[str],
+    *,
+    font: str = "F1",
+    size: float = 12,
+    color: str = BLACK,
+    leading: Optional[float] = None,
+) -> str:
+    lines_list = list(lines)
+    if not lines_list:
+        return ""
+    if leading is None:
+        leading = size + 4
+
+    escaped = [escape_pdf_text(line) for line in lines_list]
+    commands = [f"{color} rg", "BT", f"/{font} {size} Tf", f"{x:.2f} {y:.2f} Td", f"({escaped[0]}) Tj"]
+    for line in escaped[1:]:
+        commands.append(f"0 {-leading:.2f} Td")
+        commands.append(f"({line}) Tj")
+    commands.append("ET")
+    return "\n".join(commands)
+
+
+def bullet_lines(items: Iterable[str]) -> List[str]:
+    return [f"- {item}" for item in items]
+
+
+def page_background() -> str:
+    return f"{WHITE} rg\n0 0 595 842 re\nf"
+
+
+def header(title: str, subtitle: Optional[str] = None, *, include_logo: bool = True) -> str:
+    commands: List[str] = [
+        f"{DEEP_BLUE} rg",
+        "0 722 595 120 re",
+        "f",
+        f"{GOLD} rg",
+        "0 722 595 6 re",
+        "f",
+        text_block(70, 806, [title], font="F2", size=28, color=WHITE, leading=30),
+    ]
+    if subtitle:
+        commands.append(text_block(70, 780, [subtitle], font="F1", size=13, color=WHITE, leading=16))
+    if include_logo:
+        commands.append(draw_logo(430, 740, 130))
+    return "\n".join(commands)
+
+
+def footer(page_number: int) -> str:
+    commands = [
+        f"{PALE_BLUE} rg",
+        "0 70 595 2 re",
+        "f",
+        text_block(
+            70,
+            48,
+            ["Aktonz Lettings | Premium Lettings & Management"],
+            font="F1",
+            size=10,
+            color=WARM_GREY,
+            leading=12,
+        ),
+        text_block(520, 48, [f"{page_number:02d}"], font="F2", size=10, color=GOLD, leading=12),
+    ]
+    return "\n".join(commands)
+
+
+# --- Logo rendering -------------------------------------------------------
+
+LOGO_BASE_WIDTH = 400.0
+LOGO_BASE_HEIGHT = 160.0
+
+
+def _load_logo_rectangles() -> List[tuple[float, float, float, float]]:
+    svg_path = Path(__file__).resolve().parent.parent / "public" / "aktonz-logo-modern.svg"
+    tree = ET.parse(svg_path)
+    ns = {"svg": "http://www.w3.org/2000/svg"}
+    rectangles: List[tuple[float, float, float, float]] = []
+    for rect in tree.findall(".//svg:rect", ns):
+        fill = rect.get("fill")
+        if fill is None or fill.lower() != "#ffe500":
+            continue
+        x_attr = rect.get("x")
+        y_attr = rect.get("y")
+        width_attr = rect.get("width")
+        height_attr = rect.get("height")
+        if not all((x_attr, y_attr, width_attr, height_attr)):
+            continue
+        if "%" in width_attr or "%" in height_attr:
+            continue
+        rectangles.append((float(x_attr), float(y_attr), float(width_attr), float(height_attr)))
+    return rectangles
+
+
+LOGO_RECTANGLES = _load_logo_rectangles()
+
+
+def draw_logo(x: float, y: float, width: float) -> str:
+    scale = width / LOGO_BASE_WIDTH
+    height = LOGO_BASE_HEIGHT * scale
+    commands = [
+        f"{DEEP_BLUE} rg",
+        f"{x:.2f} {y:.2f} {width:.2f} {height:.2f} re",
+        "f",
+        f"{DUSK_BLUE} rg",
+        f"{x:.2f} {y + 0.7 * height:.2f} {width:.2f} {0.3 * height:.2f} re",
+        "f",
+        f"{GOLD} rg",
+        f"{x:.2f} {y + 0.08 * height:.2f} {width:.2f} {0.02 * height:.2f} re",
+        "f",
+    ]
+    for rect_x, rect_y, rect_w, rect_h in LOGO_RECTANGLES:
+        draw_x = x + rect_x * scale
+        draw_y = y + (LOGO_BASE_HEIGHT - rect_y - rect_h) * scale
+        commands.append(f"{LOGO_GOLD} rg")
+        commands.append(f"{draw_x:.2f} {draw_y:.2f} {rect_w * scale:.2f} {rect_h * scale:.2f} re")
+        commands.append("f")
+    return "\n".join(commands)
+
+
+# --- Brochure content -----------------------------------------------------
+
+
 def build_brochure(output_path: Path) -> None:
     builder = PDFBuilder()
 
-    # Fonts
     regular_font_obj = builder.add_object(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\n")
     bold_font_obj = builder.add_object(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>\n")
     italic_font_obj = builder.add_object(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique >>\n")
@@ -71,864 +216,862 @@ def build_brochure(output_path: Path) -> None:
     )
 
     media_box = "[0 0 595 842]"
-
     pages_obj = builder.reserve_object()
 
-    deep_blue = "0 0.294 0.553"
-    dusk_blue = "0.133 0.278 0.459"
-    soft_blue = "0.894 0.937 0.976"
-    gold = "0.812 0.682 0.396"
     page_contents: List[str] = []
 
-    # Page 1 - Cover with logo and hero statement
-    page_contents.append(
-        f"""1 1 1 rg
-0 0 595 842 re
-f
-{deep_blue} rg
-0 420 595 422 re
-f
-{soft_blue} rg
-0 0 595 420 re
-f
-q
-0 0 0 rg
-{gold} RG
-4 w
-207 630 181 72 re
-B
-Q
-1 1 1 rg
-BT
-/F2 38 Tf
-235 670 Td
-(Akt) Tj
-ET
-{gold} rg
-BT
-/F2 38 Tf
-323 670 Td
-(o) Tj
-ET
-1 1 1 rg
-BT
-/F2 38 Tf
-347 670 Td
-(nz) Tj
-ET
-{gold} rg
-0 610 595 4 re
-f
-1 1 1 rg
-BT
-/F2 30 Tf
-80 560 Td
-(Premium Lettings \& Management) Tj
-0 -32 Td
-/F1 20 Tf
-(Modern Service, Local Expertise) Tj
-0 -36 Td
-/F1 13 Tf
-(Move smarter with Aktonz local property experts guiding every tenancy with precision.) Tj
-ET
-{deep_blue} rg
-0 502 595 2 re
-f
-0 0 0 rg
-BT
-/F1 13 Tf
-80 470 Td
-(High-impact marketing, proactive compliance guardianship, and data-backed asset care.) Tj
-0 -18 Td
-(A modern lettings partner for London landlords ready to elevate performance.) Tj
-ET
-{gold} rg
-80 400 120 8 re
-f
-0 0 0 rg
-BT
-/F1 12 Tf
-80 360 Td
-(2023 delivery: 99% landlord retention, 14-day average time-to-let, 8.7% rental uplift vs. market.) Tj
-ET
-"""
-    )
+    # Page 1 - Cover
+    cover_commands: List[str] = [
+        f"{DEEP_BLUE} rg",
+        "0 0 595 842 re",
+        "f",
+        f"{SOFT_BLUE} rg",
+        "0 0 595 260 re",
+        "f",
+        f"{GOLD} rg",
+        "0 260 595 10 re",
+        "f",
+        draw_logo(187.5, 590, 220),
+        text_block(
+            120,
+            520,
+            [
+                "Premium Lettings & Management",
+                "Modern service. Local expertise. Trusted results.",
+            ],
+            font="F2",
+            size=26,
+            color=WHITE,
+            leading=30,
+        ),
+        text_block(
+            120,
+            454,
+            [
+                "Move smarter with Aktonz as your London lettings partner.",
+                "Data-led marketing, curated tenant journeys, and proactive asset care for confident landlords.",
+            ],
+            font="F1",
+            size=14,
+            color=WHITE,
+            leading=20,
+        ),
+        f"{WHITE} rg",
+        "70 90 455 140 re",
+        "f",
+        f"{GOLD} rg",
+        "70 220 455 4 re",
+        "f",
+        text_block(
+            90,
+            210,
+            [
+                "Aktonz delivers concierge-level lettings with a technology core",
+                "so every landlord enjoys real-time clarity and strategic advice.",
+                "From Canary Wharf penthouses to Hackney townhouses, our team",
+                "brings local intelligence, rigorous compliance and polished",
+                "marketing that commands premium tenancies in record time.",
+                "",
+                "99% landlord retention | 14-day average time-to-let | 8.7% rental uplift vs. local averages",
+            ],
+            font="F1",
+            size=12,
+            color=DEEP_BLUE,
+            leading=16,
+        ),
+    ]
+    page_contents.append("\n".join(cover_commands))
 
-    # Page 2 - Company introduction and why choose us
-    page_contents.append(
-        f"""1 1 1 rg
-0 0 595 842 re
-f
-{soft_blue} rg
-0 760 595 82 re
-f
-{deep_blue} rg
-0 740 595 4 re
-f
-0 0 0 rg
-BT
-/F2 32 Tf
-70 780 Td
-(Aktonz Lettings \u2013 London rooted, tech forward) Tj
-0 -32 Td
-/F1 13 Tf
-(Aktonz is a London-based online estate and letting agency delivering residential lettings and management citywide.) Tj
-0 -18 Td
-(We blend concierge-style service with a property-tech backbone so landlords stay informed in real time.) Tj
-0 -28 Td
-/F2 20 Tf
-(Why landlords choose us) Tj
-0 -24 Td
-/F1 12 Tf
-(- Local London experts embedded across Canary Wharf, Shoreditch, Hackney and beyond.) Tj
-0 -18 Td
-(- Insight-rich advice built on neighbourhood data and on-the-ground negotiations.) Tj
-0 -18 Td
-(- Modern marketing assets, lifestyle videography, and relocation networks for premium exposure.) Tj
-0 -18 Td
-(- Transparent fixed fees with no VAT for immediate savings of up to 20% versus traditional agents.) Tj
-0 -28 Td
-/F2 20 Tf
-(Credibility that converts) Tj
-0 -24 Td
-/F1 12 Tf
-(72% of consumers trust businesses with clear value proof and testimonials \u2013 we lead with both to win instruction.) Tj
-ET
-{gold} rg
-70 520 455 2 re
-f
-0 0 0 rg
-BT
-/F1 12 Tf
-70 490 Td
-(Mission: maximise rental income while protecting your asset and time through proactive management.) Tj
-0 -18 Td
-(Scope: from single apartments to multi-unit portfolios, Aktonz handles compliance, marketing, and tenant care.) Tj
-ET
-"""
-    )
+    # Page 2 - Company introduction
+    page2_commands: List[str] = [
+        page_background(),
+        header("Aktonz Lettings", "Modern letting agents with London roots"),
+        f"{SOFT_BLUE} rg",
+        "70 500 455 160 re",
+        "f",
+        text_block(
+            70,
+            660,
+            [
+                "Aktonz is a London-based lettings and property management agency built",
+                "to give landlords total confidence. Our neighbourhood experts combine",
+                "hyper-local insight with a digital portal that keeps instructions transparent",
+                "and responsive every step of the tenancy lifecycle.",
+                "",
+                "We operate across the capital with teams dedicated to East London hubs",
+                "including Hackney, Shoreditch and Canary Wharf while supporting",
+                "landlords with single homes or multi-unit portfolios citywide.",
+            ],
+            font="F1",
+            size=12,
+            color=BLACK,
+            leading=18,
+        ),
+        text_block(
+            90,
+            630,
+            [
+                "Why landlords choose Aktonz",
+            ],
+            font="F2",
+            size=16,
+            color=DEEP_BLUE,
+            leading=20,
+        ),
+        text_block(
+            90,
+            600,
+            bullet_lines(
+                [
+                    "Local London experts advising on pricing, positioning and legislation per neighbourhood.",
+                    "Modern marketing with cinematic photography, video walk-throughs and relocation networks for reach.",
+                    "24/7 portal providing viewing feedback, offers, payments and compliance tracking in real time.",
+                    "Transparent fixed fees with no VAT, saving around 20% compared with traditional agency models.",
+                ]
+            ),
+            font="F1",
+            size=11,
+            color=BLACK,
+            leading=16,
+        ),
+        f"{GOLD} rg",
+        "340 320 185 130 re",
+        "f",
+        text_block(
+            355,
+            430,
+            [
+                "Trust that converts",
+                "72% of consumers trust",
+                "businesses with clear value",
+                "proof and testimonials. Aktonz",
+                "leads with measurable results",
+                "to secure instructions swiftly.",
+            ],
+            font="F2",
+            size=12,
+            color=WHITE,
+            leading=16,
+        ),
+        text_block(
+            70,
+            440,
+            [
+                "Mission",
+            ],
+            font="F2",
+            size=14,
+            color=DEEP_BLUE,
+            leading=18,
+        ),
+        text_block(
+            70,
+            412,
+            [
+                "Maximise rental income while protecting your asset and time through proactive management.",
+            ],
+            font="F1",
+            size=11,
+            color=BLACK,
+            leading=16,
+        ),
+        text_block(
+            70,
+            376,
+            [
+                "Scope",
+            ],
+            font="F2",
+            size=14,
+            color=DEEP_BLUE,
+            leading=18,
+        ),
+        text_block(
+            70,
+            348,
+            [
+                "From single-apartment landlords to portfolio investors, Aktonz handles marketing, compliance",
+                "and tenant care with measured communication at every milestone.",
+            ],
+            font="F1",
+            size=11,
+            color=BLACK,
+            leading=16,
+        ),
+        footer(2),
+    ]
+    page_contents.append("\n".join(page2_commands))
 
     # Page 3 - Landlord services overview
-    page_contents.append(
-        f"""1 1 1 rg
-0 0 595 842 re
-f
-{soft_blue} rg
-0 742 595 100 re
-f
-0 0 0 rg
-BT
-/F2 30 Tf
-70 780 Td
-(Landlord services tailored to every need) Tj
-0 -34 Td
-/F1 13 Tf
-(Three service levels so you control involvement while Aktonz drives performance.) Tj
-0 -30 Td
-/F2 20 Tf
-(Let Only) Tj
-0 -24 Td
-/F1 12 Tf
-(- Strategic marketing blast across portals and targeted campaigns.) Tj
-0 -18 Td
-(- Accompanied viewings, right-to-rent, and professional referencing.) Tj
-0 -18 Td
-(- Tenancy agreement drafting plus rent and deposit onboarding.) Tj
-0 -28 Td
-/F2 20 Tf
-(Rent Collection) Tj
-0 -24 Td
-/F1 12 Tf
-(- Everything in Let Only plus monthly rent administration and arrears management.) Tj
-0 -18 Td
-(- Detailed landlord statements and payment tracking via the portal.) Tj
-0 -28 Td
-/F2 20 Tf
-(Full Management) Tj
-0 -24 Td
-/F1 12 Tf
-(- Comprehensive day-to-day management with zero tenant contact required.) Tj
-0 -18 Td
-(- Repairs coordinated with vetted contractors and transparent approvals.) Tj
-0 -18 Td
-(- Periodic inspections, 24/7 emergency support, and legal notice handling.) Tj
-ET
-{gold} rg
-70 260 455 2 re
-f
-0 0 0 rg
-BT
-/F1 12 Tf
-70 230 Td
-(Each pathway includes access to our landlord success team, compliance tracking, and renewal strategy reviews.) Tj
-ET
-"""
-    )
+    services_commands: List[str] = [
+        page_background(),
+        header("Service pathways", "Flexible coverage that matches your involvement"),
+        f"{PALE_BLUE} rg",
+        "70 510 150 200 re",
+        "f",
+        f"{PALE_BLUE} rg",
+        "222 510 150 200 re",
+        "f",
+        f"{PALE_BLUE} rg",
+        "374 510 150 200 re",
+        "f",
+        f"{GOLD} rg",
+        "70 670 150 6 re",
+        "f",
+        f"{GOLD} rg",
+        "222 670 150 6 re",
+        "f",
+        f"{GOLD} rg",
+        "374 670 150 6 re",
+        "f",
+        text_block(
+            78,
+            650,
+            ["Let Only"],
+            font="F2",
+            size=16,
+            color=DEEP_BLUE,
+            leading=18,
+        ),
+        text_block(
+            78,
+            620,
+            bullet_lines(
+                [
+                    "Strategic marketing blast across major portals and social campaigns.",
+                    "Accompanied viewings with expert negotiators.",
+                    "Tenant referencing, right-to-rent checks and contract preparation.",
+                    "Handover once rent and deposit clear, ready for self-management.",
+                ]
+            ),
+            font="F1",
+            size=11,
+            color=BLACK,
+            leading=16,
+        ),
+        text_block(
+            230,
+            650,
+            ["Rent Collection"],
+            font="F2",
+            size=16,
+            color=DEEP_BLUE,
+            leading=18,
+        ),
+        text_block(
+            230,
+            620,
+            bullet_lines(
+                [
+                    "All Let Only services plus monthly rent administration.",
+                    "Tenant payment monitoring with proactive arrears chasing.",
+                    "Monthly statements delivered through the Aktonz landlord portal.",
+                    "Cashflow oversight without the day-to-day chasing.",
+                ]
+            ),
+            font="F1",
+            size=11,
+            color=BLACK,
+            leading=16,
+        ),
+        text_block(
+            382,
+            650,
+            ["Full Management"],
+            font="F2",
+            size=16,
+            color=DEEP_BLUE,
+            leading=18,
+        ),
+        text_block(
+            382,
+            620,
+            bullet_lines(
+                [
+                    "Complete tenant liaison with no direct landlord contact required.",
+                    "Maintenance coordination via vetted contractors and approval workflows.",
+                    "Periodic inspections, detailed reports and renewal strategy planning.",
+                    "24/7 emergency support line and legal notice handling.",
+                ]
+            ),
+            font="F1",
+            size=11,
+            color=BLACK,
+            leading=16,
+        ),
+        text_block(
+            70,
+            470,
+            [
+                "Every service level includes access to our landlord success team, compliance tracking,",
+                "and marketing refreshes at renewal to keep properties achieving optimal yields.",
+            ],
+            font="F1",
+            size=11,
+            color=BLACK,
+            leading=16,
+        ),
+        footer(3),
+    ]
+    page_contents.append("\n".join(services_commands))
 
-    # Page 4 - Services comparison table
-    page_contents.append(
-        f"""1 1 1 rg
-0 0 595 842 re
-f
-{deep_blue} rg
-0 742 595 100 re
-f
-1 1 1 rg
-BT
-/F2 28 Tf
-70 780 Td
-(Service comparison) Tj
-ET
-{gold} rg
-70 720 455 2 re
-f
-0 0 0 rg
-BT
-/F2 14 Tf
-90 700 Td
-(Key features) Tj
-ET
-0 0 0 RG
-1 w
-70 690 m
-525 690 l
-S
-70 640 m
-525 640 l
-S
-70 590 m
-525 590 l
-S
-70 540 m
-525 540 l
-S
-70 490 m
-525 490 l
-S
-70 440 m
-525 440 l
-S
-70 390 m
-525 390 l
-S
-70 340 m
-525 340 l
-S
-70 290 m
-525 290 l
-S
-70 240 m
-525 240 l
-S
-70 190 m
-525 190 l
-S
-70 140 m
-525 140 l
-S
-70 690 m
-70 140 l
-S
-235 690 m
-235 140 l
-S
-360 690 m
-360 140 l
-S
-525 690 m
-525 140 l
-S
-BT
-/F2 13 Tf
-250 660 Td
-(Let Only) Tj
-ET
-BT
-/F2 13 Tf
-375 660 Td
-(Rent Collection) Tj
-ET
-BT
-/F2 13 Tf
-435 660 Td
-(Full Mgmt) Tj
-ET
-BT
-/F1 11 Tf
-80 620 Td
-(Professional photography \& lifestyle marketing) Tj
-ET
-BT
-/F1 11 Tf
-250 620 Td
-([x]) Tj
-ET
-BT
-/F1 11 Tf
-375 620 Td
-([x]) Tj
-ET
-BT
-/F1 11 Tf
-440 620 Td
-([x]) Tj
-ET
-BT
-/F1 11 Tf
-80 570 Td
-(Tenant vetting, referencing, and contracts) Tj
-ET
-BT
-/F1 11 Tf
-250 570 Td
-([x]) Tj
-ET
-BT
-/F1 11 Tf
-375 570 Td
-([x]) Tj
-ET
-BT
-/F1 11 Tf
-440 570 Td
-([x]) Tj
-ET
-BT
-/F1 11 Tf
-80 520 Td
-(Rent collection \& arrears management) Tj
-ET
-BT
-/F1 11 Tf
-250 520 Td
-([ ]) Tj
-ET
-BT
-/F1 11 Tf
-375 520 Td
-([x]) Tj
-ET
-BT
-/F1 11 Tf
-440 520 Td
-([x]) Tj
-ET
-BT
-/F1 11 Tf
-80 470 Td
-(Monthly landlord statements) Tj
-ET
-BT
-/F1 11 Tf
-250 470 Td
-([ ]) Tj
-ET
-BT
-/F1 11 Tf
-375 470 Td
-([x]) Tj
-ET
-BT
-/F1 11 Tf
-440 470 Td
-([x]) Tj
-ET
-BT
-/F1 11 Tf
-80 420 Td
-(Maintenance coordination) Tj
-ET
-BT
-/F1 11 Tf
-250 420 Td
-([ ]) Tj
-ET
-BT
-/F1 11 Tf
-375 420 Td
-([ ]) Tj
-ET
-BT
-/F1 11 Tf
-440 420 Td
-([x]) Tj
-ET
-BT
-/F1 11 Tf
-80 370 Td
-(24/7 emergency support) Tj
-ET
-BT
-/F1 11 Tf
-250 370 Td
-([ ]) Tj
-ET
-BT
-/F1 11 Tf
-375 370 Td
-([ ]) Tj
-ET
-BT
-/F1 11 Tf
-440 370 Td
-([x]) Tj
-ET
-BT
-/F1 11 Tf
-80 320 Td
-(Periodic inspections \& reporting) Tj
-ET
-BT
-/F1 11 Tf
-250 320 Td
-([ ]) Tj
-ET
-BT
-/F1 11 Tf
-375 320 Td
-([ ]) Tj
-ET
-BT
-/F1 11 Tf
-440 320 Td
-([x]) Tj
-ET
-BT
-/F1 11 Tf
-80 270 Td
-(Legal notices and tenancy renewals) Tj
-ET
-BT
-/F1 11 Tf
-250 270 Td
-([ ]) Tj
-ET
-BT
-/F1 11 Tf
-375 270 Td
-([ ]) Tj
-ET
-BT
-/F1 11 Tf
-440 270 Td
-([x]) Tj
-ET
-BT
-/F1 11 Tf
-80 220 Td
-(Fee structure) Tj
-ET
-BT
-/F1 11 Tf
-250 220 Td
-(One-off %) Tj
-ET
-BT
-/F1 11 Tf
-375 220 Td
-(Monthly %) Tj
-ET
-BT
-/F1 11 Tf
-440 220 Td
-(Monthly %) Tj
-ET
-BT
-/F1 11 Tf
-80 170 Td
-(Ideal for) Tj
-ET
-BT
-/F1 11 Tf
-250 170 Td
-(Hands-on landlords) Tj
-ET
-BT
-/F1 11 Tf
-375 170 Td
-(Owners wanting support with cashflow) Tj
-ET
-BT
-/F1 11 Tf
-440 170 Td
-(Portfolio or time-poor landlords) Tj
-ET
-"""
-    )
+    # Page 4 - Comparison table
+    comparison_commands: List[str] = [
+        page_background(),
+        header("Service comparison", "At-a-glance features across each pathway"),
+        f"{PALE_BLUE} rg",
+        "70 200 455 340 re",
+        "f",
+        f"{DEEP_BLUE} rg",
+        "70 520 455 40 re",
+        "f",
+        text_block(
+            90,
+            540,
+            ["Feature"],
+            font="F2",
+            size=12,
+            color=WHITE,
+            leading=16,
+        ),
+        text_block(
+            260,
+            540,
+            ["Let Only"],
+            font="F2",
+            size=12,
+            color=WHITE,
+            leading=16,
+        ),
+        text_block(
+            365,
+            540,
+            ["Rent Collection"],
+            font="F2",
+            size=12,
+            color=WHITE,
+            leading=16,
+        ),
+        text_block(
+            470,
+            540,
+            ["Full Mgmt"],
+            font="F2",
+            size=12,
+            color=WHITE,
+            leading=16,
+        ),
+    ]
 
-    # Page 5 - Pricing and fees transparency
-    page_contents.append(
-        f"""1 1 1 rg
-0 0 595 842 re
-f
-{soft_blue} rg
-0 742 595 100 re
-f
-0 0 0 rg
-BT
-/F2 30 Tf
-70 780 Td
-(Transparent pricing \u2013 no VAT, no surprises) Tj
-0 -34 Td
-/F1 13 Tf
-(Our fixed, VAT-free pricing keeps more income in your pocket while delivering premium service.) Tj
-0 -36 Td
-/F2 22 Tf
-(Let Only) Tj
-0 -26 Td
-/F1 12 Tf
-(7% of first year\u2019s rent, VAT-free. Tenant marketing, vetting, and tenancy setup completed before handover.) Tj
-0 -30 Td
-/F2 22 Tf
-(Rent Collection) Tj
-0 -26 Td
-/F1 12 Tf
-(6% of monthly rent collected, VAT-free. Includes Let Only plus rent processing, arrears chasing, and statements.) Tj
-0 -30 Td
-/F2 22 Tf
-(Full Management) Tj
-0 -26 Td
-/F1 12 Tf
-(10% of monthly rent, VAT-free. Includes Rent Collection plus maintenance coordination and full tenant liaison.) Tj
-0 -34 Td
-/F2 20 Tf
-(Fee advantages) Tj
-0 -24 Td
-/F1 12 Tf
-(Most agencies quote \"6% + VAT\" equating to 7.2%. Aktonz simply charges 6%, saving you 20% immediately.) Tj
-0 -18 Td
-(No renewal fees, no mark-ups on contractor invoices, and no hidden admin costs.) Tj
-ET
-{gold} rg
-70 340 455 2 re
-f
-0 0 0 rg
-BT
-/F1 12 Tf
-70 310 Td
-(Optional onboarding items are clearly labelled; many are included within Full Management as standard.) Tj
-ET
-"""
+    rows = [
+        ("Professional photography & marketing", "Included", "Included", "Included"),
+        ("Accompanied viewings & tenant vetting", "Included", "Included", "Included"),
+        ("Contract drafting & onboarding", "Included", "Included", "Included"),
+        ("Rent collection & arrears support", "-", "Included", "Included"),
+        ("Monthly landlord statements", "-", "Included", "Included"),
+        ("Maintenance coordination", "-", "-", "Included"),
+        ("24/7 tenant support line", "-", "-", "Included"),
+        ("Periodic inspections & reporting", "-", "-", "Included"),
+        ("Legal notices & renewals", "-", "-", "Included"),
+        ("Ideal for", "Hands-on landlords", "Owners wanting cashflow support", "Portfolio & time-poor landlords"),
+    ]
+
+    start_y = 500.0
+    row_height = 32.0
+    for index, (feature, let_only, rent_collection, full_mgmt) in enumerate(rows):
+        row_y = start_y - index * row_height
+        if index % 2 == 0:
+            comparison_commands.append(f"{SOFT_BLUE} rg")
+            comparison_commands.append(f"70 {row_y - row_height + 2:.2f} 455 {row_height - 2:.2f} re")
+            comparison_commands.append("f")
+        comparison_commands.append(
+            text_block(80, row_y, [feature], font="F1", size=11, color=BLACK, leading=16)
+        )
+        comparison_commands.append(
+            text_block(260, row_y, [let_only], font="F1", size=11, color=BLACK, leading=16)
+        )
+        comparison_commands.append(
+            text_block(365, row_y, [rent_collection], font="F1", size=11, color=BLACK, leading=16)
+        )
+        comparison_commands.append(
+            text_block(470, row_y, [full_mgmt], font="F1", size=11, color=BLACK, leading=16)
+        )
+
+    comparison_commands.extend(
+        [
+            text_block(
+                70,
+                180,
+                [
+                    "Let Only is a one-off fee. Rent Collection and Full Management operate on monthly percentages",
+                    "with no VAT and no renewal surprises. Upgrade pathways at any time as your needs evolve.",
+                ],
+                font="F1",
+                size=11,
+                color=BLACK,
+                leading=16,
+            ),
+            footer(4),
+        ]
     )
+    page_contents.append("\n".join(comparison_commands))
+
+    # Page 5 - Pricing & fees
+    pricing_commands: List[str] = [
+        page_background(),
+        header("Transparent pricing", "Clear fees aligned with your objectives"),
+        text_block(
+            70,
+            670,
+            [
+                "No VAT on Aktonz fees keeps more rental income in your pocket. Our pricing is simple,",
+                "with inclusive onboarding and no renewal or hidden administration charges.",
+            ],
+            font="F1",
+            size=12,
+            color=BLACK,
+            leading=18,
+        ),
+    ]
+
+    pricing_boxes = [
+        ("Let Only", "7% of first year's rent", [
+            "Tenant marketing blitz across portals and networks.",
+            "Accompanied viewings and expert negotiation.",
+            "Referencing, contracts and move-in onboarding included.",
+        ]),
+        ("Rent Collection", "6% of monthly rent", [
+            "Everything in Let Only plus rent processing.",
+            "Late payment monitoring and arrears support.",
+            "Monthly statements and payout reconciliation.",
+        ]),
+        ("Full Management", "10% of monthly rent", [
+            "Comprehensive tenant liaison and maintenance oversight.",
+            "Planned inspections with photographic reports.",
+            "24/7 emergency line and legal compliance support.",
+        ]),
+    ]
+
+    box_x = [70.0, 218.0, 366.0]
+    for (title, price, bullets), x in zip(pricing_boxes, box_x):
+        pricing_commands.extend(
+            [
+                f"{PALE_BLUE} rg",
+                f"{x:.2f} 430 {148:.2f} 200 re",
+                "f",
+                f"{GOLD} rg",
+                f"{x:.2f} 610 {148:.2f} 6 re",
+                "f",
+                text_block(x + 10, 596, [title], font="F2", size=16, color=DEEP_BLUE, leading=18),
+                text_block(x + 10, 566, [price, "VAT-free"], font="F1", size=12, color=BLACK, leading=16),
+                text_block(x + 10, 520, bullet_lines(bullets), font="F1", size=11, color=BLACK, leading=16),
+            ]
+        )
+
+    pricing_commands.extend(
+        [
+            text_block(
+                70,
+                380,
+                [
+                    "Fee advantages",
+                ],
+                font="F2",
+                size=14,
+                color=DEEP_BLUE,
+                leading=18,
+            ),
+            text_block(
+                70,
+                352,
+                [
+                    "Traditional 6% + VAT structures equate to 7.2%. Aktonz charges a straight 6%, saving landlords around 20%.",
+                    "We never mark-up contractor invoices and provide renewal strategy reviews without additional charges.",
+                ],
+                font="F1",
+                size=11,
+                color=BLACK,
+                leading=16,
+            ),
+            footer(5),
+        ]
+    )
+    page_contents.append("\n".join(pricing_commands))
 
     # Page 6 - Add-on services
-    page_contents.append(
-        f"""1 1 1 rg
-0 0 595 842 re
-f
-{deep_blue} rg
-0 742 595 100 re
-f
-1 1 1 rg
-BT
-/F2 28 Tf
-70 780 Td
-(Add-on solutions for total compliance) Tj
-0 -34 Td
-/F1 13 Tf
-(Aktonz can arrange every statutory certificate and protection to keep your tenancy watertight.) Tj
-0 -30 Td
-/F2 20 Tf
-(Energy Performance Certificates) Tj
-0 -24 Td
-/F1 12 Tf
-(Certified assessors scheduled within 72 hours to secure an EPC that meets lettings regulations.) Tj
-0 -28 Td
-/F2 20 Tf
-(Inventory \& check-in/out) Tj
-0 -24 Td
-/F1 12 Tf
-(Detailed photo-led inventories, professional clerks, and check-out reconciliation to protect deposits.) Tj
-0 -28 Td
-/F2 20 Tf
-(Rent guarantee \& legal cover) Tj
-0 -24 Td
-/F1 12 Tf
-(Optional insurance safeguarding rent and covering eviction legal costs for up to 12 months of arrears.) Tj
-0 -28 Td
-/F2 20 Tf
-(Safety certificates) Tj
-0 -24 Td
-/F1 12 Tf
-(Gas safety, EICR electrical inspections, and smoke/CO compliance managed through approved engineers.) Tj
-0 -28 Td
-/F2 20 Tf
-(Professional cleaning \& staging) Tj
-0 -24 Td
-/F1 12 Tf
-(Pre-tenancy and move-out cleaning, plus styling upgrades to accelerate marketing response.) Tj
-ET
-{gold} rg
-70 260 455 2 re
-f
-0 0 0 rg
-BT
-/F1 12 Tf
-70 230 Td
-(Bundle add-ons with Full Management for preferential rates and a single point of instruction.) Tj
-ET
-"""
-    )
+    addons_commands: List[str] = [
+        page_background(),
+        header("Add-on services", "Optional extras that keep tenancies compliant"),
+        f"{PALE_BLUE} rg",
+        "70 450 455 210 re",
+        "f",
+        text_block(
+            70,
+            680,
+            [
+                "Aktonz provides a single point of instruction for statutory certificates and enhanced protection,",
+                "so your property is always ready for move-in and future-proofed against regulation changes.",
+            ],
+            font="F1",
+            size=12,
+            color=BLACK,
+            leading=18,
+        ),
+        text_block(
+            90,
+            630,
+            bullet_lines(
+                [
+                    "Energy Performance Certificates arranged within 72 hours via accredited assessors.",
+                    "Gas safety inspections, electrical reports (EICR) and smoke/CO compliance scheduling.",
+                    "Professional inventory, check-in and check-out reports with photographic evidence.",
+                    "Rent guarantee insurance covering arrears for up to 12 months plus legal eviction support.",
+                    "Pre-tenancy and post-tenancy professional cleaning, staging and furnishing coordination.",
+                ]
+            ),
+            font="F1",
+            size=11,
+            color=BLACK,
+            leading=16,
+        ),
+        text_block(
+            70,
+            420,
+            [
+                "Bundle add-ons with Full Management for preferential rates and consolidated reporting across certificates",
+                "and renewals. Our compliance dashboard tracks renewal dates and proactively books services on your behalf.",
+            ],
+            font="F1",
+            size=11,
+            color=BLACK,
+            leading=16,
+        ),
+        footer(6),
+    ]
+    page_contents.append("\n".join(addons_commands))
 
     # Page 7 - Testimonials
-    page_contents.append(
-        f"""1 1 1 rg
-0 0 595 842 re
-f
-{soft_blue} rg
-0 742 595 100 re
-f
-0 0 0 rg
-BT
-/F2 28 Tf
-70 780 Td
-(Landlords rate Aktonz 4.9/5) Tj
-0 -34 Td
-/F1 12 Tf
-(Real experiences from London landlords who trust us with their homes and portfolios.) Tj
-0 -30 Td
-/F3 14 Tf
-(\"Aktonz found corporate tenants in under a week and managed everything end-to-end. I stayed overseas stress-free.\" \u2013 Sarah K., Canary Wharf) Tj
-0 -40 Td
-(\"Their tech portal means I see viewings, offers, and maintenance updates instantly. Transparency like this is rare.\" \u2013 John M., Shoreditch) Tj
-0 -40 Td
-(\"Rent is always on time and the team pre-empts renewals months ahead. Exceptional foresight.\" \u2013 Priya L., Hackney) Tj
-0 -40 Td
-(\"From photography to check-in, every touchpoint was polished. Tenants constantly remark on the service.\" \u2013 David R., Islington) Tj
-0 -40 Td
-/F2 20 Tf
-(Proof sells properties) Tj
-0 -24 Td
-/F1 12 Tf
-(72% of consumers trust positive testimonials; Aktonz builds that trust from the first conversation.) Tj
-ET
-{gold} rg
-70 260 455 2 re
-f
-0 0 0 rg
-BT
-/F1 12 Tf
-70 230 Td
-(Ask us for references and case studies relevant to your property type for even deeper assurance.) Tj
-ET
-"""
-    )
+    testimonials_commands: List[str] = [
+        page_background(),
+        header("Landlords rate Aktonz 4.9/5", "Social proof from across London"),
+        f"{PALE_BLUE} rg",
+        "70 460 455 200 re",
+        "f",
+        text_block(
+            90,
+            640,
+            [
+                "\"Aktonz found corporate tenants within a week and handled every detail",
+                "while I was overseas. Communication was immediate and outcomes were",
+                "excellent.\" – Sarah K., Canary Wharf landlord",
+            ],
+            font="F3",
+            size=12,
+            color=BLACK,
+            leading=18,
+        ),
+        text_block(
+            90,
+            580,
+            [
+                "\"Their digital portal means I see viewings, offers and maintenance",
+                "updates instantly. Transparency like this is rare and hugely reassuring.\"",
+                "– John M., Shoreditch landlord",
+            ],
+            font="F3",
+            size=12,
+            color=BLACK,
+            leading=18,
+        ),
+        text_block(
+            90,
+            520,
+            [
+                "\"Rent is always on time and the team pre-empts renewals months ahead.",
+                "The foresight keeps my yields on track year after year.\" – Priya L., Hackney landlord",
+            ],
+            font="F3",
+            size=12,
+            color=BLACK,
+            leading=18,
+        ),
+        text_block(
+            90,
+            460,
+            [
+                "\"From photography to check-in, every touchpoint was polished. Tenants",
+                "comment on the service which protects my asset's reputation.\" – David R., Islington landlord",
+            ],
+            font="F3",
+            size=12,
+            color=BLACK,
+            leading=18,
+        ),
+        text_block(
+            70,
+            380,
+            [
+                "72% of consumers trust businesses with strong testimonials. Ask for references",
+                "and case studies aligned to your property profile to see how Aktonz elevates",
+                "performance in comparable homes.",
+            ],
+            font="F1",
+            size=11,
+            color=BLACK,
+            leading=16,
+        ),
+        footer(7),
+    ]
+    page_contents.append("\n".join(testimonials_commands))
 
-    # Page 8 - FAQ and helpful information
-    page_contents.append(
-        f"""1 1 1 rg
-0 0 595 842 re
-f
-{deep_blue} rg
-0 742 595 100 re
-f
-1 1 1 rg
-BT
-/F2 28 Tf
-70 780 Td
-(FAQs and landlord guidance) Tj
-0 -34 Td
-/F1 12 Tf
-(We anticipate common questions so you step into partnership with clarity and confidence.) Tj
-0 -28 Td
-/F2 16 Tf
-(What certificates do I need before letting?) Tj
-0 -20 Td
-/F1 12 Tf
-(Gas safety, EICR electrical reports, EPC, smoke and CO compliance. Aktonz can arrange each requirement.) Tj
-0 -28 Td
-/F2 16 Tf
-(How are deposits handled?) Tj
-0 -20 Td
-/F1 12 Tf
-(Deposits are registered with government-approved schemes. Full Management includes registration and dispute support.) Tj
-0 -28 Td
-/F2 16 Tf
-(When will I receive rent?) Tj
-0 -20 Td
-/F1 12 Tf
-(Rent Collection and Full Management clients receive transfers within two working days of tenant payment with monthly statements.) Tj
-0 -28 Td
-/F2 16 Tf
-(Do you inspect the property during tenancy?) Tj
-0 -20 Td
-/F1 12 Tf
-(Full Management includes inspections every six months with photo reports and action plans.) Tj
-0 -28 Td
-/F2 16 Tf
-(How long is the agreement?) Tj
-0 -20 Td
-/F1 12 Tf
-(Services are on a per-tenancy basis with flexible terms; fees continue only while tenants remain in situ.) Tj
-0 -28 Td
-/F2 16 Tf
-(Where do you operate?) Tj
-0 -20 Td
-/F1 12 Tf
-(We cover all London zones with specialist teams in East London hubs including Hackney, Canary Wharf, and Shoreditch.) Tj
-ET
-{gold} rg
-70 200 455 2 re
-f
-0 0 0 rg
-BT
-/F1 12 Tf
-70 170 Td
-(Need more detail? Email info@aktonz.com for tailored guidance or to access our landlord knowledge base.) Tj
-ET
-"""
+    # Page 8 - FAQ
+    faq_commands: List[str] = [
+        page_background(),
+        header("FAQs & guidance", "Answering common landlord questions"),
+        text_block(
+            70,
+            680,
+            [
+                "We anticipate the questions landlords regularly ask so you can move forward",
+                "with confidence. For anything bespoke, our specialists are on hand to provide",
+                "clarity and next steps.",
+            ],
+            font="F1",
+            size=12,
+            color=BLACK,
+            leading=18,
+        ),
+    ]
+
+    faqs = [
+        (
+            "What certificates do I need before letting?",
+            "Gas safety, EICR electrical reports, Energy Performance Certificates and smoke/CO compliance. Aktonz arranges each",
+        ),
+        (
+            "How are deposits handled?",
+            "Deposits are registered with government-approved schemes. Full Management includes registration and dispute support",
+        ),
+        (
+            "When will I receive rent?",
+            "Rent Collection and Full Management clients receive transfers within two working days of tenant payment with monthly statements",
+        ),
+        (
+            "Do you inspect the property during tenancy?",
+            "Full Management includes inspections every six months with photographic reports and action plans",
+        ),
+        (
+            "How long is the agreement?",
+            "Services run per tenancy with flexible notice periods. Fees apply only while tenants remain in situ",
+        ),
+        (
+            "Where do you operate?",
+            "Aktonz covers all London zones with specialist teams across East London, the City fringe and North London",
+        ),
+    ]
+
+    start_y = 620.0
+    spacing = 60.0
+    for index, (question, answer) in enumerate(faqs):
+        y = start_y - index * spacing
+        faq_commands.append(text_block(70, y, [question], font="F2", size=13, color=DEEP_BLUE, leading=16))
+        faq_commands.append(text_block(70, y - 20, [answer + "."], font="F1", size=11, color=BLACK, leading=16))
+
+    faq_commands.extend(
+        [
+            text_block(
+                70,
+                260,
+                [
+                    "Need more detail? Email info@aktonz.com for tailored guidance or to access the Aktonz landlord knowledge base.",
+                ],
+                font="F1",
+                size=11,
+                color=BLACK,
+                leading=16,
+            ),
+            footer(8),
+        ]
     )
+    page_contents.append("\n".join(faq_commands))
 
     # Page 9 - London area showcase
-    page_contents.append(
-        f"""1 1 1 rg
-0 0 595 842 re
-f
-{soft_blue} rg
-0 742 595 100 re
-f
-0 0 0 rg
-BT
-/F2 28 Tf
-70 780 Td
-(Showcasing London neighbourhood expertise) Tj
-0 -34 Td
-/F1 13 Tf
-(Our specialists live and work across the capital so marketing speaks authentically to local audiences.) Tj
-ET
-{deep_blue} rg
-70 610 150 160 re
-f
-{gold} rg
-235 610 150 160 re
-f
-{dusk_blue} rg
-400 610 150 160 re
-f
-1 1 1 rg
-BT
-/F2 16 Tf
-90 740 Td
-(Canary Wharf) Tj
-0 -20 Td
-/F1 11 Tf
-(Financial hub with luxury riverside towers.) Tj
-0 -16 Td
-(Corporate tenants seek premium amenities and concierge living.) Tj
-ET
-BT
-/F2 16 Tf
-255 740 Td
-(Shoreditch) Tj
-0 -20 Td
-/F1 11 Tf
-(Creative heartland of East London.) Tj
-0 -16 Td
-(Converted lofts and tech professionals drive demand.) Tj
-ET
-BT
-/F2 16 Tf
-420 740 Td
-(Hackney) Tj
-0 -20 Td
-/F1 11 Tf
-(Vibrant, community-led streets with Victorian homes.) Tj
-0 -16 Td
-(Strong rental yields and lifestyle appeal.) Tj
-ET
-0 0 0 rg
-BT
-/F2 20 Tf
-70 560 Td
-(Beyond the East) Tj
-0 -24 Td
-/F1 12 Tf
-(Aktonz also covers City fringe, Greenwich riverside, and North London enclaves, tailoring marketing to each micro-market.) Tj
-0 -18 Td
-(Portfolio reviews highlight area-by-area performance so you know where to expand next.) Tj
-ET
-"""
-    )
+    area_commands: List[str] = [
+        page_background(),
+        header("London area showcase", "On-the-ground expertise across prime districts"),
+        f"{PALE_BLUE} rg",
+        "70 540 140 160 re",
+        "f",
+        f"{GOLD} rg",
+        "70 540 140 10 re",
+        "f",
+        f"{PALE_BLUE} rg",
+        "232 540 140 160 re",
+        "f",
+        f"{GOLD} rg",
+        "232 540 140 10 re",
+        "f",
+        f"{PALE_BLUE} rg",
+        "394 540 140 160 re",
+        "f",
+        f"{GOLD} rg",
+        "394 540 140 10 re",
+        "f",
+        text_block(
+            80,
+            670,
+            ["Canary Wharf"],
+            font="F2",
+            size=16,
+            color=DEEP_BLUE,
+            leading=18,
+        ),
+        text_block(
+            80,
+            640,
+            [
+                "Financial hub with riverside towers and concierge amenities.",
+                "Corporate tenants seek premium finishes and flexible move-in dates.",
+            ],
+            font="F1",
+            size=11,
+            color=BLACK,
+            leading=16,
+        ),
+        text_block(
+            242,
+            670,
+            ["Shoreditch"],
+            font="F2",
+            size=16,
+            color=DEEP_BLUE,
+            leading=18,
+        ),
+        text_block(
+            242,
+            640,
+            [
+                "Creative heartland with warehouse conversions and boutique new-builds.",
+                "Ideal for tech professionals valuing lifestyle-led marketing.",
+            ],
+            font="F1",
+            size=11,
+            color=BLACK,
+            leading=16,
+        ),
+        text_block(
+            404,
+            670,
+            ["Hackney"],
+            font="F2",
+            size=16,
+            color=DEEP_BLUE,
+            leading=18,
+        ),
+        text_block(
+            404,
+            640,
+            [
+                "Victorian streets and new developments with vibrant culture.",
+                "Strong rental yields supported by community-driven amenities.",
+            ],
+            font="F1",
+            size=11,
+            color=BLACK,
+            leading=16,
+        ),
+        text_block(
+            70,
+            520,
+            [
+                "Beyond the East, Aktonz covers the City fringe, Greenwich Riverside and North London villages.",
+                "Marketing narratives are tailored to each micro-market to attract the ideal tenant profile quickly.",
+            ],
+            font="F1",
+            size=11,
+            color=BLACK,
+            leading=16,
+        ),
+        footer(9),
+    ]
+    page_contents.append("\n".join(area_commands))
 
-    # Page 10 - Contact and call to action
-    page_contents.append(
-        f"""1 1 1 rg
-0 0 595 842 re
-f
-{deep_blue} rg
-0 742 595 100 re
-f
-1 1 1 rg
-BT
-/F2 30 Tf
-70 780 Td
-(Let\u2019s move your lettings forward) Tj
-0 -34 Td
-/F1 13 Tf
-(Ready to maximise rental returns with a modern, proactive partner? We\u2019re one conversation away.) Tj
-ET
-q
-0 0 0 rg
-{gold} RG
-3 w
-70 640 200 60 re
-B
-Q
-1 1 1 rg
-BT
-/F2 28 Tf
-95 675 Td
-(Aktonz) Tj
-ET
-{gold} rg
-BT
-/F2 28 Tf
-195 675 Td
-(o) Tj
-ET
-1 1 1 rg
-BT
-/F2 28 Tf
-215 675 Td
-(nz) Tj
-ET
-0 0 0 rg
-BT
-/F1 12 Tf
-70 600 Td
-(Office: 33 Abersham Road, Hackney, London E8 2LN) Tj
-0 -18 Td
-(Phone: 0203 389 8009) Tj
-0 -18 Td
-(Email: info@aktonz.com) Tj
-0 -18 Td
-(Website: www.aktonz.com) Tj
-0 -24 Td
-/F2 16 Tf
-(Office hours) Tj
-0 -20 Td
-/F1 12 Tf
-(Mon-Fri 9am-7pm | Sat 10am-4pm | Sun by appointment) Tj
-0 -28 Td
-/F2 16 Tf
-(Call to action) Tj
-0 -20 Td
-/F1 12 Tf
-(Book a consultation for a complimentary rental valuation and marketing blueprint within 48 hours.) Tj
-0 -18 Td
-(Visit aktonz.com/landlords or scan the QR in our email to schedule instantly.) Tj
-ET
-{gold} rg
-70 340 455 2 re
-f
-0 0 0 rg
-BT
-/F1 12 Tf
-70 310 Td
-(Follow us on LinkedIn and Instagram @Aktonz for market updates, landlord tips, and portfolio inspiration.) Tj
-ET
-"""
-    )
+    # Page 10 - Contact
+    contact_commands: List[str] = [
+        page_background(),
+        header("Let's move your lettings forward", "Book a consultation within 48 hours", include_logo=False),
+        draw_logo(390, 730, 130),
+        text_block(
+            70,
+            660,
+            [
+                "Ready to maximise rental returns with a proactive, tech-enabled partner?",
+                "Speak with Aktonz to receive a bespoke marketing and compliance blueprint for your property.",
+            ],
+            font="F1",
+            size=12,
+            color=BLACK,
+            leading=18,
+        ),
+        f"{PALE_BLUE} rg",
+        "70 460 455 160 re",
+        "f",
+        text_block(
+            90,
+            590,
+            [
+                "Office",
+                "33 Abersham Road, Hackney, London E8 2LN",
+                "",
+                "Phone",
+                "0203 389 8009",
+                "",
+                "Email",
+                "info@aktonz.com",
+                "",
+                "Website",
+                "www.aktonz.com",
+            ],
+            font="F1",
+            size=12,
+            color=BLACK,
+            leading=16,
+        ),
+        text_block(
+            300,
+            590,
+            [
+                "Office hours",
+                "Mon-Fri 9am-7pm",
+                "Sat 10am-4pm",
+                "Sun by appointment",
+                "",
+                "Follow Aktonz",
+                "LinkedIn & Instagram @Aktonz",
+                "",
+                "Call to action",
+                "Book a consultation for a complimentary rental valuation",
+                "and tailored marketing roadmap delivered within 48 hours.",
+            ],
+            font="F1",
+            size=12,
+            color=BLACK,
+            leading=16,
+        ),
+        text_block(
+            70,
+            420,
+            [
+                "Visit aktonz.com/landlords to schedule instantly or speak to our team for portfolio planning support.",
+            ],
+            font="F2",
+            size=12,
+            color=DEEP_BLUE,
+            leading=16,
+        ),
+        footer(10),
+    ]
+    page_contents.append("\n".join(contact_commands))
 
     page_streams: List[int] = []
     page_objects: List[int] = []
