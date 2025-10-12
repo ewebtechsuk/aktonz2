@@ -312,4 +312,9 @@
   .accountText {
     display: inline;
   }
+
+  .logo a {
+    width: 100px;
+    height: 100px;
+  }
 }
