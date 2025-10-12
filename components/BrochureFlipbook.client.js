@@ -4,10 +4,37 @@ import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import styles from './BrochureFlipbook.module.css';
 
-const PDFJS_SCRIPT_SRC = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.9.155/build/pdf.min.js';
-const PDFJS_WORKER_SRC = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.9.155/build/pdf.worker.min.js';
+const PDFJS_SOURCES = [
+  {
+    script: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js',
+    worker: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js',
+  },
+  {
+    script: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+    worker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+  },
+];
+
+let activePdfjsSourceIndex;
 
 let pdfjsLoaderPromise;
+
+function configurePdfjsWorker(pdfjs, workerSrc) {
+  if (pdfjs?.GlobalWorkerOptions) {
+    pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
+    if (typeof pdfjs.disableWorker === 'boolean') {
+      pdfjs.disableWorker = false;
+    }
+  }
+}
+
+function getPdfjsLibFromWindow() {
+  const lib = window.pdfjsLib ?? window['pdfjs-dist/build/pdf'];
+  if (lib && !window.pdfjsLib) {
+    window.pdfjsLib = lib;
+  }
+  return lib;
+}
 
 function loadPdfjs() {
   if (typeof window === 'undefined') {
@@ -15,60 +42,91 @@ function loadPdfjs() {
   }
 
   if (window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions) {
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_SRC;
-    if (typeof window.pdfjsLib.disableWorker === 'boolean') {
-      window.pdfjsLib.disableWorker = false;
-    }
+    const source =
+      typeof activePdfjsSourceIndex === 'number'
+        ? PDFJS_SOURCES[activePdfjsSourceIndex] ?? PDFJS_SOURCES[0]
+        : PDFJS_SOURCES[0];
+    configurePdfjsWorker(window.pdfjsLib, source.worker);
     return Promise.resolve(window.pdfjsLib);
   }
 
   if (!pdfjsLoaderPromise) {
     pdfjsLoaderPromise = new Promise((resolve, reject) => {
-      const existingScript = document.querySelector(`script[src="${PDFJS_SCRIPT_SRC}"]`);
+      let isSettled = false;
 
-      const resolvePdfjsLib = () => {
-        const lib = window.pdfjsLib ?? window['pdfjs-dist/build/pdf'];
-        if (lib && lib.GlobalWorkerOptions) {
-          lib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_SRC;
-          if (typeof lib.disableWorker === 'boolean') {
-            lib.disableWorker = false;
-          }
-          if (!window.pdfjsLib) {
-            window.pdfjsLib = lib;
-          }
-          resolve(lib);
+      const attemptLoad = (index) => {
+        if (isSettled) {
           return;
         }
-        reject(new Error('PDF.js failed to initialise.'));
+
+        if (index >= PDFJS_SOURCES.length) {
+          isSettled = true;
+          reject(new Error('Failed to load PDF.js script.'));
+          return;
+        }
+
+        const source = PDFJS_SOURCES[index];
+        const selector = `script[data-pdfjs-loader="${index}"]`;
+        let script = document.querySelector(selector);
+
+        const cleanupListeners = () => {
+          if (!script) return;
+          script.removeEventListener('load', handleReady);
+          script.removeEventListener('error', handleError);
+        };
+
+        const handleReady = () => {
+          if (isSettled) return;
+          try {
+            const lib = getPdfjsLibFromWindow();
+            if (!lib || !lib.GlobalWorkerOptions) {
+              throw new Error('PDF.js failed to initialise.');
+            }
+            activePdfjsSourceIndex = index;
+            configurePdfjsWorker(lib, source.worker);
+            isSettled = true;
+            cleanupListeners();
+            resolve(lib);
+          } catch (error) {
+            cleanupListeners();
+            if (script && !script.dataset.pdfjsKeep) {
+              script.remove();
+              script = null;
+            }
+            attemptLoad(index + 1);
+          }
+        };
+
+        const handleError = () => {
+          if (isSettled) return;
+          cleanupListeners();
+          if (script && !script.dataset.pdfjsKeep) {
+            script.remove();
+            script = null;
+          }
+          attemptLoad(index + 1);
+        };
+
+        if (script) {
+          script.addEventListener('load', handleReady, { once: true });
+          script.addEventListener('error', handleError, { once: true });
+          if (window.pdfjsLib || window['pdfjs-dist/build/pdf']) {
+            handleReady();
+          }
+          return;
+        }
+
+        script = document.createElement('script');
+        script.src = source.script;
+        script.async = true;
+        script.crossOrigin = 'anonymous';
+        script.dataset.pdfjsLoader = String(index);
+        script.addEventListener('load', handleReady, { once: true });
+        script.addEventListener('error', handleError, { once: true });
+        document.head.appendChild(script);
       };
 
-      const handleReady = () => {
-        try {
-          resolvePdfjsLib();
-        } catch (error) {
-          reject(error);
-        }
-      };
-
-      if (existingScript) {
-        if (window.pdfjsLib || window['pdfjs-dist/build/pdf']) {
-          handleReady();
-        } else {
-          existingScript.addEventListener('load', handleReady, { once: true });
-          existingScript.addEventListener('error', () => reject(new Error('Failed to load PDF.js script.')), {
-            once: true,
-          });
-        }
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = PDFJS_SCRIPT_SRC;
-      script.async = true;
-      script.crossOrigin = 'anonymous';
-      script.addEventListener('load', handleReady, { once: true });
-      script.addEventListener('error', () => reject(new Error('Failed to load PDF.js script.')), { once: true });
-      document.head.appendChild(script);
+      attemptLoad(0);
     }).catch((error) => {
       pdfjsLoaderPromise = undefined;
       throw error;
@@ -99,10 +157,11 @@ async function openPdfDocument(source, { disableWorker = false } = {}) {
         pdfjs.disableWorker = true;
       }
     } else {
-      pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_SRC;
-      if (typeof pdfjs.disableWorker === 'boolean') {
-        pdfjs.disableWorker = false;
-      }
+      const source =
+        typeof activePdfjsSourceIndex === 'number'
+          ? PDFJS_SOURCES[activePdfjsSourceIndex] ?? PDFJS_SOURCES[0]
+          : PDFJS_SOURCES[0];
+      configurePdfjsWorker(pdfjs, source.worker);
     }
   }
 
