@@ -12,7 +12,13 @@ python scripts/create_aktonz_lettings_brochure.py
 ```
 
 The script writes `docs/aktonz-lettings-brochure.pdf` (ignored by git). Attach
-the exported file to emails or upload it to sharing tools as required.
+the exported file to emails or upload it to sharing tools as required. Pass
+`--public` when you also need a copy for the Next.js site under
+`public/brochures/aktonz-lettings-brochure.pdf`:
+
+```
+python scripts/create_aktonz_lettings_brochure.py --public
+```
 
 ### Restore the Aktonz logo asset
 

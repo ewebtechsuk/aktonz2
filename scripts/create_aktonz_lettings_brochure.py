@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import base64
 import struct
 import sys
@@ -753,7 +754,7 @@ def draw_logo(x: float, y: float, width: float) -> str:
 # --- Brochure content -----------------------------------------------------
 
 
-def build_brochure(output_path: Path) -> None:
+def build_brochure(output_path: Path) -> bytes:
     builder = PDFBuilder()
 
     regular_font_obj = builder.add_object(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\n")
@@ -1904,9 +1905,36 @@ def build_brochure(output_path: Path) -> None:
     pdf_bytes = builder.build()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_bytes(pdf_bytes)
+    return pdf_bytes
 
 
 if __name__ == "__main__":
-    output_file = Path("docs/aktonz-lettings-brochure.pdf")
-    build_brochure(output_file)
-    print(f"Created {output_file}")
+    parser = argparse.ArgumentParser(description="Generate the Aktonz lettings brochure PDF.")
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("docs/aktonz-lettings-brochure.pdf"),
+        help="Primary output path for the generated brochure (default: docs/aktonz-lettings-brochure.pdf).",
+    )
+    parser.add_argument(
+        "--public",
+        action="store_true",
+        help="Also copy the brochure to public/brochures for the Next.js site.",
+    )
+    parser.add_argument(
+        "--public-output",
+        type=Path,
+        default=Path("public/brochures/aktonz-lettings-brochure.pdf"),
+        help="Override the public brochure path when --public is supplied.",
+    )
+    args = parser.parse_args()
+
+    primary_output = args.output
+    pdf_bytes = build_brochure(primary_output)
+    print(f"Created {primary_output}")
+
+    if args.public:
+        public_path = args.public_output
+        public_path.parent.mkdir(parents=True, exist_ok=True)
+        public_path.write_bytes(pdf_bytes)
+        print(f"Copied brochure to {public_path}")
