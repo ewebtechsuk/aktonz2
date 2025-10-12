@@ -224,7 +224,7 @@ export default function NeighbourhoodMap({
           return;
         }
         const latlngs = points.map((point) => [point.lat, point.lng]);
-        const color = id === editingId ? '#ff6b4a' : '#00965f';
+        const color = id === editingId ? '#ff6b4a' : '#1b2840';
         if (existing && existing.type === 'polygon') {
           existing.layer.setLatLngs(latlngs);
           existing.layer.setStyle?.({ color, fillColor: color });
