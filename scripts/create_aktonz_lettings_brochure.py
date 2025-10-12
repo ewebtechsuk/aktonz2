@@ -6,7 +6,7 @@ import sys
 import textwrap
 import zlib
 from pathlib import Path
-from typing import Iterable, List, Optional, Sequence
+from typing import Iterable, List, Optional, Sequence, Tuple
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -206,6 +206,27 @@ def wrapped_bullet_block(
 ) -> str:
     lines = wrapped_bullets(items, width=width, font=font, size=size, bullet=bullet)
     return text_block(x, y, lines, font=font, size=size, color=color, leading=leading)
+
+
+def measured_bullet_block(
+    x: float,
+    y: float,
+    items: Sequence[str],
+    *,
+    width: float,
+    font: str = "F1",
+    size: float = 12,
+    color: str = BLACK,
+    leading: Optional[float] = None,
+    bullet: str = "•",
+) -> Tuple[str, float]:
+    lines = wrapped_bullets(items, width=width, font=font, size=size, bullet=bullet)
+    if not lines:
+        return "", y
+    if leading is None:
+        leading = size + 4
+    lowest_y = y - (len(lines) - 1) * leading if len(lines) > 1 else y
+    return text_block(x, y, lines, font=font, size=size, color=color, leading=leading), lowest_y
 
 
 def page_background() -> str:
@@ -618,13 +639,13 @@ def build_brochure(output_path: Path) -> None:
         page_background(),
         header("Service pathways", "Flexible coverage that matches your involvement"),
         f"{PALE_BLUE} rg",
-        "70 510 150 200 re",
+        "70 460 150 250 re",
         "f",
         f"{PALE_BLUE} rg",
-        "222 510 150 200 re",
+        "222 460 150 250 re",
         "f",
         f"{PALE_BLUE} rg",
-        "374 510 150 200 re",
+        "374 460 150 250 re",
         "f",
         f"{GOLD} rg",
         "70 670 150 6 re",
@@ -635,92 +656,78 @@ def build_brochure(output_path: Path) -> None:
         f"{GOLD} rg",
         "374 670 150 6 re",
         "f",
-        text_block(
+    ]
+
+    service_columns = [
+        (
             78,
-            650,
-            ["Let Only"],
-            font="F2",
-            size=16,
-            color=DEEP_BLUE,
-            leading=18,
-        ),
-        wrapped_bullet_block(
-            78,
-            620,
+            "Let Only",
             [
                 "Strategic multi-portal marketing and social promotion for launch reach.",
                 "Expert-led accompanied viewings and tenant negotiations.",
                 "Comprehensive referencing, compliance checks and contract drafting.",
                 "Smooth handover once rent and deposit clear for your self-management.",
             ],
-            width=132,
-            font="F1",
-            size=11,
-            color=BLACK,
-            leading=14,
         ),
-        text_block(
+        (
             230,
-            650,
-            ["Rent Collection"],
-            font="F2",
-            size=16,
-            color=DEEP_BLUE,
-            leading=18,
-        ),
-        wrapped_bullet_block(
-            230,
-            620,
+            "Rent Collection",
             [
                 "Everything in Let Only plus ongoing rent collection and reconciliation.",
                 "Live monitoring with proactive arrears management and reminders.",
                 "Monthly income statements within the Aktonz landlord portal.",
                 "Cashflow oversight without day-to-day payment chasing.",
             ],
-            width=132,
-            font="F1",
-            size=11,
-            color=BLACK,
-            leading=14,
         ),
-        text_block(
+        (
             382,
-            650,
-            ["Full Management"],
-            font="F2",
-            size=16,
-            color=DEEP_BLUE,
-            leading=18,
-        ),
-        wrapped_bullet_block(
-            382,
-            620,
+            "Full Management",
             [
                 "Rent Collection features plus coordinated repairs and contractor management.",
                 "24/7 tenant helpdesk covering emergencies and essential updates.",
                 "Routine inspections with photo-led reporting for asset peace of mind.",
                 "Aktonz handles notices, renewals and compliant check-out process.",
             ],
+        ),
+    ]
+
+    bullet_lowest_y = 842.0
+    for x, title, bullets in service_columns:
+        services_commands.append(
+            text_block(x, 650, [title], font="F2", size=16, color=DEEP_BLUE, leading=18)
+        )
+        command, lowest = measured_bullet_block(
+            x,
+            632,
+            bullets,
             width=132,
             font="F1",
-            size=11,
+            size=10,
             color=BLACK,
-            leading=14,
-        ),
-        wrapped_text_block(
-            70,
-            470,
-            [
-                "Every service level includes access to our landlord success team, compliance tracking and marketing refreshes at renewal to keep properties achieving optimal yields.",
-            ],
-            width=430,
-            font="F1",
-            size=11,
-            color=BLACK,
-            leading=16,
-        ),
-        footer(3),
-    ]
+            leading=13,
+        )
+        if command:
+            services_commands.append(command)
+            bullet_lowest_y = min(bullet_lowest_y, lowest)
+
+    summary_y = max(bullet_lowest_y - 28, 440)
+    services_commands.extend(
+        [
+            wrapped_text_block(
+                70,
+                summary_y,
+                [
+                    "Every service level includes access to our landlord success team, compliance tracking and marketing refreshes at renewal to keep properties achieving optimal yields.",
+                ],
+                width=430,
+                font="F1",
+                size=11,
+                color=BLACK,
+                leading=16,
+            ),
+            footer(3),
+        ]
+    )
     page_contents.append("\n".join(services_commands))
 
     # Page 4 - Comparison table
@@ -728,7 +735,7 @@ def build_brochure(output_path: Path) -> None:
         page_background(),
         header("Service comparison", "At-a-glance features across each pathway"),
         f"{PALE_BLUE} rg",
-        "70 200 455 340 re",
+        "70 60 455 480 re",
         "f",
         f"{DEEP_BLUE} rg",
         "70 520 455 40 re",
@@ -784,31 +791,38 @@ def build_brochure(output_path: Path) -> None:
         ("Ideal for", "Hands-on landlords", "Owners wanting cashflow support", "Portfolio & time-poor landlords"),
     ]
 
-    start_y = 500.0
-    row_height = 40.0
     column_specs = [
         (80.0, 160.0),
         (260.0, 90.0),
         (365.0, 90.0),
         (470.0, 90.0),
     ]
+    current_y = 500.0
     for index, texts in enumerate(rows):
-        row_y = start_y - index * row_height
+        wrapped_by_column = [
+            wrapped_lines([value], width=col_width, font="F1", size=11)
+            for (_, col_width), value in zip(column_specs, texts)
+        ]
+        max_lines = max((len(lines) if lines else 1) for lines in wrapped_by_column)
+        row_height = max(max_lines * 14 + 12, 44)
+        row_top = current_y
+        row_bottom = row_top - row_height
         if index % 2 == 0:
             comparison_commands.append(f"{SOFT_BLUE} rg")
-            comparison_commands.append(f"70 {row_y - row_height + 4:.2f} 455 {row_height - 4:.2f} re")
+            comparison_commands.append(f"70 {row_bottom + 2:.2f} 455 {row_height - 4:.2f} re")
             comparison_commands.append("f")
-        for (col_x, col_width), value in zip(column_specs, texts):
-            lines = wrapped_lines([value], width=col_width, font="F1", size=11)
+        for (col_x, _), lines in zip(column_specs, wrapped_by_column):
             comparison_commands.append(
-                text_block(col_x, row_y, lines, font="F1", size=11, color=BLACK, leading=14)
+                text_block(col_x, row_top - 8, lines, font="F1", size=11, color=BLACK, leading=14)
             )
+        current_y = row_bottom
 
+    summary_y = max(current_y - 8, 24)
     comparison_commands.extend(
         [
             wrapped_text_block(
                 70,
-                180,
+                summary_y,
                 [
                     "Let Only is a one-off fee. Rent Collection and Full Management operate on monthly percentages with no VAT and no renewal surprises.",
                     "Upgrade pathways at any time as your needs evolve.",
