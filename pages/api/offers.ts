@@ -15,6 +15,18 @@ type FormBody = {
   address?: string;
   frequency?: string;
   depositAmount?: string | number;
+  moveInDate?: string;
+  desiredMoveInDate?: string;
+  householdSize?: string | number;
+  partySize?: string | number;
+  hasPets?: string | boolean | number;
+  employmentStatus?: string;
+  referencingConsent?: string | boolean | number;
+  consentToReference?: string | boolean | number;
+  proofOfFunds?: string;
+  additionalConditions?: string;
+  conditions?: string;
+  specialConditions?: string;
   [key: string]: unknown;
 };
 
@@ -96,6 +108,102 @@ function normaliseString(value: unknown): string | undefined {
   return trimmed === '' ? undefined : trimmed;
 }
 
+function normaliseBoolean(value: unknown): boolean | undefined {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'number') {
+    if (Number.isNaN(value)) {
+      return undefined;
+    }
+    return value !== 0;
+  }
+
+  if (typeof value === 'string') {
+    const normalised = value.trim().toLowerCase();
+    if (!normalised) {
+      return undefined;
+    }
+
+    if (['true', '1', 'yes', 'y', 'on'].includes(normalised)) {
+      return true;
+    }
+    if (['false', '0', 'no', 'n', 'off'].includes(normalised)) {
+      return false;
+    }
+  }
+
+  return undefined;
+}
+
+function normalisePositiveInteger(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isInteger(value) && value > 0) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isInteger(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return undefined;
+}
+
+function normaliseDate(value: unknown): string | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  const date = new Date(trimmed);
+  if (Number.isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  return date.toISOString();
+}
+
+function formatBoolean(value: unknown): string {
+  const normalised = normaliseBoolean(value);
+  if (normalised === undefined) {
+    return String(value ?? '');
+  }
+
+  return normalised ? 'Yes' : 'No';
+}
+
+function formatDate(value: unknown): string {
+  if (typeof value !== 'string' || !value) {
+    return String(value ?? '');
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  try {
+    return date.toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  } catch {
+    return date.toISOString();
+  }
+}
+
 type ValidatedOffer = {
   propertyId: string;
   propertyTitle?: string;
@@ -107,6 +215,13 @@ type ValidatedOffer = {
   phone?: string;
   message?: string;
   depositAmount?: string | number;
+  moveInDate?: string;
+  householdSize?: number;
+  hasPets?: boolean;
+  employmentStatus?: string;
+  referencingConsent?: boolean;
+  proofOfFunds?: string;
+  additionalConditions?: string;
 };
 
 function validateBody(body: FormBody): { data?: ValidatedOffer; errors?: string[] } {
@@ -147,6 +262,21 @@ function validateBody(body: FormBody): { data?: ValidatedOffer; errors?: string[
   const propertyAddress = normaliseString(propertyAddressInput);
   const phone = normaliseString(body.phone);
   const message = normaliseString(body.message);
+  const moveInDate =
+    normaliseDate(body.moveInDate) ?? normaliseDate(body.desiredMoveInDate);
+  const householdSize =
+    normalisePositiveInteger(body.householdSize) ??
+    normalisePositiveInteger(body.partySize);
+  const hasPets = normaliseBoolean(body.hasPets);
+  const employmentStatus = normaliseString(body.employmentStatus);
+  const referencingConsent =
+    normaliseBoolean(body.referencingConsent) ??
+    normaliseBoolean(body.consentToReference);
+  const proofOfFunds = normaliseString(body.proofOfFunds);
+  const additionalConditions =
+    normaliseString(body.additionalConditions) ??
+    normaliseString(body.conditions) ??
+    normaliseString(body.specialConditions);
 
   return {
     data: {
@@ -160,6 +290,14 @@ function validateBody(body: FormBody): { data?: ValidatedOffer; errors?: string[
       phone: phone || undefined,
       message: message || undefined,
       depositAmount: body.depositAmount,
+      moveInDate: moveInDate || undefined,
+      householdSize: householdSize || undefined,
+      hasPets: hasPets !== undefined ? hasPets : undefined,
+      employmentStatus: employmentStatus || undefined,
+      referencingConsent:
+        referencingConsent !== undefined ? referencingConsent : undefined,
+      proofOfFunds: proofOfFunds || undefined,
+      additionalConditions: additionalConditions || undefined,
     },
   };
 }
@@ -186,6 +324,34 @@ export function buildHtml(body: FormBody): string {
 
   if (hasValue(body.depositAmount)) {
     rows.push(['Holding deposit', formatCurrency(body.depositAmount)]);
+  }
+
+  if (hasValue(body.moveInDate)) {
+    rows.push(['Preferred move-in date', formatDate(body.moveInDate)]);
+  }
+
+  if (hasValue(body.householdSize)) {
+    rows.push(['Household size', body.householdSize ?? '']);
+  }
+
+  if (hasValue(body.hasPets)) {
+    rows.push(['Has pets', formatBoolean(body.hasPets)]);
+  }
+
+  if (hasValue(body.employmentStatus)) {
+    rows.push(['Employment status', body.employmentStatus ?? '']);
+  }
+
+  if (hasValue(body.referencingConsent)) {
+    rows.push(['Consent to referencing', formatBoolean(body.referencingConsent)]);
+  }
+
+  if (hasValue(body.proofOfFunds)) {
+    rows.push(['Proof of funds', body.proofOfFunds ?? '']);
+  }
+
+  if (hasValue(body.additionalConditions)) {
+    rows.push(['Additional conditions', body.additionalConditions ?? '']);
   }
 
   if (hasValue(body.propertyTitle)) {
@@ -217,6 +383,18 @@ export function buildHtml(body: FormBody): string {
           'frequency',
           'depositAmount',
           'address',
+          'moveInDate',
+          'desiredMoveInDate',
+          'householdSize',
+          'partySize',
+          'hasPets',
+          'employmentStatus',
+          'referencingConsent',
+          'consentToReference',
+          'proofOfFunds',
+          'additionalConditions',
+          'conditions',
+          'specialConditions',
         ].includes(key)
     )
     .map(([key, value]) => [key, value]);
@@ -292,13 +470,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       depositAmount: data.depositAmount,
       contactId: undefined,
       agentId: undefined,
-      moveInDate: undefined,
-      householdSize: undefined,
-      hasPets: undefined,
-      employmentStatus: undefined,
-      referencingConsent: undefined,
-      proofOfFunds: undefined,
-      additionalConditions: undefined,
+      moveInDate: data.moveInDate,
+      householdSize: data.householdSize,
+      hasPets: data.hasPets,
+      employmentStatus: data.employmentStatus,
+      referencingConsent: data.referencingConsent,
+      proofOfFunds: data.proofOfFunds,
+      additionalConditions: data.additionalConditions,
     });
 
     const emailBody: FormBody = {
@@ -313,6 +491,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       phone: data.phone,
       message: data.message,
       depositAmount: offer.depositAmount,
+      moveInDate: data.moveInDate,
+      householdSize: data.householdSize,
+      hasPets: data.hasPets,
+      employmentStatus: data.employmentStatus,
+      referencingConsent: data.referencingConsent,
+      proofOfFunds: data.proofOfFunds,
+      additionalConditions: data.additionalConditions,
     };
 
     await sendMailGraph({

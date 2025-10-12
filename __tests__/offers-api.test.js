@@ -90,6 +90,13 @@ describe('offer API email delivery', () => {
         propertyId: 'AKT-123',
         propertyTitle: 'Sample Property',
         message: 'Please consider my offer.',
+        moveInDate: '2024-06-01',
+        householdSize: '3',
+        hasPets: 'yes',
+        employmentStatus: 'Full-time employed',
+        referencingConsent: 'true',
+        proofOfFunds: 'Bank statement attached',
+        additionalConditions: 'Need parking close to the property',
       },
     };
     const res = createMockRes();
@@ -108,6 +115,13 @@ describe('offer API email delivery', () => {
         depositAmount: '1200',
         phone: '+44 7700 900123',
         message: 'Please consider my offer.',
+        moveInDate: '2024-06-01T00:00:00.000Z',
+        householdSize: 3,
+        hasPets: true,
+        employmentStatus: 'Full-time employed',
+        referencingConsent: true,
+        proofOfFunds: 'Bank statement attached',
+        additionalConditions: 'Need parking close to the property',
       })
     );
     expect(res.status).toHaveBeenCalledWith(200);
@@ -124,5 +138,19 @@ describe('offer API email delivery', () => {
     expect(call.html).toContain('Holding deposit');
     expect(call.html).toContain('£1,200.00');
     expect(call.html).toContain('Please consider my offer.');
+    expect(call.html).toContain('Preferred move-in date');
+    expect(call.html).toContain('1 June 2024');
+    expect(call.html).toContain('Household size');
+    expect(call.html).toContain('3');
+    expect(call.html).toContain('Has pets');
+    expect(call.html).toContain('Yes');
+    expect(call.html).toContain('Employment status');
+    expect(call.html).toContain('Full-time employed');
+    expect(call.html).toContain('Consent to referencing');
+    expect(call.html).toContain('Yes');
+    expect(call.html).toContain('Proof of funds');
+    expect(call.html).toContain('Bank statement attached');
+    expect(call.html).toContain('Additional conditions');
+    expect(call.html).toContain('Need parking close to the property');
   });
 });
