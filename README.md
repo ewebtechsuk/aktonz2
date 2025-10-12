@@ -4,21 +4,26 @@ A minimal Next.js application for an estate and letting agent powered by the Ape
 
 ## Aktonz lettings brochure
 
-Generate the print-ready landlord brochure locally so the binary PDF never has to
-be committed to the repository:
+Generate the print-ready landlord brochure locally so the binary PDF never has
+to be committed to the repository:
 
 ```
 python scripts/create_aktonz_lettings_brochure.py
 ```
 
-The script writes `docs/aktonz-lettings-brochure.pdf` (ignored by git). Attach
-the exported file to emails or upload it to sharing tools as required. Pass
-`--public` when you also need a copy for the Next.js site under
-`public/brochures/aktonz-lettings-brochure.pdf`:
+The script writes `docs/aktonz-lettings-brochure.pdf`, which is ignored by git
+so running the command never dirties your working tree. Attach the exported
+file to emails or upload it to sharing tools as required. When you need to
+refresh the copy that ships with the Next.js site, pass `--public` to drop the
+brochure into `public/brochures` (those outputs are ignored as well):
 
 ```
 python scripts/create_aktonz_lettings_brochure.py --public
 ```
+
+Because neither output is version-controlled, remember to rerun the command
+before `npm run build` whenever you want the static export to include the latest
+brochure.
 
 During CI, the `Deploy Next.js site to Pages` workflow publishes the freshly
 rendered PDF twice: once within the static site export at

@@ -6,3 +6,5 @@ out
 .env
 .env.*
 public/aktonz-logo-modern-transparent.png
+docs/aktonz-lettings-brochure.pdf
+public/brochures/aktonz-lettings-brochure*.pdf
