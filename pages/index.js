@@ -133,7 +133,11 @@ export default function Home({ sales, lettings, archiveSales }) {
         <Stats />
         <section className={styles.listings} id="listings">
           <h2>Featured Sales</h2>
-          <PropertyList properties={sales} layout="five-per-row" />
+          <PropertyList
+            properties={sales}
+            layout="five-per-row"
+            enableSlider
+          />
         </section>
         <section className={styles.listings}>
           <h2>Featured Lettings</h2>
