@@ -1916,10 +1916,18 @@ if __name__ == "__main__":
         default=Path("docs/aktonz-lettings-brochure.pdf"),
         help="Primary output path for the generated brochure (default: docs/aktonz-lettings-brochure.pdf).",
     )
-    parser.add_argument(
+    public_group = parser.add_mutually_exclusive_group()
+    public_group.add_argument(
         "--public",
+        dest="public",
         action="store_true",
         help="Also copy the brochure to public/brochures for the Next.js site.",
+    )
+    public_group.add_argument(
+        "--no-public",
+        dest="public",
+        action="store_false",
+        help="Skip copying the brochure to public/brochures (default).",
     )
     parser.add_argument(
         "--public-output",
@@ -1927,6 +1935,7 @@ if __name__ == "__main__":
         default=Path("public/brochures/aktonz-lettings-brochure.pdf"),
         help="Override the public brochure path when --public is supplied.",
     )
+    parser.set_defaults(public=False)
     args = parser.parse_args()
 
     primary_output = args.output
