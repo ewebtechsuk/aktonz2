@@ -5,6 +5,10 @@ import { useRouter } from 'next/router';
 
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminOffers.module.css';
+import {
+  formatOfferStatusLabel,
+  getOfferStatusOptions,
+} from '../../../lib/offer-statuses.js';
 
 function formatDate(value) {
   if (!value) {
@@ -24,6 +28,53 @@ function formatDate(value) {
   }
 }
 
+function formatDateOnly(value) {
+  if (!value) {
+    return '—';
+  }
+
+  try {
+    return new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(new Date(value));
+  } catch (error) {
+    return value;
+  }
+}
+
+function toInputDate(value) {
+  if (!value) {
+    return '';
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+  return date.toISOString().slice(0, 10);
+}
+
+function formatActor(actor) {
+  if (!actor) {
+    return '';
+  }
+
+  if (actor.name) {
+    return actor.name;
+  }
+
+  if (actor.type === 'admin') {
+    return 'Aktonz admin';
+  }
+
+  if (actor.type === 'applicant') {
+    return 'Applicant';
+  }
+
+  return '';
+}
+
 function normalizeRouteId(value) {
   if (Array.isArray(value)) {
     return value[0] || null;
@@ -31,6 +82,21 @@ function normalizeRouteId(value) {
 
   return typeof value === 'string' ? value : null;
 }
+
+function parseHouseholdSize(value) {
+  if (value == null || value === '') {
+    return null;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isInteger(parsed) && parsed > 0) {
+    return parsed;
+  }
+
+  return null;
+}
+
+const STATUS_OPTIONS = getOfferStatusOptions();
 
 export default function AdminOffersPage() {
   const router = useRouter();
@@ -41,6 +107,20 @@ export default function AdminOffersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
+  const [statusForm, setStatusForm] = useState({
+    status: '',
+    note: '',
+    moveInDate: '',
+    householdSize: '',
+    referencingConsent: false,
+    hasPets: false,
+    employmentStatus: '',
+    proofOfFunds: '',
+    additionalConditions: '',
+  });
+  const [updating, setUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState('');
+  const [updateSuccess, setUpdateSuccess] = useState('');
 
   const loadOffers = useCallback(async () => {
     if (!isAdmin) {
@@ -58,7 +138,11 @@ export default function AdminOffersPage() {
 
       const payload = await response.json();
       const entries = Array.isArray(payload.offers) ? payload.offers.slice() : [];
-      entries.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+      entries.sort(
+        (a, b) =>
+          new Date(b.updatedAt || b.date || 0).getTime() -
+          new Date(a.updatedAt || a.date || 0).getTime(),
+      );
       setOffers(entries);
     } catch (err) {
       console.error(err);
@@ -121,6 +205,44 @@ export default function AdminOffersPage() {
     () => sortedOffers.find((offer) => offer.id === selectedId) || null,
     [sortedOffers, selectedId],
   );
+  const compliance = selectedOffer?.compliance || {};
+  const timelineEntries = useMemo(() => {
+    if (!selectedOffer) {
+      return [];
+    }
+
+    const history = Array.isArray(selectedOffer.statusHistory)
+      ? selectedOffer.statusHistory.slice()
+      : [];
+
+    history.sort(
+      (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
+    );
+
+    return history;
+  }, [selectedOffer]);
+
+  useEffect(() => {
+    if (!selectedOffer) {
+      return;
+    }
+
+    const compliance = selectedOffer.compliance || {};
+    setStatusForm({
+      status: selectedOffer.status || '',
+      note: '',
+      moveInDate: toInputDate(compliance.moveInDate),
+      householdSize:
+        compliance.householdSize != null ? String(compliance.householdSize) : '',
+      referencingConsent: Boolean(compliance.referencingConsent),
+      hasPets: Boolean(compliance.hasPets),
+      employmentStatus: compliance.employmentStatus || '',
+      proofOfFunds: compliance.proofOfFunds || '',
+      additionalConditions: compliance.additionalConditions || '',
+    });
+    setUpdateError('');
+    setUpdateSuccess('');
+  }, [selectedOffer]);
 
   const handleSelectOffer = useCallback(
     (offerId) => {
@@ -138,6 +260,97 @@ export default function AdminOffersPage() {
       }
     },
     [router, selectedId],
+  );
+
+  const handleStatusFieldChange = useCallback((event) => {
+    const { name, value } = event.target;
+    setStatusForm((prev) => ({ ...prev, [name]: value }));
+  }, []);
+
+  const handleStatusCheckboxChange = useCallback((event) => {
+    const { name, checked } = event.target;
+    setStatusForm((prev) => ({ ...prev, [name]: checked }));
+  }, []);
+
+  const handleStatusSubmit = useCallback(
+    async (event) => {
+      event.preventDefault();
+      if (!selectedOffer) {
+        return;
+      }
+
+      setUpdating(true);
+      setUpdateError('');
+      setUpdateSuccess('');
+
+      try {
+        const compliancePayload = {
+          moveInDate: statusForm.moveInDate || null,
+          householdSize: parseHouseholdSize(statusForm.householdSize),
+          referencingConsent: statusForm.referencingConsent,
+          hasPets: statusForm.hasPets,
+          employmentStatus: statusForm.employmentStatus || '',
+          proofOfFunds: statusForm.proofOfFunds || '',
+          additionalConditions: statusForm.additionalConditions || '',
+        };
+
+        const response = await fetch(`/api/admin/offers/${selectedOffer.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status: statusForm.status || selectedOffer.status || undefined,
+            note: statusForm.note,
+            compliance: compliancePayload,
+          }),
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload?.error || 'Unable to update offer');
+        }
+
+        const updated = payload.offer;
+        setOffers((prev) => {
+          const next = prev.map((offer) => {
+            if (offer.id !== updated.id) {
+              return offer;
+            }
+
+            const merged = {
+              ...offer,
+              ...updated,
+              amount: offer.amount,
+              date: offer.date,
+              type: offer.type,
+              contact: offer.contact,
+              property: offer.property,
+              agent: offer.agent,
+            };
+            merged.statusLabel =
+              updated.statusLabel || formatOfferStatusLabel(merged.status);
+            return merged;
+          });
+
+          next.sort(
+            (a, b) =>
+              new Date(b.updatedAt || b.date || 0) -
+              new Date(a.updatedAt || a.date || 0),
+          );
+          return next;
+        });
+
+        setUpdateSuccess('Offer updated successfully.');
+        setStatusForm((prev) => ({ ...prev, note: '' }));
+      } catch (err) {
+        console.error(err);
+        setUpdateError(
+          err instanceof Error ? err.message : 'Unable to update offer.',
+        );
+      } finally {
+        setUpdating(false);
+      }
+    },
+    [selectedOffer, statusForm],
   );
 
   if (sessionLoading) {
@@ -216,7 +429,7 @@ export default function AdminOffersPage() {
                         >
                           <td>
                             <div className={styles.primaryCell}>
-                              <strong>{formatDate(offer.date)}</strong>
+                              <strong>{formatDate(offer.updatedAt || offer.date)}</strong>
                               {offer.agent?.name ? (
                                 <span className={styles.muted}>Handled by {offer.agent.name}</span>
                               ) : null}
@@ -274,9 +487,9 @@ export default function AdminOffersPage() {
                               >
                                 {offer.type === 'sale' ? 'Sale offer' : 'Tenancy offer'}
                               </span>
-                              {offer.status ? (
-                                <span className={styles.muted}>{offer.status}</span>
-                              ) : null}
+                              <span className={styles.statusBadge}>
+                                {offer.statusLabel || formatOfferStatusLabel(offer.status)}
+                              </span>
                             </div>
                           </td>
                         </tr>
@@ -299,27 +512,56 @@ export default function AdminOffersPage() {
               ) : (
                 <>
                   <div className={styles.detailHeader}>
-                    <h2>
-                      {selectedOffer.contact?.name || 'Prospect'}
-                    </h2>
-                    <div
-                      className={`${styles.offerTag} ${
-                        selectedOffer.type === 'sale' ? styles.offerTagSale : styles.offerTagRent
-                      }`}
-                    >
-                      {selectedOffer.type === 'sale' ? 'Sale offer' : 'Tenancy offer'}
+                    <div>
+                      <h2>{selectedOffer.contact?.name || 'Prospect'}</h2>
+                      <p className={styles.detailSubtitle}>
+                        {selectedOffer.property?.title ||
+                          selectedOffer.property?.address ||
+                          'Unlinked property'}
+                      </p>
+                    </div>
+                    <div className={styles.detailBadges}>
+                      <span
+                        className={`${styles.offerTag} ${
+                          selectedOffer.type === 'sale'
+                            ? styles.offerTagSale
+                            : styles.offerTagRent
+                        }`}
+                      >
+                        {selectedOffer.type === 'sale' ? 'Sale offer' : 'Tenancy offer'}
+                      </span>
+                      <span className={styles.statusBadge}>
+                        {selectedOffer.statusLabel ||
+                          formatOfferStatusLabel(selectedOffer.status)}
+                      </span>
                     </div>
                   </div>
 
                   <div className={styles.detailSummary}>
                     {selectedOffer.contact?.email ? (
-                      <a href={`mailto:${selectedOffer.contact.email}`}>{selectedOffer.contact.email}</a>
+                      <a href={`mailto:${selectedOffer.contact.email}`}>
+                        {selectedOffer.contact.email}
+                      </a>
                     ) : null}
                     {selectedOffer.contact?.phone ? (
-                      <a href={`tel:${selectedOffer.contact.phone}`}>{selectedOffer.contact.phone}</a>
+                      <a href={`tel:${selectedOffer.contact.phone}`}>
+                        {selectedOffer.contact.phone}
+                      </a>
                     ) : null}
                     {selectedOffer.agent?.name ? (
-                      <span className={styles.muted}>Assigned agent: {selectedOffer.agent.name}</span>
+                      <span className={styles.muted}>
+                        Assigned agent: {selectedOffer.agent.name}
+                      </span>
+                    ) : null}
+                    {selectedOffer.property?.link ? (
+                      <a
+                        href={selectedOffer.property.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={styles.tableLink}
+                      >
+                        View property listing
+                      </a>
                     ) : null}
                   </div>
 
@@ -329,37 +571,239 @@ export default function AdminOffersPage() {
                       <dd>{formatDate(selectedOffer.date)}</dd>
                     </div>
                     <div>
-                      <dt>Status</dt>
-                      <dd>{selectedOffer.status || 'Pending review'}</dd>
+                      <dt>Last update</dt>
+                      <dd>{formatDate(selectedOffer.updatedAt || selectedOffer.date)}</dd>
                     </div>
                     <div>
                       <dt>Offer amount</dt>
                       <dd className={styles.highlight}>{selectedOffer.amount || '—'}</dd>
                     </div>
-                    {selectedOffer.property?.address ? (
+                    {selectedOffer.depositAmount ? (
                       <div>
-                        <dt>Property</dt>
-                        <dd>{selectedOffer.property.address}</dd>
+                        <dt>Holding deposit</dt>
+                        <dd>
+                          {new Intl.NumberFormat('en-GB', {
+                            style: 'currency',
+                            currency: 'GBP',
+                            minimumFractionDigits: 0,
+                          }).format(Number(selectedOffer.depositAmount))}
+                        </dd>
                       </div>
                     ) : null}
                   </dl>
 
-                  {selectedOffer.notes ? (
-                    <p className={styles.notes}>{selectedOffer.notes}</p>
-                  ) : (
-                    <p className={styles.muted}>No additional notes recorded yet.</p>
-                  )}
+                  <dl className={styles.complianceGrid}>
+                    <div>
+                      <dt>Move-in target</dt>
+                      <dd>
+                        {compliance.moveInDate
+                          ? formatDateOnly(compliance.moveInDate)
+                          : 'Not set'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Household size</dt>
+                      <dd>
+                        {compliance.householdSize
+                          ? compliance.householdSize
+                          : 'Not declared'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Pets</dt>
+                      <dd>{compliance.hasPets ? 'Pets declared' : 'No pets'}</dd>
+                    </div>
+                    <div>
+                      <dt>Referencing</dt>
+                      <dd>
+                        {compliance.referencingConsent
+                          ? 'Consent received'
+                          : 'Consent pending'}
+                      </dd>
+                    </div>
+                    {compliance.employmentStatus ? (
+                      <div>
+                        <dt>Employment</dt>
+                        <dd>{compliance.employmentStatus}</dd>
+                      </div>
+                    ) : null}
+                  </dl>
 
-                  {selectedOffer.property?.link ? (
-                    <a
-                      href={selectedOffer.property.link}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={styles.tableLink}
-                    >
-                      View property listing
-                    </a>
+                  {compliance.proofOfFunds ? (
+                    <div className={styles.detailNoteBlock}>
+                      <h3>Proof of funds</h3>
+                      <p>{compliance.proofOfFunds}</p>
+                    </div>
                   ) : null}
+
+                  {compliance.additionalConditions ? (
+                    <div className={styles.detailNoteBlock}>
+                      <h3>Conditions</h3>
+                      <p>{compliance.additionalConditions}</p>
+                    </div>
+                  ) : null}
+
+                  <div className={styles.timelineCard}>
+                    <h3>Negotiation timeline</h3>
+                    <ol className={styles.timelineList}>
+                      {timelineEntries.length ? (
+                        timelineEntries.map((event) => (
+                          <li key={event.id}>
+                            <div className={styles.timelineHeader}>
+                              <span className={styles.timelineLabel}>{event.label}</span>
+                              {formatActor(event.actor) ? (
+                                <span className={styles.timelineActor}>{formatActor(event.actor)}</span>
+                              ) : null}
+                            </div>
+                            {event.note ? (
+                              <p className={styles.timelineNote}>{event.note}</p>
+                            ) : null}
+                            <time
+                              dateTime={event.createdAt || undefined}
+                              className={styles.timelineDate}
+                            >
+                              {formatDate(event.createdAt)}
+                            </time>
+                          </li>
+                        ))
+                      ) : (
+                        <li className={styles.timelineEmpty}>No timeline entries yet.</li>
+                      )}
+                    </ol>
+                  </div>
+
+                  <form className={styles.statusForm} onSubmit={handleStatusSubmit}>
+                    <h3>Log progress</h3>
+                    <div className={styles.statusFormGrid}>
+                      <div className={styles.formGroup}>
+                        <label htmlFor="status-stage">Stage</label>
+                        <select
+                          id="status-stage"
+                          name="status"
+                          value={statusForm.status}
+                          onChange={handleStatusFieldChange}
+                        >
+                          <option value="">
+                            Keep current —{' '}
+                            {selectedOffer.statusLabel ||
+                              formatOfferStatusLabel(selectedOffer.status)}
+                          </option>
+                          {STATUS_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label htmlFor="status-moveInDate">Move-in date</label>
+                        <input
+                          id="status-moveInDate"
+                          name="moveInDate"
+                          type="date"
+                          value={statusForm.moveInDate}
+                          onChange={handleStatusFieldChange}
+                        />
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label htmlFor="status-householdSize">Household size</label>
+                        <input
+                          id="status-householdSize"
+                          name="householdSize"
+                          type="number"
+                          min="1"
+                          value={statusForm.householdSize}
+                          onChange={handleStatusFieldChange}
+                        />
+                      </div>
+                    </div>
+
+                    <div className={styles.statusFormGrid}>
+                      <label className={styles.checkboxField} htmlFor="status-hasPets">
+                        <input
+                          id="status-hasPets"
+                          name="hasPets"
+                          type="checkbox"
+                          checked={statusForm.hasPets}
+                          onChange={handleStatusCheckboxChange}
+                        />
+                        Pets declared
+                      </label>
+                      <label
+                        className={styles.checkboxField}
+                        htmlFor="status-referencingConsent"
+                      >
+                        <input
+                          id="status-referencingConsent"
+                          name="referencingConsent"
+                          type="checkbox"
+                          checked={statusForm.referencingConsent}
+                          onChange={handleStatusCheckboxChange}
+                        />
+                        Referencing consent received
+                      </label>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label htmlFor="status-employmentStatus">Employment status</label>
+                      <input
+                        id="status-employmentStatus"
+                        name="employmentStatus"
+                        value={statusForm.employmentStatus}
+                        onChange={handleStatusFieldChange}
+                        placeholder="e.g. Full-time employed"
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label htmlFor="status-proofOfFunds">Proof of funds</label>
+                      <textarea
+                        id="status-proofOfFunds"
+                        name="proofOfFunds"
+                        value={statusForm.proofOfFunds}
+                        onChange={handleStatusFieldChange}
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label htmlFor="status-additionalConditions">Conditions</label>
+                      <textarea
+                        id="status-additionalConditions"
+                        name="additionalConditions"
+                        value={statusForm.additionalConditions}
+                        onChange={handleStatusFieldChange}
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label htmlFor="status-note">Internal note</label>
+                      <textarea
+                        id="status-note"
+                        name="note"
+                        value={statusForm.note}
+                        onChange={handleStatusFieldChange}
+                        rows={3}
+                        placeholder="Log landlord feedback, next actions or compliance updates"
+                      />
+                    </div>
+
+                    {updateError ? (
+                      <p className={styles.formError}>{updateError}</p>
+                    ) : null}
+                    {updateSuccess ? (
+                      <p className={styles.formSuccess}>{updateSuccess}</p>
+                    ) : null}
+
+                    <button
+                      type="submit"
+                      className={styles.statusSubmit}
+                      disabled={updating}
+                    >
+                      {updating ? 'Saving…' : 'Save update'}
+                    </button>
+                  </form>
                 </>
               )}
             </section>

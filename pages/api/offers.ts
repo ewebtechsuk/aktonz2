@@ -292,6 +292,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       depositAmount: data.depositAmount,
       contactId: undefined,
       agentId: undefined,
+      moveInDate: undefined,
+      householdSize: undefined,
+      hasPets: undefined,
+      employmentStatus: undefined,
+      referencingConsent: undefined,
+      proofOfFunds: undefined,
+      additionalConditions: undefined,
     });
 
     const emailBody: FormBody = {

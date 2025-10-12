@@ -61,7 +61,7 @@ describe('admin offers API', () => {
         [require.resolve('../lib/offers.js')]: offersModule,
       },
     });
-    const handler = loadTs('../pages/api/admin/offers.js', __dirname, {
+    const handler = loadTs('../pages/api/admin/offers/index.js', __dirname, {
       overrides: {
         '../../../lib/session.js': { readSession: readSessionMock },
         '../../../lib/offers-admin.mjs': offersAdminModule,
@@ -171,7 +171,7 @@ describe('admin offers API', () => {
       },
     });
 
-    const handler = loadTs('../pages/api/admin/offers.js', __dirname, {
+    const handler = loadTs('../pages/api/admin/offers/index.js', __dirname, {
       overrides: {
         '../../../lib/session.js': { readSession: readSessionMock },
         '../../../lib/offers-admin.mjs': offersAdminModule,

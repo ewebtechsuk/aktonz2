@@ -47,13 +47,34 @@ describe('offer API email delivery', () => {
       email: 'buyer@example.com',
       phone: '+44 7700 900123',
       message: 'Please consider my offer.',
-      status: 'new',
+      status: 'received',
+      statusLabel: 'Offer received',
+      statusHistory: [
+        {
+          id: 'history-1',
+          status: 'received',
+          label: 'Offer received',
+          note: 'Offer submitted through the applicant workspace.',
+          createdAt: '2024-01-01T00:00:00.000Z',
+          actor: { type: 'applicant', name: 'Buyer Example', email: 'buyer@example.com' },
+          type: 'status',
+        },
+      ],
       paymentStatus: 'pending',
       depositAmount: 1200,
       createdAt: '2024-01-01T00:00:00.000Z',
       updatedAt: '2024-01-01T00:00:00.000Z',
-      notes: '',
+      notes: [],
       payments: [],
+      compliance: {
+        moveInDate: null,
+        householdSize: null,
+        hasPets: false,
+        employmentStatus: '',
+        referencingConsent: false,
+        proofOfFunds: '',
+        additionalConditions: '',
+      },
     };
     mockAddOffer.mockResolvedValueOnce(savedOffer);
 

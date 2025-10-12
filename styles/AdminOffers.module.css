@@ -179,13 +179,42 @@
 }
 
 .detailHeader {
-  display: grid;
-  gap: var(--spacing-xs);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-md);
 }
 
 .detailHeader h2 {
   margin: 0;
   font-size: 1.75rem;
+}
+
+.detailSubtitle {
+  margin: var(--spacing-xs) 0 0;
+  color: var(--color-muted-text);
+  font-size: 0.95rem;
+}
+
+.detailBadges {
+  display: flex;
+  gap: var(--spacing-xs);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(17, 94, 164, 0.1);
+  color: #0b3b66;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .detailSummary {
@@ -229,10 +258,188 @@
   font-size: 0.95rem;
 }
 
+.complianceGrid {
+  display: grid;
+  gap: var(--spacing-sm);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin: var(--spacing-md) 0;
+}
+
+.complianceGrid div {
+  background: var(--color-surface-alt);
+  border-radius: 12px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  display: grid;
+  gap: calc(var(--spacing-xs) / 2);
+}
+
+.complianceGrid dt {
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted-text);
+}
+
+.complianceGrid dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
 .notes {
   margin: 0;
   font-size: 0.95rem;
   line-height: 1.5;
+}
+
+.detailNoteBlock {
+  background: var(--color-surface-alt);
+  border-radius: 12px;
+  padding: var(--spacing-md);
+  display: grid;
+  gap: calc(var(--spacing-xs) * 1.5);
+  margin-bottom: var(--spacing-md);
+}
+
+.detailNoteBlock h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.detailNoteBlock p {
+  margin: 0;
+  color: var(--color-muted-text);
+  line-height: 1.5;
+}
+
+.timelineCard {
+  border-top: 1px solid var(--color-border-light);
+  padding-top: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.timelineCard h3 {
+  margin: 0 0 var(--spacing-sm);
+}
+
+.timelineList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.timelineHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-xs);
+  align-items: baseline;
+}
+
+.timelineLabel {
+  font-weight: 600;
+}
+
+.timelineActor {
+  font-size: 0.85rem;
+  color: var(--color-muted-text);
+}
+
+.timelineNote {
+  margin: calc(var(--spacing-xs) / 2) 0 0;
+  color: var(--color-muted-text);
+  line-height: 1.4;
+}
+
+.timelineDate {
+  font-size: 0.8rem;
+  color: var(--color-muted-text);
+}
+
+.timelineEmpty {
+  color: var(--color-muted-text);
+  font-style: italic;
+}
+
+.statusForm {
+  margin-top: var(--spacing-lg);
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.statusForm h3 {
+  margin: 0;
+}
+
+.statusFormGrid {
+  display: grid;
+  gap: var(--spacing-sm);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.formGroup {
+  display: grid;
+  gap: calc(var(--spacing-xs) / 2);
+}
+
+.formGroup label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-muted-text);
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  border: 1px solid var(--color-border-light);
+  border-radius: 10px;
+  padding: var(--spacing-sm);
+  font-size: 0.95rem;
+  background: var(--color-surface);
+}
+
+.checkboxField {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.checkboxField input {
+  width: auto;
+  height: auto;
+}
+
+.formError {
+  margin: 0;
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+.formSuccess {
+  margin: 0;
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.statusSubmit {
+  justify-self: flex-start;
+  background: var(--color-text);
+  color: var(--color-background);
+  border: none;
+  border-radius: 999px;
+  padding: calc(var(--spacing-sm) * 1.4) calc(var(--spacing-md) * 1.6);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.statusSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .loading,
