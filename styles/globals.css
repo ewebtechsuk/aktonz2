@@ -23,11 +23,18 @@ body {
 }
 
 .property-list--scrollable {
+  grid-template-columns: none;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(0, calc(100% / 5));
+  grid-auto-columns: minmax(0, 100%);
   overflow-x: auto;
   scroll-behavior: smooth;
   scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+}
+
+.property-list--scrollable .property-card-wrapper {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
 .property-list--scrollable::-webkit-scrollbar {
@@ -38,6 +45,11 @@ body {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+  width: 100%;
+}
+
+.property-list-slider .property-list {
+  flex: 1 1 auto;
 }
 
 .property-list-slider__control {
