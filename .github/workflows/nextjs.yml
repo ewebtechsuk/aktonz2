@@ -98,6 +98,14 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
+      - name: Generate lettings brochure
+        run: python scripts/create_aktonz_lettings_brochure.py --public
+      - name: Upload lettings brochure artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aktonz-lettings-brochure
+          path: docs/aktonz-lettings-brochure.pdf
+          if-no-files-found: error
       - name: Cache Apex27 listings
         if: steps.detect-secrets.outputs.has-apex-key == 'true'
         run: ${{ steps.detect-package-manager.outputs.manager }} run cache
