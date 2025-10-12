@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -206,7 +206,7 @@ const AdminEmailSettingsPage = () => {
     return entries;
   }, [microsoftConnected, statusState.data?.expiresAt, statusState.data?.expiresInSeconds]);
 
-  const renderLayout = (title: string, content: JSX.Element) => (
+  const renderLayout = (title: string, content: ReactNode) => (
     <>
       <Head>
         <title>{title}</title>
