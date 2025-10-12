@@ -74,291 +74,870 @@ def build_brochure(output_path: Path) -> None:
 
     pages_obj = builder.reserve_object()
 
+    deep_blue = "0 0.294 0.553"
+    dusk_blue = "0.133 0.278 0.459"
+    soft_blue = "0.894 0.937 0.976"
+    gold = "0.812 0.682 0.396"
+    page_contents: List[str] = []
+
+    # Page 1 - Cover with logo and hero statement
+    page_contents.append(
+        f"""1 1 1 rg
+0 0 595 842 re
+f
+{deep_blue} rg
+0 420 595 422 re
+f
+{soft_blue} rg
+0 0 595 420 re
+f
+q
+0 0 0 rg
+{gold} RG
+4 w
+207 630 181 72 re
+B
+Q
+1 1 1 rg
+BT
+/F2 38 Tf
+235 670 Td
+(Akt) Tj
+ET
+{gold} rg
+BT
+/F2 38 Tf
+323 670 Td
+(o) Tj
+ET
+1 1 1 rg
+BT
+/F2 38 Tf
+347 670 Td
+(nz) Tj
+ET
+{gold} rg
+0 610 595 4 re
+f
+1 1 1 rg
+BT
+/F2 30 Tf
+80 560 Td
+(Premium Lettings \& Management) Tj
+0 -32 Td
+/F1 20 Tf
+(Modern Service, Local Expertise) Tj
+0 -36 Td
+/F1 13 Tf
+(Move smarter with Aktonz local property experts guiding every tenancy with precision.) Tj
+ET
+{deep_blue} rg
+0 502 595 2 re
+f
+0 0 0 rg
+BT
+/F1 13 Tf
+80 470 Td
+(High-impact marketing, proactive compliance guardianship, and data-backed asset care.) Tj
+0 -18 Td
+(A modern lettings partner for London landlords ready to elevate performance.) Tj
+ET
+{gold} rg
+80 400 120 8 re
+f
+0 0 0 rg
+BT
+/F1 12 Tf
+80 360 Td
+(2023 delivery: 99% landlord retention, 14-day average time-to-let, 8.7% rental uplift vs. market.) Tj
+ET
+"""
+    )
+
+    # Page 2 - Company introduction and why choose us
+    page_contents.append(
+        f"""1 1 1 rg
+0 0 595 842 re
+f
+{soft_blue} rg
+0 760 595 82 re
+f
+{deep_blue} rg
+0 740 595 4 re
+f
+0 0 0 rg
+BT
+/F2 32 Tf
+70 780 Td
+(Aktonz Lettings \u2013 London rooted, tech forward) Tj
+0 -32 Td
+/F1 13 Tf
+(Aktonz is a London-based online estate and letting agency delivering residential lettings and management citywide.) Tj
+0 -18 Td
+(We blend concierge-style service with a property-tech backbone so landlords stay informed in real time.) Tj
+0 -28 Td
+/F2 20 Tf
+(Why landlords choose us) Tj
+0 -24 Td
+/F1 12 Tf
+(- Local London experts embedded across Canary Wharf, Shoreditch, Hackney and beyond.) Tj
+0 -18 Td
+(- Insight-rich advice built on neighbourhood data and on-the-ground negotiations.) Tj
+0 -18 Td
+(- Modern marketing assets, lifestyle videography, and relocation networks for premium exposure.) Tj
+0 -18 Td
+(- Transparent fixed fees with no VAT for immediate savings of up to 20% versus traditional agents.) Tj
+0 -28 Td
+/F2 20 Tf
+(Credibility that converts) Tj
+0 -24 Td
+/F1 12 Tf
+(72% of consumers trust businesses with clear value proof and testimonials \u2013 we lead with both to win instruction.) Tj
+ET
+{gold} rg
+70 520 455 2 re
+f
+0 0 0 rg
+BT
+/F1 12 Tf
+70 490 Td
+(Mission: maximise rental income while protecting your asset and time through proactive management.) Tj
+0 -18 Td
+(Scope: from single apartments to multi-unit portfolios, Aktonz handles compliance, marketing, and tenant care.) Tj
+ET
+"""
+    )
+
+    # Page 3 - Landlord services overview
+    page_contents.append(
+        f"""1 1 1 rg
+0 0 595 842 re
+f
+{soft_blue} rg
+0 742 595 100 re
+f
+0 0 0 rg
+BT
+/F2 30 Tf
+70 780 Td
+(Landlord services tailored to every need) Tj
+0 -34 Td
+/F1 13 Tf
+(Three service levels so you control involvement while Aktonz drives performance.) Tj
+0 -30 Td
+/F2 20 Tf
+(Let Only) Tj
+0 -24 Td
+/F1 12 Tf
+(- Strategic marketing blast across portals and targeted campaigns.) Tj
+0 -18 Td
+(- Accompanied viewings, right-to-rent, and professional referencing.) Tj
+0 -18 Td
+(- Tenancy agreement drafting plus rent and deposit onboarding.) Tj
+0 -28 Td
+/F2 20 Tf
+(Rent Collection) Tj
+0 -24 Td
+/F1 12 Tf
+(- Everything in Let Only plus monthly rent administration and arrears management.) Tj
+0 -18 Td
+(- Detailed landlord statements and payment tracking via the portal.) Tj
+0 -28 Td
+/F2 20 Tf
+(Full Management) Tj
+0 -24 Td
+/F1 12 Tf
+(- Comprehensive day-to-day management with zero tenant contact required.) Tj
+0 -18 Td
+(- Repairs coordinated with vetted contractors and transparent approvals.) Tj
+0 -18 Td
+(- Periodic inspections, 24/7 emergency support, and legal notice handling.) Tj
+ET
+{gold} rg
+70 260 455 2 re
+f
+0 0 0 rg
+BT
+/F1 12 Tf
+70 230 Td
+(Each pathway includes access to our landlord success team, compliance tracking, and renewal strategy reviews.) Tj
+ET
+"""
+    )
+
+    # Page 4 - Services comparison table
+    page_contents.append(
+        f"""1 1 1 rg
+0 0 595 842 re
+f
+{deep_blue} rg
+0 742 595 100 re
+f
+1 1 1 rg
+BT
+/F2 28 Tf
+70 780 Td
+(Service comparison) Tj
+ET
+{gold} rg
+70 720 455 2 re
+f
+0 0 0 rg
+BT
+/F2 14 Tf
+90 700 Td
+(Key features) Tj
+ET
+0 0 0 RG
+1 w
+70 690 m
+525 690 l
+S
+70 640 m
+525 640 l
+S
+70 590 m
+525 590 l
+S
+70 540 m
+525 540 l
+S
+70 490 m
+525 490 l
+S
+70 440 m
+525 440 l
+S
+70 390 m
+525 390 l
+S
+70 340 m
+525 340 l
+S
+70 290 m
+525 290 l
+S
+70 240 m
+525 240 l
+S
+70 190 m
+525 190 l
+S
+70 140 m
+525 140 l
+S
+70 690 m
+70 140 l
+S
+235 690 m
+235 140 l
+S
+360 690 m
+360 140 l
+S
+525 690 m
+525 140 l
+S
+BT
+/F2 13 Tf
+250 660 Td
+(Let Only) Tj
+ET
+BT
+/F2 13 Tf
+375 660 Td
+(Rent Collection) Tj
+ET
+BT
+/F2 13 Tf
+435 660 Td
+(Full Mgmt) Tj
+ET
+BT
+/F1 11 Tf
+80 620 Td
+(Professional photography \& lifestyle marketing) Tj
+ET
+BT
+/F1 11 Tf
+250 620 Td
+([x]) Tj
+ET
+BT
+/F1 11 Tf
+375 620 Td
+([x]) Tj
+ET
+BT
+/F1 11 Tf
+440 620 Td
+([x]) Tj
+ET
+BT
+/F1 11 Tf
+80 570 Td
+(Tenant vetting, referencing, and contracts) Tj
+ET
+BT
+/F1 11 Tf
+250 570 Td
+([x]) Tj
+ET
+BT
+/F1 11 Tf
+375 570 Td
+([x]) Tj
+ET
+BT
+/F1 11 Tf
+440 570 Td
+([x]) Tj
+ET
+BT
+/F1 11 Tf
+80 520 Td
+(Rent collection \& arrears management) Tj
+ET
+BT
+/F1 11 Tf
+250 520 Td
+([ ]) Tj
+ET
+BT
+/F1 11 Tf
+375 520 Td
+([x]) Tj
+ET
+BT
+/F1 11 Tf
+440 520 Td
+([x]) Tj
+ET
+BT
+/F1 11 Tf
+80 470 Td
+(Monthly landlord statements) Tj
+ET
+BT
+/F1 11 Tf
+250 470 Td
+([ ]) Tj
+ET
+BT
+/F1 11 Tf
+375 470 Td
+([x]) Tj
+ET
+BT
+/F1 11 Tf
+440 470 Td
+([x]) Tj
+ET
+BT
+/F1 11 Tf
+80 420 Td
+(Maintenance coordination) Tj
+ET
+BT
+/F1 11 Tf
+250 420 Td
+([ ]) Tj
+ET
+BT
+/F1 11 Tf
+375 420 Td
+([ ]) Tj
+ET
+BT
+/F1 11 Tf
+440 420 Td
+([x]) Tj
+ET
+BT
+/F1 11 Tf
+80 370 Td
+(24/7 emergency support) Tj
+ET
+BT
+/F1 11 Tf
+250 370 Td
+([ ]) Tj
+ET
+BT
+/F1 11 Tf
+375 370 Td
+([ ]) Tj
+ET
+BT
+/F1 11 Tf
+440 370 Td
+([x]) Tj
+ET
+BT
+/F1 11 Tf
+80 320 Td
+(Periodic inspections \& reporting) Tj
+ET
+BT
+/F1 11 Tf
+250 320 Td
+([ ]) Tj
+ET
+BT
+/F1 11 Tf
+375 320 Td
+([ ]) Tj
+ET
+BT
+/F1 11 Tf
+440 320 Td
+([x]) Tj
+ET
+BT
+/F1 11 Tf
+80 270 Td
+(Legal notices and tenancy renewals) Tj
+ET
+BT
+/F1 11 Tf
+250 270 Td
+([ ]) Tj
+ET
+BT
+/F1 11 Tf
+375 270 Td
+([ ]) Tj
+ET
+BT
+/F1 11 Tf
+440 270 Td
+([x]) Tj
+ET
+BT
+/F1 11 Tf
+80 220 Td
+(Fee structure) Tj
+ET
+BT
+/F1 11 Tf
+250 220 Td
+(One-off %) Tj
+ET
+BT
+/F1 11 Tf
+375 220 Td
+(Monthly %) Tj
+ET
+BT
+/F1 11 Tf
+440 220 Td
+(Monthly %) Tj
+ET
+BT
+/F1 11 Tf
+80 170 Td
+(Ideal for) Tj
+ET
+BT
+/F1 11 Tf
+250 170 Td
+(Hands-on landlords) Tj
+ET
+BT
+/F1 11 Tf
+375 170 Td
+(Owners wanting support with cashflow) Tj
+ET
+BT
+/F1 11 Tf
+440 170 Td
+(Portfolio or time-poor landlords) Tj
+ET
+"""
+    )
+
+    # Page 5 - Pricing and fees transparency
+    page_contents.append(
+        f"""1 1 1 rg
+0 0 595 842 re
+f
+{soft_blue} rg
+0 742 595 100 re
+f
+0 0 0 rg
+BT
+/F2 30 Tf
+70 780 Td
+(Transparent pricing \u2013 no VAT, no surprises) Tj
+0 -34 Td
+/F1 13 Tf
+(Our fixed, VAT-free pricing keeps more income in your pocket while delivering premium service.) Tj
+0 -36 Td
+/F2 22 Tf
+(Let Only) Tj
+0 -26 Td
+/F1 12 Tf
+(7% of first year\u2019s rent, VAT-free. Tenant marketing, vetting, and tenancy setup completed before handover.) Tj
+0 -30 Td
+/F2 22 Tf
+(Rent Collection) Tj
+0 -26 Td
+/F1 12 Tf
+(6% of monthly rent collected, VAT-free. Includes Let Only plus rent processing, arrears chasing, and statements.) Tj
+0 -30 Td
+/F2 22 Tf
+(Full Management) Tj
+0 -26 Td
+/F1 12 Tf
+(10% of monthly rent, VAT-free. Includes Rent Collection plus maintenance coordination and full tenant liaison.) Tj
+0 -34 Td
+/F2 20 Tf
+(Fee advantages) Tj
+0 -24 Td
+/F1 12 Tf
+(Most agencies quote \"6% + VAT\" equating to 7.2%. Aktonz simply charges 6%, saving you 20% immediately.) Tj
+0 -18 Td
+(No renewal fees, no mark-ups on contractor invoices, and no hidden admin costs.) Tj
+ET
+{gold} rg
+70 340 455 2 re
+f
+0 0 0 rg
+BT
+/F1 12 Tf
+70 310 Td
+(Optional onboarding items are clearly labelled; many are included within Full Management as standard.) Tj
+ET
+"""
+    )
+
+    # Page 6 - Add-on services
+    page_contents.append(
+        f"""1 1 1 rg
+0 0 595 842 re
+f
+{deep_blue} rg
+0 742 595 100 re
+f
+1 1 1 rg
+BT
+/F2 28 Tf
+70 780 Td
+(Add-on solutions for total compliance) Tj
+0 -34 Td
+/F1 13 Tf
+(Aktonz can arrange every statutory certificate and protection to keep your tenancy watertight.) Tj
+0 -30 Td
+/F2 20 Tf
+(Energy Performance Certificates) Tj
+0 -24 Td
+/F1 12 Tf
+(Certified assessors scheduled within 72 hours to secure an EPC that meets lettings regulations.) Tj
+0 -28 Td
+/F2 20 Tf
+(Inventory \& check-in/out) Tj
+0 -24 Td
+/F1 12 Tf
+(Detailed photo-led inventories, professional clerks, and check-out reconciliation to protect deposits.) Tj
+0 -28 Td
+/F2 20 Tf
+(Rent guarantee \& legal cover) Tj
+0 -24 Td
+/F1 12 Tf
+(Optional insurance safeguarding rent and covering eviction legal costs for up to 12 months of arrears.) Tj
+0 -28 Td
+/F2 20 Tf
+(Safety certificates) Tj
+0 -24 Td
+/F1 12 Tf
+(Gas safety, EICR electrical inspections, and smoke/CO compliance managed through approved engineers.) Tj
+0 -28 Td
+/F2 20 Tf
+(Professional cleaning \& staging) Tj
+0 -24 Td
+/F1 12 Tf
+(Pre-tenancy and move-out cleaning, plus styling upgrades to accelerate marketing response.) Tj
+ET
+{gold} rg
+70 260 455 2 re
+f
+0 0 0 rg
+BT
+/F1 12 Tf
+70 230 Td
+(Bundle add-ons with Full Management for preferential rates and a single point of instruction.) Tj
+ET
+"""
+    )
+
+    # Page 7 - Testimonials
+    page_contents.append(
+        f"""1 1 1 rg
+0 0 595 842 re
+f
+{soft_blue} rg
+0 742 595 100 re
+f
+0 0 0 rg
+BT
+/F2 28 Tf
+70 780 Td
+(Landlords rate Aktonz 4.9/5) Tj
+0 -34 Td
+/F1 12 Tf
+(Real experiences from London landlords who trust us with their homes and portfolios.) Tj
+0 -30 Td
+/F3 14 Tf
+(\"Aktonz found corporate tenants in under a week and managed everything end-to-end. I stayed overseas stress-free.\" \u2013 Sarah K., Canary Wharf) Tj
+0 -40 Td
+(\"Their tech portal means I see viewings, offers, and maintenance updates instantly. Transparency like this is rare.\" \u2013 John M., Shoreditch) Tj
+0 -40 Td
+(\"Rent is always on time and the team pre-empts renewals months ahead. Exceptional foresight.\" \u2013 Priya L., Hackney) Tj
+0 -40 Td
+(\"From photography to check-in, every touchpoint was polished. Tenants constantly remark on the service.\" \u2013 David R., Islington) Tj
+0 -40 Td
+/F2 20 Tf
+(Proof sells properties) Tj
+0 -24 Td
+/F1 12 Tf
+(72% of consumers trust positive testimonials; Aktonz builds that trust from the first conversation.) Tj
+ET
+{gold} rg
+70 260 455 2 re
+f
+0 0 0 rg
+BT
+/F1 12 Tf
+70 230 Td
+(Ask us for references and case studies relevant to your property type for even deeper assurance.) Tj
+ET
+"""
+    )
+
+    # Page 8 - FAQ and helpful information
+    page_contents.append(
+        f"""1 1 1 rg
+0 0 595 842 re
+f
+{deep_blue} rg
+0 742 595 100 re
+f
+1 1 1 rg
+BT
+/F2 28 Tf
+70 780 Td
+(FAQs and landlord guidance) Tj
+0 -34 Td
+/F1 12 Tf
+(We anticipate common questions so you step into partnership with clarity and confidence.) Tj
+0 -28 Td
+/F2 16 Tf
+(What certificates do I need before letting?) Tj
+0 -20 Td
+/F1 12 Tf
+(Gas safety, EICR electrical reports, EPC, smoke and CO compliance. Aktonz can arrange each requirement.) Tj
+0 -28 Td
+/F2 16 Tf
+(How are deposits handled?) Tj
+0 -20 Td
+/F1 12 Tf
+(Deposits are registered with government-approved schemes. Full Management includes registration and dispute support.) Tj
+0 -28 Td
+/F2 16 Tf
+(When will I receive rent?) Tj
+0 -20 Td
+/F1 12 Tf
+(Rent Collection and Full Management clients receive transfers within two working days of tenant payment with monthly statements.) Tj
+0 -28 Td
+/F2 16 Tf
+(Do you inspect the property during tenancy?) Tj
+0 -20 Td
+/F1 12 Tf
+(Full Management includes inspections every six months with photo reports and action plans.) Tj
+0 -28 Td
+/F2 16 Tf
+(How long is the agreement?) Tj
+0 -20 Td
+/F1 12 Tf
+(Services are on a per-tenancy basis with flexible terms; fees continue only while tenants remain in situ.) Tj
+0 -28 Td
+/F2 16 Tf
+(Where do you operate?) Tj
+0 -20 Td
+/F1 12 Tf
+(We cover all London zones with specialist teams in East London hubs including Hackney, Canary Wharf, and Shoreditch.) Tj
+ET
+{gold} rg
+70 200 455 2 re
+f
+0 0 0 rg
+BT
+/F1 12 Tf
+70 170 Td
+(Need more detail? Email info@aktonz.com for tailored guidance or to access our landlord knowledge base.) Tj
+ET
+"""
+    )
+
+    # Page 9 - London area showcase
+    page_contents.append(
+        f"""1 1 1 rg
+0 0 595 842 re
+f
+{soft_blue} rg
+0 742 595 100 re
+f
+0 0 0 rg
+BT
+/F2 28 Tf
+70 780 Td
+(Showcasing London neighbourhood expertise) Tj
+0 -34 Td
+/F1 13 Tf
+(Our specialists live and work across the capital so marketing speaks authentically to local audiences.) Tj
+ET
+{deep_blue} rg
+70 610 150 160 re
+f
+{gold} rg
+235 610 150 160 re
+f
+{dusk_blue} rg
+400 610 150 160 re
+f
+1 1 1 rg
+BT
+/F2 16 Tf
+90 740 Td
+(Canary Wharf) Tj
+0 -20 Td
+/F1 11 Tf
+(Financial hub with luxury riverside towers.) Tj
+0 -16 Td
+(Corporate tenants seek premium amenities and concierge living.) Tj
+ET
+BT
+/F2 16 Tf
+255 740 Td
+(Shoreditch) Tj
+0 -20 Td
+/F1 11 Tf
+(Creative heartland of East London.) Tj
+0 -16 Td
+(Converted lofts and tech professionals drive demand.) Tj
+ET
+BT
+/F2 16 Tf
+420 740 Td
+(Hackney) Tj
+0 -20 Td
+/F1 11 Tf
+(Vibrant, community-led streets with Victorian homes.) Tj
+0 -16 Td
+(Strong rental yields and lifestyle appeal.) Tj
+ET
+0 0 0 rg
+BT
+/F2 20 Tf
+70 560 Td
+(Beyond the East) Tj
+0 -24 Td
+/F1 12 Tf
+(Aktonz also covers City fringe, Greenwich riverside, and North London enclaves, tailoring marketing to each micro-market.) Tj
+0 -18 Td
+(Portfolio reviews highlight area-by-area performance so you know where to expand next.) Tj
+ET
+"""
+    )
+
+    # Page 10 - Contact and call to action
+    page_contents.append(
+        f"""1 1 1 rg
+0 0 595 842 re
+f
+{deep_blue} rg
+0 742 595 100 re
+f
+1 1 1 rg
+BT
+/F2 30 Tf
+70 780 Td
+(Let\u2019s move your lettings forward) Tj
+0 -34 Td
+/F1 13 Tf
+(Ready to maximise rental returns with a modern, proactive partner? We\u2019re one conversation away.) Tj
+ET
+q
+0 0 0 rg
+{gold} RG
+3 w
+70 640 200 60 re
+B
+Q
+1 1 1 rg
+BT
+/F2 28 Tf
+95 675 Td
+(Aktonz) Tj
+ET
+{gold} rg
+BT
+/F2 28 Tf
+195 675 Td
+(o) Tj
+ET
+1 1 1 rg
+BT
+/F2 28 Tf
+215 675 Td
+(nz) Tj
+ET
+0 0 0 rg
+BT
+/F1 12 Tf
+70 600 Td
+(Office: 33 Abersham Road, Hackney, London E8 2LN) Tj
+0 -18 Td
+(Phone: 0203 389 8009) Tj
+0 -18 Td
+(Email: info@aktonz.com) Tj
+0 -18 Td
+(Website: www.aktonz.com) Tj
+0 -24 Td
+/F2 16 Tf
+(Office hours) Tj
+0 -20 Td
+/F1 12 Tf
+(Mon-Fri 9am-7pm | Sat 10am-4pm | Sun by appointment) Tj
+0 -28 Td
+/F2 16 Tf
+(Call to action) Tj
+0 -20 Td
+/F1 12 Tf
+(Book a consultation for a complimentary rental valuation and marketing blueprint within 48 hours.) Tj
+0 -18 Td
+(Visit aktonz.com/landlords or scan the QR in our email to schedule instantly.) Tj
+ET
+{gold} rg
+70 340 455 2 re
+f
+0 0 0 rg
+BT
+/F1 12 Tf
+70 310 Td
+(Follow us on LinkedIn and Instagram @Aktonz for market updates, landlord tips, and portfolio inspiration.) Tj
+ET
+"""
+    )
+
     page_streams: List[int] = []
     page_objects: List[int] = []
 
-    # Page 1 - Cover
-    cover_content = """0.12 0.22 0.45 rg
-0 0 595 842 re
-f
-0.06 0.12 0.24 rg
-0 510 595 332 re
-f
-1 1 1 rg
-BT
-/F2 48 Tf
-70 720 Td
-(AKTONZ LETTINGS) Tj
-0 -56 Td
-/F2 26 Tf
-(SETTING THE STANDARD IN RESIDENTIAL LETTINGS) Tj
-0 -40 Td
-/F1 16 Tf
-(High-impact marketing, precision tenant matching, and data-led asset care.) Tj
-0 -22 Td
-(Partner with a lettings team obsessed with delivering premium results.) Tj
-ET
-0.84 0.55 0.16 rg
-70 590 200 4 re
-f
-1 1 1 rg
-BT
-/F1 18 Tf
-70 560 Td
-(Data-backed pricing | Executive tenant network | 24/7 support) Tj
-ET
-0.88 0.32 0.20 rg
-365 180 200 200 re
-f
-1 1 1 rg
-BT
-/F2 24 Tf
-375 350 Td
-(2023 Performance) Tj
-0 -30 Td
-/F1 14 Tf
-(- 99% of landlords renew with Aktonz) Tj
-0 -22 Td
-(- 14 days average time-to-let) Tj
-0 -22 Td
-(- +8.7% rental uplift vs. market) Tj
-ET
-"""
+    for content in page_contents:
+        stream_obj = builder.add_object(make_stream(content))
+        page_streams.append(stream_obj)
+        page_objects.append(builder.reserve_object())
 
-    cover_stream = builder.add_object(make_stream(cover_content))
-    page_streams.append(cover_stream)
-    cover_page = builder.reserve_object()
-    page_objects.append(cover_page)
-
-    # Page 2 - Why Aktonz
-    why_content = """1 1 1 rg
-0 0 595 842 re
-f
-0.12 0.22 0.45 rg
-0 742 595 100 re
-f
-1 1 1 rg
-BT
-/F2 34 Tf
-60 780 Td
-(Why landlords choose Aktonz) Tj
-ET
-0.06 0.12 0.24 rg
-60 700 475 2 re
-f
-0 0 0 rg
-BT
-/F1 14 Tf
-60 660 Td
-(Aktonz blends boutique service with enterprise-grade intelligence to maximise every tenancy.) Tj
-0 -20 Td
-(Our dedicated specialists manage the full lifecycle: marketing, compliance, negotiation, and care.) Tj
-ET
-0.88 0.32 0.20 rg
-60 610 150 150 re
-f
-1 1 1 rg
-BT
-/F2 22 Tf
-70 730 Td
-(Data Advantage) Tj
-0 -26 Td
-/F1 13 Tf
-(AI-informed rental valuations for smarter pricing.) Tj
-0 -18 Td
-(Market trend dashboards keep you ahead of shifts.) Tj
-ET
-0.12 0.22 0.45 rg
-225 610 150 150 re
-f
-1 1 1 rg
-BT
-/F2 22 Tf
-235 730 Td
-(Experience) Tj
-0 -26 Td
-/F1 13 Tf
-(11-step tenant vetting protocol led by ARLA agents.) Tj
-0 -18 Td
-(Dedicated property partner from instruction to renewal.) Tj
-ET
-0.06 0.12 0.24 rg
-390 610 150 150 re
-f
-1 1 1 rg
-BT
-/F2 22 Tf
-400 730 Td
-(Confidence) Tj
-0 -26 Td
-/F1 13 Tf
-(Transparent reporting portal with live updates.) Tj
-0 -18 Td
-(Proactive compliance and maintenance auditing.) Tj
-ET
-0.84 0.55 0.16 rg
-60 420 475 2 re
-f
-0 0 0 rg
-BT
-/F2 20 Tf
-60 390 Td
-(Aktonz impact in numbers) Tj
-0 -26 Td
-/F1 13 Tf
-(98.4% rent collected on time | 21% of tenants from corporate relocations | 4.9/5 service rating) Tj
-ET
-"""
-
-    why_stream = builder.add_object(make_stream(why_content))
-    page_streams.append(why_stream)
-    why_page = builder.reserve_object()
-    page_objects.append(why_page)
-
-    # Page 3 - Services and Journey
-    services_content = """1 1 1 rg
-0 0 595 842 re
-f
-0.06 0.12 0.24 rg
-0 742 595 100 re
-f
-1 1 1 rg
-BT
-/F2 32 Tf
-60 780 Td
-(Your lettings journey, perfected) Tj
-ET
-0.12 0.22 0.45 rg
-60 700 475 2 re
-f
-0 0 0 rg
-BT
-/F2 20 Tf
-60 670 Td
-(Launch with impact) Tj
-0 -24 Td
-/F1 13 Tf
-(- Signature lifestyle photography and videography within 48 hours.) Tj
-0 -18 Td
-(- Premium listings across major portals and Aktonz relocation partners.) Tj
-0 -18 Td
-(- Bespoke brochure and paid targeting to qualified tenants.) Tj
-0 -32 Td
-/F2 20 Tf
-60 540 Td
-(Secure exceptional tenants) Tj
-0 -24 Td
-/F1 13 Tf
-(- 360-degree referencing, affordability analytics, and right-to-rent checks.) Tj
-0 -18 Td
-(- Negotiation strategists maximise rent while protecting occupancy.) Tj
-0 -18 Td
-(- Digital contracting with e-sign, compliance packs, and deposit registration.) Tj
-0 -32 Td
-/F2 20 Tf
-60 410 Td
-(Protect your investment) Tj
-0 -24 Td
-/F1 13 Tf
-(- Planned maintenance schedule with pre-qualified contractors.) Tj
-0 -18 Td
-(- Quarterly asset performance reviews benchmarking rent, arrears, and yields.) Tj
-0 -18 Td
-(- 24/7 tenant concierge and emergency response.) Tj
-ET
-0.88 0.32 0.20 rg
-60 270 475 2 re
-f
-0 0 0 rg
-BT
-/F2 20 Tf
-60 240 Td
-(Value-add services) Tj
-0 -24 Td
-/F1 13 Tf
-(Interior styling | Licensing & compliance management | Portfolio growth advisory | Landlord academy) Tj
-ET
-"""
-
-    services_stream = builder.add_object(make_stream(services_content))
-    page_streams.append(services_stream)
-    services_page = builder.reserve_object()
-    page_objects.append(services_page)
-
-    # Page 4 - Testimonials and CTA
-    testimonials_content = """1 1 1 rg
-0 0 595 842 re
-f
-0.12 0.22 0.45 rg
-0 742 595 100 re
-f
-1 1 1 rg
-BT
-/F2 32 Tf
-60 780 Td
-(Proof in every tenancy) Tj
-ET
-0.06 0.12 0.24 rg
-60 700 475 2 re
-f
-0 0 0 rg
-BT
-/F2 20 Tf
-60 670 Td
-(Landlords say it best) Tj
-0 -26 Td
-/F1 13 Tf
-("Aktonz secured a corporate tenant at 12% above our previous rent within two weeks." - Priya, portfolio landlord) Tj
-0 -22 Td
-("Their reporting dashboard gives total clarity; arrears have disappeared." - Mark, overseas investor) Tj
-0 -22 Td
-("From styling to move-in, every detail is proactive and polished." - Eleanor, first-time landlord) Tj
-0 -34 Td
-/F2 20 Tf
-60 520 Td
-(What you receive) Tj
-0 -24 Td
-/F1 13 Tf
-(- Dedicated property partner and escalation lead.) Tj
-0 -18 Td
-(- Always-on communication via landlord portal and WhatsApp.) Tj
-0 -18 Td
-(- Compliance roadmap, renewal strategy, and portfolio insights.) Tj
-0 -34 Td
-/F2 20 Tf
-60 380 Td
-(Ready to elevate your lettings experience?) Tj
-0 -24 Td
-/F1 13 Tf
-(Book a discovery consultation to unlock bespoke pricing, marketing previews, and tenant demand analytics.) Tj
-0 -20 Td
-(Email lettings@aktonz.com | Call +44 (0)20 1234 5678 | aktonz.com/lettings) Tj
-ET
-0.84 0.55 0.16 rg
-60 320 475 2 re
-f
-0.88 0.32 0.20 rg
-60 160 475 120 re
-f
-1 1 1 rg
-BT
-/F2 24 Tf
-75 250 Td
-(Get started today) Tj
-0 -26 Td
-/F1 13 Tf
-(Schedule a strategy session and receive a complimentary rental performance audit tailored to your property.) Tj
-0 -18 Td
-(We will deliver a clear action plan within 48 hours.) Tj
-ET
-"""
-
-    testimonials_stream = builder.add_object(make_stream(testimonials_content))
-    page_streams.append(testimonials_stream)
-    testimonials_page = builder.reserve_object()
-    page_objects.append(testimonials_page)
-
-    # Define page objects referencing pages tree
     for page_obj, content_obj in zip(page_objects, page_streams):
         builder.set_object(
             page_obj,
