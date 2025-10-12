@@ -51,6 +51,7 @@ export default function Footer() {
               <li><Link href="/about">About Aktonz Estate Agents</Link></li>
               <li><Link href="/jobs">Sales jobs in London</Link></li>
               <li><Link href="/property-management">Property Management in London</Link></li>
+              <li><Link href="/block-management">Block Management services</Link></li>
               <li><Link href="/branch-finder">Branch Finder</Link></li>
               <li><Link href="/news">News from Aktonz</Link></li>
               <li><Link href="/accessibility">Aktonz Accessibility Information</Link></li>
