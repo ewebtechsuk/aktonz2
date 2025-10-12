@@ -77,6 +77,8 @@
 
 .dropdown {
   position: relative;
+  padding-bottom: var(--spacing-sm);
+  margin-bottom: calc(var(--spacing-sm) * -1);
 }
 
 .dropdownMenu {
