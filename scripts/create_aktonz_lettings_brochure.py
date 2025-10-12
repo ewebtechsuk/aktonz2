@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import base64
 import struct
 import sys
@@ -90,6 +91,36 @@ WHITE = "1 1 1"
 LOGO_GOLD = "1 0.898 0"
 
 
+def tidy_text(text: str) -> str:
+    """Normalise whitespace within marketing copy for cleaner wrapping."""
+
+    return " ".join(text.strip().split())
+
+
+def tidy_paragraphs(paragraphs: Sequence[str]) -> List[str]:
+    """Prepare paragraphs while preserving intentional blank lines."""
+
+    cleaned: List[str] = []
+    for paragraph in paragraphs:
+        if paragraph.strip():
+            cleaned.append(tidy_text(paragraph))
+        else:
+            cleaned.append("")
+    return cleaned
+
+
+def tidy_items(items: Sequence[str]) -> List[str]:
+    """Clean bullet point content without removing deliberately empty rows."""
+
+    cleaned: List[str] = []
+    for item in items:
+        if item.strip():
+            cleaned.append(tidy_text(item))
+        else:
+            cleaned.append("")
+    return cleaned
+
+
 def escape_pdf_text(text: str) -> str:
     return text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
 
@@ -120,6 +151,120 @@ def text_block(
 
 
 CHAR_WIDTH_ESTIMATE = {"F1": 0.5, "F2": 0.52, "F3": 0.5}
+
+
+def filled_rect(x: float, y: float, width: float, height: float, color: str) -> str:
+    return "\n".join(
+        [
+            f"{color} rg",
+            f"{x:.2f} {y:.2f} {width:.2f} {height:.2f} re",
+            "f",
+        ]
+    )
+
+
+def _resolved_leading(size: float, leading: Optional[float]) -> float:
+    return leading if leading is not None else size + 4
+
+
+def _estimate_text_height(line_count: int, size: float, leading: float) -> float:
+    if line_count <= 0:
+        return 0.0
+    # Allow breathing room above characters by slightly expanding the first line height.
+    return size * 1.2 + (line_count - 1) * leading
+
+
+def text_panel_background(
+    x: float,
+    baseline_y: float,
+    width: float,
+    lines: Sequence[str],
+    *,
+    size: float,
+    leading: Optional[float] = None,
+    padding_top: float = 14.0,
+    padding_bottom: float = 18.0,
+    fill_color: str = SOFT_BLUE,
+) -> str:
+    resolved_leading = _resolved_leading(size, leading)
+    text_height = _estimate_text_height(len(lines), size, resolved_leading)
+    if text_height == 0:
+        return ""
+    bottom = baseline_y - text_height - padding_bottom
+    height = text_height + padding_top + padding_bottom
+    return filled_rect(x, bottom, width, height, fill_color)
+
+
+def contact_card(
+    x: float,
+    top: float,
+    width: float,
+    title: str,
+    sections: Sequence[Tuple[str, str]],
+    *,
+    fill_color: str = SOFT_BLUE,
+) -> Tuple[List[str], float]:
+    padding_side = 16.0
+    padding_top = 20.0
+    padding_bottom = 20.0
+    section_gap = 10.0
+    commands: List[str] = []
+    text_width = width - 2 * padding_side
+    y = top - padding_top
+
+    title_lines = wrapped_lines([title], width=text_width, font="F2", size=13)
+    if title_lines:
+        commands.append(
+            text_block(
+                x + padding_side,
+                y,
+                title_lines,
+                font="F2",
+                size=13,
+                color=DEEP_BLUE,
+                leading=16,
+            )
+        )
+        y -= _estimate_text_height(len(title_lines), 13, 16) + section_gap
+
+    for label, value in sections:
+        label_lines = [label]
+        commands.append(
+            text_block(
+                x + padding_side,
+                y,
+                label_lines,
+                font="F2",
+                size=11,
+                color=DEEP_BLUE,
+                leading=14,
+            )
+        )
+        y -= _estimate_text_height(len(label_lines), 11, 14) + 4
+
+        value_lines = wrapped_lines([value], width=text_width, font="F1", size=11)
+        if value_lines:
+            commands.append(
+                text_block(
+                    x + padding_side,
+                    y,
+                    value_lines,
+                    font="F1",
+                    size=11,
+                    color=BLACK,
+                    leading=14,
+                )
+            )
+            y -= _estimate_text_height(len(value_lines), 11, 14)
+        y -= section_gap
+
+    if sections:
+        y += section_gap
+
+    bottom = y - padding_bottom
+    height = top - bottom
+    panel = filled_rect(x, bottom, width, height, fill_color)
+    return [panel, *commands], bottom
 
 
 def _wrap_text(
@@ -227,6 +372,192 @@ def measured_bullet_block(
         leading = size + 4
     lowest_y = y - (len(lines) - 1) * leading if len(lines) > 1 else y
     return text_block(x, y, lines, font=font, size=size, color=color, leading=leading), lowest_y
+
+
+def stacked_panel(
+    x: float,
+    top: float,
+    width: float,
+    sections: Sequence[dict],
+    *,
+    fill_color: str = SOFT_BLUE,
+    padding_side: float = 18.0,
+    padding_top: float = 20.0,
+    padding_bottom: float = 24.0,
+    default_gap: float = 16.0,
+) -> Tuple[List[str], float]:
+    """Render a vertical stack of text sections within a filled background panel."""
+
+    y = top - padding_top
+    text_commands: List[str] = []
+    content_present = False
+
+    for section in sections:
+        lines = section.get("lines")
+        if not lines:
+            continue
+        if content_present:
+            y -= section.get("gap_before", default_gap)
+
+        font = section.get("font", "F1")
+        size = section.get("size", 12.0)
+        color = section.get("color", BLACK)
+        leading = section.get("leading")
+        x_offset = section.get("x_offset", padding_side)
+
+        text_commands.append(
+            text_block(
+                x + x_offset,
+                y,
+                lines,
+                font=font,
+                size=size,
+                color=color,
+                leading=leading,
+            )
+        )
+
+        section_height = _estimate_text_height(len(lines), size, _resolved_leading(size, leading))
+        y -= section_height
+        content_present = True
+
+    if not content_present:
+        return [], top
+
+    bottom = y - padding_bottom
+    panel_height = top - bottom
+    background = filled_rect(x, bottom, width, panel_height, fill_color)
+    return [background, *text_commands], bottom
+
+
+def pricing_card(
+    x: float,
+    top: float,
+    width: float,
+    title: str,
+    price: str,
+    bullets: Sequence[str],
+    *,
+    fill_color: str = PALE_BLUE,
+    accent_color: str = GOLD,
+) -> Tuple[List[str], float]:
+    padding_side = 16.0
+    padding_top = 40.0
+    padding_bottom = 28.0
+    accent_height = 8.0
+    accent_offset = 18.0
+    section_gap = 18.0
+
+    inner_width = width - 2 * padding_side
+    title_lines = wrapped_lines([title], width=inner_width, font="F2", size=16)
+    price_lines = wrapped_lines([price, "VAT-free"], width=inner_width, font="F1", size=12)
+    bullet_lines = wrapped_bullets(tidy_items(bullets), width=inner_width, font="F1", size=11, bullet="•")
+
+    sections = [
+        {
+            "lines": title_lines,
+            "font": "F2",
+            "size": 16,
+            "color": DEEP_BLUE,
+            "leading": 18,
+        },
+        {
+            "lines": price_lines,
+            "font": "F1",
+            "size": 12,
+            "color": BLACK,
+            "leading": 16,
+            "gap_before": section_gap,
+        },
+        {
+            "lines": bullet_lines,
+            "font": "F1",
+            "size": 11,
+            "color": BLACK,
+            "leading": 14,
+            "gap_before": section_gap,
+        },
+    ]
+
+    panel_commands, bottom = stacked_panel(
+        x,
+        top,
+        width,
+        sections,
+        fill_color=fill_color,
+        padding_side=padding_side,
+        padding_top=padding_top,
+        padding_bottom=padding_bottom,
+        default_gap=section_gap,
+    )
+
+    if not panel_commands:
+        return [], top
+
+    accent_y = top - accent_offset
+    accent = filled_rect(x, accent_y, width, accent_height, accent_color)
+    background, *text_blocks = panel_commands
+    return [background, accent, *text_blocks], bottom
+
+
+def area_card(
+    x: float,
+    top: float,
+    width: float,
+    title: str,
+    description: Sequence[str],
+    *,
+    fill_color: str = SOFT_BLUE,
+    accent_color: str = GOLD,
+) -> Tuple[List[str], float]:
+    padding_side = 12.0
+    padding_top = 28.0
+    padding_bottom = 24.0
+    section_gap = 14.0
+    inner_width = width - 2 * padding_side
+
+    title_lines = wrapped_lines([title], width=inner_width, font="F2", size=16)
+    description_lines = wrapped_lines(tidy_paragraphs(description), width=inner_width, font="F1", size=11)
+
+    sections = [
+        {
+            "lines": title_lines,
+            "font": "F2",
+            "size": 16,
+            "color": DEEP_BLUE,
+            "leading": 18,
+        },
+        {
+            "lines": description_lines,
+            "font": "F1",
+            "size": 11,
+            "color": BLACK,
+            "leading": 16,
+            "gap_before": section_gap,
+        },
+    ]
+
+    panel_commands, bottom = stacked_panel(
+        x,
+        top,
+        width,
+        sections,
+        fill_color=fill_color,
+        padding_side=padding_side,
+        padding_top=padding_top,
+        padding_bottom=padding_bottom,
+        default_gap=section_gap,
+    )
+
+    if not panel_commands:
+        return [], top
+
+    accent_height = 8.0
+    accent_offset = 18.0
+    accent_y = top - accent_offset
+    accent = filled_rect(x, accent_y, width, accent_height, accent_color)
+    background, *text_blocks = panel_commands
+    return [background, accent, *text_blocks], bottom
 
 
 def page_background() -> str:
@@ -423,7 +754,7 @@ def draw_logo(x: float, y: float, width: float) -> str:
 # --- Brochure content -----------------------------------------------------
 
 
-def build_brochure(output_path: Path) -> None:
+def build_brochure(output_path: Path) -> bytes:
     builder = PDFBuilder()
 
     regular_font_obj = builder.add_object(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\n")
@@ -523,52 +854,84 @@ def build_brochure(output_path: Path) -> None:
     page2_commands: List[str] = [
         page_background(),
         header("Aktonz Lettings", "Modern letting agents with London roots"),
-        f"{SOFT_BLUE} rg",
-        "70 500 455 160 re",
-        "f",
-        wrapped_text_block(
-            70,
-            660,
+    ]
+
+    intro_padding = 22.0
+    intro_lines = wrapped_lines(
+        tidy_paragraphs(
             [
-                "Aktonz is a London-based lettings and property management agency built to give landlords total confidence. Our neighbourhood experts combine hyper-local insight with a digital portal that keeps instructions transparent and responsive every step of the tenancy lifecycle.",
+                """
+                Aktonz is a London-based lettings and property management agency built to give landlords total confidence.
+                Our neighbourhood experts combine hyper-local insight with a digital portal that keeps instructions
+                transparent and responsive every step of the tenancy lifecycle.
+                """,
                 "",
-                "We operate across the capital with teams dedicated to East London hubs including Hackney, Shoreditch and Canary Wharf while supporting landlords with single homes or multi-unit portfolios citywide.",
-            ],
-            width=430,
-            font="F1",
-            size=12,
-            color=BLACK,
-            leading=18,
+                """
+                We operate across the capital with teams dedicated to East London hubs including Hackney, Shoreditch and
+                Canary Wharf while supporting landlords with single homes or multi-unit portfolios citywide.
+                """,
+            ]
         ),
+        width=455 - 2 * intro_padding,
+        font="F1",
+        size=12,
+    )
+    intro_panel, intro_bottom = stacked_panel(
+        70,
+        780,
+        455,
+        [
+            {
+                "lines": intro_lines,
+                "font": "F1",
+                "size": 12,
+                "color": BLACK,
+                "leading": 18,
+            }
+        ],
+        fill_color=SOFT_BLUE,
+        padding_side=intro_padding,
+        padding_top=28.0,
+        padding_bottom=32.0,
+        default_gap=20.0,
+    )
+    page2_commands.extend(intro_panel)
+
+    highlights_title_y = intro_bottom - 34
+    page2_commands.append(
         text_block(
             90,
-            630,
-            [
-                "Why landlords choose Aktonz",
-            ],
+            highlights_title_y,
+            ["Why landlords choose Aktonz"],
             font="F2",
             size=16,
             color=DEEP_BLUE,
             leading=20,
-        ),
-        wrapped_bullet_block(
-            90,
-            600,
+        )
+    )
+
+    bullet_block, bullet_lowest = measured_bullet_block(
+        90,
+        highlights_title_y - 26,
+        tidy_items(
             [
                 "Local London experts advising on pricing, positioning and legislation per neighbourhood.",
                 "Modern marketing with cinematic photography, video walk-throughs and relocation networks for reach.",
                 "24/7 portal providing viewing feedback, offers, payments and compliance tracking in real time.",
                 "Transparent fixed fees with no VAT, saving around 20% compared with traditional agency models.",
-            ],
-            width=340,
-            font="F1",
-            size=11,
-            color=BLACK,
-            leading=16,
+            ]
         ),
-        f"{GOLD} rg",
-        "340 320 185 130 re",
-        "f",
+        width=330,
+        font="F1",
+        size=11,
+        color=BLACK,
+        leading=16,
+    )
+    if bullet_block:
+        page2_commands.append(bullet_block)
+
+    page2_commands.append(filled_rect(340, 320, 185, 130, GOLD))
+    page2_commands.append(
         text_block(
             355,
             430,
@@ -584,54 +947,100 @@ def build_brochure(output_path: Path) -> None:
             size=12,
             color=WHITE,
             leading=16,
+        )
+    )
+
+    mission_title_y = max(360, bullet_lowest - 36)
+    mission_body_y = mission_title_y - 26
+    mission_width = 250
+    mission_lines = wrapped_lines(
+        [
+            "Maximise rental income while protecting your asset and time through proactive management.",
+        ],
+        width=mission_width,
+        font="F1",
+        size=11,
+    )
+    if mission_lines:
+        page2_commands.append(
+            text_block(
+                70,
+                mission_title_y,
+                ["Mission"],
+                font="F2",
+                size=14,
+                color=DEEP_BLUE,
+                leading=18,
+            )
+        )
+        page2_commands.append(
+            text_block(
+                70,
+                mission_body_y,
+                mission_lines,
+                font="F1",
+                size=11,
+                color=BLACK,
+                leading=16,
+            )
+        )
+    else:
+        page2_commands.append(
+            text_block(
+                70,
+                mission_title_y,
+                ["Mission"],
+                font="F2",
+                size=14,
+                color=DEEP_BLUE,
+                leading=18,
+            )
+        )
+
+    mission_lowest = mission_body_y
+    if mission_lines:
+        mission_lowest = mission_body_y - (len(mission_lines) - 1) * 16
+
+    scope_title_y = mission_lowest - 34
+    scope_body_y = scope_title_y - 26
+    scope_lines = wrapped_lines(
+        tidy_paragraphs(
+            [
+                """
+                From single-apartment landlords to portfolio investors, Aktonz handles marketing, compliance and tenant care
+                with measured communication at every milestone.
+                """
+            ]
         ),
+        width=420,
+        font="F1",
+        size=11,
+    )
+    page2_commands.append(
         text_block(
             70,
-            440,
-            [
-                "Mission",
-            ],
+            scope_title_y,
+            ["Scope"],
             font="F2",
             size=14,
             color=DEEP_BLUE,
             leading=18,
-        ),
-        text_block(
-            70,
-            412,
-            [
-                "Maximise rental income while protecting your asset and time through proactive management.",
-            ],
-            font="F1",
-            size=11,
-            color=BLACK,
-            leading=16,
-        ),
-        text_block(
-            70,
-            376,
-            [
-                "Scope",
-            ],
-            font="F2",
-            size=14,
-            color=DEEP_BLUE,
-            leading=18,
-        ),
-        wrapped_text_block(
-            70,
-            348,
-            [
-                "From single-apartment landlords to portfolio investors, Aktonz handles marketing, compliance and tenant care with measured communication at every milestone.",
-            ],
-            width=420,
-            font="F1",
-            size=11,
-            color=BLACK,
-            leading=16,
-        ),
-        footer(2),
-    ]
+        )
+    )
+    if scope_lines:
+        page2_commands.append(
+            text_block(
+                70,
+                scope_body_y,
+                scope_lines,
+                font="F1",
+                size=11,
+                color=BLACK,
+                leading=16,
+            )
+        )
+
+    page2_commands.append(footer(2))
     page_contents.append("\n".join(page2_commands))
 
     # Page 3 - Landlord services overview
@@ -662,32 +1071,38 @@ def build_brochure(output_path: Path) -> None:
         (
             78,
             "Let Only",
-            [
-                "Strategic multi-portal marketing and social promotion for launch reach.",
-                "Expert-led accompanied viewings and tenant negotiations.",
-                "Comprehensive referencing, compliance checks and contract drafting.",
-                "Smooth handover once rent and deposit clear for your self-management.",
-            ],
+            tidy_items(
+                [
+                    "Strategic multi-portal marketing and social promotion for launch reach.",
+                    "Expert-led accompanied viewings and tenant negotiations.",
+                    "Comprehensive referencing, compliance checks and contract drafting.",
+                    "Smooth handover once rent and deposit clear for your self-management.",
+                ]
+            ),
         ),
         (
             230,
             "Rent Collection",
-            [
-                "Everything in Let Only plus ongoing rent collection and reconciliation.",
-                "Live monitoring with proactive arrears management and reminders.",
-                "Monthly income statements within the Aktonz landlord portal.",
-                "Cashflow oversight without day-to-day payment chasing.",
-            ],
+            tidy_items(
+                [
+                    "Everything in Let Only plus ongoing rent collection and reconciliation.",
+                    "Live monitoring with proactive arrears management and reminders.",
+                    "Monthly income statements within the Aktonz landlord portal.",
+                    "Cashflow oversight without day-to-day payment chasing.",
+                ]
+            ),
         ),
         (
             382,
             "Full Management",
-            [
-                "Rent Collection features plus coordinated repairs and contractor management.",
-                "24/7 tenant helpdesk covering emergencies and essential updates.",
-                "Routine inspections with photo-led reporting for asset peace of mind.",
-                "Aktonz handles notices, renewals and compliant check-out process.",
-            ],
+            tidy_items(
+                [
+                    "Rent Collection features plus coordinated repairs and contractor management.",
+                    "24/7 tenant helpdesk covering emergencies and essential updates.",
+                    "Routine inspections with photo-led reporting for asset peace of mind.",
+                    "Aktonz handles notices, renewals and compliant check-out process.",
+                ]
+            ),
         ),
     ]
 
@@ -711,23 +1126,48 @@ def build_brochure(output_path: Path) -> None:
             bullet_lowest_y = min(bullet_lowest_y, lowest)
 
     summary_y = max(bullet_lowest_y - 28, 440)
-    services_commands.extend(
+    summary_text = tidy_paragraphs(
         [
-            wrapped_text_block(
-                70,
+            """
+            Every service level includes access to our landlord success team, compliance tracking and marketing refreshes at
+            renewal to keep properties achieving optimal yields.
+            """
+        ]
+    )
+    summary_panel_width = 455.0
+    summary_padding = 18.0
+    summary_leading = 16.0
+    summary_lines = wrapped_lines(
+        summary_text,
+        width=summary_panel_width - 2 * summary_padding,
+        font="F1",
+        size=11,
+    )
+    summary_background = text_panel_background(
+        70,
+        summary_y,
+        summary_panel_width,
+        summary_lines,
+        size=11,
+        leading=summary_leading,
+        padding_top=16,
+        padding_bottom=20,
+    )
+    if summary_background:
+        services_commands.append(summary_background)
+    if summary_lines:
+        services_commands.append(
+            text_block(
+                70 + summary_padding,
                 summary_y,
-                [
-                    "Every service level includes access to our landlord success team, compliance tracking and marketing refreshes at renewal to keep properties achieving optimal yields.",
-                ],
-                width=430,
+                summary_lines,
                 font="F1",
                 size=11,
                 color=BLACK,
-                leading=16,
-            ),
-            footer(3),
-        ]
-    )
+                leading=summary_leading,
+            )
+        )
+    services_commands.append(footer(3))
     page_contents.append("\n".join(services_commands))
 
     # Page 4 - Comparison table
@@ -818,24 +1258,51 @@ def build_brochure(output_path: Path) -> None:
         current_y = row_bottom
 
     summary_y = max(current_y - 8, 24)
-    comparison_commands.extend(
+    comparison_summary = tidy_paragraphs(
         [
-            wrapped_text_block(
-                70,
+            """
+            Let Only is a one-off fee. Rent Collection and Full Management operate on monthly percentages with no VAT and no
+            renewal surprises.
+            """,
+            """
+            Upgrade pathways at any time as your needs evolve.
+            """,
+        ]
+    )
+    summary_panel_width = 455.0
+    summary_padding = 18.0
+    summary_leading = 16.0
+    comparison_lines = wrapped_lines(
+        comparison_summary,
+        width=summary_panel_width - 2 * summary_padding,
+        font="F1",
+        size=11,
+    )
+    comparison_background = text_panel_background(
+        70,
+        summary_y,
+        summary_panel_width,
+        comparison_lines,
+        size=11,
+        leading=summary_leading,
+        padding_top=16,
+        padding_bottom=20,
+    )
+    if comparison_background:
+        comparison_commands.append(comparison_background)
+    if comparison_lines:
+        comparison_commands.append(
+            text_block(
+                70 + summary_padding,
                 summary_y,
-                [
-                    "Let Only is a one-off fee. Rent Collection and Full Management operate on monthly percentages with no VAT and no renewal surprises.",
-                    "Upgrade pathways at any time as your needs evolve.",
-                ],
-                width=430,
+                comparison_lines,
                 font="F1",
                 size=11,
                 color=BLACK,
-                leading=16,
-            ),
-            footer(4),
-        ]
-    )
+                leading=summary_leading,
+            )
+        )
+    comparison_commands.append(footer(4))
     page_contents.append("\n".join(comparison_commands))
 
     # Page 5 - Pricing & fees
@@ -845,9 +1312,14 @@ def build_brochure(output_path: Path) -> None:
         wrapped_text_block(
             70,
             670,
-            [
-                "No VAT on Aktonz fees keeps more rental income in your pocket. Our pricing is simple, with inclusive onboarding and no renewal or hidden administration charges.",
-            ],
+            tidy_paragraphs(
+                [
+                    """
+                    No VAT on Aktonz fees keeps more rental income in your pocket. Our pricing is simple, with inclusive
+                    onboarding and no renewal or hidden administration charges.
+                    """
+                ]
+            ),
             width=430,
             font="F1",
             size=12,
@@ -875,29 +1347,11 @@ def build_brochure(output_path: Path) -> None:
     ]
 
     box_x = [70.0, 218.0, 366.0]
+    box_top = 630.0
+    box_width = 148.0
     for (title, price, bullets), x in zip(pricing_boxes, box_x):
-        pricing_commands.extend(
-            [
-                f"{PALE_BLUE} rg",
-                f"{x:.2f} 430 {148:.2f} 200 re",
-                "f",
-                f"{GOLD} rg",
-                f"{x:.2f} 610 {148:.2f} 6 re",
-                "f",
-                text_block(x + 10, 596, [title], font="F2", size=16, color=DEEP_BLUE, leading=18),
-                text_block(x + 10, 566, [price, "VAT-free"], font="F1", size=12, color=BLACK, leading=16),
-                wrapped_bullet_block(
-                    x + 10,
-                    520,
-                    bullets,
-                    width=128,
-                    font="F1",
-                    size=11,
-                    color=BLACK,
-                    leading=14,
-                ),
-            ]
-        )
+        card_commands, _ = pricing_card(x, box_top, box_width, title, price, bullets)
+        pricing_commands.extend(card_commands)
 
     pricing_commands.extend(
         [
@@ -915,10 +1369,17 @@ def build_brochure(output_path: Path) -> None:
             wrapped_text_block(
                 70,
                 352,
-                [
-                    "Traditional 6% + VAT structures equate to 7.2%. Aktonz charges a straight 6%, saving landlords around 20%.",
-                    "We never mark-up contractor invoices and provide renewal strategy reviews without additional charges.",
-                ],
+                tidy_paragraphs(
+                    [
+                        """
+                        Traditional 6% + VAT structures equate to 7.2%. Aktonz charges a straight 6%, saving landlords around
+                        20%.
+                        """,
+                        """
+                        We never mark-up contractor invoices and provide renewal strategy reviews without additional charges.
+                        """,
+                    ]
+                ),
                 width=430,
                 font="F1",
                 size=11,
@@ -934,136 +1395,179 @@ def build_brochure(output_path: Path) -> None:
     addons_commands: List[str] = [
         page_background(),
         header("Add-on services", "Optional extras that keep tenancies compliant"),
-        f"{PALE_BLUE} rg",
-        "70 450 455 210 re",
-        "f",
-        wrapped_text_block(
-            70,
-            680,
+    ]
+
+    addons_padding = 22.0
+    addons_intro_lines = wrapped_lines(
+        tidy_paragraphs(
             [
-                "Aktonz provides a single point of instruction for statutory certificates and enhanced protection, so your property is always ready for move-in and future-proofed against regulation changes.",
-            ],
-            width=430,
-            font="F1",
-            size=12,
-            color=BLACK,
-            leading=18,
+                """
+                Aktonz provides a single point of instruction for statutory certificates and enhanced protection, so your
+                property is always ready for move-in and future-proofed against regulation changes.
+                """
+            ]
         ),
-        wrapped_bullet_block(
-            90,
-            630,
+        width=455 - 2 * addons_padding,
+        font="F1",
+        size=12,
+    )
+    addons_bullet_lines = wrapped_bullets(
+        tidy_items(
             [
                 "Energy Performance Certificates arranged within 72 hours via accredited assessors.",
                 "Gas safety inspections, electrical reports (EICR) and smoke/CO compliance scheduling.",
                 "Professional inventory, check-in and check-out reports with photographic evidence.",
                 "Rent guarantee insurance covering arrears for up to 12 months plus legal eviction support.",
                 "Pre-tenancy and post-tenancy professional cleaning, staging and furnishing coordination.",
-            ],
-            width=380,
-            font="F1",
-            size=11,
-            color=BLACK,
-            leading=16,
+            ]
         ),
-        wrapped_text_block(
-            70,
-            420,
+        width=455 - 2 * addons_padding,
+        font="F1",
+        size=11,
+        bullet="•",
+    )
+    addons_summary_lines = wrapped_lines(
+        tidy_paragraphs(
             [
-                "Bundle add-ons with Full Management for preferential rates and consolidated reporting across certificates and renewals. Our compliance dashboard tracks renewal dates and proactively books services on your behalf.",
-            ],
-            width=430,
-            font="F1",
-            size=11,
-            color=BLACK,
-            leading=16,
+                """
+                Bundle add-ons with Full Management for preferential rates and consolidated reporting across certificates and
+                renewals. Our compliance dashboard tracks renewal dates and proactively books services on your behalf.
+                """
+            ]
         ),
-        footer(6),
-    ]
+        width=455 - 2 * addons_padding,
+        font="F1",
+        size=11,
+    )
+
+    addons_panel, _ = stacked_panel(
+        70,
+        700,
+        455,
+        [
+            {
+                "lines": addons_intro_lines,
+                "font": "F1",
+                "size": 12,
+                "color": BLACK,
+                "leading": 18,
+            },
+            {
+                "lines": addons_bullet_lines,
+                "font": "F1",
+                "size": 11,
+                "color": BLACK,
+                "leading": 16,
+                "gap_before": 22.0,
+            },
+            {
+                "lines": addons_summary_lines,
+                "font": "F1",
+                "size": 11,
+                "color": BLACK,
+                "leading": 16,
+                "gap_before": 22.0,
+            },
+        ],
+        fill_color=PALE_BLUE,
+        padding_side=addons_padding,
+        padding_top=28.0,
+        padding_bottom=32.0,
+        default_gap=20.0,
+    )
+    addons_commands.extend(addons_panel)
+    addons_commands.append(footer(6))
     page_contents.append("\n".join(addons_commands))
 
     # Page 7 - Testimonials
     testimonials_commands: List[str] = [
         page_background(),
         header("Landlords rate Aktonz 4.9/5", "Social proof from across London"),
-        f"{PALE_BLUE} rg",
-        "70 460 455 200 re",
-        "f",
-        wrapped_text_block(
-            90,
-            640,
-            [
-                '"Aktonz found corporate tenants within a week and handled every detail while I was overseas. Communication was immediate and outcomes were excellent." – Sarah K., Canary Wharf landlord',
-            ],
-            width=400,
-            font="F3",
-            size=12,
-            color=BLACK,
-            leading=18,
+    ]
+
+    testimonial_padding = 22.0
+    testimonial_width = 455 - 2 * testimonial_padding
+    testimonial_quotes = [
+        tidy_text(
+            '"Aktonz found corporate tenants within a week and handled every detail while I was overseas. Communication was immediate and outcomes were excellent." – Sarah K., Canary Wharf landlord'
         ),
-        wrapped_text_block(
-            90,
-            580,
-            [
-                '"Their digital portal means I see viewings, offers and maintenance updates instantly. Transparency like this is rare and hugely reassuring." – John M., Shoreditch landlord',
-            ],
-            width=400,
-            font="F3",
-            size=12,
-            color=BLACK,
-            leading=18,
+        tidy_text(
+            '"Their digital portal means I see viewings, offers and maintenance updates instantly. Transparency like this is rare and hugely reassuring." – John M., Shoreditch landlord'
         ),
-        wrapped_text_block(
-            90,
-            520,
-            [
-                '"Rent is always on time and the team pre-empts renewals months ahead. The foresight keeps my yields on track year after year." – Priya L., Hackney landlord',
-            ],
-            width=400,
-            font="F3",
-            size=12,
-            color=BLACK,
-            leading=18,
+        tidy_text(
+            '"Rent is always on time and the team pre-empts renewals months ahead. The foresight keeps my yields on track year after year." – Priya L., Hackney landlord'
         ),
-        wrapped_text_block(
-            90,
-            460,
-            [
-                '"From photography to check-in, every touchpoint was polished. Tenants comment on the service which protects my asset\'s reputation." – David R., Islington landlord',
-            ],
-            width=400,
-            font="F3",
-            size=12,
-            color=BLACK,
-            leading=18,
+        tidy_text(
+            '"From photography to check-in, every touchpoint was polished. Tenants comment on the service which protects my asset\'s reputation." – David R., Islington landlord'
         ),
+    ]
+
+    testimonial_sections: List[dict] = []
+    for index, quote in enumerate(testimonial_quotes):
+        lines = wrapped_lines([quote], width=testimonial_width, font="F3", size=12)
+        section: dict = {
+            "lines": lines,
+            "font": "F3",
+            "size": 12,
+            "color": BLACK,
+            "leading": 18,
+        }
+        if index > 0:
+            section["gap_before"] = 22.0
+        testimonial_sections.append(section)
+
+    testimonial_panel, testimonial_bottom = stacked_panel(
+        70,
+        700,
+        455,
+        testimonial_sections,
+        fill_color=PALE_BLUE,
+        padding_side=testimonial_padding,
+        padding_top=28.0,
+        padding_bottom=32.0,
+        default_gap=20.0,
+    )
+    testimonials_commands.extend(testimonial_panel)
+
+    closing_y = testimonial_bottom - 36
+    testimonials_commands.append(
         wrapped_text_block(
             70,
-            380,
-            [
-                "72% of consumers trust businesses with strong testimonials. Ask for references and case studies aligned to your property profile to see how Aktonz elevates performance in comparable homes.",
-            ],
+            closing_y,
+            tidy_paragraphs(
+                [
+                    """
+                    72% of consumers trust businesses with strong testimonials. Ask for references and case studies aligned to
+                    your property profile to see how Aktonz elevates performance in comparable homes.
+                    """
+                ]
+            ),
             width=430,
             font="F1",
             size=11,
             color=BLACK,
             leading=16,
-        ),
-        footer(7),
-    ]
+        )
+    )
+    testimonials_commands.append(footer(7))
     page_contents.append("\n".join(testimonials_commands))
 
     # Page 8 - FAQ
     faq_commands: List[str] = [
         page_background(),
         header("FAQs & guidance", "Answering common landlord questions"),
-        text_block(
+        wrapped_text_block(
             70,
             680,
-            [
-                "We anticipate the questions landlords regularly ask so you can move forward",
-                "with confidence. For anything bespoke, our specialists are on hand to provide",
-                "clarity and next steps.",
-            ],
+            tidy_paragraphs(
+                [
+                    """
+                    We anticipate the questions landlords regularly ask so you can move forward with confidence. For anything
+                    bespoke, our specialists are on hand to provide clarity and next steps.
+                    """
+                ]
+            ),
+            width=430,
             font="F1",
             size=12,
             color=BLACK,
@@ -1074,177 +1578,203 @@ def build_brochure(output_path: Path) -> None:
     faqs = [
         (
             "What certificates do I need before letting?",
-            "Gas safety, EICR electrical reports, Energy Performance Certificates and smoke/CO compliance. Aktonz arranges each requirement with accredited engineers.",
+            tidy_text(
+                """
+                Gas safety, EICR electrical reports, Energy Performance Certificates and smoke/CO compliance. Aktonz arranges
+                each requirement with accredited engineers.
+                """
+            ),
         ),
         (
             "How are deposits handled?",
-            "Deposits are registered with government-approved schemes. Full Management includes registration and dispute support for worry-free compliance.",
+            tidy_text(
+                """
+                Deposits are registered with government-approved schemes. Full Management includes registration and dispute
+                support for worry-free compliance.
+                """
+            ),
         ),
         (
             "When will I receive rent?",
-            "Rent Collection and Full Management clients receive transfers within two working days of tenant payment alongside monthly statements.",
+            tidy_text(
+                """
+                Rent Collection and Full Management clients receive transfers within two working days of tenant payment
+                alongside monthly statements.
+                """
+            ),
         ),
         (
             "Do you inspect the property during tenancy?",
-            "Full Management includes inspections every six months with photographic reports and agreed action plans.",
+            tidy_text(
+                """
+                Full Management includes inspections every six months with photographic reports and agreed action plans.
+                """
+            ),
         ),
         (
             "How long is the agreement?",
-            "Services run per tenancy with flexible notice periods. Fees apply only while tenants remain in situ and there are no renewal surprises.",
+            tidy_text(
+                """
+                Services run per tenancy with flexible notice periods. Fees apply only while tenants remain in situ and there
+                are no renewal surprises.
+                """
+            ),
         ),
         (
             "Where do you operate?",
-            "Aktonz covers all London zones with specialist teams across East London, the City fringe and North London neighbourhoods.",
+            tidy_text(
+                """
+                Aktonz covers all London zones with specialist teams across East London, the City fringe and North London
+                neighbourhoods.
+                """
+            ),
         ),
     ]
 
-    start_y = 620.0
-    spacing = 72.0
-    for index, (question, answer) in enumerate(faqs):
-        y = start_y - index * spacing
-        faq_commands.append(
-            wrapped_text_block(
-                70,
-                y,
-                [question],
-                width=430,
-                font="F2",
-                size=13,
-                color=DEEP_BLUE,
-                leading=16,
+    question_leading = 16.0
+    answer_leading = 16.0
+    current_y = 620.0
+    for question, answer in faqs:
+        question_lines = wrapped_lines([question], width=430, font="F2", size=13)
+        if question_lines:
+            faq_commands.append(
+                text_block(
+                    70,
+                    current_y,
+                    question_lines,
+                    font="F2",
+                    size=13,
+                    color=DEEP_BLUE,
+                    leading=question_leading,
+                )
             )
-        )
-        faq_commands.append(
-            wrapped_text_block(
-                70,
-                y - 22,
-                [answer],
-                width=430,
-                font="F1",
-                size=11,
-                color=BLACK,
-                leading=16,
-            )
-        )
+            current_y -= _estimate_text_height(len(question_lines), 13, question_leading) + 6
 
-    faq_commands.extend(
+        answer_lines = wrapped_lines([answer], width=430, font="F1", size=11)
+        if answer_lines:
+            faq_commands.append(
+                text_block(
+                    70,
+                    current_y,
+                    answer_lines,
+                    font="F1",
+                    size=11,
+                    color=BLACK,
+                    leading=answer_leading,
+                )
+            )
+            current_y -= _estimate_text_height(len(answer_lines), 11, answer_leading) + 18
+
+    cta_panel_width = 455.0
+    cta_padding = 18.0
+    cta_leading = 16.0
+    faq_cta_text = tidy_paragraphs(
         [
-            wrapped_text_block(
-                70,
-                260,
-                [
-                    "Need more detail? Email info@aktonz.com for tailored guidance or to access the Aktonz landlord knowledge base.",
-                ],
-                width=430,
-                font="F1",
-                size=11,
-                color=BLACK,
-                leading=16,
-            ),
-            footer(8),
+            """
+            Need more detail? Email info@aktonz.com for tailored guidance or to access the Aktonz landlord knowledge base.
+            """
         ]
     )
+    faq_cta_lines = wrapped_lines(
+        faq_cta_text,
+        width=cta_panel_width - 2 * cta_padding,
+        font="F1",
+        size=11,
+    )
+    cta_start = max(current_y, 240.0)
+    faq_cta_background = text_panel_background(
+        70,
+        cta_start,
+        cta_panel_width,
+        faq_cta_lines,
+        size=11,
+        leading=cta_leading,
+        padding_top=16,
+        padding_bottom=20,
+        fill_color=PALE_BLUE,
+    )
+    if faq_cta_background:
+        faq_commands.append(faq_cta_background)
+    if faq_cta_lines:
+        faq_commands.append(
+            text_block(
+                70 + cta_padding,
+                cta_start,
+                faq_cta_lines,
+                font="F1",
+                size=11,
+                color=BLACK,
+                leading=cta_leading,
+            )
+        )
+    faq_commands.append(footer(8))
     page_contents.append("\n".join(faq_commands))
 
     # Page 9 - London area showcase
     area_commands: List[str] = [
         page_background(),
         header("London area showcase", "On-the-ground expertise across prime districts"),
-        f"{PALE_BLUE} rg",
-        "70 540 140 160 re",
-        "f",
-        f"{GOLD} rg",
-        "70 540 140 10 re",
-        "f",
-        f"{PALE_BLUE} rg",
-        "232 540 140 160 re",
-        "f",
-        f"{GOLD} rg",
-        "232 540 140 10 re",
-        "f",
-        f"{PALE_BLUE} rg",
-        "394 540 140 160 re",
-        "f",
-        f"{GOLD} rg",
-        "394 540 140 10 re",
-        "f",
-        text_block(
-            80,
-            670,
-            ["Canary Wharf"],
-            font="F2",
-            size=16,
-            color=DEEP_BLUE,
-            leading=18,
-        ),
-        wrapped_text_block(
-            80,
-            640,
+    ]
+
+    area_specs = [
+        (
+            70.0,
+            "Canary Wharf",
             [
-                "Financial hub with riverside towers and concierge amenities. Corporate tenants seek premium finishes and flexible move-in dates.",
+                """
+                Financial hub with riverside towers and concierge amenities. Corporate tenants seek premium finishes and
+                flexible move-in dates.
+                """,
             ],
-            width=120,
-            font="F1",
-            size=11,
-            color=BLACK,
-            leading=16,
         ),
-        text_block(
-            242,
-            670,
-            ["Shoreditch"],
-            font="F2",
-            size=16,
-            color=DEEP_BLUE,
-            leading=18,
-        ),
-        wrapped_text_block(
-            242,
-            640,
+        (
+            232.0,
+            "Shoreditch",
             [
-                "Creative heartland with warehouse conversions and boutique new-builds. Ideal for tech professionals valuing lifestyle-led marketing.",
+                """
+                Creative heartland with warehouse conversions and boutique new-builds. Ideal for tech professionals valuing
+                lifestyle-led marketing.
+                """,
             ],
-            width=120,
-            font="F1",
-            size=11,
-            color=BLACK,
-            leading=16,
         ),
-        text_block(
-            404,
-            670,
-            ["Hackney"],
-            font="F2",
-            size=16,
-            color=DEEP_BLUE,
-            leading=18,
-        ),
-        wrapped_text_block(
-            404,
-            640,
+        (
+            394.0,
+            "Hackney",
             [
-                "Victorian streets and new developments with vibrant culture. Strong rental yields supported by community-driven amenities.",
+                """
+                Victorian streets and new developments with vibrant culture. Strong rental yields supported by community-driven
+                amenities.
+                """,
             ],
-            width=120,
-            font="F1",
-            size=11,
-            color=BLACK,
-            leading=16,
         ),
+    ]
+
+    card_top = 700.0
+    card_width = 140.0
+    for x, title, description in area_specs:
+        card_commands, _ = area_card(x, card_top, card_width, title, description, fill_color=PALE_BLUE)
+        area_commands.extend(card_commands)
+
+    area_commands.append(
         wrapped_text_block(
             70,
             520,
-            [
-                "Beyond the East, Aktonz covers the City fringe, Greenwich Riverside and North London villages. Marketing narratives are tailored to each micro-market to attract the ideal tenant profile quickly.",
-            ],
+            tidy_paragraphs(
+                [
+                    """
+                    Beyond the East, Aktonz covers the City fringe, Greenwich Riverside and North London villages. Marketing
+                    narratives are tailored to each micro-market to attract the ideal tenant profile quickly.
+                    """
+                ]
+            ),
             width=430,
             font="F1",
             size=11,
             color=BLACK,
             leading=16,
-        ),
-        footer(9),
-    ]
+        )
+    )
+    area_commands.append(footer(9))
     page_contents.append("\n".join(area_commands))
 
     # Page 10 - Contact
@@ -1255,71 +1785,94 @@ def build_brochure(output_path: Path) -> None:
         wrapped_text_block(
             70,
             660,
-            [
-                "Ready to maximise rental returns with a proactive, tech-enabled partner? Speak with Aktonz to receive a bespoke marketing and compliance blueprint for your property.",
-            ],
+            tidy_paragraphs(
+                [
+                    """
+                    Ready to maximise rental returns with a proactive, tech-enabled partner? Speak with Aktonz to receive a
+                    bespoke marketing and compliance blueprint for your property.
+                    """
+                ]
+            ),
             width=430,
             font="F1",
             size=12,
             color=BLACK,
             leading=18,
         ),
-        f"{PALE_BLUE} rg",
-        "70 460 455 160 re",
-        "f",
-        text_block(
-            90,
-            590,
-            [
-                "Phone",
-                "0203 389 8009",
-                "",
-                "Email",
-                "info@aktonz.com",
-                "",
-                "Website",
-                "www.aktonz.com",
-                "",
-                "Social",
-                "LinkedIn & Instagram @Aktonz",
-            ],
-            font="F1",
-            size=12,
-            color=BLACK,
-            leading=16,
-        ),
-        text_block(
-            300,
-            590,
-            [
-                "Office hours",
-                "Mon-Fri 9am-7pm",
-                "Sat 10am-4pm",
-                "Sun by appointment",
-                "",
-                "Call to action",
-                "Book a consultation for a complimentary rental valuation",
-                "and tailored marketing roadmap delivered within 48 hours.",
-            ],
-            font="F1",
-            size=12,
-            color=BLACK,
-            leading=16,
-        ),
-        wrapped_text_block(
-            70,
-            420,
-            [
-                "Visit aktonz.com/landlords to schedule instantly or speak to our team for portfolio planning support.",
-            ],
-            width=430,
-            font="F2",
-            size=12,
-            color=DEEP_BLUE,
-            leading=16,
-        ),
-        footer(10),
     ]
+    card_specs = [
+        (
+            70.0,
+            600.0,
+            212.0,
+            "Speak to the lettings team",
+            [
+                ("Phone", "0203 389 8009"),
+                ("Email", "info@aktonz.com"),
+                ("Website", "www.aktonz.com"),
+            ],
+        ),
+        (
+            313.0,
+            600.0,
+            212.0,
+            "Stay connected",
+            [
+                ("Office hours", "Mon-Fri 9am-7pm | Sat 10am-4pm | Sun by appointment"),
+                ("Social", "LinkedIn & Instagram @Aktonz"),
+                ("Meetings", "In-person consultations available across London zones 1-3"),
+            ],
+        ),
+    ]
+    card_bottoms: List[float] = []
+    for x, top, width, title, sections in card_specs:
+        card_cmds, bottom = contact_card(x, top, width, title, sections)
+        contact_commands.extend(card_cmds)
+        card_bottoms.append(bottom)
+
+    cta_panel_width = 455.0
+    cta_padding = 18.0
+    cta_leading = 16.0
+    cta_text = tidy_paragraphs(
+        [
+            """
+            Visit aktonz.com/landlords to schedule instantly or speak to our team for portfolio planning support.
+            """
+        ]
+    )
+    cta_lines = wrapped_lines(
+        cta_text,
+        width=cta_panel_width - 2 * cta_padding,
+        font="F2",
+        size=12,
+    )
+    cta_start = min(card_bottoms) - 28 if card_bottoms else 420
+    cta_background = text_panel_background(
+        70,
+        cta_start,
+        cta_panel_width,
+        cta_lines,
+        size=12,
+        leading=cta_leading,
+        padding_top=16,
+        padding_bottom=20,
+        fill_color=PALE_BLUE,
+    )
+    if cta_background:
+        contact_commands.append(cta_background)
+    if cta_lines:
+        contact_commands.append(
+            text_block(
+                70 + cta_padding,
+                cta_start,
+                cta_lines,
+                font="F2",
+                size=12,
+                color=DEEP_BLUE,
+                leading=cta_leading,
+            )
+        )
+    contact_commands.append(footer(10))
     page_contents.append("\n".join(contact_commands))
 
     page_streams: List[int] = []
@@ -1352,9 +1905,36 @@ def build_brochure(output_path: Path) -> None:
     pdf_bytes = builder.build()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_bytes(pdf_bytes)
+    return pdf_bytes
 
 
 if __name__ == "__main__":
-    output_file = Path("docs/aktonz-lettings-brochure.pdf")
-    build_brochure(output_file)
-    print(f"Created {output_file}")
+    parser = argparse.ArgumentParser(description="Generate the Aktonz lettings brochure PDF.")
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("docs/aktonz-lettings-brochure.pdf"),
+        help="Primary output path for the generated brochure (default: docs/aktonz-lettings-brochure.pdf).",
+    )
+    parser.add_argument(
+        "--public",
+        action="store_true",
+        help="Also copy the brochure to public/brochures for the Next.js site.",
+    )
+    parser.add_argument(
+        "--public-output",
+        type=Path,
+        default=Path("public/brochures/aktonz-lettings-brochure.pdf"),
+        help="Override the public brochure path when --public is supplied.",
+    )
+    args = parser.parse_args()
+
+    primary_output = args.output
+    pdf_bytes = build_brochure(primary_output)
+    print(f"Created {primary_output}")
+
+    if args.public:
+        public_path = args.public_output
+        public_path.parent.mkdir(parents=True, exist_ok=True)
+        public_path.write_bytes(pdf_bytes)
+        print(f"Copied brochure to {public_path}")
