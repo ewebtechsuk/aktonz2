@@ -119,11 +119,17 @@ const staticHeaders = [
   },
 ];
 
+const computedBasePath = isProd && repo ? `/${repo}` : '';
+const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? computedBasePath;
+
 const nextConfig = {
   ...(shouldExport ? { output: 'export' } : {}),
   images: { unoptimized: true },
-  basePath: isProd && repo ? `/${repo}` : undefined,
-  assetPrefix: isProd && repo ? `/${repo}/` : undefined,
+  basePath: computedBasePath || undefined,
+  assetPrefix: computedBasePath ? `${computedBasePath}/` : undefined,
+  env: {
+    NEXT_PUBLIC_BASE_PATH: publicBasePath,
+  },
 };
 
 export default nextConfig;

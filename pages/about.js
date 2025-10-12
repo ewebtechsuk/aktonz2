@@ -3,6 +3,10 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import styles from '../styles/About.module.css';
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+const withBasePath = (path) => (basePath ? `${basePath}${path}` : path);
+const brochurePath = withBasePath('/brochures/aktonz-lettings-brochure.pdf');
+
 const highlights = [
   {
     title: 'Local roots, city-wide reach',
@@ -304,14 +308,14 @@ export default function About() {
             </p>
             <p className={styles.brochureDownload}>
               Prefer a copy of your own?{' '}
-              <a href="/brochures/aktonz-lettings-brochure.pdf" download>
+              <a href={brochurePath} download>
                 Download the brochure as a PDF
               </a>
               .
             </p>
           </div>
           <div className={styles.flipbookShell}>
-            <BrochureFlipbook file="/brochures/aktonz-lettings-brochure.pdf" />
+            <BrochureFlipbook file={brochurePath} />
           </div>
         </section>
       </main>
