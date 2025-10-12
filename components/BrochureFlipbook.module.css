@@ -21,10 +21,6 @@
   padding: var(--spacing-sm);
 }
 
-.pdfPage {
-  width: 100%;
-}
-
 .statusMessage {
   color: var(--color-muted-text);
   font-size: 0.95rem;
@@ -46,9 +42,9 @@
   text-align: center;
 }
 
-.pdfPage :global(canvas) {
-  width: 100% !important;
-  height: auto !important;
+.pdfCanvas {
+  width: 100%;
+  height: auto;
   border-radius: 8px;
 }
 
