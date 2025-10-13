@@ -46,7 +46,7 @@ jobs:
           fi
 
           if [ -n "${APEX27_BRANCH_ID:-}" ]; then
-            printf '::notice::APEX27_BRANCH_ID provided; listings cache will be branch scoped.\n'
+            printf 'APEX27_BRANCH_ID provided; listings cache will be branch scoped.\n'
           fi
 
           echo "has-apex-key=${has_apex_key}" >> "$GITHUB_OUTPUT"
