@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 
@@ -12,6 +12,237 @@ const STAGE_BADGE_CLASS = {
   client: styles.badgeClient,
   past_client: styles.badgePastClient,
 };
+
+function openInNewTab(url) {
+  if (!url || typeof window === 'undefined') {
+    return;
+  }
+
+  window.open(url, '_blank', 'noopener');
+}
+
+function ContactActionsCell({ contact }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+  const toggleRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) {
+      return;
+    }
+
+    function handleDocumentClick(event) {
+      if (!menuRef.current || !toggleRef.current) {
+        return;
+      }
+
+      if (
+        menuRef.current.contains(event.target) ||
+        toggleRef.current.contains(event.target)
+      ) {
+        return;
+      }
+
+      setMenuOpen(false);
+    }
+
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleDocumentClick);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handleDocumentClick);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [menuOpen]);
+
+  const handleMenuToggle = useCallback(() => {
+    setMenuOpen((current) => !current);
+  }, []);
+
+  const handleUpdate = useCallback(() => {
+    const updateUrl = contact.links?.update;
+    if (updateUrl) {
+      openInNewTab(updateUrl);
+    }
+  }, [contact]);
+
+  const handleMenuSelection = useCallback((item) => {
+    if (!item || item.type === 'divider') {
+      return;
+    }
+
+    setMenuOpen(false);
+
+    if (item.confirm && typeof window !== 'undefined') {
+      const confirmed = window.confirm(item.confirm);
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    if (!item.href) {
+      return;
+    }
+
+    if (item.href.startsWith('mailto:')) {
+      if (typeof window !== 'undefined') {
+        window.location.href = item.href;
+      }
+      return;
+    }
+
+    openInNewTab(item.href);
+  }, []);
+
+  const menuItems = useMemo(() => {
+    const items = [];
+
+    if (contact.links?.callReminder) {
+      items.push({
+        key: 'callReminder',
+        label: 'Set Call Reminder',
+        href: contact.links.callReminder,
+      });
+    }
+
+    if (contact.links?.logCommunication) {
+      items.push({
+        key: 'logCommunication',
+        label: 'Log Communication',
+        href: contact.links.logCommunication,
+      });
+    }
+
+    if (contact.links?.assignAgent) {
+      items.push({
+        key: 'assignAgent',
+        label: 'Assign Agent',
+        href: contact.links.assignAgent,
+      });
+    }
+
+    if (contact.links?.newTask) {
+      items.push({
+        key: 'newTask',
+        label: 'Create Task',
+        href: contact.links.newTask,
+      });
+    }
+
+    if (contact.links?.delegatedTask) {
+      items.push({
+        key: 'delegatedTask',
+        label: 'Create Delegated Task',
+        href: contact.links.delegatedTask,
+      });
+    }
+
+    if (contact.email) {
+      items.push({
+        key: 'email',
+        label: 'Email',
+        href: `mailto:${contact.email}`,
+      });
+    }
+
+    if (contact.links?.emailPropertyDetails) {
+      items.push({
+        key: 'emailPropertyDetails',
+        label: 'Email Property Details',
+        href: contact.links.emailPropertyDetails,
+      });
+    }
+
+    if (contact.links?.bookViewing) {
+      items.push({
+        key: 'bookViewing',
+        label: 'Book Viewing',
+        href: contact.links.bookViewing,
+      });
+    }
+
+    const shouldIncludeDivider = items.length > 0 && (contact.links?.archive || contact.links?.delete);
+    if (shouldIncludeDivider) {
+      items.push({ key: 'divider', type: 'divider' });
+    }
+
+    if (contact.links?.archive) {
+      items.push({
+        key: 'archive',
+        label: 'Archive',
+        href: contact.links.archive,
+        confirm: `Archive ${contact.name}?`,
+      });
+    }
+
+    if (contact.links?.delete) {
+      items.push({
+        key: 'delete',
+        label: 'Delete',
+        href: contact.links.delete,
+        tone: 'danger',
+        confirm: `Delete ${contact.name}?`,
+      });
+    }
+
+    return items;
+  }, [contact]);
+
+  return (
+    <div className={styles.actionsWrapper}>
+      <button type="button" className={styles.updateButton} onClick={handleUpdate}>
+        Update
+      </button>
+      <button
+        type="button"
+        className={styles.menuToggle}
+        onClick={handleMenuToggle}
+        aria-haspopup="true"
+        aria-expanded={menuOpen}
+        aria-label={`More actions for ${contact.name}`}
+        ref={toggleRef}
+      >
+        <span className={styles.menuToggleIcon} aria-hidden="true">
+          ▾
+        </span>
+      </button>
+      {menuOpen ? (
+        <div className={styles.actionMenu} role="menu" ref={menuRef}>
+          {menuItems.map((item) => {
+            if (item.type === 'divider') {
+              return <div key={item.key} className={styles.actionMenuDivider} role="separator" />;
+            }
+
+            const className = [
+              styles.actionMenuItem,
+              item.tone === 'danger' ? styles.actionMenuItemDanger : null,
+            ]
+              .filter(Boolean)
+              .join(' ');
+
+            return (
+              <button
+                key={item.key}
+                type="button"
+                className={className}
+                onClick={() => handleMenuSelection(item)}
+                role="menuitem"
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 function formatDateTime(value) {
   if (!value) {
@@ -428,6 +659,9 @@ export default function AdminContactsPage() {
                       <th scope="col">Focus &amp; requirements</th>
                       <th scope="col">Contact details</th>
                       <th scope="col">Owner</th>
+                      <th scope="col" className={styles.actionsHeader}>
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -510,6 +744,9 @@ export default function AdminContactsPage() {
                           <td>
                             <div>{contact.assignedAgentName || 'Unassigned'}</div>
                             <div className={styles.meta}>{contact.pipelineLabel}</div>
+                          </td>
+                          <td className={styles.actionsCell}>
+                            <ContactActionsCell contact={contact} />
                           </td>
                         </tr>
                       );
