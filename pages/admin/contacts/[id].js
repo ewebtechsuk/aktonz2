@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
+import supportData from '../../../data/ai-support.json';
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminContactDetails.module.css';
 
@@ -13,6 +14,18 @@ const STAGE_TONE_CLASS = {
   neutral: styles.stageNeutral,
   muted: styles.stageMuted,
 };
+
+const SUPPORT_CONTACTS = Array.isArray(supportData?.contacts) ? supportData.contacts : [];
+const SUPPORT_LISTING_MAP = new Map();
+(Array.isArray(supportData?.listings) ? supportData.listings : []).forEach((listing) => {
+  const key = listing?.id ?? listing?.listingId ?? '';
+  if (!key) {
+    return;
+  }
+  SUPPORT_LISTING_MAP.set(String(key), listing);
+});
+const SUPPORT_APPOINTMENTS = Array.isArray(supportData?.appointments) ? supportData.appointments : [];
+const SUPPORT_VIEWINGS = Array.isArray(supportData?.viewings) ? supportData.viewings : [];
 
 function buildStageClass(tone) {
   return STAGE_TONE_CLASS[tone] || styles.stageNeutral;
@@ -129,224 +142,153 @@ function formatBudget(budget = {}) {
   return lines;
 }
 
-const EMPTY_MANAGEMENT_OPTIONS = Object.freeze({
-  stage: [],
-  pipeline: [],
-  type: [],
-  agent: [],
-});
-
-const INITIAL_FORM_STATE = Object.freeze({
-  firstName: '',
-  lastName: '',
-  name: '',
-  stage: '',
-  type: '',
-  pipeline: '',
-  assignedAgentId: '',
-  source: '',
-  email: '',
-  phone: '',
-  locationFocus: '',
-  generatedNotes: '',
-  tags: '',
-  requirements: '',
-  budgetSaleMax: '',
-  budgetRentMax: '',
-  nextStepDescription: '',
-  nextStepDueDate: '',
-  nextStepDueTime: '',
-});
-
-const INITIAL_STATUS_STATE = Object.freeze({
-  type: 'idle',
-  message: '',
-  details: [],
-});
-
-function formatInputDate(value) {
-  if (!value) {
-    return '';
-  }
-
-  try {
-    const date = new Date(value);
-    if (!Number.isFinite(date.getTime())) {
-      return '';
-    }
-    return date.toISOString().slice(0, 10);
-  } catch (error) {
-    return '';
-  }
+function normaliseEmail(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
 }
 
-function formatInputTime(value) {
-  if (!value) {
+function normaliseName(value) {
+  if (typeof value !== 'string') {
     return '';
   }
-
-  try {
-    const date = new Date(value);
-    if (!Number.isFinite(date.getTime())) {
-      return '';
-    }
-    return date.toISOString().slice(11, 16);
-  } catch (error) {
-    return '';
-  }
+  return value.trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
-function buildManagementFormState(contact) {
+function normalisePhone(value) {
+  if (typeof value !== 'string') {
+    return '';
+  }
+  return value.replace(/[^0-9+]/g, '');
+}
+
+function parseTimestamp(value) {
+  if (!value) {
+    return null;
+  }
+
+  const timestamp = new Date(value).getTime();
+  return Number.isFinite(timestamp) ? timestamp : null;
+}
+
+function findSupportContactFor(contact) {
   if (!contact) {
-    return { ...INITIAL_FORM_STATE };
+    return null;
   }
 
-  return {
-    firstName: contact.firstName || '',
-    lastName: contact.lastName || '',
-    name: contact.name || '',
-    stage: contact.stage || '',
-    type: contact.type || '',
-    pipeline: contact.pipeline || '',
-    assignedAgentId: contact.assignedAgentId || '',
-    source: contact.source || '',
-    email: contact.email || '',
-    phone: contact.phone || '',
-    locationFocus: contact.locationFocus || '',
-    generatedNotes: contact.generatedNotes || '',
-    tags: Array.isArray(contact.tags) ? contact.tags.join('\n') : '',
-    requirements: Array.isArray(contact.requirements) ? contact.requirements.join('\n') : '',
-    budgetSaleMax:
-      Number.isFinite(contact?.budget?.saleMax) && contact.budget.saleMax != null
-        ? String(contact.budget.saleMax)
-        : '',
-    budgetRentMax:
-      Number.isFinite(contact?.budget?.rentMax) && contact.budget.rentMax != null
-        ? String(contact.budget.rentMax)
-        : '',
-    nextStepDescription: contact.nextStep?.description || '',
-    nextStepDueDate: formatInputDate(contact.nextStep?.dueAt),
-    nextStepDueTime: formatInputTime(contact.nextStep?.dueAt),
-  };
+  const contactEmail = normaliseEmail(contact.email);
+  const contactPhone = normalisePhone(contact.phone);
+  const contactName = normaliseName(contact.name);
+
+  return (
+    SUPPORT_CONTACTS.find((candidate) => {
+      const candidateEmail = normaliseEmail(candidate?.email);
+      if (candidateEmail && contactEmail && candidateEmail === contactEmail) {
+        return true;
+      }
+
+      const candidatePhone = normalisePhone(candidate?.phone);
+      if (candidatePhone && contactPhone && candidatePhone === contactPhone) {
+        return true;
+      }
+
+      const candidateName = normaliseName(candidate?.name);
+      if (candidateName && contactName && candidateName === contactName) {
+        return true;
+      }
+
+      return false;
+    }) || null
+  );
 }
 
-function parseListInput(value) {
-  if (!value) {
-    return [];
-  }
-
-  return value
-    .split(/[\n,]/)
-    .map((entry) => entry.trim())
+function getSupportListings(listingIds = []) {
+  return listingIds
+    .map((id) => {
+      const key = String(id);
+      return SUPPORT_LISTING_MAP.get(key) || null;
+    })
     .filter(Boolean);
 }
 
-function parseBudgetValue(value) {
-  if (value == null || value === '') {
-    return null;
-  }
+function combineRequirements(primary = [], secondary = []) {
+  const seen = new Set();
+  const result = [];
 
-  const cleaned = String(value).replace(/[^0-9.-]/g, '').trim();
-  if (!cleaned) {
-    return null;
-  }
-
-  const numeric = Number(cleaned);
-  return Number.isFinite(numeric) ? numeric : null;
-}
-
-function buildBudgetPayloadFromState(state) {
-  const saleMax = parseBudgetValue(state.budgetSaleMax);
-  const rentMax = parseBudgetValue(state.budgetRentMax);
-  return { saleMax, rentMax };
-}
-
-function buildNextStepDueAt(dateValue, timeValue) {
-  if (!dateValue) {
-    return null;
-  }
-
-  try {
-    const [year, month, day] = dateValue.split('-').map((part) => Number(part));
-    if (!year || !month || !day) {
-      return null;
+  [...primary, ...secondary].forEach((item) => {
+    if (typeof item !== 'string') {
+      return;
     }
 
-    let hours = 9;
-    let minutes = 0;
-
-    if (timeValue) {
-      const [hourPart, minutePart] = timeValue.split(':').map((part) => Number(part));
-      if (Number.isInteger(hourPart) && hourPart >= 0 && hourPart <= 23) {
-        hours = hourPart;
-      }
-      if (Number.isInteger(minutePart) && minutePart >= 0 && minutePart <= 59) {
-        minutes = minutePart;
-      }
+    const trimmed = item.trim();
+    if (!trimmed) {
+      return;
     }
 
-    const date = new Date(Date.UTC(year, month - 1, day, hours, minutes));
-    return date.toISOString();
-  } catch (error) {
-    return null;
-  }
+    const key = trimmed.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(trimmed);
+    }
+  });
+
+  return result;
 }
 
-function buildNextStepPayloadFromState(state) {
-  const description = state.nextStepDescription?.trim() || '';
-  const dueAt = buildNextStepDueAt(state.nextStepDueDate?.trim(), state.nextStepDueTime?.trim());
-
-  if (!description && !dueAt) {
-    return null;
+function doesOfferMatchContact(offer, contact, supportContact) {
+  if (!offer || !contact) {
+    return false;
   }
 
-  const payload = {};
-  if (description) {
-    payload.description = description;
+  const offerContactId = String(offer.contactId || offer?.contact?.id || '');
+  if (offerContactId) {
+    if (offerContactId === String(contact.id)) {
+      return true;
+    }
+    if (supportContact?.id && offerContactId === String(supportContact.id)) {
+      return true;
+    }
   }
-  if (dueAt) {
-    payload.dueAt = dueAt;
+
+  const contactEmail = normaliseEmail(contact.email);
+  const offerEmail = normaliseEmail(offer?.contact?.email || offer?.email);
+  if (contactEmail && offerEmail && contactEmail === offerEmail) {
+    return true;
   }
-  return payload;
+
+  const contactPhone = normalisePhone(contact.phone);
+  const offerPhone = normalisePhone(offer?.contact?.phone || offer?.phone);
+  if (contactPhone && offerPhone && contactPhone === offerPhone) {
+    return true;
+  }
+
+  const contactName = normaliseName(contact.name);
+  const offerName = normaliseName(offer?.contact?.name || offer?.name);
+  if (contactName && offerName && contactName === offerName) {
+    return true;
+  }
+
+  return false;
 }
 
-function buildManagementPayloadFromState(state) {
-  return {
-    firstName: state.firstName,
-    lastName: state.lastName,
-    name: state.name,
-    stage: state.stage,
-    type: state.type,
-    pipeline: state.pipeline,
-    assignedAgentId: state.assignedAgentId || null,
-    source: state.source,
-    email: state.email,
-    phone: state.phone,
-    locationFocus: state.locationFocus,
-    generatedNotes: state.generatedNotes,
-    tags: parseListInput(state.tags),
-    requirements: parseListInput(state.requirements),
-    budget: buildBudgetPayloadFromState(state),
-    nextStep: buildNextStepPayloadFromState(state),
-  };
-}
+function buildScheduleEntries(items = []) {
+  return items
+    .map((item) => {
+      const timestamp = parseTimestamp(item.date);
+      if (!timestamp) {
+        return null;
+      }
 
-function normaliseManagementOptions(options) {
-  if (!options || typeof options !== 'object') {
-    return {
-      stage: [...EMPTY_MANAGEMENT_OPTIONS.stage],
-      pipeline: [...EMPTY_MANAGEMENT_OPTIONS.pipeline],
-      type: [...EMPTY_MANAGEMENT_OPTIONS.type],
-      agent: [...EMPTY_MANAGEMENT_OPTIONS.agent],
-    };
-  }
-
-  return {
-    stage: Array.isArray(options.stage) ? [...options.stage] : [],
-    pipeline: Array.isArray(options.pipeline) ? [...options.pipeline] : [],
-    type: Array.isArray(options.type) ? [...options.type] : [],
-    agent: Array.isArray(options.agent) ? [...options.agent] : [],
-  };
+      return {
+        id: item.id || `${item.type || item.kind}-${timestamp}`,
+        label: item.label,
+        title: item.title,
+        location: item.location,
+        timestamp,
+        dateLabel: formatDateTime(item.date),
+        meta: item.meta || null,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.timestamp - b.timestamp);
 }
 
 export default function AdminContactDetailsPage() {
@@ -357,10 +299,9 @@ export default function AdminContactDetailsPage() {
   const [contact, setContact] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [options, setOptions] = useState(() => normaliseManagementOptions(null));
-  const [formState, setFormState] = useState(INITIAL_FORM_STATE);
-  const [formStatus, setFormStatus] = useState(INITIAL_STATUS_STATE);
-  const [saving, setSaving] = useState(false);
+  const [offersLoading, setOffersLoading] = useState(false);
+  const [offersError, setOffersError] = useState('');
+  const [relatedOffers, setRelatedOffers] = useState([]);
 
   const contactId = useMemo(() => normalizeRouteParam(router.query.id), [router.query.id]);
 
@@ -434,9 +375,55 @@ export default function AdminContactDetailsPage() {
     return () => controller.abort();
   }, [router.isReady, sessionLoading, isAdmin, contactId]);
 
-  const pageTitle = contact
-    ? `${contact.name} • Admin contacts`
-    : 'Contact details • Admin contacts';
+  const supportContact = useMemo(() => findSupportContactFor(contact), [contact]);
+  const supportListings = useMemo(
+    () => getSupportListings(Array.isArray(supportContact?.relatedListings) ? supportContact.relatedListings : []),
+    [supportContact?.relatedListings],
+  );
+
+  const requirementItems = useMemo(
+    () =>
+      combineRequirements(
+        Array.isArray(contact?.requirements) ? contact.requirements : [],
+        Array.isArray(supportContact?.activeRequirements) ? supportContact.activeRequirements : [],
+      ),
+    [contact?.requirements, supportContact?.activeRequirements],
+  );
+
+  const supportSchedule = useMemo(() => {
+    if (!supportContact?.id) {
+      return [];
+    }
+
+    const appointmentEntries = SUPPORT_APPOINTMENTS.filter(
+      (entry) => entry.contactId === supportContact.id,
+    ).map((entry) => ({
+      id: entry.id,
+      date: entry.date,
+      label: 'Appointment',
+      title: entry.type,
+      location: entry.location,
+      meta: entry.notes || null,
+    }));
+
+    const viewingEntries = SUPPORT_VIEWINGS.filter((entry) => entry.contactId === supportContact.id).map((entry) => {
+      const listing = entry.propertyId ? SUPPORT_LISTING_MAP.get(String(entry.propertyId)) : null;
+      const listingTitle = listing?.title || 'Viewing';
+      return {
+        id: entry.id,
+        date: entry.date,
+        label: 'Viewing',
+        title: listingTitle,
+        location: listing?.address || entry.location,
+        meta: listing?.price || null,
+      };
+    });
+
+    const items = buildScheduleEntries([...appointmentEntries, ...viewingEntries]);
+    const now = Date.now();
+
+    return items.filter((item) => item.timestamp >= now - 24 * 60 * 60 * 1000);
+  }, [supportContact?.id]);
 
   const lastActivityRelative = contact?.lastActivityTimestamp
     ? formatRelativeTime(contact.lastActivityTimestamp)
@@ -456,8 +443,109 @@ export default function AdminContactDetailsPage() {
     : null;
 
   useEffect(() => {
-    if (formStatus.type !== 'success') {
-      return undefined;
+    if (!contact) {
+      setRelatedOffers([]);
+      setOffersError('');
+      setOffersLoading(false);
+      return;
+    }
+
+    let isActive = true;
+    const controller = new AbortController();
+
+    async function loadOffers() {
+      setOffersLoading(true);
+      setOffersError('');
+
+      try {
+        const response = await fetch('/api/admin/offers', { signal: controller.signal });
+        if (!response.ok) {
+          throw new Error('Failed to fetch offers');
+        }
+
+        const payload = await response.json();
+        const offers = Array.isArray(payload?.offers) ? payload.offers : [];
+        const filtered = offers.filter((offer) =>
+          doesOfferMatchContact(offer, contact, supportContact),
+        );
+
+        if (isActive) {
+          setRelatedOffers(filtered);
+        }
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          return;
+        }
+        console.error('Unable to load offers for contact', err);
+        if (isActive) {
+          setOffersError('Unable to load related offers right now.');
+          setRelatedOffers([]);
+        }
+      } finally {
+        if (isActive) {
+          setOffersLoading(false);
+        }
+      }
+    }
+
+    loadOffers();
+
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, [contact, supportContact]);
+
+  const timelineEvents = useMemo(() => {
+    if (!contact) {
+      return [];
+    }
+
+    const events = [];
+
+    if (contact.lastActivityAt) {
+      events.push({
+        id: 'last-activity',
+        label: 'Last activity',
+        value: formatDateTime(contact.lastActivityAt),
+        hint: lastActivityRelative,
+        timestamp: contact.lastActivityTimestamp || parseTimestamp(contact.lastActivityAt) || 0,
+      });
+    }
+
+    if (contact.createdAt) {
+      events.push({
+        id: 'created-at',
+        label: 'Contact created',
+        value: formatDateTime(contact.createdAt),
+        hint: createdRelative,
+        timestamp: contact.createdAtTimestamp || parseTimestamp(contact.createdAt) || 0,
+      });
+    }
+
+    if (Array.isArray(supportContact?.conversations)) {
+      supportContact.conversations.forEach((conversation, index) => {
+        const timestamp = parseTimestamp(conversation.date) || 0;
+        events.push({
+          id: `conversation-${index}`,
+          label: `${conversation.channel || 'Conversation'} update`,
+          value: conversation.summary || 'Interaction recorded in Apex27',
+          hint: formatDateTime(conversation.date),
+          timestamp,
+        });
+      });
+    }
+
+    return events.sort((a, b) => b.timestamp - a.timestamp);
+  }, [contact, createdRelative, lastActivityRelative, supportContact?.conversations]);
+
+  const pageTitle = contact
+    ? `${contact.name} • Admin contacts`
+    : 'Contact details • Admin contacts';
+
+  const apexActions = useMemo(() => {
+    if (!contact?.links) {
+      return [];
     }
 
     const timeout = setTimeout(() => {
@@ -544,29 +632,24 @@ export default function AdminContactDetailsPage() {
     [contactId, formState],
   );
 
-  const mainDetails = contact
-    ? [
-        { label: 'Stage', value: contact.stageLabel || '—' },
-        { label: 'Pipeline', value: contact.pipelineLabel || '—' },
-        { label: 'Contact type', value: contact.typeLabel || '—' },
-        { label: 'Source', value: contact.source || '—' },
-        {
-          label: 'Created',
-          value: formatDateTime(contact.createdAt),
-          hint: createdRelative ? `Added ${createdRelative}` : null,
-        },
-        {
-          label: 'Last activity',
-          value: formatDateTime(contact.lastActivityAt),
-          hint: lastActivityRelative ? `Updated ${lastActivityRelative}` : null,
-        },
-        { label: 'Days in pipeline', value: daysInPipelineLabel },
-        { label: 'Engagement score', value: engagementLabel },
-      ]
-    : [];
+  const headerPrimaryActions = useMemo(() => {
+    if (!apexActions.length) {
+      return [];
+    }
 
-  const requirements = Array.isArray(contact?.requirements) ? contact.requirements : [];
-  const tags = Array.isArray(contact?.tags) ? contact.tags : [];
+    const preferredKeys = new Set(['update', 'newTask', 'tasks']);
+    const primary = apexActions.filter((action) => preferredKeys.has(action.key)).slice(0, 2);
+    if (primary.length < 2) {
+      apexActions.some((action) => {
+        if (primary.find((entry) => entry.key === action.key)) {
+          return false;
+        }
+        primary.push(action);
+        return primary.length >= 2;
+      });
+    }
+    return primary;
+  }, [apexActions]);
 
   const stageOptions = useMemo(() => {
     const entries = [...options.stage];
@@ -649,7 +732,9 @@ export default function AdminContactDetailsPage() {
                       ) : null}
                       {contact.source ? <span className={styles.metaPill}>Source: {contact.source}</span> : null}
                     </div>
-                    {contact.locationFocus ? (
+                    {supportContact?.searchFocus ? (
+                      <p className={styles.locationFocus}>{supportContact.searchFocus}</p>
+                    ) : contact.locationFocus ? (
                       <p className={styles.locationFocus}>Primary focus: {contact.locationFocus}</p>
                     ) : null}
                   </>
@@ -665,9 +750,23 @@ export default function AdminContactDetailsPage() {
                     ) : null}
                   </div>
                 ) : null}
-                <Link href="/admin/contacts" className={styles.backLink}>
-                  ← Back to contacts
-                </Link>
+                <div className={styles.headerButtons}>
+                  {headerPrimaryActions.map((action) => (
+                    <button
+                      key={action.key}
+                      type="button"
+                      className={
+                        action.key === 'update' ? styles.primaryHeaderButton : styles.secondaryHeaderButton
+                      }
+                      onClick={() => openInNewTab(action.href)}
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                  <Link href="/admin/contacts" className={styles.backLink}>
+                    ← Back to contacts
+                  </Link>
+                </div>
               </div>
             </div>
           </header>
@@ -686,31 +785,56 @@ export default function AdminContactDetailsPage() {
           ) : contact ? (
             <div className={styles.contentGrid}>
               <div className={styles.columnStack}>
-                <section className={styles.card} aria-labelledby="contact-main-details">
+                <section className={`${styles.card} ${styles.summaryCard}`} aria-labelledby="contact-overview">
                   <div className={styles.cardHeader}>
-                    <h2 id="contact-main-details">Main details</h2>
+                    <h2 id="contact-overview">Contact overview</h2>
                   </div>
-                  <div className={styles.fieldGrid}>
-                    {mainDetails.map((item) => (
-                      <div key={item.label} className={styles.field}>
-                        <span className={styles.fieldLabel}>{item.label}</span>
-                        <span className={styles.fieldValue}>{item.value || '—'}</span>
-                        {item.hint ? <span className={styles.fieldHint}>{item.hint}</span> : null}
-                      </div>
-                    ))}
+                  <div className={styles.metricGrid}>
+                    <div className={styles.metricCard}>
+                      <span className={styles.metricLabel}>Stage</span>
+                      <span className={styles.metricValue}>{contact.stageLabel || '—'}</span>
+                    </div>
+                    <div className={styles.metricCard}>
+                      <span className={styles.metricLabel}>Pipeline</span>
+                      <span className={styles.metricValue}>{contact.pipelineLabel || '—'}</span>
+                    </div>
+                    <div className={styles.metricCard}>
+                      <span className={styles.metricLabel}>Days active</span>
+                      <span className={styles.metricValue}>{daysInPipelineLabel}</span>
+                    </div>
+                    <div className={styles.metricCard}>
+                      <span className={styles.metricLabel}>Engagement</span>
+                      <span className={styles.metricValue}>{engagementLabel}</span>
+                    </div>
+                    <div className={styles.metricCard}>
+                      <span className={styles.metricLabel}>Created</span>
+                      <span className={styles.metricValue}>{formatDateTime(contact.createdAt)}</span>
+                      {createdRelative ? <span className={styles.metricHint}>{createdRelative}</span> : null}
+                    </div>
+                    <div className={styles.metricCard}>
+                      <span className={styles.metricLabel}>Last activity</span>
+                      <span className={styles.metricValue}>{formatDateTime(contact.lastActivityAt)}</span>
+                      {lastActivityRelative ? <span className={styles.metricHint}>{lastActivityRelative}</span> : null}
+                    </div>
                   </div>
                 </section>
 
                 <section className={styles.card} aria-labelledby="contact-requirements">
                   <div className={styles.cardHeader}>
-                    <h2 id="contact-requirements">Requirements &amp; focus</h2>
+                    <h2 id="contact-requirements">Focus &amp; requirements</h2>
                   </div>
-                  {contact.locationFocus ? (
+                  {supportContact?.searchFocus || contact.locationFocus ? (
+                    <p className={styles.focusHighlight}>
+                      {supportContact?.searchFocus || contact.locationFocus}
+                    </p>
+                  ) : null}
+                  {contact.locationFocus && supportContact?.searchFocus &&
+                  contact.locationFocus !== supportContact.searchFocus ? (
                     <p className={styles.fieldHint}>Primary area: {contact.locationFocus}</p>
                   ) : null}
-                  {requirements.length ? (
+                  {requirementItems.length ? (
                     <ul className={styles.requirementList}>
-                      {requirements.map((item) => (
+                      {requirementItems.map((item) => (
                         <li key={item}>{item}</li>
                       ))}
                     </ul>
@@ -730,8 +854,11 @@ export default function AdminContactDetailsPage() {
 
                 <section className={styles.card} aria-labelledby="contact-notes">
                   <div className={styles.cardHeader}>
-                    <h2 id="contact-notes">Notes</h2>
+                    <h2 id="contact-notes">Insights &amp; notes</h2>
                   </div>
+                  {supportContact?.summary ? (
+                    <p className={styles.summaryNote}>{supportContact.summary}</p>
+                  ) : null}
                   {contact.generatedNotes ? (
                     <div className={styles.notesBody}>
                       <p>{contact.generatedNotes}</p>
@@ -739,12 +866,11 @@ export default function AdminContactDetailsPage() {
                   ) : (
                     <p className={styles.emptyNote}>No additional notes have been added for this contact.</p>
                   )}
-
-                  {tags.length ? (
+                  {Array.isArray(contact?.tags) && contact.tags.length ? (
                     <div>
                       <span className={styles.fieldLabel}>Tags</span>
                       <div className={styles.tagsRow}>
-                        {tags.map((tag) => (
+                        {contact.tags.map((tag) => (
                           <span key={tag} className={styles.tagChip}>
                             {tag}
                           </span>
@@ -753,6 +879,48 @@ export default function AdminContactDetailsPage() {
                     </div>
                   ) : null}
                 </section>
+
+                {supportListings.length ? (
+                  <section className={styles.card} aria-labelledby="contact-properties">
+                    <div className={styles.cardHeader}>
+                      <h2 id="contact-properties">Active properties</h2>
+                    </div>
+                    <ul className={styles.propertyList}>
+                      {supportListings.map((listing) => {
+                        const href = typeof listing.link === 'string' && listing.link ? listing.link : null;
+                        return (
+                          <li key={listing.id} className={styles.propertyItem}>
+                            <div className={styles.propertyHeader}>
+                              <span className={styles.propertyTitle}>{listing.title}</span>
+                              {listing.price ? <span className={styles.propertyPrice}>{listing.price}</span> : null}
+                            </div>
+                            <div className={styles.propertyMeta}>
+                              {listing.address ? <span>{listing.address}</span> : null}
+                              {listing.status ? <span>Status: {listing.status}</span> : null}
+                            </div>
+                            {Array.isArray(listing.tags) && listing.tags.length ? (
+                              <div className={styles.propertyTags}>
+                                {listing.tags.map((tag) => (
+                                  <span key={tag}>{tag}</span>
+                                ))}
+                              </div>
+                            ) : null}
+                            {href ? (
+                              <a
+                                href={href}
+                                target={href.startsWith('/') ? '_self' : '_blank'}
+                                rel={href.startsWith('/') ? undefined : 'noreferrer'}
+                                className={styles.propertyLink}
+                              >
+                                View listing
+                              </a>
+                            ) : null}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </section>
+                ) : null}
               </div>
 
               <div className={styles.columnStack}>
@@ -1154,32 +1322,44 @@ export default function AdminContactDetailsPage() {
                       </dd>
                     </div>
                     <div>
+                      <dt>Source</dt>
+                      <dd>{contact.source || '—'}</dd>
+                    </div>
+                    <div>
                       <dt>Preferred pipeline</dt>
                       <dd>{contact.pipelineLabel || '—'}</dd>
                     </div>
                     <div>
-                      <dt>Source</dt>
-                      <dd>{contact.source || '—'}</dd>
+                      <dt>Contact type</dt>
+                      <dd>{contact.typeLabel || '—'}</dd>
                     </div>
                   </dl>
                 </section>
 
                 <section className={styles.card} aria-labelledby="contact-team">
                   <div className={styles.cardHeader}>
-                    <h2 id="contact-team">Assigned team</h2>
+                    <h2 id="contact-team">Team &amp; ownership</h2>
                   </div>
-                  {contact.assignedAgentName ? (
+                  {contact.assignedAgentName || supportContact?.preferredAgentId ? (
                     <dl className={styles.contactList}>
-                      <div>
-                        <dt>Owner</dt>
-                        <dd>{contact.assignedAgentName}</dd>
-                      </div>
+                      {contact.assignedAgentName ? (
+                        <div>
+                          <dt>Owner</dt>
+                          <dd>{contact.assignedAgentName}</dd>
+                        </div>
+                      ) : null}
                       {contact.assignedAgent?.phone ? (
                         <div>
-                          <dt>Phone</dt>
+                          <dt>Owner phone</dt>
                           <dd>
                             <a href={`tel:${contact.assignedAgent.phone}`}>{contact.assignedAgent.phone}</a>
                           </dd>
+                        </div>
+                      ) : null}
+                      {supportContact?.preferredAgentId ? (
+                        <div>
+                          <dt>Preferred Apex27 agent</dt>
+                          <dd>{supportContact.preferredAgentId}</dd>
                         </div>
                       ) : null}
                     </dl>
@@ -1188,28 +1368,78 @@ export default function AdminContactDetailsPage() {
                   )}
                 </section>
 
+                {supportSchedule.length ? (
+                  <section className={styles.card} aria-labelledby="contact-schedule">
+                    <div className={styles.cardHeader}>
+                      <h2 id="contact-schedule">Upcoming activity</h2>
+                    </div>
+                    <ul className={styles.scheduleList}>
+                      {supportSchedule.map((item) => (
+                        <li key={item.id} className={styles.scheduleItem}>
+                          <div className={styles.scheduleHeader}>
+                            <span className={styles.scheduleLabel}>{item.label}</span>
+                            <span className={styles.scheduleDate}>{item.dateLabel}</span>
+                          </div>
+                          <p className={styles.scheduleTitle}>{item.title}</p>
+                          {item.location ? <p className={styles.scheduleMeta}>{item.location}</p> : null}
+                          {item.meta ? <p className={styles.scheduleMeta}>{item.meta}</p> : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
+
+                <section className={styles.card} aria-labelledby="contact-offers">
+                  <div className={styles.cardHeader}>
+                    <h2 id="contact-offers">Offers &amp; negotiations</h2>
+                  </div>
+                  {offersLoading ? (
+                    <p className={styles.emptyNote}>Checking for related offers…</p>
+                  ) : offersError ? (
+                    <p className={styles.emptyNote}>{offersError}</p>
+                  ) : relatedOffers.length ? (
+                    <ul className={styles.offerList}>
+                      {relatedOffers.map((offer) => (
+                        <li key={offer.id || `${offer.contactId}-${offer.propertyId}`} className={styles.offerItem}>
+                          <div className={styles.offerHeader}>
+                            <span className={styles.offerAmount}>{offer.amount || 'Offer recorded'}</span>
+                            <span className={styles.offerStatus}>{offer.statusLabel || offer.status || 'Status unknown'}</span>
+                          </div>
+                          {offer.property?.title ? (
+                            <p className={styles.offerMeta}>Property: {offer.property.title}</p>
+                          ) : null}
+                          {offer.contact?.name && offer.contact?.name !== contact.name ? (
+                            <p className={styles.offerMeta}>Submitted by {offer.contact.name}</p>
+                          ) : null}
+                          {offer.date ? (
+                            <p className={styles.offerMeta}>Updated {formatDateTime(offer.date)}</p>
+                          ) : null}
+                          {offer.notes ? <p className={styles.offerNotes}>{offer.notes}</p> : null}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className={styles.emptyNote}>No offers are linked to this contact yet.</p>
+                  )}
+                </section>
+
                 <section className={styles.card} aria-labelledby="contact-timeline">
                   <div className={styles.cardHeader}>
-                    <h2 id="contact-timeline">Timeline</h2>
+                    <h2 id="contact-timeline">Engagement timeline</h2>
                   </div>
-                  <div className={styles.timeline}>
-                    <div className={styles.timelineItem}>
-                      <span className={styles.timelineLabel}>Last activity</span>
-                      <span className={styles.timelineValue}>{formatDateTime(contact.lastActivityAt)}</span>
-                      {lastActivityRelative ? (
-                        <span className={styles.timelineHint}>{lastActivityRelative}</span>
-                      ) : null}
+                  {timelineEvents.length ? (
+                    <div className={styles.timeline}>
+                      {timelineEvents.map((event) => (
+                        <div key={event.id} className={styles.timelineItem}>
+                          <span className={styles.timelineLabel}>{event.label}</span>
+                          <span className={styles.timelineValue}>{event.value}</span>
+                          {event.hint ? <span className={styles.timelineHint}>{event.hint}</span> : null}
+                        </div>
+                      ))}
                     </div>
-                    <div className={styles.timelineItem}>
-                      <span className={styles.timelineLabel}>Created</span>
-                      <span className={styles.timelineValue}>{formatDateTime(contact.createdAt)}</span>
-                      {createdRelative ? <span className={styles.timelineHint}>{createdRelative}</span> : null}
-                    </div>
-                    <div className={styles.timelineItem}>
-                      <span className={styles.timelineLabel}>Days active</span>
-                      <span className={styles.timelineValue}>{daysInPipelineLabel}</span>
-                    </div>
-                  </div>
+                  ) : (
+                    <p className={styles.emptyNote}>No recent engagement has been recorded.</p>
+                  )}
                 </section>
               </div>
             </div>
