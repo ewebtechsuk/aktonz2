@@ -5,7 +5,11 @@ A minimal Next.js application for an estate and letting agent powered by the Ape
 ## Aktonz lettings brochure
 
 Generate the print-ready landlord brochure locally so the binary PDF never has
-to be committed to the repository:
+to be committed to the repository. The Node.js lifecycle scripts automatically
+ensure a copy exists before `npm run dev`, `npm run build` or `npm start`
+execute. If Python is available the generator runs in the background; otherwise
+the fallback brochure embedded in the repository is restored so the About page
+always has something to display.
 
 ```
 python scripts/create_aktonz_lettings_brochure.py
@@ -23,10 +27,11 @@ python scripts/create_aktonz_lettings_brochure.py --no-public
 ```
 
 Because neither output is version-controlled, remember to rerun the command
-before `npm run build` whenever you want the static export to include the latest
-brochure. The `public/brochures` directory is tracked with a placeholder so the
-build has somewhere to copy the generated PDF—keep that folder in place even if
-you are cleaning up other assets.
+whenever you update the brochure copy. The prebuild hook reuses the cached file
+if it is already present, so the `next export` step still benefits from the most
+recent version. The `public/brochures` directory is tracked with a placeholder
+so the build has somewhere to copy the generated PDF—keep that folder in place
+even if you are cleaning up other assets.
 
 During CI, the `Deploy Next.js site to Pages` workflow publishes the freshly
 rendered PDF twice: once within the static site export at
