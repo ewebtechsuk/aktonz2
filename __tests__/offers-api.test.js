@@ -112,7 +112,7 @@ describe('offer API email delivery', () => {
       expect.objectContaining({
         propertyId: 'AKT-123',
         offerAmount: 450000,
-        depositAmount: 1200,
+        depositAmount: '£1,200',
         phone: '+44 7700 900123',
         message: 'Please consider my offer.',
         moveInDate: '2024-06-01T00:00:00.000Z',
