@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -264,14 +264,6 @@ function normalizeRouteParam(value) {
   return typeof value === 'string' ? value : null;
 }
 
-function openInNewTab(url) {
-  if (!url || typeof window === 'undefined') {
-    return;
-  }
-
-  window.open(url, '_blank', 'noopener');
-}
-
 function formatDateTime(value) {
   if (!value) {
     return '—';
@@ -375,153 +367,224 @@ function formatBudget(budget = {}) {
   return lines;
 }
 
-function normaliseEmail(value) {
-  return typeof value === 'string' ? value.trim().toLowerCase() : '';
-}
+const EMPTY_MANAGEMENT_OPTIONS = Object.freeze({
+  stage: [],
+  pipeline: [],
+  type: [],
+  agent: [],
+});
 
-function normaliseName(value) {
-  if (typeof value !== 'string') {
-    return '';
-  }
-  return value.trim().toLowerCase().replace(/\s+/g, ' ');
-}
+const INITIAL_FORM_STATE = Object.freeze({
+  firstName: '',
+  lastName: '',
+  name: '',
+  stage: '',
+  type: '',
+  pipeline: '',
+  assignedAgentId: '',
+  source: '',
+  email: '',
+  phone: '',
+  locationFocus: '',
+  generatedNotes: '',
+  tags: '',
+  requirements: '',
+  budgetSaleMax: '',
+  budgetRentMax: '',
+  nextStepDescription: '',
+  nextStepDueDate: '',
+  nextStepDueTime: '',
+});
 
-function normalisePhone(value) {
-  if (typeof value !== 'string') {
-    return '';
-  }
-  return value.replace(/[^0-9+]/g, '');
-}
+const INITIAL_STATUS_STATE = Object.freeze({
+  type: 'idle',
+  message: '',
+  details: [],
+});
 
-function parseTimestamp(value) {
+function formatInputDate(value) {
   if (!value) {
-    return null;
+    return '';
   }
 
-  const timestamp = new Date(value).getTime();
-  return Number.isFinite(timestamp) ? timestamp : null;
+  try {
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) {
+      return '';
+    }
+    return date.toISOString().slice(0, 10);
+  } catch (error) {
+    return '';
+  }
 }
 
-function findSupportContactFor(contact) {
+function formatInputTime(value) {
+  if (!value) {
+    return '';
+  }
+
+  try {
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) {
+      return '';
+    }
+    return date.toISOString().slice(11, 16);
+  } catch (error) {
+    return '';
+  }
+}
+
+function buildManagementFormState(contact) {
   if (!contact) {
-    return null;
+    return { ...INITIAL_FORM_STATE };
   }
 
-  const contactEmail = normaliseEmail(contact.email);
-  const contactPhone = normalisePhone(contact.phone);
-  const contactName = normaliseName(contact.name);
-
-  return (
-    SUPPORT_CONTACTS.find((candidate) => {
-      const candidateEmail = normaliseEmail(candidate?.email);
-      if (candidateEmail && contactEmail && candidateEmail === contactEmail) {
-        return true;
-      }
-
-      const candidatePhone = normalisePhone(candidate?.phone);
-      if (candidatePhone && contactPhone && candidatePhone === contactPhone) {
-        return true;
-      }
-
-      const candidateName = normaliseName(candidate?.name);
-      if (candidateName && contactName && candidateName === contactName) {
-        return true;
-      }
-
-      return false;
-    }) || null
-  );
+  return {
+    firstName: contact.firstName || '',
+    lastName: contact.lastName || '',
+    name: contact.name || '',
+    stage: contact.stage || '',
+    type: contact.type || '',
+    pipeline: contact.pipeline || '',
+    assignedAgentId: contact.assignedAgentId || '',
+    source: contact.source || '',
+    email: contact.email || '',
+    phone: contact.phone || '',
+    locationFocus: contact.locationFocus || '',
+    generatedNotes: contact.generatedNotes || '',
+    tags: Array.isArray(contact.tags) ? contact.tags.join('\n') : '',
+    requirements: Array.isArray(contact.requirements) ? contact.requirements.join('\n') : '',
+    budgetSaleMax:
+      Number.isFinite(contact?.budget?.saleMax) && contact.budget.saleMax != null
+        ? String(contact.budget.saleMax)
+        : '',
+    budgetRentMax:
+      Number.isFinite(contact?.budget?.rentMax) && contact.budget.rentMax != null
+        ? String(contact.budget.rentMax)
+        : '',
+    nextStepDescription: contact.nextStep?.description || '',
+    nextStepDueDate: formatInputDate(contact.nextStep?.dueAt),
+    nextStepDueTime: formatInputTime(contact.nextStep?.dueAt),
+  };
 }
 
-function getSupportListings(listingIds = []) {
-  return listingIds
-    .map((id) => {
-      const key = String(id);
-      return SUPPORT_LISTING_MAP.get(key) || null;
-    })
+function parseListInput(value) {
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .split(/[\n,]/)
+    .map((entry) => entry.trim())
     .filter(Boolean);
 }
 
-function combineRequirements(primary = [], secondary = []) {
-  const seen = new Set();
-  const result = [];
+function parseBudgetValue(value) {
+  if (value == null || value === '') {
+    return null;
+  }
 
-  [...primary, ...secondary].forEach((item) => {
-    if (typeof item !== 'string') {
-      return;
-    }
+  const cleaned = String(value).replace(/[^0-9.-]/g, '').trim();
+  if (!cleaned) {
+    return null;
+  }
 
-    const trimmed = item.trim();
-    if (!trimmed) {
-      return;
-    }
-
-    const key = trimmed.toLowerCase();
-    if (!seen.has(key)) {
-      seen.add(key);
-      result.push(trimmed);
-    }
-  });
-
-  return result;
+  const numeric = Number(cleaned);
+  return Number.isFinite(numeric) ? numeric : null;
 }
 
-function doesOfferMatchContact(offer, contact, supportContact) {
-  if (!offer || !contact) {
-    return false;
-  }
-
-  const offerContactId = String(offer.contactId || offer?.contact?.id || '');
-  if (offerContactId) {
-    if (offerContactId === String(contact.id)) {
-      return true;
-    }
-    if (supportContact?.id && offerContactId === String(supportContact.id)) {
-      return true;
-    }
-  }
-
-  const contactEmail = normaliseEmail(contact.email);
-  const offerEmail = normaliseEmail(offer?.contact?.email || offer?.email);
-  if (contactEmail && offerEmail && contactEmail === offerEmail) {
-    return true;
-  }
-
-  const contactPhone = normalisePhone(contact.phone);
-  const offerPhone = normalisePhone(offer?.contact?.phone || offer?.phone);
-  if (contactPhone && offerPhone && contactPhone === offerPhone) {
-    return true;
-  }
-
-  const contactName = normaliseName(contact.name);
-  const offerName = normaliseName(offer?.contact?.name || offer?.name);
-  if (contactName && offerName && contactName === offerName) {
-    return true;
-  }
-
-  return false;
+function buildBudgetPayloadFromState(state) {
+  const saleMax = parseBudgetValue(state.budgetSaleMax);
+  const rentMax = parseBudgetValue(state.budgetRentMax);
+  return { saleMax, rentMax };
 }
 
-function buildScheduleEntries(items = []) {
-  return items
-    .map((item) => {
-      const timestamp = parseTimestamp(item.date);
-      if (!timestamp) {
-        return null;
+function buildNextStepDueAt(dateValue, timeValue) {
+  if (!dateValue) {
+    return null;
+  }
+
+  try {
+    const [year, month, day] = dateValue.split('-').map((part) => Number(part));
+    if (!year || !month || !day) {
+      return null;
+    }
+
+    let hours = 9;
+    let minutes = 0;
+
+    if (timeValue) {
+      const [hourPart, minutePart] = timeValue.split(':').map((part) => Number(part));
+      if (Number.isInteger(hourPart) && hourPart >= 0 && hourPart <= 23) {
+        hours = hourPart;
       }
+      if (Number.isInteger(minutePart) && minutePart >= 0 && minutePart <= 59) {
+        minutes = minutePart;
+      }
+    }
 
-      return {
-        id: item.id || `${item.type || item.kind}-${timestamp}`,
-        label: item.label,
-        title: item.title,
-        location: item.location,
-        timestamp,
-        dateLabel: formatDateTime(item.date),
-        meta: item.meta || null,
-      };
-    })
-    .filter(Boolean)
-    .sort((a, b) => a.timestamp - b.timestamp);
+    const date = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+    return date.toISOString();
+  } catch (error) {
+    return null;
+  }
+}
+
+function buildNextStepPayloadFromState(state) {
+  const description = state.nextStepDescription?.trim() || '';
+  const dueAt = buildNextStepDueAt(state.nextStepDueDate?.trim(), state.nextStepDueTime?.trim());
+
+  if (!description && !dueAt) {
+    return null;
+  }
+
+  const payload = {};
+  if (description) {
+    payload.description = description;
+  }
+  if (dueAt) {
+    payload.dueAt = dueAt;
+  }
+  return payload;
+}
+
+function buildManagementPayloadFromState(state) {
+  return {
+    firstName: state.firstName,
+    lastName: state.lastName,
+    name: state.name,
+    stage: state.stage,
+    type: state.type,
+    pipeline: state.pipeline,
+    assignedAgentId: state.assignedAgentId || null,
+    source: state.source,
+    email: state.email,
+    phone: state.phone,
+    locationFocus: state.locationFocus,
+    generatedNotes: state.generatedNotes,
+    tags: parseListInput(state.tags),
+    requirements: parseListInput(state.requirements),
+    budget: buildBudgetPayloadFromState(state),
+    nextStep: buildNextStepPayloadFromState(state),
+  };
+}
+
+function normaliseManagementOptions(options) {
+  if (!options || typeof options !== 'object') {
+    return {
+      stage: [...EMPTY_MANAGEMENT_OPTIONS.stage],
+      pipeline: [...EMPTY_MANAGEMENT_OPTIONS.pipeline],
+      type: [...EMPTY_MANAGEMENT_OPTIONS.type],
+      agent: [...EMPTY_MANAGEMENT_OPTIONS.agent],
+    };
+  }
+
+  return {
+    stage: Array.isArray(options.stage) ? [...options.stage] : [],
+    pipeline: Array.isArray(options.pipeline) ? [...options.pipeline] : [],
+    type: Array.isArray(options.type) ? [...options.type] : [],
+    agent: Array.isArray(options.agent) ? [...options.agent] : [],
+  };
 }
 
 export default function AdminContactDetailsPage() {
@@ -532,14 +595,10 @@ export default function AdminContactDetailsPage() {
   const [contact, setContact] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [offersLoading, setOffersLoading] = useState(false);
-  const [offersError, setOffersError] = useState('');
-  const [relatedOffers, setRelatedOffers] = useState([]);
-  const [options, setOptions] = useState(() => normaliseManagementOptions(null, null));
+  const [options, setOptions] = useState(() => normaliseManagementOptions(null));
   const [formState, setFormState] = useState(INITIAL_FORM_STATE);
   const [formStatus, setFormStatus] = useState(INITIAL_STATUS_STATE);
   const [saving, setSaving] = useState(false);
-  const skipSyncRef = useRef(false);
 
   const contactId = useMemo(() => normalizeRouteParam(router.query.id), [router.query.id]);
 
@@ -590,6 +649,9 @@ export default function AdminContactDetailsPage() {
         }
 
         setContact(payload.contact);
+        setOptions(normaliseManagementOptions(payload.options));
+        setFormState(buildManagementFormState(payload.contact));
+        setFormStatus(INITIAL_STATUS_STATE);
       } catch (err) {
         if (err.name === 'AbortError') {
           return;
@@ -597,6 +659,9 @@ export default function AdminContactDetailsPage() {
         console.error(err);
         setContact(null);
         setError('Unable to load contact right now. Please try again.');
+        setOptions(normaliseManagementOptions(null));
+        setFormState(INITIAL_FORM_STATE);
+        setFormStatus(INITIAL_STATUS_STATE);
       } finally {
         setLoading(false);
       }
@@ -836,159 +901,93 @@ export default function AdminContactDetailsPage() {
     : null;
 
   useEffect(() => {
+    if (formStatus.type !== 'success') {
+      return undefined;
+    }
+
+    const timeout = setTimeout(() => {
+      setFormStatus(INITIAL_STATUS_STATE);
+    }, 4000);
+
+    return () => clearTimeout(timeout);
+  }, [formStatus]);
+
+  const handleManagementChange = useCallback((event) => {
+    const { name, value } = event.target;
+    setFormState((prev) => ({ ...prev, [name]: value }));
+  }, []);
+
+  const handleManagementReset = useCallback(() => {
     if (!contact) {
-      setRelatedOffers([]);
-      setOffersError('');
-      setOffersLoading(false);
       return;
     }
+    setFormState(buildManagementFormState(contact));
+    setFormStatus(INITIAL_STATUS_STATE);
+  }, [contact]);
 
-    let isActive = true;
-    const controller = new AbortController();
+  const handleManagementSubmit = useCallback(
+    async (event) => {
+      event.preventDefault();
 
-    async function loadOffers() {
-      setOffersLoading(true);
-      setOffersError('');
+      if (!contactId) {
+        return;
+      }
+
+      setSaving(true);
+      setFormStatus(INITIAL_STATUS_STATE);
 
       try {
-        const response = await fetch('/api/admin/offers', { signal: controller.signal });
-        if (!response.ok) {
-          throw new Error('Failed to fetch offers');
-        }
-
-        const payload = await response.json();
-        const offers = Array.isArray(payload?.offers) ? payload.offers : [];
-        const filtered = offers.filter((offer) =>
-          doesOfferMatchContact(offer, contact, supportContact),
-        );
-
-        if (isActive) {
-          setRelatedOffers(filtered);
-        }
-      } catch (err) {
-        if (err.name === 'AbortError') {
-          return;
-        }
-        console.error('Unable to load offers for contact', err);
-        if (isActive) {
-          setOffersError('Unable to load related offers right now.');
-          setRelatedOffers([]);
-        }
-      } finally {
-        if (isActive) {
-          setOffersLoading(false);
-        }
-      }
-    }
-
-    loadOffers();
-
-    return () => {
-      isActive = false;
-      controller.abort();
-    };
-  }, [contact, supportContact]);
-
-  const timelineEvents = useMemo(() => {
-    if (!contact) {
-      return [];
-    }
-
-    const events = [];
-
-    if (contact.lastActivityAt) {
-      events.push({
-        id: 'last-activity',
-        label: 'Last activity',
-        value: formatDateTime(contact.lastActivityAt),
-        hint: lastActivityRelative,
-        timestamp: contact.lastActivityTimestamp || parseTimestamp(contact.lastActivityAt) || 0,
-      });
-    }
-
-    if (contact.createdAt) {
-      events.push({
-        id: 'created-at',
-        label: 'Contact created',
-        value: formatDateTime(contact.createdAt),
-        hint: createdRelative,
-        timestamp: contact.createdAtTimestamp || parseTimestamp(contact.createdAt) || 0,
-      });
-    }
-
-    if (Array.isArray(supportContact?.conversations)) {
-      supportContact.conversations.forEach((conversation, index) => {
-        const timestamp = parseTimestamp(conversation.date) || 0;
-        events.push({
-          id: `conversation-${index}`,
-          label: `${conversation.channel || 'Conversation'} update`,
-          value: conversation.summary || 'Interaction recorded in Apex27',
-          hint: formatDateTime(conversation.date),
-          timestamp,
+        const payload = buildManagementPayloadFromState(formState);
+        const response = await fetch(`/api/admin/contacts/${encodeURIComponent(contactId)}`, {
+          method: 'PATCH',
+          headers: {
+            'content-type': 'application/json',
+            accept: 'application/json',
+          },
+          body: JSON.stringify(payload),
         });
-      });
-    }
 
-    return events.sort((a, b) => b.timestamp - a.timestamp);
-  }, [contact, createdRelative, lastActivityRelative, supportContact?.conversations]);
+        let result = null;
+        try {
+          result = await response.json();
+        } catch (parseError) {
+          result = null;
+        }
 
-  const pageTitle = contact
-    ? `${contact.name} • Admin contacts`
-    : 'Contact details • Admin contacts';
+        if (!response.ok) {
+          const message = result?.error || 'Unable to update contact right now. Please try again.';
+          const details = Array.isArray(result?.details)
+            ? result.details.filter(Boolean).map((item) => String(item))
+            : [];
+          const error = new Error(message);
+          error.details = details;
+          throw error;
+        }
 
-  const apexActions = useMemo(() => {
-    if (!contact?.links) {
-      return [];
-    }
+        if (!result?.contact) {
+          throw new Error('Contact not found in response.');
+        }
 
-    const actions = [];
-    if (contact.links.view) {
-      actions.push({
-        key: 'view',
-        label: 'Open contact in Apex27',
-        description: 'View the full record and activity feed.',
-        href: contact.links.view,
-      });
-    }
-
-    if (contact.links.update) {
-      actions.push({
-        key: 'update',
-        label: 'Edit contact details',
-        description: 'Jump straight to the Apex27 edit form.',
-        href: contact.links.update,
-      });
-    }
-
-    if (contact.links.timeline) {
-      actions.push({
-        key: 'timeline',
-        label: 'Review Apex27 timeline',
-        description: 'See notes, emails and calls in context.',
-        href: contact.links.timeline,
-      });
-    }
-
-    if (contact.links.tasks) {
-      actions.push({
-        key: 'tasks',
-        label: 'Manage Apex27 tasks',
-        description: 'Track outstanding actions for this contact.',
-        href: contact.links.tasks,
-      });
-    }
-
-    if (contact.links.newTask) {
-      actions.push({
-        key: 'newTask',
-        label: 'Create new Apex27 task',
-        description: 'Schedule the next follow-up directly in Apex27.',
-        href: contact.links.newTask,
-      });
-    }
-
-    return actions;
-  }, [contact?.links]);
+        setContact(result.contact);
+        setOptions(normaliseManagementOptions(result.options));
+        setFormState(buildManagementFormState(result.contact));
+        setFormStatus({ type: 'success', message: 'Contact updated successfully.', details: [] });
+      } catch (submitError) {
+        console.error('Failed to update contact', submitError);
+        const message =
+          submitError instanceof Error && submitError.message
+            ? submitError.message
+            : 'Unable to update contact right now. Please try again.';
+        const details = Array.isArray(submitError?.details)
+          ? submitError.details.filter(Boolean).map((item) => String(item))
+          : [];
+        setFormStatus({ type: 'error', message, details });
+      } finally {
+        setSaving(false);
+      }
+    },
+    [contactId, formState],
+  );
 
   const headerPrimaryActions = useMemo(() => {
     if (!apexActions.length) {
@@ -1021,6 +1020,41 @@ export default function AdminContactDetailsPage() {
 
     return selected;
   }, [apexActions]);
+
+  const stageOptions = useMemo(() => {
+    const entries = [...options.stage];
+    if (formState.stage && !entries.some((option) => option.value === formState.stage)) {
+      entries.unshift({ value: formState.stage, label: contact?.stageLabel || formState.stage });
+    }
+    return entries;
+  }, [options.stage, formState.stage, contact?.stageLabel]);
+
+  const pipelineOptions = useMemo(() => {
+    const entries = [...options.pipeline];
+    if (formState.pipeline && !entries.some((option) => option.value === formState.pipeline)) {
+      entries.unshift({ value: formState.pipeline, label: contact?.pipelineLabel || formState.pipeline });
+    }
+    return entries;
+  }, [options.pipeline, formState.pipeline, contact?.pipelineLabel]);
+
+  const typeOptions = useMemo(() => {
+    const entries = [...options.type];
+    if (formState.type && !entries.some((option) => option.value === formState.type)) {
+      entries.unshift({ value: formState.type, label: contact?.typeLabel || formState.type });
+    }
+    return entries;
+  }, [options.type, formState.type, contact?.typeLabel]);
+
+  const agentOptions = useMemo(() => {
+    const entries = [...options.agent];
+    if (formState.assignedAgentId && !entries.some((option) => option.value === formState.assignedAgentId)) {
+      entries.unshift({
+        value: formState.assignedAgentId,
+        label: contact?.assignedAgentName || formState.assignedAgentId,
+      });
+    }
+    return entries;
+  }, [options.agent, formState.assignedAgentId, contact?.assignedAgentName]);
 
   return (
     <>
@@ -1260,324 +1294,368 @@ export default function AdminContactDetailsPage() {
               </div>
 
               <div className={styles.columnStack}>
-                <section
-                  className={`${styles.card} ${styles.managementCard}`}
-                  aria-labelledby="contact-management"
-                >
+                <section className={styles.card} aria-labelledby="contact-management">
                   <div className={styles.cardHeader}>
-                    <h2 id="contact-management">Manage contact workspace</h2>
-                    <p className={styles.cardHint}>
-                      Update the stage, ownership and follow-up plan to mirror the Apex27 manage contact view.
-                    </p>
+                    <h2 id="contact-management">Manage contact</h2>
                   </div>
-                  <form className={styles.managementForm} onSubmit={handleSubmit} noValidate>
-                    {quickStageActions.length ? (
-                      <div className={styles.quickActionRow}>
-                        {quickStageActions.map((action) => (
-                          <button
-                            key={action.key}
-                            type="button"
-                            className={styles.managementQuickButton}
-                            onClick={() => handleQuickStage(action.stage)}
-                            disabled={formDisabled}
-                          >
-                            <span className={styles.quickActionLabel}>{action.label}</span>
-                            {action.description ? (
-                              <span className={styles.quickActionHint}>{action.description}</span>
-                            ) : null}
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-
-                    <div className={styles.managementFieldset}>
-                      <div className={styles.managementFieldsetHeader}>
-                        <h3>Stage &amp; pipeline</h3>
-                        <p>Keep the contact aligned with the right workflow.</p>
-                      </div>
-                      <div className={styles.managementGrid}>
-                        <label className={styles.formControl} htmlFor="management-stage">
-                          <span className={styles.formLabel}>Stage</span>
-                          <select
-                            id="management-stage"
-                            className={styles.selectInput}
-                            value={formState.stage}
-                            onChange={handleFieldChange('stage')}
-                            disabled={formDisabled}
-                          >
-                            <option value="">Select stage</option>
-                            {options.stages.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
+                  <form className={styles.form} onSubmit={handleManagementSubmit}>
+                    <div className={`${styles.formGrid} ${styles.formGridColumns2}`}>
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-first-name" className={styles.formLabel}>
+                          First name
                         </label>
-                        <label className={styles.formControl} htmlFor="management-pipeline">
-                          <span className={styles.formLabel}>Pipeline</span>
-                          <select
-                            id="management-pipeline"
-                            className={styles.selectInput}
-                            value={formState.pipeline}
-                            onChange={handleFieldChange('pipeline')}
-                            disabled={formDisabled}
-                          >
-                            <option value="">Select pipeline</option>
-                            {options.pipelines.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                      </div>
-                    </div>
-
-                    <div className={styles.managementFieldset}>
-                      <div className={styles.managementFieldsetHeader}>
-                        <h3>Ownership &amp; source</h3>
-                        <p>Assign the right owner and capture where the lead originated.</p>
-                      </div>
-                      <div className={styles.managementGrid}>
-                        <label className={styles.formControl} htmlFor="management-type">
-                          <span className={styles.formLabel}>Contact type</span>
-                          <select
-                            id="management-type"
-                            className={styles.selectInput}
-                            value={formState.type}
-                            onChange={handleFieldChange('type')}
-                            disabled={formDisabled}
-                          >
-                            <option value="">Select type</option>
-                            {options.types.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label className={styles.formControl} htmlFor="management-source">
-                          <span className={styles.formLabel}>Source</span>
-                          <select
-                            id="management-source"
-                            className={styles.selectInput}
-                            value={formState.source}
-                            onChange={handleFieldChange('source')}
-                            disabled={formDisabled}
-                          >
-                            <option value="">Select source</option>
-                            {options.sources.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label className={styles.formControl} htmlFor="management-agent">
-                          <span className={styles.formLabel}>Assigned agent</span>
-                          <select
-                            id="management-agent"
-                            className={styles.selectInput}
-                            value={formState.assignedAgentId}
-                            onChange={handleFieldChange('assignedAgentId')}
-                            disabled={formDisabled}
-                          >
-                            <option value="">Unassigned</option>
-                            {options.agents.map((agent) => (
-                              <option key={agent.value} value={agent.value}>
-                                {agent.label}
-                              </option>
-                            ))}
-                          </select>
-                          {recommendedAgent ? (
-                            <span className={styles.fieldHint}>Suggested: {recommendedAgent.label}</span>
-                          ) : null}
-                        </label>
-                      </div>
-                    </div>
-
-                    <div className={styles.managementFieldset}>
-                      <div className={styles.managementFieldsetHeader}>
-                        <h3>Contact details</h3>
-                        <p>Ensure call and email details are ready for the next touchpoint.</p>
-                      </div>
-                      <div className={styles.managementGrid}>
-                        <label className={styles.formControl} htmlFor="management-email">
-                          <span className={styles.formLabel}>Email</span>
-                          <input
-                            id="management-email"
-                            type="email"
-                            className={styles.textInput}
-                            value={formState.email}
-                            onChange={handleFieldChange('email')}
-                            disabled={formDisabled}
-                            placeholder="name@example.com"
-                          />
-                        </label>
-                        <label className={styles.formControl} htmlFor="management-phone">
-                          <span className={styles.formLabel}>Phone</span>
-                          <input
-                            id="management-phone"
-                            type="tel"
-                            className={styles.textInput}
-                            value={formState.phone}
-                            onChange={handleFieldChange('phone')}
-                            disabled={formDisabled}
-                            placeholder="+44 20 0000 0000"
-                          />
-                        </label>
-                      </div>
-                    </div>
-
-                    <div className={styles.managementFieldset}>
-                      <div className={styles.managementFieldsetHeader}>
-                        <h3>Focus &amp; tags</h3>
-                        <p>Capture location focus and quick tags for matching.</p>
-                      </div>
-                      <div className={styles.managementGrid}>
-                        <label className={styles.formControl} htmlFor="management-focus">
-                          <span className={styles.formLabel}>Location focus</span>
-                          <input
-                            id="management-focus"
-                            type="text"
-                            className={styles.textInput}
-                            value={formState.locationFocus}
-                            onChange={handleFieldChange('locationFocus')}
-                            disabled={formDisabled}
-                            placeholder="Preferred areas"
-                          />
-                        </label>
-                        <label className={styles.formControl} htmlFor="management-tags">
-                          <span className={styles.formLabel}>Tags</span>
-                          <input
-                            id="management-tags"
-                            type="text"
-                            className={styles.textInput}
-                            value={formState.tags}
-                            onChange={handleFieldChange('tags')}
-                            disabled={formDisabled}
-                            placeholder="Comma separated tags"
-                          />
-                          <span className={styles.fieldHint}>Separate tags with commas.</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    <div className={styles.managementFieldset}>
-                      <div className={styles.managementFieldsetHeader}>
-                        <h3>Next step</h3>
-                        <p>Set a committed action and due date to keep momentum.</p>
-                      </div>
-                      <div className={styles.managementGrid}>
-                        <label className={styles.formControl} htmlFor="management-next-description">
-                          <span className={styles.formLabel}>Action</span>
-                          <textarea
-                            id="management-next-description"
-                            className={styles.textareaInput}
-                            value={formState.nextStepDescription}
-                            onChange={handleFieldChange('nextStepDescription')}
-                            disabled={formDisabled}
-                            rows={3}
-                            placeholder="Outline the follow-up task"
-                          />
-                        </label>
-                        <label className={styles.formControl} htmlFor="management-next-due">
-                          <span className={styles.formLabel}>Due date</span>
-                          <input
-                            id="management-next-due"
-                            type="datetime-local"
-                            className={styles.textInput}
-                            value={formState.nextStepDueAt}
-                            onChange={handleFieldChange('nextStepDueAt')}
-                            disabled={formDisabled}
-                          />
-                        </label>
-                      </div>
-                      {quickNextStepActions.length ? (
-                        <div className={styles.quickTemplateRow}>
-                          {quickNextStepActions.map((template) => (
-                            <button
-                              key={template.key}
-                              type="button"
-                              className={styles.managementQuickButton}
-                              onClick={() => handleNextStepTemplate(template)}
-                              disabled={formDisabled}
-                            >
-                              <span className={styles.quickActionLabel}>{template.label}</span>
-                              <span className={styles.quickActionHint}>{template.description}</span>
-                            </button>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-
-                    <div className={styles.managementFieldset}>
-                      <div className={styles.managementFieldsetHeader}>
-                        <h3>Internal notes</h3>
-                        <p>Share key talking points that should surface in Apex27.</p>
-                      </div>
-                      <label className={styles.formControl} htmlFor="management-notes">
-                        <span className={styles.formLabel}>Notes</span>
-                        <textarea
-                          id="management-notes"
-                          className={styles.textareaInput}
-                          value={formState.notes}
-                          onChange={handleFieldChange('notes')}
-                          disabled={formDisabled}
-                          rows={4}
-                          placeholder="Notes to sync with Apex27"
+                        <input
+                          id="contact-first-name"
+                          name="firstName"
+                          type="text"
+                          className={styles.input}
+                          value={formState.firstName}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving}
+                          autoComplete="given-name"
                         />
-                      </label>
+                      </div>
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-last-name" className={styles.formLabel}>
+                          Last name
+                        </label>
+                        <input
+                          id="contact-last-name"
+                          name="lastName"
+                          type="text"
+                          className={styles.input}
+                          value={formState.lastName}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving}
+                          autoComplete="family-name"
+                        />
+                      </div>
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-display-name" className={styles.formLabel}>
+                          Display name
+                        </label>
+                        <input
+                          id="contact-display-name"
+                          name="name"
+                          type="text"
+                          className={styles.input}
+                          value={formState.name}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving}
+                          autoComplete="off"
+                        />
+                      </div>
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-type" className={styles.formLabel}>
+                          Contact type
+                        </label>
+                        <select
+                          id="contact-type"
+                          name="type"
+                          className={styles.select}
+                          value={formState.type}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving || !typeOptions.length}
+                        >
+                          {typeOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
-                    {formStatus.message ? (
-                      <div className={formStatusClassName} role={formStatus.type === 'error' ? 'alert' : undefined}>
-                        <span>{formStatus.message}</span>
-                        {formStatusHint ? <span className={styles.formStatusHint}>{formStatusHint}</span> : null}
+                    <div className={`${styles.formGrid} ${styles.formGridColumns2}`}>
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-stage" className={styles.formLabel}>
+                          Stage
+                        </label>
+                        <select
+                          id="contact-stage"
+                          name="stage"
+                          className={styles.select}
+                          value={formState.stage}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving || !stageOptions.length}
+                        >
+                          {stageOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
                       </div>
-                    ) : null}
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-pipeline" className={styles.formLabel}>
+                          Pipeline
+                        </label>
+                        <select
+                          id="contact-pipeline"
+                          name="pipeline"
+                          className={styles.select}
+                          value={formState.pipeline}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving || !pipelineOptions.length}
+                        >
+                          {pipelineOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-agent" className={styles.formLabel}>
+                          Assigned to
+                        </label>
+                        <select
+                          id="contact-agent"
+                          name="assignedAgentId"
+                          className={styles.select}
+                          value={formState.assignedAgentId}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving}
+                        >
+                          <option value="">Unassigned</option>
+                          {agentOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-source" className={styles.formLabel}>
+                          Source
+                        </label>
+                        <input
+                          id="contact-source"
+                          name="source"
+                          type="text"
+                          className={styles.input}
+                          value={formState.source}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving}
+                        />
+                      </div>
+                    </div>
+
+                    <div className={`${styles.formGrid} ${styles.formGridColumns2}`}>
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-email" className={styles.formLabel}>
+                          Email
+                        </label>
+                        <input
+                          id="contact-email"
+                          name="email"
+                          type="email"
+                          className={styles.input}
+                          value={formState.email}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving}
+                          autoComplete="email"
+                        />
+                      </div>
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-phone" className={styles.formLabel}>
+                          Phone
+                        </label>
+                        <input
+                          id="contact-phone"
+                          name="phone"
+                          type="tel"
+                          className={styles.input}
+                          value={formState.phone}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving}
+                          autoComplete="tel"
+                        />
+                      </div>
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-location" className={styles.formLabel}>
+                          Location focus
+                        </label>
+                        <input
+                          id="contact-location"
+                          name="locationFocus"
+                          type="text"
+                          className={styles.input}
+                          value={formState.locationFocus}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving}
+                        />
+                      </div>
+                    </div>
+
+                    <div className={`${styles.formGrid} ${styles.formGridColumns2}`}>
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-budget-sale" className={styles.formLabel}>
+                          Purchase budget (£)
+                        </label>
+                        <input
+                          id="contact-budget-sale"
+                          name="budgetSaleMax"
+                          type="number"
+                          min="0"
+                          step="1"
+                          className={styles.input}
+                          value={formState.budgetSaleMax}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving}
+                        />
+                      </div>
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-budget-rent" className={styles.formLabel}>
+                          Rent budget (£pcm)
+                        </label>
+                        <input
+                          id="contact-budget-rent"
+                          name="budgetRentMax"
+                          type="number"
+                          min="0"
+                          step="1"
+                          className={styles.input}
+                          value={formState.budgetRentMax}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving}
+                        />
+                      </div>
+                    </div>
+
+                    <div className={`${styles.formGrid} ${styles.formGridColumns2}`}>
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-tags" className={styles.formLabel}>
+                          Tags
+                        </label>
+                        <textarea
+                          id="contact-tags"
+                          name="tags"
+                          className={styles.textarea}
+                          value={formState.tags}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving}
+                        />
+                        <p className={styles.fieldHint}>Separate entries with commas or new lines.</p>
+                      </div>
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-requirements" className={styles.formLabel}>
+                          Requirements
+                        </label>
+                        <textarea
+                          id="contact-requirements"
+                          name="requirements"
+                          className={styles.textarea}
+                          value={formState.requirements}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving}
+                        />
+                        <p className={styles.fieldHint}>Separate entries with commas or new lines.</p>
+                      </div>
+                    </div>
+
+                    <div className={styles.formGrid}>
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-next-step" className={styles.formLabel}>
+                          Next step description
+                        </label>
+                        <textarea
+                          id="contact-next-step"
+                          name="nextStepDescription"
+                          className={styles.textarea}
+                          value={formState.nextStepDescription}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving}
+                        />
+                      </div>
+                      <div className={`${styles.formGrid} ${styles.formGridColumns2}`}>
+                        <div className={styles.formRow}>
+                          <label htmlFor="contact-next-step-date" className={styles.formLabel}>
+                            Due date
+                          </label>
+                          <input
+                            id="contact-next-step-date"
+                            name="nextStepDueDate"
+                            type="date"
+                            className={styles.input}
+                            value={formState.nextStepDueDate}
+                            onChange={handleManagementChange}
+                            disabled={!contact || saving}
+                          />
+                        </div>
+                        <div className={styles.formRow}>
+                          <label htmlFor="contact-next-step-time" className={styles.formLabel}>
+                            Due time
+                          </label>
+                          <input
+                            id="contact-next-step-time"
+                            name="nextStepDueTime"
+                            type="time"
+                            className={styles.input}
+                            value={formState.nextStepDueTime}
+                            onChange={handleManagementChange}
+                            disabled={!contact || saving}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.formGrid}>
+                      <div className={styles.formRow}>
+                        <label htmlFor="contact-notes-field" className={styles.formLabel}>
+                          Notes
+                        </label>
+                        <textarea
+                          id="contact-notes-field"
+                          name="generatedNotes"
+                          className={styles.textarea}
+                          value={formState.generatedNotes}
+                          onChange={handleManagementChange}
+                          disabled={!contact || saving}
+                        />
+                      </div>
+                    </div>
 
                     <div className={styles.formActions}>
+                      <button type="submit" className={styles.primaryButton} disabled={!contact || saving}>
+                        {saving ? 'Saving…' : 'Save changes'}
+                      </button>
                       <button
                         type="button"
-                        className={styles.secondaryFormButton}
-                        onClick={handleResetForm}
-                        disabled={formDisabled}
+                        className={styles.secondaryButton}
+                        onClick={handleManagementReset}
+                        disabled={!contact || saving}
                       >
                         Reset
                       </button>
-                      <button type="submit" className={styles.primaryFormButton} disabled={formDisabled}>
-                        {saving ? 'Saving…' : 'Save updates'}
-                      </button>
+                      {formStatus.message ? (
+                        <p
+                          className={`${styles.statusMessage} ${
+                            formStatus.type === 'success'
+                              ? styles.statusSuccess
+                              : formStatus.type === 'error'
+                              ? styles.statusError
+                              : ''
+                          }`}
+                        >
+                          {formStatus.message}
+                        </p>
+                      ) : null}
                     </div>
+
+                    {formStatus.details?.length ? (
+                      <ul
+                        className={`${styles.statusDetails} ${
+                          formStatus.type === 'error' ? styles.statusError : styles.statusSuccess
+                        }`}
+                      >
+                        {formStatus.details.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    ) : null}
                   </form>
                 </section>
-
-                {apexActions.length ? (
-                  <section
-                    className={`${styles.card} ${styles.quickActionsCard}`}
-                    aria-labelledby="contact-apex-actions"
-                  >
-                    <div className={styles.cardHeader}>
-                      <h2 id="contact-apex-actions">Manage in Apex27</h2>
-                    </div>
-                    <div className={styles.quickActionsList}>
-                      {apexActions.map((action) => (
-                        <button
-                          key={action.key}
-                          type="button"
-                          className={styles.quickActionButton}
-                          onClick={() => openInNewTab(action.href)}
-                        >
-                          <span className={styles.quickActionLabel}>{action.label}</span>
-                          {action.description ? (
-                            <span className={styles.quickActionHint}>{action.description}</span>
-                          ) : null}
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                ) : null}
 
                 <section className={`${styles.card} ${styles.nextStepCard}`} aria-labelledby="contact-next-step">
                   <div className={styles.cardHeader}>
