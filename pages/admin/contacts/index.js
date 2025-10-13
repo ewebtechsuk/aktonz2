@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminContacts.module.css';
@@ -675,7 +676,15 @@ export default function AdminContactsPage() {
                       return (
                         <tr key={contact.id}>
                           <td className={styles.nameCell}>
-                            <strong>{contact.name}</strong>
+                            <Link
+                              href={`/admin/contacts/${contact.id}`}
+                              className={styles.nameLink}
+                            >
+                              <strong>{contact.name}</strong>
+                              <span className={styles.nameLinkIcon} aria-hidden="true">
+                                ↗
+                              </span>
+                            </Link>
                             <div className={styles.meta}>
                               <span>{contact.typeLabel}</span>
                               {contact.pipelineLabel ? <span> • {contact.pipelineLabel}</span> : null}
