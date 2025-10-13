@@ -14,7 +14,7 @@ function requireAdmin(req, res) {
   return admin;
 }
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (!requireAdmin(req, res)) {
     return;
   }
@@ -32,7 +32,7 @@ export default function handler(req, res) {
     }
 
     try {
-      const contact = getContactById(contactId);
+      const contact = await getContactById(contactId);
       if (!contact) {
         return res.status(404).json({ error: 'Contact not found' });
       }
