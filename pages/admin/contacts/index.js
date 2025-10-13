@@ -205,22 +205,15 @@ function ContactActionsCell({ contact }) {
     return `/admin/contacts/${encodeURIComponent(contactId)}`;
   }, [contactId]);
 
-  const apexUpdateUrl = contact?.links?.update || null;
-
   const handleUpdate = useCallback(() => {
-    if (apexUpdateUrl) {
-      openInNewTab(apexUpdateUrl);
-      return;
-    }
-
     if (!contactDetailsHref) {
       return;
     }
 
     router.push(contactDetailsHref);
-  }, [apexUpdateUrl, contactDetailsHref, router]);
+  }, [contactDetailsHref, router]);
 
-  const updateLabel = apexUpdateUrl ? 'Update in Apex27' : 'Update';
+  const updateLabel = contactDetailsHref ? 'Update contact' : 'Update';
 
   const menuItems = useMemo(() => {
     const items = [];
