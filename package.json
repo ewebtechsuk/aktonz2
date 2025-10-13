@@ -6,9 +6,12 @@
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "lint": "eslint lib/googleMapsLoader.mjs pages/valuation.js __tests__/googleMapsLoader.test.js __tests__/app.test.tsx",
+    "predev": "node scripts/ensure_lettings_brochure.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/ensure_lettings_brochure.mjs",
     "build": "next build",
     "postbuild": "mkdir -p out && touch out/.nojekyll",
+    "prestart": "node scripts/ensure_lettings_brochure.mjs",
     "start": "next start",
     "cache": "node scripts/cacheListings.mjs",
     "check-pr": "node scripts/check-pr.mjs",
