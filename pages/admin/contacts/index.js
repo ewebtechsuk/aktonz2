@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 
@@ -12,6 +12,214 @@ const STAGE_BADGE_CLASS = {
   client: styles.badgeClient,
   past_client: styles.badgePastClient,
 };
+
+function openInNewTab(url) {
+  if (!url || typeof window === 'undefined') {
+    return;
+  }
+
+  window.open(url, '_blank', 'noopener');
+}
+
+function ContactActionsCell({ contact }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+  const menuRef = useRef(null);
+  const toggleRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) {
+      return;
+    }
+
+    function handleDocumentClick(event) {
+      if (!menuRef.current || !toggleRef.current) {
+        return;
+      }
+
+      if (
+        menuRef.current.contains(event.target) ||
+        toggleRef.current.contains(event.target)
+      ) {
+        return;
+      }
+
+      setMenuOpen(false);
+    }
+
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleDocumentClick);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handleDocumentClick);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (!statusMessage) {
+      return;
+    }
+
+    const timeout = setTimeout(() => setStatusMessage(''), 3000);
+    return () => clearTimeout(timeout);
+  }, [statusMessage]);
+
+  const copyToClipboard = useCallback(
+    async (value, label) => {
+      if (!value) {
+        return;
+      }
+
+      try {
+        if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(value);
+          setStatusMessage(label);
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to copy to clipboard', error);
+      }
+
+      if (typeof window !== 'undefined') {
+        window.prompt('Copy to clipboard: Ctrl+C, Enter', value);
+        setStatusMessage(label);
+      }
+    },
+    [],
+  );
+
+  const handleMenuToggle = useCallback(() => {
+    setMenuOpen((current) => !current);
+  }, []);
+
+  const handleUpdate = useCallback(() => {
+    const updateUrl = contact.links?.update;
+    if (updateUrl) {
+      openInNewTab(updateUrl);
+    }
+  }, [contact]);
+
+  const handleAction = useCallback(
+    (action) => {
+      setMenuOpen(false);
+
+      switch (action) {
+        case 'view':
+          openInNewTab(contact.links?.view);
+          break;
+        case 'timeline':
+          openInNewTab(contact.links?.timeline);
+          break;
+        case 'tasks':
+          openInNewTab(contact.links?.tasks);
+          break;
+        case 'newTask':
+          openInNewTab(contact.links?.newTask);
+          break;
+        case 'email':
+          if (contact.email && typeof window !== 'undefined') {
+            window.location.href = `mailto:${contact.email}`;
+          }
+          break;
+        case 'call':
+          if (contact.phone && typeof window !== 'undefined') {
+            window.location.href = `tel:${contact.phone}`;
+          }
+          break;
+        case 'copyEmail':
+          copyToClipboard(contact.email, 'Email address copied to clipboard');
+          break;
+        case 'copyPhone':
+          copyToClipboard(contact.phone, 'Phone number copied to clipboard');
+          break;
+        case 'copyId':
+          copyToClipboard(contact.id, 'Contact ID copied to clipboard');
+          break;
+        default:
+          break;
+      }
+    },
+    [contact, copyToClipboard],
+  );
+
+  const menuItems = useMemo(() => {
+    const items = [];
+
+    if (contact.links?.view) {
+      items.push({ action: 'view', label: 'Open contact in Apex27 CRM' });
+    }
+
+    if (contact.links?.timeline) {
+      items.push({ action: 'timeline', label: 'View activity timeline' });
+    }
+
+    if (contact.links?.tasks) {
+      items.push({ action: 'tasks', label: 'View tasks board' });
+    }
+
+    if (contact.links?.newTask) {
+      items.push({ action: 'newTask', label: 'Create follow-up task' });
+    }
+
+    if (contact.email) {
+      items.push({ action: 'email', label: 'Send email' });
+      items.push({ action: 'copyEmail', label: 'Copy email address' });
+    }
+
+    if (contact.phone) {
+      items.push({ action: 'call', label: 'Call contact' });
+      items.push({ action: 'copyPhone', label: 'Copy phone number' });
+    }
+
+    items.push({ action: 'copyId', label: 'Copy contact ID' });
+
+    return items;
+  }, [contact]);
+
+  return (
+    <div className={styles.actionsWrapper}>
+      <button type="button" className={styles.updateButton} onClick={handleUpdate}>
+        Update
+      </button>
+      <button
+        type="button"
+        className={styles.menuToggle}
+        onClick={handleMenuToggle}
+        aria-haspopup="true"
+        aria-expanded={menuOpen}
+        aria-label={`More actions for ${contact.name}`}
+        ref={toggleRef}
+      >
+        <span aria-hidden="true">▾</span>
+      </button>
+      {menuOpen ? (
+        <div className={styles.actionMenu} role="menu" ref={menuRef}>
+          {menuItems.map((item) => (
+            <button
+              key={item.action}
+              type="button"
+              className={styles.actionMenuItem}
+              onClick={() => handleAction(item.action)}
+              role="menuitem"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <span className={styles.srOnly} role="status" aria-live="polite">
+        {statusMessage}
+      </span>
+    </div>
+  );
+}
 
 function formatDateTime(value) {
   if (!value) {
@@ -428,6 +636,9 @@ export default function AdminContactsPage() {
                       <th scope="col">Focus &amp; requirements</th>
                       <th scope="col">Contact details</th>
                       <th scope="col">Owner</th>
+                      <th scope="col" className={styles.actionsHeader}>
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -510,6 +721,9 @@ export default function AdminContactsPage() {
                           <td>
                             <div>{contact.assignedAgentName || 'Unassigned'}</div>
                             <div className={styles.meta}>{contact.pipelineLabel}</div>
+                          </td>
+                          <td className={styles.actionsCell}>
+                            <ContactActionsCell contact={contact} />
                           </td>
                         </tr>
                       );
