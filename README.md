@@ -81,7 +81,7 @@ If your workflow issues time-limited lookup tokens, swap the `phone` query for
 
 ## Environment Variables
 
-Create a `.env.local` file and set `APEX27_API_KEY` (and optionally `APEX27_BRANCH_ID` for your branch) to fetch real property data from the Apex27 API. Without these variables, no listings will be shown.
+Create a `.env.local` file and set `APEX27_API_KEY` (and optionally `APEX27_BRANCH_ID` for your branch) to fetch real property data from the Apex27 API. Without these variables, no listings will be shown. The same credentials are used by the admin contacts dashboard to synchronise people records; when absent the page falls back to the bundled sample data.
 
 ### 3CX contact lookup webhook
 

@@ -14,7 +14,7 @@ function requireAdmin(req, res) {
   return admin;
 }
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (!requireAdmin(req, res)) {
     return;
   }
@@ -25,7 +25,7 @@ export default function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const payload = listContactsForAdmin();
+      const payload = await listContactsForAdmin();
       return res.status(200).json(payload);
     } catch (error) {
       console.error('Failed to list contacts for admin', error);
