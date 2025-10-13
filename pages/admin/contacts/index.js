@@ -652,7 +652,15 @@ export default function AdminContactsPage() {
                       return (
                         <tr key={contact.id}>
                           <td className={styles.nameCell}>
-                            <strong>{contact.name}</strong>
+                            <Link
+                              href={`/admin/contacts/${contact.id}`}
+                              className={styles.nameLink}
+                            >
+                              <strong>{contact.name}</strong>
+                              <span className={styles.nameLinkIcon} aria-hidden="true">
+                                ↗
+                              </span>
+                            </Link>
                             <div className={styles.meta}>
                               <span>{contact.typeLabel}</span>
                               {contact.pipelineLabel ? <span> • {contact.pipelineLabel}</span> : null}
