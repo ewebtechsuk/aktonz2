@@ -256,6 +256,37 @@
   gap: calc(var(--spacing-xs) / 2);
 }
 
+.nameLink {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing-xs) / 2);
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.nameLink:hover,
+.nameLink:focus-visible {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.nameLink:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.nameLinkIcon {
+  font-size: 0.9rem;
+  transition: transform 0.2s ease;
+}
+
+.nameLink:hover .nameLinkIcon,
+.nameLink:focus-visible .nameLinkIcon {
+  transform: translate(2px, -2px);
+}
+
 .nameCell strong {
   font-size: 1rem;
 }
