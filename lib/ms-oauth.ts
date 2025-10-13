@@ -1,4 +1,4 @@
-import { encryptText, serializeEncryptedPayload } from './crypto-util';
+import { encryptText } from './crypto-util';
 import {
   ALLOWED_UPN,
   ALLOWED_UPNS,
@@ -46,20 +46,27 @@ export async function handleOAuthCallback(code: string, redirectUri: string): Pr
   }
 
   const expiresInSeconds = tokens.expires_in ?? 0;
-  const obtainedAt = Date.now();
+  const obtainedAt = Math.floor(Date.now() / 1000);
 
   await saveTokens({
-    access_token_enc: serializeEncryptedPayload(encryptText(tokens.access_token)),
-    refresh_token_enc: serializeEncryptedPayload(encryptText(tokens.refresh_token)),
+    access_token_enc: serializeForLegacyConsumers(encryptText(tokens.access_token)),
+    refresh_token_enc: serializeForLegacyConsumers(encryptText(tokens.refresh_token)),
     expires_in: expiresInSeconds,
     obtained_at: obtainedAt,
     account: profile.userPrincipalName ?? profile.mail ?? ALLOWED_UPN,
-
   });
 
   return {
     accountUpn: profile.userPrincipalName ?? profile.mail ?? ALLOWED_UPN,
   };
+}
+
+function serializeForLegacyConsumers(payload: ReturnType<typeof encryptText>): string {
+  const iv = Buffer.from(payload.iv, 'base64');
+  const authTag = Buffer.from(payload.authTag, 'base64');
+  const ciphertext = Buffer.from(payload.ciphertext, 'base64');
+
+  return Buffer.concat([iv, authTag, ciphertext]).toString('base64');
 }
 
 async function exchangeAuthorizationCode(code: string, redirectUri: string): Promise<TokenResponse> {
