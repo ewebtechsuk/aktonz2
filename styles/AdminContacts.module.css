@@ -188,7 +188,7 @@
 .tableHeader {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: var(--spacing-md);
   flex-wrap: wrap;
 }
@@ -201,6 +201,74 @@
 .tableHeader p {
   margin: 0;
   color: var(--color-muted-text);
+}
+
+.tableHeaderMeta {
+  margin-top: calc(var(--spacing-xs) / 2);
+}
+
+.tableHeaderControls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.pagination {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing-xs) / 2);
+  padding: calc(var(--spacing-xs) / 2);
+  border-radius: 999px;
+  background: var(--color-surface-alt);
+}
+
+.paginationButton {
+  border: 1px solid var(--color-border-light);
+  background: var(--color-background);
+  color: inherit;
+  border-radius: 999px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 var(--spacing-sm);
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.paginationButton:hover,
+.paginationButton:focus-visible {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+.paginationButton:focus-visible {
+  outline: 2px solid var(--color-border);
+  outline-offset: 2px;
+}
+
+.paginationButtonActive {
+  background: var(--color-text);
+  color: var(--color-background);
+  border-color: var(--color-text);
+  font-weight: 600;
+}
+
+.paginationButtonIcon {
+  padding: 0;
+  min-width: 32px;
+}
+
+.paginationButtonDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.paginationEllipsis {
+  padding: 0 var(--spacing-xs);
+  color: var(--color-muted-text);
+  font-weight: 600;
 }
 
 .refreshButton {

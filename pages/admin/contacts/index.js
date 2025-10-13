@@ -13,6 +13,101 @@ const STAGE_BADGE_CLASS = {
   past_client: styles.badgePastClient,
 };
 
+const PAGE_SIZE = 25;
+
+function formatNumber(value) {
+  try {
+    return Number(value).toLocaleString('en-GB');
+  } catch (error) {
+    return String(value);
+  }
+}
+
+function buildPaginationItems(totalPages, currentPage) {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const items = [1];
+  const siblings = 1;
+  const startPage = Math.max(2, currentPage - siblings);
+  const endPage = Math.min(totalPages - 1, currentPage + siblings);
+
+  if (startPage > 2) {
+    items.push('ellipsis-start');
+  }
+
+  for (let page = startPage; page <= endPage; page += 1) {
+    items.push(page);
+  }
+
+  if (endPage < totalPages - 1) {
+    items.push('ellipsis-end');
+  }
+
+  items.push(totalPages);
+  return items;
+}
+
+function Pagination({ currentPage, totalPages, onPageChange, disabled }) {
+  if (totalPages <= 1) {
+    return null;
+  }
+
+  const items = buildPaginationItems(totalPages, currentPage);
+
+  return (
+    <nav className={styles.pagination} aria-label="Contacts pagination">
+      <button
+        type="button"
+        className={`${styles.paginationButton} ${styles.paginationButtonIcon} ${
+          currentPage === 1 || disabled ? styles.paginationButtonDisabled : ''
+        }`}
+        onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+        disabled={currentPage === 1 || disabled}
+        aria-label="Previous page"
+      >
+        ‹
+      </button>
+      {items.map((item, index) => {
+        if (typeof item === 'string' && item.startsWith('ellipsis')) {
+          return (
+            <span key={`${item}-${index}`} className={styles.paginationEllipsis} aria-hidden="true">
+              …
+            </span>
+          );
+        }
+
+        const pageNumber = Number(item);
+        const isActive = pageNumber === currentPage;
+        return (
+          <button
+            key={pageNumber}
+            type="button"
+            className={`${styles.paginationButton} ${isActive ? styles.paginationButtonActive : ''}`}
+            onClick={() => onPageChange(pageNumber)}
+            aria-current={isActive ? 'page' : undefined}
+            disabled={disabled}
+          >
+            {pageNumber}
+          </button>
+        );
+      })}
+      <button
+        type="button"
+        className={`${styles.paginationButton} ${styles.paginationButtonIcon} ${
+          currentPage === totalPages || disabled ? styles.paginationButtonDisabled : ''
+        }`}
+        onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+        disabled={currentPage === totalPages || disabled}
+        aria-label="Next page"
+      >
+        ›
+      </button>
+    </nav>
+  );
+}
+
 function openInNewTab(url) {
   if (!url || typeof window === 'undefined') {
     return;
@@ -385,6 +480,7 @@ export default function AdminContactsPage() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [pipelineFilter, setPipelineFilter] = useState('all');
   const [agentFilter, setAgentFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const loadContacts = useCallback(async () => {
     if (!isAdmin) {
@@ -410,6 +506,7 @@ export default function AdminContactsPage() {
       setSummary(payload.summary || null);
       setFilters(payload.filters || { type: [], stage: [], pipeline: [], agent: [] });
       setGeneratedAt(payload.generatedAt || null);
+      setCurrentPage(1);
     } catch (err) {
       console.error(err);
       setError('Unable to load contacts. Please try again.');
@@ -473,12 +570,48 @@ export default function AdminContactsPage() {
 
   const generatedAtLabel = useMemo(() => formatGeneratedAt(generatedAt), [generatedAt]);
 
+  const totalFiltered = filteredContacts.length;
+  const totalPages = totalFiltered === 0 ? 0 : Math.ceil(totalFiltered / PAGE_SIZE);
+
+  useEffect(() => {
+    if (currentPage > (totalPages || 1)) {
+      setCurrentPage(Math.max(1, totalPages || 1));
+    }
+  }, [currentPage, totalPages]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, stageFilter, typeFilter, pipelineFilter, agentFilter]);
+
+  const paginatedContacts = useMemo(() => {
+    if (totalFiltered === 0) {
+      return [];
+    }
+
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    return filteredContacts.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [filteredContacts, currentPage, totalFiltered]);
+
+  const pageStart = totalFiltered === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const pageEnd = totalFiltered === 0 ? 0 : Math.min(totalFiltered, currentPage * PAGE_SIZE);
+  const contactsLabel =
+    totalFiltered === contacts.length
+      ? `${formatNumber(totalFiltered)} contact${totalFiltered === 1 ? '' : 's'}`
+      : `${formatNumber(totalFiltered)} contact${totalFiltered === 1 ? '' : 's'} filtered from ${formatNumber(
+          contacts.length,
+        )}`;
+  const pageSummaryLabel =
+    totalFiltered === 0
+      ? 'No contacts to display.'
+      : `Showing ${formatNumber(pageStart)}–${formatNumber(pageEnd)} of ${contactsLabel}.`;
+
   const resetFilters = useCallback(() => {
     setSearch('');
     setStageFilter('all');
     setTypeFilter('all');
     setPipelineFilter('all');
     setAgentFilter('all');
+    setCurrentPage(1);
   }, []);
 
   if (sessionLoading) {
@@ -609,19 +742,25 @@ export default function AdminContactsPage() {
             <div className={styles.tableHeader}>
               <div>
                 <h2 id="contacts-table">All contacts</h2>
-                <p>
-                  Showing {filteredContacts.length} of {contacts.length} contacts
-                </p>
+                <p className={styles.tableHeaderMeta}>{pageSummaryLabel}</p>
               </div>
-              <button type="button" className={styles.refreshButton} onClick={loadContacts} disabled={loading}>
-                Refresh
-              </button>
+              <div className={styles.tableHeaderControls}>
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  disabled={loading}
+                />
+                <button type="button" className={styles.refreshButton} onClick={loadContacts} disabled={loading}>
+                  Refresh
+                </button>
+              </div>
             </div>
             {loading ? (
               <div className={`${styles.loadingState} ${styles.emptyState}`}>Loading contacts…</div>
             ) : error ? (
               <div className={styles.errorState}>{error}</div>
-            ) : filteredContacts.length === 0 ? (
+            ) : totalFiltered === 0 ? (
               <div className={styles.emptyState}>No contacts match the selected filters yet.</div>
             ) : (
               <div className={styles.tableWrapper}>
@@ -642,7 +781,7 @@ export default function AdminContactsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredContacts.map((contact) => {
+                    {paginatedContacts.map((contact) => {
                       const stageClass = buildBadgeClass(contact.stage);
                       const budgetLabel = formatBudget(contact.budget);
                       const lastActivityRelative = formatRelativeTime(contact.lastActivityTimestamp);
