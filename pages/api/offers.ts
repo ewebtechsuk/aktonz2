@@ -59,13 +59,34 @@ function escapeHtml(value: unknown): string {
     .replace(/'/g, '&#39;');
 }
 
+function sanitiseNumericString(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  if (!/\d/.test(trimmed)) {
+    return null;
+  }
+
+  const withoutPrefix = trimmed.replace(/^[^\d+-]+/, '');
+  const normalised = withoutPrefix.replace(/[\s,]+/g, '');
+
+  return normalised;
+}
+
 function toNumber(value: unknown): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return value;
   }
 
   if (typeof value === 'string') {
-    const parsed = Number.parseFloat(value);
+    const sanitised = sanitiseNumericString(value);
+    if (!sanitised) {
+      return null;
+    }
+
+    const parsed = Number.parseFloat(sanitised);
     if (Number.isFinite(parsed)) {
       return parsed;
     }
@@ -147,7 +168,12 @@ function normalisePositiveInteger(value: unknown): number | undefined {
   }
 
   if (typeof value === 'string') {
-    const parsed = Number.parseInt(value, 10);
+    const sanitised = sanitiseNumericString(value);
+    if (!sanitised) {
+      return undefined;
+    }
+
+    const parsed = Number.parseInt(sanitised, 10);
     if (Number.isInteger(parsed) && parsed > 0) {
       return parsed;
     }
@@ -214,7 +240,7 @@ type ValidatedOffer = {
   email: string;
   phone?: string;
   message?: string;
-  depositAmount?: string | number;
+  depositAmount?: number;
   moveInDate?: string;
   householdSize?: number;
   hasPets?: boolean;
@@ -262,6 +288,7 @@ function validateBody(body: FormBody): { data?: ValidatedOffer; errors?: string[
   const propertyAddress = normaliseString(propertyAddressInput);
   const phone = normaliseString(body.phone);
   const message = normaliseString(body.message);
+  const depositAmount = toNumber(body.depositAmount);
   const moveInDate =
     normaliseDate(body.moveInDate) ?? normaliseDate(body.desiredMoveInDate);
   const householdSize =
@@ -289,7 +316,7 @@ function validateBody(body: FormBody): { data?: ValidatedOffer; errors?: string[
       email: email!,
       phone: phone || undefined,
       message: message || undefined,
-      depositAmount: body.depositAmount,
+      depositAmount: depositAmount ?? undefined,
       moveInDate: moveInDate || undefined,
       householdSize: householdSize || undefined,
       hasPets: hasPets !== undefined ? hasPets : undefined,
