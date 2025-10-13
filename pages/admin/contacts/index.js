@@ -205,13 +205,22 @@ function ContactActionsCell({ contact }) {
     return `/admin/contacts/${encodeURIComponent(contactId)}`;
   }, [contactId]);
 
+  const apexUpdateUrl = contact?.links?.update || null;
+
   const handleUpdate = useCallback(() => {
+    if (apexUpdateUrl) {
+      openInNewTab(apexUpdateUrl);
+      return;
+    }
+
     if (!contactDetailsHref) {
       return;
     }
 
     router.push(contactDetailsHref);
-  }, [contactDetailsHref, router]);
+  }, [apexUpdateUrl, contactDetailsHref, router]);
+
+  const updateLabel = apexUpdateUrl ? 'Update in Apex27' : 'Update';
 
   const menuItems = useMemo(() => {
     const items = [];
@@ -231,6 +240,38 @@ function ContactActionsCell({ contact }) {
         key: 'nextStep',
         label: 'Review next step',
         href: `${contactDetailsHref}#contact-next-step`,
+      });
+    }
+
+    if (contact?.links?.view) {
+      items.push({
+        key: 'apexView',
+        label: 'Open in Apex27',
+        onSelect: () => openInNewTab(contact.links.view),
+      });
+    }
+
+    if (contact?.links?.timeline) {
+      items.push({
+        key: 'apexTimeline',
+        label: 'View Apex27 timeline',
+        onSelect: () => openInNewTab(contact.links.timeline),
+      });
+    }
+
+    if (contact?.links?.tasks) {
+      items.push({
+        key: 'apexTasks',
+        label: 'View Apex27 tasks',
+        onSelect: () => openInNewTab(contact.links.tasks),
+      });
+    }
+
+    if (contact?.links?.newTask) {
+      items.push({
+        key: 'apexNewTask',
+        label: 'Add Apex27 task',
+        onSelect: () => openInNewTab(contact.links.newTask),
       });
     }
 
@@ -282,7 +323,7 @@ function ContactActionsCell({ contact }) {
   return (
     <div className={styles.actionsWrapper}>
       <button type="button" className={styles.updateButton} onClick={handleUpdate}>
-        Update
+        {updateLabel}
       </button>
       <button
         type="button"

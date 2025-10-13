@@ -216,6 +216,55 @@
   gap: var(--spacing-lg);
 }
 
+.quickActionsCard {
+  background: linear-gradient(135deg, rgba(29, 78, 216, 0.06), rgba(99, 102, 241, 0.08));
+  border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+.quickActionsList {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.quickActionButton {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--spacing-xs) / 2);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: 16px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.quickActionButton:hover,
+.quickActionButton:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.16);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.quickActionButton:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.45);
+  outline-offset: 2px;
+}
+
+.quickActionLabel {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.quickActionHint {
+  font-size: 0.85rem;
+  color: var(--color-muted-text);
+}
+
 .cardHeader {
   display: flex;
   justify-content: space-between;

@@ -26,6 +26,14 @@ function normalizeRouteParam(value) {
   return typeof value === 'string' ? value : null;
 }
 
+function openInNewTab(url) {
+  if (!url || typeof window === 'undefined') {
+    return;
+  }
+
+  window.open(url, '_blank', 'noopener');
+}
+
 function formatDateTime(value) {
   if (!value) {
     return '—';
@@ -225,6 +233,60 @@ export default function AdminContactDetailsPage() {
     ? formatDueLabel(contact.nextStep.dueTimestamp)
     : null;
 
+  const apexActions = useMemo(() => {
+    if (!contact?.links) {
+      return [];
+    }
+
+    const actions = [];
+    if (contact.links.view) {
+      actions.push({
+        key: 'view',
+        label: 'Open contact in Apex27',
+        description: 'View the full record and activity feed.',
+        href: contact.links.view,
+      });
+    }
+
+    if (contact.links.update) {
+      actions.push({
+        key: 'update',
+        label: 'Edit contact details',
+        description: 'Jump straight to the Apex27 edit form.',
+        href: contact.links.update,
+      });
+    }
+
+    if (contact.links.timeline) {
+      actions.push({
+        key: 'timeline',
+        label: 'Review Apex27 timeline',
+        description: 'See notes, emails and calls in context.',
+        href: contact.links.timeline,
+      });
+    }
+
+    if (contact.links.tasks) {
+      actions.push({
+        key: 'tasks',
+        label: 'Manage Apex27 tasks',
+        description: 'Track outstanding actions for this contact.',
+        href: contact.links.tasks,
+      });
+    }
+
+    if (contact.links.newTask) {
+      actions.push({
+        key: 'newTask',
+        label: 'Create new Apex27 task',
+        description: 'Schedule the next follow-up directly in Apex27.',
+        href: contact.links.newTask,
+      });
+    }
+
+    return actions;
+  }, [contact?.links]);
+
   const mainDetails = contact
     ? [
         { label: 'Stage', value: contact.stageLabel || '—' },
@@ -402,6 +464,32 @@ export default function AdminContactDetailsPage() {
               </div>
 
               <div className={styles.columnStack}>
+                {apexActions.length ? (
+                  <section
+                    className={`${styles.card} ${styles.quickActionsCard}`}
+                    aria-labelledby="contact-apex-actions"
+                  >
+                    <div className={styles.cardHeader}>
+                      <h2 id="contact-apex-actions">Manage in Apex27</h2>
+                    </div>
+                    <div className={styles.quickActionsList}>
+                      {apexActions.map((action) => (
+                        <button
+                          key={action.key}
+                          type="button"
+                          className={styles.quickActionButton}
+                          onClick={() => openInNewTab(action.href)}
+                        >
+                          <span className={styles.quickActionLabel}>{action.label}</span>
+                          {action.description ? (
+                            <span className={styles.quickActionHint}>{action.description}</span>
+                          ) : null}
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+
                 <section className={`${styles.card} ${styles.nextStepCard}`} aria-labelledby="contact-next-step">
                   <div className={styles.cardHeader}>
                     <h2 id="contact-next-step">Next step</h2>
