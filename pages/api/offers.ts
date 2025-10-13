@@ -240,7 +240,7 @@ type ValidatedOffer = {
   email: string;
   phone?: string;
   message?: string;
-  depositAmount?: string | number;
+  depositAmount?: number;
   moveInDate?: string;
   householdSize?: number;
   hasPets?: boolean;
@@ -288,6 +288,7 @@ function validateBody(body: FormBody): { data?: ValidatedOffer; errors?: string[
   const propertyAddress = normaliseString(propertyAddressInput);
   const phone = normaliseString(body.phone);
   const message = normaliseString(body.message);
+  const depositAmount = toNumber(body.depositAmount);
   const moveInDate =
     normaliseDate(body.moveInDate) ?? normaliseDate(body.desiredMoveInDate);
   const householdSize =
@@ -315,7 +316,7 @@ function validateBody(body: FormBody): { data?: ValidatedOffer; errors?: string[
       email: email!,
       phone: phone || undefined,
       message: message || undefined,
-      depositAmount: body.depositAmount,
+      depositAmount: depositAmount ?? undefined,
       moveInDate: moveInDate || undefined,
       householdSize: householdSize || undefined,
       hasPets: hasPets !== undefined ? hasPets : undefined,
