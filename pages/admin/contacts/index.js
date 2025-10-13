@@ -14,12 +14,18 @@ const STAGE_BADGE_CLASS = {
   past_client: styles.badgePastClient,
 };
 
+function openInNewTab(url) {
+  if (!url || typeof window === 'undefined') {
+    return;
+  }
+
+  window.open(url, '_blank', 'noopener');
+}
+
 function ContactActionsCell({ contact }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [statusMessage, setStatusMessage] = useState('');
   const menuRef = useRef(null);
   const toggleRef = useRef(null);
-  const router = useRouter();
 
   useEffect(() => {
     if (!menuOpen) {
@@ -56,125 +62,138 @@ function ContactActionsCell({ contact }) {
     };
   }, [menuOpen]);
 
-  useEffect(() => {
-    if (!statusMessage) {
-      return;
-    }
-
-    const timeout = setTimeout(() => setStatusMessage(''), 3000);
-    return () => clearTimeout(timeout);
-  }, [statusMessage]);
-
-  const copyToClipboard = useCallback(
-    async (value, label) => {
-      if (!value) {
-        return;
-      }
-
-      try {
-        if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-          await navigator.clipboard.writeText(value);
-          setStatusMessage(label);
-          return;
-        }
-      } catch (error) {
-        console.error('Failed to copy to clipboard', error);
-      }
-
-      if (typeof window !== 'undefined') {
-        window.prompt('Copy to clipboard: Ctrl+C, Enter', value);
-        setStatusMessage(label);
-      }
-    },
-    [],
-  );
-
   const handleMenuToggle = useCallback(() => {
     setMenuOpen((current) => !current);
   }, []);
 
-  const contactId = contact?.id ?? null;
-  const contactDetailsHref = useMemo(() => {
-    if (!contactId) {
-      return null;
-    }
-
-    return `/admin/contacts/${encodeURIComponent(contactId)}`;
-  }, [contactId]);
-
   const handleUpdate = useCallback(() => {
-    if (!contactDetailsHref) {
+    const updateUrl = contact.links?.update;
+    if (updateUrl) {
+      openInNewTab(updateUrl);
+    }
+  }, [contact]);
+
+  const handleMenuSelection = useCallback((item) => {
+    if (!item || item.type === 'divider') {
       return;
     }
 
-    router.push(contactDetailsHref);
-  }, [contactDetailsHref, router]);
+    setMenuOpen(false);
+
+    if (item.confirm && typeof window !== 'undefined') {
+      const confirmed = window.confirm(item.confirm);
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    if (!item.href) {
+      return;
+    }
+
+    if (item.href.startsWith('mailto:')) {
+      if (typeof window !== 'undefined') {
+        window.location.href = item.href;
+      }
+      return;
+    }
+
+    openInNewTab(item.href);
+  }, []);
 
   const menuItems = useMemo(() => {
     const items = [];
 
-    if (contactDetailsHref) {
+    if (contact.links?.callReminder) {
       items.push({
-        key: 'view',
-        label: 'View contact details',
-        href: contactDetailsHref,
-      });
-      items.push({
-        key: 'timeline',
-        label: 'Jump to activity timeline',
-        href: `${contactDetailsHref}#contact-timeline`,
-      });
-      items.push({
-        key: 'nextStep',
-        label: 'Review next step',
-        href: `${contactDetailsHref}#contact-next-step`,
+        key: 'callReminder',
+        label: 'Set Call Reminder',
+        href: contact.links.callReminder,
       });
     }
 
-    if (contact?.email) {
+    if (contact.links?.logCommunication) {
+      items.push({
+        key: 'logCommunication',
+        label: 'Log Communication',
+        href: contact.links.logCommunication,
+      });
+    }
+
+    if (contact.links?.assignAgent) {
+      items.push({
+        key: 'assignAgent',
+        label: 'Assign Agent',
+        href: contact.links.assignAgent,
+      });
+    }
+
+    if (contact.links?.newTask) {
+      items.push({
+        key: 'newTask',
+        label: 'Create Task',
+        href: contact.links.newTask,
+      });
+    }
+
+    if (contact.links?.delegatedTask) {
+      items.push({
+        key: 'delegatedTask',
+        label: 'Create Delegated Task',
+        href: contact.links.delegatedTask,
+      });
+    }
+
+    if (contact.email) {
       items.push({
         key: 'email',
-        label: 'Send email',
-        onSelect: () => {
-          if (typeof window !== 'undefined') {
-            window.location.href = `mailto:${contact.email}`;
-          }
-        },
-      });
-      items.push({
-        key: 'copyEmail',
-        label: 'Copy email address',
-        onSelect: () => copyToClipboard(contact.email, 'Email address copied to clipboard'),
+        label: 'Email',
+        href: `mailto:${contact.email}`,
       });
     }
 
-    if (contact?.phone) {
+    if (contact.links?.emailPropertyDetails) {
       items.push({
-        key: 'call',
-        label: 'Call contact',
-        onSelect: () => {
-          if (typeof window !== 'undefined') {
-            window.location.href = `tel:${contact.phone}`;
-          }
-        },
-      });
-      items.push({
-        key: 'copyPhone',
-        label: 'Copy phone number',
-        onSelect: () => copyToClipboard(contact.phone, 'Phone number copied to clipboard'),
+        key: 'emailPropertyDetails',
+        label: 'Email Property Details',
+        href: contact.links.emailPropertyDetails,
       });
     }
 
-    if (contactId) {
+    if (contact.links?.bookViewing) {
       items.push({
-        key: 'copyId',
-        label: 'Copy contact ID',
-        onSelect: () => copyToClipboard(contactId, 'Contact ID copied to clipboard'),
+        key: 'bookViewing',
+        label: 'Book Viewing',
+        href: contact.links.bookViewing,
+      });
+    }
+
+    const shouldIncludeDivider = items.length > 0 && (contact.links?.archive || contact.links?.delete);
+    if (shouldIncludeDivider) {
+      items.push({ key: 'divider', type: 'divider' });
+    }
+
+    if (contact.links?.archive) {
+      items.push({
+        key: 'archive',
+        label: 'Archive',
+        href: contact.links.archive,
+        confirm: `Archive ${contact.name}?`,
+      });
+    }
+
+    if (contact.links?.delete) {
+      items.push({
+        key: 'delete',
+        label: 'Delete',
+        href: contact.links.delete,
+        tone: 'danger',
+        confirm: `Delete ${contact.name}?`,
       });
     }
 
     return items;
-  }, [contact, contactDetailsHref, contactId, copyToClipboard]);
+  }, [contact]);
 
   return (
     <div className={styles.actionsWrapper}>
@@ -190,43 +209,38 @@ function ContactActionsCell({ contact }) {
         aria-label={`More actions for ${contact.name}`}
         ref={toggleRef}
       >
-        <span aria-hidden="true">▾</span>
+        <span className={styles.menuToggleIcon} aria-hidden="true">
+          ▾
+        </span>
       </button>
       {menuOpen ? (
         <div className={styles.actionMenu} role="menu" ref={menuRef}>
-          <ul className={styles.actionMenuList}>
-            {menuItems.map((item) => (
-              <li key={item.key} className={styles.actionMenuListItem}>
-                {item.href ? (
-                  <Link
-                    href={item.href}
-                    className={styles.actionMenuItem}
-                    role="menuitem"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                ) : (
-                  <button
-                    type="button"
-                    className={styles.actionMenuItem}
-                    onClick={() => {
-                      setMenuOpen(false);
-                      item.onSelect?.();
-                    }}
-                    role="menuitem"
-                  >
-                    {item.label}
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
+          {menuItems.map((item) => {
+            if (item.type === 'divider') {
+              return <div key={item.key} className={styles.actionMenuDivider} role="separator" />;
+            }
+
+            const className = [
+              styles.actionMenuItem,
+              item.tone === 'danger' ? styles.actionMenuItemDanger : null,
+            ]
+              .filter(Boolean)
+              .join(' ');
+
+            return (
+              <button
+                key={item.key}
+                type="button"
+                className={className}
+                onClick={() => handleMenuSelection(item)}
+                role="menuitem"
+              >
+                {item.label}
+              </button>
+            );
+          })}
         </div>
       ) : null}
-      <span className={styles.srOnly} role="status" aria-live="polite">
-        {statusMessage}
-      </span>
     </div>
   );
 }
