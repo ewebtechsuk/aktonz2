@@ -374,7 +374,7 @@ These answers cover the follow-up questions about the Next.js project itself:
 The Microsoft OAuth flow is implemented in `pages/api/microsoft/connect.ts`,
 `pages/api/microsoft/callback.ts`, and the legacy/local-compatible route
 `pages/api/admin/email/microsoft/callback.ts` (kept for older admin dashboards).
-`lib/ms-oauth.js` performs the token exchange, verifies that the signed-in user is
+`lib/ms-oauth.ts` performs the token exchange, verifies that the signed-in user is
 `info@aktonz.com`, and saves the encrypted bundle through `lib/token-store.js`.
 
 * **Encryption helper** – `lib/ms-graph.js` provides `encryptToken` and
