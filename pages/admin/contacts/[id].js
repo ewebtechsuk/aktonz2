@@ -246,7 +246,7 @@ function parseBudgetValue(value) {
     return null;
   }
 
-  const cleaned = String(value).replace(/[^0-9.\-]/g, '').trim();
+  const cleaned = String(value).replace(/[^0-9.-]/g, '').trim();
   if (!cleaned) {
     return null;
   }
