@@ -161,11 +161,11 @@ resulting identifiers through environment variables:
    * **Name:** e.g. `Aktonz Admin Mailbox Connector`.
    * **Supported account types:** keep **Accounts in this organizational
      directory only** unless you explicitly need multi-tenant access.
-   * **Redirect URI:** choose **Web** and enter
-     `https://<your-domain>/api/microsoft/callback` for production (replace
-     `<your-domain>` with the host serving your admin dashboard). Keep the
-     local-testing URI (`http://localhost:3000/api/microsoft/callback`) handy—you
-     will add it alongside the production URL in a moment.
+  * **Redirect URI:** choose **Web** and enter
+    `https://<your-domain>/api/microsoft/callback` for production (replace
+    `<your-domain>` with the host serving your admin dashboard). Keep the
+    local-testing URI (`http://localhost:3000/api/admin/email/microsoft/callback`)
+    handy—you will add it alongside the production URL in a moment.
    * On the **Register an application** screen (the one shown in the screenshot),
      double-check the values, then press **Register** in the bottom-left corner to
      create the app registration.
@@ -177,7 +177,7 @@ resulting identifiers through environment variables:
    you entered earlier is not listed, click **Add a platform** → **Web**, paste
    `https://<your-domain>/api/microsoft/callback`, and press **Configure**.
    With the production URL saved, click **Add URI** on the same card and include
-   the local development callback `http://localhost:3000/api/microsoft/callback`
+  the local development callback `http://localhost:3000/api/admin/email/microsoft/callback`
    so Azure recognises both environments. Confirm the platform now appears
    under **Redirect URIs**, then choose **Save** at the bottom of the page so
    Azure accepts the change.
@@ -251,7 +251,7 @@ settings.
 | Variable | Description |
 | --- | --- |
 | `MS_CLIENT_ID` | The **Application (client) ID** from Azure App Registration. Equivalent fallbacks supported: `MICROSOFT_CLIENT_ID`, `NEXT_PUBLIC_MICROSOFT_CLIENT_ID`, `AZURE_AD_CLIENT_ID`, `MSAL_CLIENT_ID`. |
-| `MS_REDIRECT_URI` | The production redirect URI you configure on the app registration. Use `https://<your-domain>/api/microsoft/callback` and register the local testing URI `http://localhost:3000/api/microsoft/callback` under the same platform. If unset, the code falls back to `https://aktonz.com/api/microsoft/callback` (see `lib/ms-redirect.js`). Public fallbacks are supported: `MICROSOFT_REDIRECT_URI`, `NEXT_PUBLIC_MICROSOFT_REDIRECT_URI`, `NEXT_PUBLIC_MICROSOFT_REDIRECT_URL`, `AZURE_AD_REDIRECT_URI`, `AZURE_AD_REDIRECT_URL`. |
+| `MS_REDIRECT_URI` | The production redirect URI you configure on the app registration. Use `https://<your-domain>/api/microsoft/callback` and register the local testing URI `http://localhost:3000/api/admin/email/microsoft/callback` under the same platform. If unset, the code falls back to `https://aktonz.com/api/microsoft/callback` (see `lib/ms-redirect.js`). Public fallbacks are supported: `MICROSOFT_REDIRECT_URI`, `NEXT_PUBLIC_MICROSOFT_REDIRECT_URI`, `NEXT_PUBLIC_MICROSOFT_REDIRECT_URL`, `AZURE_AD_REDIRECT_URI`, `AZURE_AD_REDIRECT_URL`. |
 | `MS_TENANT_ID` | (Optional) Your tenant ID. When using the bundled Aktonz app registration (`MS_CLIENT_ID` defaults to `28c9d37b-2c2b-4d49-9ac4-4c180967bc7c`), the connector automatically falls back to the Aktonz tenant (`60737a1b-9707-4d7f-9909-0ee943a1ffff`) so a missing configuration still signs in correctly. For custom app registrations, leave unset to default to `common` for multi-tenant apps. Synonymous environment keys such as `MICROSOFT_TENANT_ID`, `AZURE_DIRECTORY_ID`, `AZURE_TENANT_ID`, or `AZURE_AD_TENANT_ID` are also detected. Values like `"undefined"` or `"null"` are ignored so a blank dashboard setting does not break sign-in. |
 | `MS_SCOPES` | (Optional) Custom OAuth scopes. Defaults to `offline_access https://graph.microsoft.com/.default`. |
 | `MS_ALLOWED_UPNS` | (Optional) Comma, semicolon, or newline separated list of user principal names permitted to complete the Microsoft connection. Defaults to `info@aktonz.com`. Use this when the authorised account differs between environments (e.g. `operations@aktonz.com`). |
@@ -348,7 +348,7 @@ environment variables (or share them with the wider team, if needed):
 | **Application (client) ID** | Azure portal → **Azure Active Directory** → **App registrations** → *Your registration* → **Overview**. Copy the **Application (client) ID** value and store it as `MS_CLIENT_ID` (or one of the accepted aliases such as `MICROSOFT_CLIENT_ID`). |
 | **Directory (tenant) ID** | The same Overview screen lists **Directory (tenant) ID**. Copy it if you intend to keep the app single-tenant and configure it as `MS_TENANT_ID` (or `MICROSOFT_TENANT_ID` if you prefer the older naming). When using the bundled Aktonz application you can omit the setting—the code falls back to `60737a1b-9707-4d7f-9909-0ee943a1ffff`. For custom registrations that should allow any tenant, leave it unset to default to `common` for multi-tenant sign-in. |
 | **Client secret value** | Azure portal → *Your registration* → **Certificates & secrets** → **Client secrets**. Select **New client secret**, give it a description/expiry, click **Add**, then immediately copy the **Value** column (this is the only time Azure reveals it). Store the value securely—this repo does **not** commit secrets. |
-| **Redirect URI** | Use `https://<your-domain>/api/microsoft/callback` for production and `http://localhost:3000/api/microsoft/callback` when testing locally. Register both under **Authentication → Web** so Azure AD recognises each environment. |
+| **Redirect URI** | Use `https://<your-domain>/api/microsoft/callback` for production and `http://localhost:3000/api/admin/email/microsoft/callback` when testing locally. Register both under **Authentication → Web** so Azure AD recognises each environment. |
 | **Single-tenant or multi-tenant?** | Step 4 of the registration form controls this. Keeping **Accounts in this organizational directory only** selected produces a single-tenant app scoped to `aktonz.com`. Switch to multi-tenant only if you plan to allow other Azure AD tenants. |
 
 > 💡 Tip: keep a secure record (e.g. password manager entry) with the client ID,

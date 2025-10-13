@@ -22,7 +22,7 @@ describe('ms-graph refresh', () => {
     process.env.MS_CLIENT_ID = 'client-id';
     process.env.MS_CLIENT_SECRET = 'client-secret';
     delete process.env.MS_REDIRECT_URI;
-    process.env.MS_DEV_REDIRECT_URI = 'http://localhost:3000/api/microsoft/callback';
+    process.env.MS_DEV_REDIRECT_URI = 'http://localhost:3000/api/admin/email/microsoft/callback';
     process.env.TOKEN_ENCRYPTION_KEY = 'unit-test-key';
     process.env.NODE_ENV = 'development';
 
