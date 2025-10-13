@@ -136,7 +136,7 @@ const EMPTY_MANAGEMENT_OPTIONS = Object.freeze({
   agent: [],
 });
 
-const INITIAL_FORM_STATE = Object.freeze({
+const MANAGEMENT_INITIAL_FORM_STATE = Object.freeze({
   firstName: '',
   lastName: '',
   name: '',
@@ -198,7 +198,7 @@ function formatInputTime(value) {
 
 function buildManagementFormState(contact) {
   if (!contact) {
-    return { ...INITIAL_FORM_STATE };
+    return { ...MANAGEMENT_INITIAL_FORM_STATE };
   }
 
   return {
@@ -358,7 +358,7 @@ export default function AdminContactDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [options, setOptions] = useState(() => normaliseManagementOptions(null));
-  const [formState, setFormState] = useState(INITIAL_FORM_STATE);
+  const [formState, setFormState] = useState(() => ({ ...MANAGEMENT_INITIAL_FORM_STATE }));
   const [formStatus, setFormStatus] = useState(INITIAL_STATUS_STATE);
   const [saving, setSaving] = useState(false);
 
@@ -422,7 +422,7 @@ export default function AdminContactDetailsPage() {
         setContact(null);
         setError('Unable to load contact right now. Please try again.');
         setOptions(normaliseManagementOptions(null));
-        setFormState(INITIAL_FORM_STATE);
+        setFormState(() => ({ ...MANAGEMENT_INITIAL_FORM_STATE }));
         setFormStatus(INITIAL_STATUS_STATE);
       } finally {
         setLoading(false);
