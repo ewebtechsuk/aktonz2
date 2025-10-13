@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminContacts.module.css';
@@ -13,19 +14,12 @@ const STAGE_BADGE_CLASS = {
   past_client: styles.badgePastClient,
 };
 
-function openInNewTab(url) {
-  if (!url || typeof window === 'undefined') {
-    return;
-  }
-
-  window.open(url, '_blank', 'noopener');
-}
-
 function ContactActionsCell({ contact }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const menuRef = useRef(null);
   const toggleRef = useRef(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (!menuOpen) {
@@ -99,89 +93,88 @@ function ContactActionsCell({ contact }) {
     setMenuOpen((current) => !current);
   }, []);
 
-  const handleUpdate = useCallback(() => {
-    const updateUrl = contact.links?.update;
-    if (updateUrl) {
-      openInNewTab(updateUrl);
+  const contactId = contact?.id ?? null;
+  const contactDetailsHref = useMemo(() => {
+    if (!contactId) {
+      return null;
     }
-  }, [contact]);
 
-  const handleAction = useCallback(
-    (action) => {
-      setMenuOpen(false);
+    return `/admin/contacts/${encodeURIComponent(contactId)}`;
+  }, [contactId]);
 
-      switch (action) {
-        case 'view':
-          openInNewTab(contact.links?.view);
-          break;
-        case 'timeline':
-          openInNewTab(contact.links?.timeline);
-          break;
-        case 'tasks':
-          openInNewTab(contact.links?.tasks);
-          break;
-        case 'newTask':
-          openInNewTab(contact.links?.newTask);
-          break;
-        case 'email':
-          if (contact.email && typeof window !== 'undefined') {
-            window.location.href = `mailto:${contact.email}`;
-          }
-          break;
-        case 'call':
-          if (contact.phone && typeof window !== 'undefined') {
-            window.location.href = `tel:${contact.phone}`;
-          }
-          break;
-        case 'copyEmail':
-          copyToClipboard(contact.email, 'Email address copied to clipboard');
-          break;
-        case 'copyPhone':
-          copyToClipboard(contact.phone, 'Phone number copied to clipboard');
-          break;
-        case 'copyId':
-          copyToClipboard(contact.id, 'Contact ID copied to clipboard');
-          break;
-        default:
-          break;
-      }
-    },
-    [contact, copyToClipboard],
-  );
+  const handleUpdate = useCallback(() => {
+    if (!contactDetailsHref) {
+      return;
+    }
+
+    router.push(contactDetailsHref);
+  }, [contactDetailsHref, router]);
 
   const menuItems = useMemo(() => {
     const items = [];
 
-    if (contact.links?.view) {
-      items.push({ action: 'view', label: 'Open contact in Apex27 CRM' });
+    if (contactDetailsHref) {
+      items.push({
+        key: 'view',
+        label: 'View contact details',
+        href: contactDetailsHref,
+      });
+      items.push({
+        key: 'timeline',
+        label: 'Jump to activity timeline',
+        href: `${contactDetailsHref}#contact-timeline`,
+      });
+      items.push({
+        key: 'nextStep',
+        label: 'Review next step',
+        href: `${contactDetailsHref}#contact-next-step`,
+      });
     }
 
-    if (contact.links?.timeline) {
-      items.push({ action: 'timeline', label: 'View activity timeline' });
+    if (contact?.email) {
+      items.push({
+        key: 'email',
+        label: 'Send email',
+        onSelect: () => {
+          if (typeof window !== 'undefined') {
+            window.location.href = `mailto:${contact.email}`;
+          }
+        },
+      });
+      items.push({
+        key: 'copyEmail',
+        label: 'Copy email address',
+        onSelect: () => copyToClipboard(contact.email, 'Email address copied to clipboard'),
+      });
     }
 
-    if (contact.links?.tasks) {
-      items.push({ action: 'tasks', label: 'View tasks board' });
+    if (contact?.phone) {
+      items.push({
+        key: 'call',
+        label: 'Call contact',
+        onSelect: () => {
+          if (typeof window !== 'undefined') {
+            window.location.href = `tel:${contact.phone}`;
+          }
+        },
+      });
+      items.push({
+        key: 'copyPhone',
+        label: 'Copy phone number',
+        onSelect: () => copyToClipboard(contact.phone, 'Phone number copied to clipboard'),
+      });
     }
 
-    if (contact.links?.newTask) {
-      items.push({ action: 'newTask', label: 'Create follow-up task' });
+    if (contactId) {
+      items.push({
+        key: 'copyId',
+        label: 'Copy contact ID',
+        onSelect: () => copyToClipboard(contactId, 'Contact ID copied to clipboard'),
+      });
     }
-
-    if (contact.email) {
-      items.push({ action: 'email', label: 'Send email' });
-      items.push({ action: 'copyEmail', label: 'Copy email address' });
-    }
-
-    if (contact.phone) {
-      items.push({ action: 'call', label: 'Call contact' });
-      items.push({ action: 'copyPhone', label: 'Copy phone number' });
-    }
-
-    items.push({ action: 'copyId', label: 'Copy contact ID' });
 
     return items;
-  }, [contact]);
+  }, [contact, contactDetailsHref, contactId, copyToClipboard]);
 
   return (
     <div className={styles.actionsWrapper}>
@@ -201,17 +194,34 @@ function ContactActionsCell({ contact }) {
       </button>
       {menuOpen ? (
         <div className={styles.actionMenu} role="menu" ref={menuRef}>
-          {menuItems.map((item) => (
-            <button
-              key={item.action}
-              type="button"
-              className={styles.actionMenuItem}
-              onClick={() => handleAction(item.action)}
-              role="menuitem"
-            >
-              {item.label}
-            </button>
-          ))}
+          <ul className={styles.actionMenuList}>
+            {menuItems.map((item) => (
+              <li key={item.key} className={styles.actionMenuListItem}>
+                {item.href ? (
+                  <Link
+                    href={item.href}
+                    className={styles.actionMenuItem}
+                    role="menuitem"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.actionMenuItem}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      item.onSelect?.();
+                    }}
+                    role="menuitem"
+                  >
+                    {item.label}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
       <span className={styles.srOnly} role="status" aria-live="polite">
