@@ -52,7 +52,9 @@ describe('resolveMicrosoftRedirectUri', () => {
   it('falls back to default local redirect', () => {
     delete process.env.MS_DEV_REDIRECT_URI;
     const req = buildRequest({ host: 'localhost:3000', proto: 'http' });
-    expect(resolveMicrosoftRedirectUri(req)).toBe('http://localhost:3000/api/microsoft/callback');
+    expect(resolveMicrosoftRedirectUri(req)).toBe(
+      'http://localhost:3000/api/admin/email/microsoft/callback',
+    );
   });
 
   it('uses forwarded host header when provided', () => {
@@ -96,12 +98,12 @@ describe('ensureAbsoluteUrl', () => {
 
   it('uses http for local relative paths', () => {
     expect(
-      ensureAbsoluteUrl('/api/microsoft/callback', {
+      ensureAbsoluteUrl('/api/admin/email/microsoft/callback', {
         host: 'localhost:3000',
         isLocal: true,
         label: 'TEST_REDIRECT',
       }),
-    ).toBe('http://localhost:3000/api/microsoft/callback');
+    ).toBe('http://localhost:3000/api/admin/email/microsoft/callback');
   });
 
   it('prefers forwarded protocol when provided', () => {
