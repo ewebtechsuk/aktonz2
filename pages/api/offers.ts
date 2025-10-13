@@ -484,6 +484,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
+    const depositForStorage: string | number | undefined = hasValue(body.depositAmount)
+      ? typeof body.depositAmount === 'string'
+        ? body.depositAmount.trim()
+        : body.depositAmount
+      : data.depositAmount;
+
     const offer = await addOffer({
       propertyId: data.propertyId,
       propertyTitle: data.propertyTitle,
@@ -494,7 +500,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       email: data.email,
       phone: data.phone,
       message: data.message,
-      depositAmount: data.depositAmount,
+      depositAmount: depositForStorage,
       contactId: undefined,
       agentId: undefined,
       moveInDate: data.moveInDate,
