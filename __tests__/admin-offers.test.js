@@ -199,4 +199,31 @@ describe('admin offers API', () => {
       })
     );
   });
+
+  test('gracefully handles upstream failures when composing offers', async () => {
+    const readSessionMock = jest.fn(() => ({ adminId: 'ops-admin', role: 'admin' }));
+    const offersAdminModule = {
+      listOffersForAdmin: jest.fn(async () => {
+        throw new Error('Upstream CRM unavailable');
+      }),
+    };
+
+    const handler = loadTs('../pages/api/admin/offers/index.js', __dirname, {
+      overrides: {
+        '../../../lib/session.js': { readSession: readSessionMock },
+        '../../../lib/offers-admin.mjs': offersAdminModule,
+        [require.resolve('../lib/session.js')]: { readSession: readSessionMock },
+        [require.resolve('../lib/offers-admin.mjs')]: offersAdminModule,
+      },
+    }).default;
+
+    const req = { method: 'GET', headers: {} };
+    const res = createMockRes();
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledTimes(1);
+    expect(res.json.mock.calls[0][0]).toEqual({ offers: [], error: 'Failed to fetch offers' });
+  });
 });

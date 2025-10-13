@@ -29,7 +29,11 @@ export default async function handler(req, res) {
       return res.status(200).json({ offers });
     } catch (error) {
       console.error('Failed to list offers for admin', error);
-      return res.status(500).json({ error: 'Failed to fetch offers' });
+
+      return res.status(200).json({
+        offers: [],
+        error: 'Failed to fetch offers',
+      });
     }
   }
 
