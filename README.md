@@ -12,13 +12,14 @@ python scripts/create_aktonz_lettings_brochure.py
 ```
 
 The script writes `docs/aktonz-lettings-brochure.pdf`, which is ignored by git
-so running the command never dirties your working tree. Attach the exported
-file to emails or upload it to sharing tools as required. When you need to
-refresh the copy that ships with the Next.js site, pass `--public` to drop the
-brochure into `public/brochures` (those outputs are ignored as well):
+so running the command never dirties your working tree. It also copies the
+brochure into `public/brochures` so the Next.js site has access to the latest
+PDF (those outputs are ignored as well). Attach the exported file to emails or
+upload it to sharing tools as required. If you only need the standalone
+document and want to skip the public copy, pass `--no-public`:
 
 ```
-python scripts/create_aktonz_lettings_brochure.py --public
+python scripts/create_aktonz_lettings_brochure.py --no-public
 ```
 
 Because neither output is version-controlled, remember to rerun the command
