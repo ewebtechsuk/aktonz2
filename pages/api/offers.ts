@@ -69,7 +69,7 @@ function sanitiseNumericString(value: string): string | null {
     return null;
   }
 
-  const withoutPrefix = trimmed.replace(/^[^\d+\-]+/, '');
+  const withoutPrefix = trimmed.replace(/^[^\d+-]+/, '');
   const normalised = withoutPrefix.replace(/[\s,]+/g, '');
 
   return normalised;
