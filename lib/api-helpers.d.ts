@@ -1,7 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+export type ApiHttpMethod =
+  | 'GET'
+  | 'HEAD'
+  | 'POST'
+  | 'PUT'
+  | 'PATCH'
+  | 'DELETE'
+  | 'OPTIONS';
+
 export interface ApiHeaderOptions {
-  methods?: readonly string[];
+  methods?: readonly ApiHttpMethod[];
 }
 
 export function applyApiHeaders(

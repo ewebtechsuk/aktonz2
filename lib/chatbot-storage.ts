@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 const DATA_DIR = path.join(process.cwd(), 'data');
 const LEADS_FILE = path.join(DATA_DIR, 'chatbot-leads.json');
 const VIEWINGS_FILE = path.join(DATA_DIR, 'chatbot-viewings.json');
+const LANDLORD_ENQUIRIES_FILE = path.join(DATA_DIR, 'chatbot-landlord-enquiries.json');
 
 export type JsonValue =
   | Record<string, unknown>
@@ -36,6 +37,21 @@ type ChatbotViewingRecord = {
   name: string;
   email: string;
   phone?: string | null;
+  createdAt: string;
+};
+
+type ChatbotLandlordEnquiryRecord = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  propertyAddress?: string | null;
+  propertyType?: string | null;
+  bedrooms?: number | null;
+  expectedRent?: number | null;
+  availableFrom?: string | null;
+  notes?: string | null;
+  source?: string | null;
   createdAt: string;
 };
 
@@ -110,5 +126,38 @@ export async function appendChatbotViewing(entry: {
   const existing = await readJsonArray(VIEWINGS_FILE);
   existing.push(record);
   await writeJsonArray(VIEWINGS_FILE, existing);
+  return record;
+}
+
+export async function appendLandlordEnquiry(entry: {
+  name: string;
+  email: string;
+  phone?: string | null;
+  propertyAddress?: string | null;
+  propertyType?: string | null;
+  bedrooms?: number | null;
+  expectedRent?: number | null;
+  availableFrom?: string | null;
+  notes?: string | null;
+  source?: string | null;
+}): Promise<ChatbotLandlordEnquiryRecord> {
+  const record: ChatbotLandlordEnquiryRecord = {
+    id: randomUUID(),
+    name: entry.name,
+    email: entry.email,
+    phone: entry.phone ?? null,
+    propertyAddress: entry.propertyAddress ?? null,
+    propertyType: entry.propertyType ?? null,
+    bedrooms: entry.bedrooms ?? null,
+    expectedRent: entry.expectedRent ?? null,
+    availableFrom: entry.availableFrom ?? null,
+    notes: entry.notes ?? null,
+    source: entry.source ?? 'chat-widget',
+    createdAt: new Date().toISOString(),
+  };
+
+  const existing = await readJsonArray(LANDLORD_ENQUIRIES_FILE);
+  existing.push(record);
+  await writeJsonArray(LANDLORD_ENQUIRIES_FILE, existing);
   return record;
 }

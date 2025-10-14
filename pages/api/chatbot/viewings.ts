@@ -82,7 +82,7 @@ function buildHtml(payload: {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
-  applyApiHeaders(req, res, { methods: ['POST'] });
+  applyApiHeaders(req, res, { methods: ['POST'] as const });
   if (handlePreflight(req, res)) {
     return;
   }
