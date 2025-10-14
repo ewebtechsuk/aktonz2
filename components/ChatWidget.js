@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
+  FaBell,
   FaCalendarAlt,
   FaCheckCircle,
   FaComments,
+  FaEnvelope,
+  FaHome,
   FaPaperPlane,
   FaRobot,
   FaTimes,
@@ -50,6 +53,216 @@ const STOP_WORDS = new Set([
   'an',
   'is',
 ]);
+
+const PROPERTY_KEYWORD_REGEX =
+  /(property|listing|home|flat|apartment|house|rent|rental|tenant|let|sale|buy|selling|purchase|to let|to rent|rooms?)/i;
+
+function detectTransactionIntent(text) {
+  if (!text) {
+    return null;
+  }
+  const lower = text.toLowerCase();
+  if (/(buy|sale|selling|purchase|vendor|mortgage)/.test(lower)) {
+    return 'sale';
+  }
+  if (/(rent|tenant|letting|lease|pcm|per month|to let|to rent)/.test(lower)) {
+    return 'rent';
+  }
+  return null;
+}
+
+function shouldStartPropertyFlow(text) {
+  if (!text) {
+    return false;
+  }
+  const lower = text.toLowerCase();
+  if (!PROPERTY_KEYWORD_REGEX.test(lower)) {
+    return false;
+  }
+  if (/(manage|management|valuations?|valuation|block|service charge)/.test(lower)) {
+    return false;
+  }
+  return /(find|show|looking|need|available|search|any|list|book|schedule|view|viewing|options?)/.test(lower);
+}
+
+function parsePriceRange(input) {
+  if (!input) {
+    return null;
+  }
+  const matches = String(input)
+    .toLowerCase()
+    .match(/£?\s*\d+(?:[\d,.]*)(?:\.\d+)?\s*(k|m)?/g);
+
+  if (!matches) {
+    return null;
+  }
+
+  const values = matches
+    .map((match) => {
+      const cleaned = match.trim();
+      const unitMatch = cleaned.match(/(k|m)$/);
+      const unit = unitMatch ? unitMatch[1] : null;
+      const numericPart = cleaned
+        .replace(/[^0-9.]/g, '')
+        .replace(/\.(?=.*\.)/g, '');
+      const value = Number(numericPart);
+      if (!Number.isFinite(value)) {
+        return null;
+      }
+      if (unit === 'm') {
+        return Math.round(value * 1_000_000);
+      }
+      if (unit === 'k') {
+        return Math.round(value * 1_000);
+      }
+      if (value > 0 && value < 1_000 && cleaned.includes('k')) {
+        return Math.round(value * 1_000);
+      }
+      return Math.round(value);
+    })
+    .filter((value) => value != null && Number.isFinite(value));
+
+  if (!values.length) {
+    return null;
+  }
+
+  const sorted = values.sort((a, b) => a - b);
+  return {
+    min: sorted[0],
+    max: sorted.length > 1 ? sorted[sorted.length - 1] : null,
+  };
+}
+
+function parseBedrooms(input) {
+  if (!input) {
+    return null;
+  }
+  const lower = input.toLowerCase();
+  if (/studio/.test(lower)) {
+    return 0;
+  }
+  const match = lower.match(/(\d+)/);
+  if (!match) {
+    return null;
+  }
+  const value = Number(match[1]);
+  return Number.isFinite(value) ? value : null;
+}
+
+function parsePropertyCategory(input) {
+  if (!input) {
+    return null;
+  }
+  const lower = input.toLowerCase();
+  if (/(studio)/.test(lower)) return 'studio';
+  if (/(apartment|flat)/.test(lower)) return 'flat';
+  if (/(house|maisonette|home|terrace|townhouse)/.test(lower)) return 'house';
+  if (/(room)/.test(lower)) return 'room';
+  if (/(office|commercial)/.test(lower)) return 'commercial';
+  return lower.trim() || null;
+}
+
+function isCancelMessage(input) {
+  if (!input) {
+    return false;
+  }
+  return /(cancel|stop|nevermind|never mind|exit|back|quit)/i.test(input);
+}
+
+function isSkipMessage(input) {
+  if (!input) {
+    return false;
+  }
+  return /(skip|no thanks|no thank|not now|later|maybe later)/i.test(input);
+}
+
+function isValidEmail(value) {
+  if (typeof value !== 'string') {
+    return false;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return false;
+  }
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+}
+
+function normalizePhone(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+  const digits = trimmed.replace(/[^0-9+]/g, '');
+  if (!digits) {
+    return null;
+  }
+  if (digits.startsWith('+')) {
+    if (digits.length < 7) {
+      return null;
+    }
+    return digits;
+  }
+  return digits.length >= 7 ? digits : null;
+}
+
+function matchPropertyFromText(input, properties = []) {
+  if (!input || !Array.isArray(properties) || properties.length === 0) {
+    return null;
+  }
+  const lower = input.toLowerCase();
+  const numberMatch = lower.match(/(\d+)/);
+  if (numberMatch) {
+    const index = Number(numberMatch[1]);
+    if (Number.isFinite(index) && index >= 1 && index <= properties.length) {
+      return properties[index - 1];
+    }
+  }
+
+  for (const property of properties) {
+    if (!property) continue;
+    const title = String(property.title || '').toLowerCase();
+    const address = String(property.address || '').toLowerCase();
+    const id = String(property.id || '').toLowerCase();
+    if (title && lower.includes(title)) {
+      return property;
+    }
+    if (address && lower.includes(address)) {
+      return property;
+    }
+    if (id && lower.includes(id)) {
+      return property;
+    }
+  }
+
+  return null;
+}
+
+function parseDateTimeInput(input) {
+  if (!input) {
+    return null;
+  }
+  const trimmed = input.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const replacements = [trimmed, trimmed.replace(/\bat\b/i, ' ')];
+
+  for (const candidate of replacements) {
+    const parsed = Date.parse(candidate);
+    if (!Number.isNaN(parsed)) {
+      const date = new Date(parsed);
+      if (!Number.isNaN(date.getTime())) {
+        return date;
+      }
+    }
+  }
+
+  return null;
+}
 
 const createSearchText = (listing) =>
   [
@@ -318,6 +531,22 @@ const createBotReplies = (input, knowledge, formatters, options = {}) => {
     });
   };
 
+  const respondWithAlerts = () => {
+    replies.push({
+      from: 'bot',
+      type: 'text',
+      text: "I'll keep you posted when similar listings go live. Drop your email or create an Aktonz account to manage alerts anytime.",
+    });
+  };
+
+  const respondWithValuation = () => {
+    replies.push({
+      from: 'bot',
+      type: 'text',
+      text: 'Share your address and preferred timeframe at https://aktonz.com/valuation and our valuers will confirm an appointment straight away.',
+    });
+  };
+
   const requireAccountAccess = (topic) => {
     replies.push({
       from: 'bot',
@@ -327,6 +556,16 @@ const createBotReplies = (input, knowledge, formatters, options = {}) => {
   };
 
   if (!isAuthenticated) {
+    if (/(alert|notify|notification|update)/.test(lower)) {
+      respondWithAlerts();
+      return replies;
+    }
+
+    if (/(valuation|value my|appraisal|price my|market appraisal)/.test(lower)) {
+      respondWithValuation();
+      return replies;
+    }
+
     if (/(company|aktonz|service|landlord service|sell my home|manage|management|what do you do)/.test(lower)) {
       respondWithCompanyProfile();
       return replies;
@@ -376,6 +615,16 @@ const createBotReplies = (input, knowledge, formatters, options = {}) => {
       text: "I'm the Aktonz assistant. Ask me about available listings, how to book a viewing or what our team can support you with.",
     });
 
+    return replies;
+  }
+
+  if (/(alert|notify|notification|update)/.test(lower)) {
+    respondWithAlerts();
+    return replies;
+  }
+
+  if (/(valuation|value my|appraisal|price my|market appraisal)/.test(lower)) {
+    respondWithValuation();
     return replies;
   }
 
@@ -666,6 +915,9 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [activeFlow, setActiveFlow] = useState(null);
+  const [recentPropertyResults, setRecentPropertyResults] = useState([]);
+  const [leadDetails, setLeadDetails] = useState(null);
   const scrollRef = useRef(null);
   const typingTimeoutRef = useRef();
   const panelVisibilityTimeoutRef = useRef();
@@ -758,9 +1010,45 @@ export default function ChatWidget() {
       }),
     [],
   );
+  const currencyFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat('en-GB', {
+        style: 'currency',
+        currency: 'GBP',
+        maximumFractionDigits: 0,
+      }),
+    [],
+  );
 
   const formatDateTime = useCallback((value) => dateTimeFormatter.format(new Date(value)), [dateTimeFormatter]);
   const formatDate = useCallback((value) => dateFormatter.format(new Date(value)), [dateFormatter]);
+
+  const formatBudgetRange = useCallback(
+    (range, transactionType) => {
+      if (!range) {
+        return null;
+      }
+      const { min, max } = range;
+      const parts = [];
+      if (typeof min === 'number' && Number.isFinite(min)) {
+        parts.push(currencyFormatter.format(min));
+      }
+      if (typeof max === 'number' && Number.isFinite(max) && max !== min) {
+        parts.push(currencyFormatter.format(max));
+      }
+
+      if (!parts.length) {
+        return null;
+      }
+
+      const joined = parts.length === 2 ? `${parts[0]} – ${parts[1]}` : parts[0];
+      if (transactionType === 'rent') {
+        return `${joined} pcm`;
+      }
+      return joined;
+    },
+    [currencyFormatter],
+  );
 
   const describeRecency = useCallback((date) => {
     const now = Date.now();
@@ -805,41 +1093,1164 @@ export default function ChatWidget() {
 
   );
 
+  const buildQuickActionsMessage = useCallback(
+    () => ({
+      type: 'actions',
+      title: 'Need anything else?',
+      actions: [
+        {
+          id: 'book-viewing',
+          label: 'Book a viewing',
+          icon: 'calendar',
+          value: 'Book a viewing',
+          metadata: { intent: 'bookViewing' },
+        },
+        {
+          id: 'email-alerts',
+          label: leadDetails?.email ? `Send alerts to ${leadDetails.email}` : 'Get email alerts',
+          icon: 'bell',
+          value: 'Get email alerts',
+          metadata: { intent: 'emailAlerts' },
+        },
+        {
+          id: 'valuation-request',
+          label: 'Request a valuation',
+          icon: 'home',
+          value: 'Request a valuation',
+          metadata: { intent: 'valuation' },
+        },
+      ],
+    }),
+    [leadDetails],
+  );
+
+  const queryProperties = useCallback(async (filters) => {
+    try {
+      const res = await fetch('/api/chatbot/properties', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(filters),
+      });
+
+      const payload = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(payload?.error || 'Failed to load listings');
+      }
+
+      const results = Array.isArray(payload?.results) ? payload.results : [];
+      return results.map((item) => ({
+        ...item,
+        transactionType: item.transactionType || filters.transactionType || 'rent',
+      }));
+    } catch (error) {
+      console.error('Chatbot property search failed', error);
+      throw error instanceof Error ? error : new Error('Failed to load listings');
+    }
+  }, []);
+
+  const submitLead = useCallback(
+    async (lead, searchPreferences, properties = []) => {
+      const payload = {
+        name: lead?.name ?? '',
+        email: lead?.email ?? '',
+        phone: lead?.phone ?? null,
+        source: 'chat-widget',
+        preferences: {
+          location: searchPreferences?.location ?? null,
+          minPrice: searchPreferences?.minPrice ?? null,
+          maxPrice: searchPreferences?.maxPrice ?? null,
+          bedrooms: searchPreferences?.bedrooms ?? null,
+          propertyType: searchPreferences?.propertyType ?? null,
+          transactionType: searchPreferences?.transactionType ?? null,
+        },
+        properties: properties.map((property) => ({
+          id: property?.id ?? null,
+          title: property?.title ?? null,
+          address: property?.address ?? null,
+          price: property?.price ?? null,
+          link: property?.link ?? null,
+          image: property?.image ?? null,
+          transactionType: property?.transactionType ?? null,
+        })),
+      };
+
+      const res = await fetch('/api/chatbot/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(data?.error || 'Failed to store lead');
+      }
+
+      setLeadDetails((prev) => ({
+        name: lead?.name ?? prev?.name ?? '',
+        email: lead?.email ?? prev?.email ?? '',
+        phone: lead?.phone ?? prev?.phone ?? null,
+      }));
+
+      return data;
+    },
+    [setLeadDetails],
+  );
+
+  const scheduleViewing = useCallback(async ({ name, email, phone, property, scheduledAt }) => {
+    if (!property || !scheduledAt) {
+      throw new Error('Missing property or time slot');
+    }
+
+    const res = await fetch('/api/chatbot/viewings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        email,
+        phone: phone ?? null,
+        propertyId: property.id ?? null,
+        propertyTitle: property.title ?? null,
+        propertyAddress: property.address ?? null,
+        propertyLink: property.link ?? null,
+        transactionType: property.transactionType ?? null,
+        scheduledAt,
+      }),
+    });
+
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      throw new Error(data?.error || 'Failed to schedule viewing');
+    }
+
+    return data;
+  }, []);
+
+  const startPropertyFlow = useCallback(
+    (context = {}) => {
+      const flowId = `property-${Date.now()}`;
+      const transactionType =
+        context.transactionType ?? detectTransactionIntent(context.initialText ?? '') ?? 'rent';
+
+      setActiveFlow({
+        id: flowId,
+        type: 'propertySearch',
+        step: 'awaitingLocation',
+        data: {
+          transactionType,
+          location: null,
+          minPrice: null,
+          maxPrice: null,
+          bedrooms: null,
+          propertyType: null,
+          budgetRange: null,
+          results: [],
+        },
+      });
+      setRecentPropertyResults([]);
+
+      return [
+        {
+          type: 'text',
+          text: `Great, I'll look for ${
+            transactionType === 'sale' ? 'properties to buy' : 'places to rent'
+          }. Which area or postcode should I search?`,
+        },
+      ];
+    },
+    [],
+  );
+
+  const handlePropertyFlowResponse = useCallback(
+    async (text, metadata, flow) => {
+      if (!flow || flow.type !== 'propertySearch') {
+        return [];
+      }
+
+      const flowId = flow.id;
+      const trimmed = text.trim();
+
+      if (isCancelMessage(trimmed)) {
+        setActiveFlow((prev) => (prev && prev.id === flowId ? null : prev));
+        return [
+          {
+            type: 'text',
+            text: 'No problem — let me know if you want to restart your search.',
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingLocation') {
+        if (!trimmed) {
+          return [
+            {
+              type: 'text',
+              text: 'Which neighbourhood or postcode should I focus on?',
+            },
+          ];
+        }
+
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingBudget',
+                data: {
+                  ...prev.data,
+                  location: trimmed,
+                },
+              }
+            : prev,
+        );
+
+        return [
+          {
+            type: 'text',
+            text: `Perfect — searching around ${trimmed}. What's your ideal budget range?`,
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingBudget') {
+        if (isSkipMessage(trimmed)) {
+          setActiveFlow((prev) =>
+            prev && prev.id === flowId
+              ? {
+                  ...prev,
+                  step: 'awaitingBedrooms',
+                  data: {
+                    ...prev.data,
+                    minPrice: null,
+                    maxPrice: null,
+                    budgetRange: null,
+                  },
+                }
+              : prev,
+          );
+          return [
+            {
+              type: 'text',
+              text: 'No worries. How many bedrooms are you looking for?',
+            },
+          ];
+        }
+
+        const range = parsePriceRange(trimmed);
+        if (!range) {
+          return [
+            {
+              type: 'text',
+              text: 'Could you share a budget range? For example “£1,800 to £2,200”.',
+            },
+          ];
+        }
+
+        const summary = formatBudgetRange(range, flow.data.transactionType);
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingBedrooms',
+                data: {
+                  ...prev.data,
+                  minPrice: range.min ?? null,
+                  maxPrice: range.max ?? null,
+                  budgetRange: range,
+                },
+              }
+            : prev,
+        );
+
+        return [
+          {
+            type: 'text',
+            text: summary
+              ? `Great — I'll focus on places around ${summary}. How many bedrooms do you need?`
+              : 'Great — how many bedrooms do you need?',
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingBedrooms') {
+        if (isSkipMessage(trimmed)) {
+          setActiveFlow((prev) =>
+            prev && prev.id === flowId
+              ? {
+                  ...prev,
+                  step: 'awaitingPropertyType',
+                  data: {
+                    ...prev.data,
+                    bedrooms: null,
+                  },
+                }
+              : prev,
+          );
+          return [
+            {
+              type: 'text',
+              text: 'Any preferred property type? (e.g. flat, house, studio)',
+            },
+          ];
+        }
+
+        const bedrooms = parseBedrooms(trimmed);
+        if (bedrooms == null) {
+          return [
+            {
+              type: 'text',
+              text: 'Let me know the minimum number of bedrooms you need.',
+            },
+          ];
+        }
+
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingPropertyType',
+                data: {
+                  ...prev.data,
+                  bedrooms,
+                },
+              }
+            : prev,
+        );
+
+        return [
+          {
+            type: 'text',
+            text: 'Thanks! Do you have a preferred property type (flat, house, studio)?',
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingPropertyType') {
+        const propertyType = isSkipMessage(trimmed)
+          ? null
+          : parsePropertyCategory(trimmed) || trimmed || null;
+
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'fetching',
+                data: {
+                  ...prev.data,
+                  propertyType,
+                },
+              }
+            : prev,
+        );
+
+        const searchData = {
+          ...flow.data,
+          propertyType,
+        };
+
+        try {
+          const results = await queryProperties({
+            location: searchData.location,
+            minPrice: searchData.minPrice,
+            maxPrice: searchData.maxPrice,
+            bedrooms: searchData.bedrooms,
+            propertyType,
+            transactionType: searchData.transactionType,
+          });
+
+          setRecentPropertyResults(results);
+
+          if (!results.length) {
+            setActiveFlow((prev) =>
+              prev && prev.id === flowId
+                ? {
+                    ...prev,
+                    step: 'awaitingLocation',
+                    data: {
+                      ...prev.data,
+                      propertyType,
+                      results: [],
+                    },
+                  }
+                : prev,
+            );
+            return [
+              {
+                type: 'text',
+                text: "I couldn't find an exact match yet. Want to try a different area or adjust the budget?",
+              },
+            ];
+          }
+
+          const summaryParts = [];
+          if (searchData.location) {
+            summaryParts.push(`around ${searchData.location}`);
+          }
+          const budgetSummary = formatBudgetRange(searchData.budgetRange, searchData.transactionType);
+          if (budgetSummary) {
+            summaryParts.push(`within ${budgetSummary}`);
+          }
+          if (searchData.bedrooms != null) {
+            summaryParts.push(`${searchData.bedrooms}+ bedrooms`);
+          }
+
+          const intro = summaryParts.length
+            ? `Here are ${results.length} options ${summaryParts.join(', ')}.`
+            : `Here are ${results.length} properties that could work.`;
+
+          const replies = [
+            { type: 'text', text: intro },
+            { type: 'listings', listings: results },
+          ];
+
+          const nextData = {
+            ...flow.data,
+            propertyType,
+            results,
+          };
+
+          if (leadDetails?.email) {
+            try {
+              await submitLead(
+                leadDetails,
+                {
+                  location: nextData.location,
+                  minPrice: nextData.minPrice,
+                  maxPrice: nextData.maxPrice,
+                  bedrooms: nextData.bedrooms,
+                  propertyType: nextData.propertyType,
+                  transactionType: nextData.transactionType,
+                },
+                results,
+              );
+            } catch (error) {
+              console.error('Failed to update lead from property search', error);
+              replies.push({
+                type: 'text',
+                text: "I couldn't log the search preferences just now, but you can still review these listings.",
+              });
+            }
+
+            setActiveFlow(null);
+            replies.push({
+              type: 'text',
+              text: `I'll send fresh matches to ${leadDetails.email}. Let me know if you want to tweak anything.`,
+            });
+            replies.push(buildQuickActionsMessage());
+            return replies;
+          }
+
+          setActiveFlow((prev) =>
+            prev && prev.id === flowId
+              ? {
+                  ...prev,
+                  step: 'awaitingLeadName',
+                  data: nextData,
+                }
+              : prev,
+          );
+
+          replies.push({
+            type: 'text',
+            text: 'Can I take your name so I can email the full details and future matches?',
+          });
+
+          return replies;
+        } catch (error) {
+          setActiveFlow((prev) =>
+            prev && prev.id === flowId
+              ? {
+                  ...prev,
+                  step: 'awaitingPropertyType',
+                }
+              : prev,
+          );
+          return [
+            {
+              type: 'text',
+              text: 'I had trouble reaching the listings just now. Could you try again in a moment?',
+            },
+          ];
+        }
+      }
+
+      if (flow.step === 'awaitingLeadName') {
+        if (isSkipMessage(trimmed)) {
+          setActiveFlow(null);
+          return [
+            {
+              type: 'text',
+              text: 'No problem — you can ask me for new listings anytime.',
+            },
+            buildQuickActionsMessage(),
+          ];
+        }
+
+        if (!trimmed) {
+          return [
+            {
+              type: 'text',
+              text: 'What name should I use when I send the details?',
+            },
+          ];
+        }
+
+        const name = trimmed.replace(/\s+/g, ' ').trim();
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingLeadEmail',
+                data: {
+                  ...prev.data,
+                  lead: {
+                    ...(prev.data.lead || {}),
+                    name,
+                  },
+                },
+              }
+            : prev,
+        );
+
+        return [
+          {
+            type: 'text',
+            text: `Thanks ${name}! What's the best email for updates?`,
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingLeadEmail') {
+        if (!isValidEmail(trimmed)) {
+          return [
+            {
+              type: 'text',
+              text: 'Could you share a valid email address so I can send the shortlist?',
+            },
+          ];
+        }
+
+        const email = trimmed.trim();
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingLeadPhone',
+                data: {
+                  ...prev.data,
+                  lead: {
+                    ...(prev.data.lead || {}),
+                    email,
+                  },
+                },
+              }
+            : prev,
+        );
+
+        return [
+          {
+            type: 'text',
+            text: 'Great — and a contact number in case the property team need to reach you?',
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingLeadPhone') {
+        let phone = null;
+        if (!isSkipMessage(trimmed)) {
+          phone = normalizePhone(trimmed);
+          if (!phone) {
+            return [
+              {
+                type: 'text',
+                text: 'Please share a contact number (or say skip if you prefer email only).',
+              },
+            ];
+          }
+        }
+
+        const lead = {
+          ...(flow.data.lead || {}),
+          phone,
+        };
+
+        try {
+          await submitLead(
+            lead,
+            {
+              location: flow.data.location,
+              minPrice: flow.data.minPrice,
+              maxPrice: flow.data.maxPrice,
+              bedrooms: flow.data.bedrooms,
+              propertyType: flow.data.propertyType,
+              transactionType: flow.data.transactionType,
+            },
+            flow.data.results || recentPropertyResults,
+          );
+
+          setActiveFlow(null);
+
+          return [
+            {
+              type: 'text',
+              text: `Brilliant — I'll email ${lead.email} with the details and send new matches as they appear.`,
+            },
+            buildQuickActionsMessage(),
+          ];
+        } catch (error) {
+          console.error('Failed to submit chatbot lead', error);
+          return [
+            {
+              type: 'text',
+              text: 'I had trouble saving that. Could we try the number again?',
+            },
+          ];
+        }
+      }
+
+      return [];
+    },
+    [
+      formatBudgetRange,
+      queryProperties,
+      submitLead,
+      buildQuickActionsMessage,
+      leadDetails,
+      recentPropertyResults,
+    ],
+  );
+
+  const startBookViewingFlow = useCallback(
+    (options = {}) => {
+      if (!recentPropertyResults.length) {
+        const followUp = startPropertyFlow(options);
+        return [
+          {
+            type: 'text',
+            text: "Let's narrow things down first. Tell me the area you're exploring.",
+          },
+          ...followUp,
+        ];
+      }
+
+      const flowId = `book-${Date.now()}`;
+      const propertyOptions = Array.isArray(options.propertyOptions)
+        ? options.propertyOptions
+        : recentPropertyResults.slice(0, 5);
+      const selectedProperty =
+        options.property ||
+        (options.propertyId
+          ? propertyOptions.find((item) => item.id === options.propertyId)
+          : null);
+
+      if (selectedProperty) {
+        setActiveFlow({
+          id: flowId,
+          type: 'bookViewing',
+          step: 'awaitingDate',
+          data: {
+            propertyOptions,
+            property: selectedProperty,
+          },
+        });
+        return [
+          {
+            type: 'text',
+            text: `Brilliant — ${selectedProperty.title}. What date and time works for you?`,
+          },
+        ];
+      }
+
+      setActiveFlow({
+        id: flowId,
+        type: 'bookViewing',
+        step: 'awaitingProperty',
+        data: {
+          propertyOptions,
+        },
+      });
+
+      return [
+        {
+          type: 'text',
+          text: 'Sure thing — which property would you like to view?',
+        },
+        {
+          type: 'actions',
+          title: 'Select a property',
+          actions: propertyOptions.map((property, index) => ({
+            id: property.id || `property-${index}`,
+            label: `${index + 1}. ${property.title}`,
+            secondary: property.address,
+            value: property.title,
+            metadata: { intent: 'bookViewingSelect', propertyId: property.id, property },
+          })),
+        },
+      ];
+    },
+    [recentPropertyResults, startPropertyFlow],
+  );
+
+  const handleBookViewingFlow = useCallback(
+    async (text, metadata, flow) => {
+      if (!flow || flow.type !== 'bookViewing') {
+        return [];
+      }
+
+      const flowId = flow.id;
+      const trimmed = text.trim();
+
+      if (isCancelMessage(trimmed)) {
+        setActiveFlow((prev) => (prev && prev.id === flowId ? null : prev));
+        return [
+          {
+            type: 'text',
+            text: 'No worries — let me know if you’d like to schedule it later.',
+          },
+        ];
+      }
+
+      const propertyOptions =
+        Array.isArray(flow.data?.propertyOptions) && flow.data.propertyOptions.length
+          ? flow.data.propertyOptions
+          : recentPropertyResults;
+
+      if (flow.step === 'awaitingProperty') {
+        let property = null;
+        if (metadata?.property) {
+          property = metadata.property;
+        } else if (metadata?.propertyId) {
+          property = propertyOptions.find((item) => item.id === metadata.propertyId) || null;
+        }
+        if (!property) {
+          property = matchPropertyFromText(trimmed, propertyOptions);
+        }
+        if (!property) {
+          return [
+            {
+              type: 'text',
+              text: 'Tap one of the property buttons above or let me know the address so I can schedule it.',
+            },
+          ];
+        }
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingDate',
+                data: {
+                  ...prev.data,
+                  property,
+                },
+              }
+            : prev,
+        );
+        return [
+          {
+            type: 'text',
+            text: `Great — ${property.title}. What date and time works for you?`,
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingDate') {
+        const property = flow.data?.property;
+        if (!property) {
+          setActiveFlow(null);
+          return [
+            {
+              type: 'text',
+              text: 'Let me know which property you had in mind first.',
+            },
+          ];
+        }
+        const requested = parseDateTimeInput(trimmed);
+        if (!requested) {
+          return [
+            {
+              type: 'text',
+              text: 'Could you share the date and time in a format like “25 March at 3:00pm”?',
+            },
+          ];
+        }
+        const iso = requested.toISOString();
+        const readable = formatDateTime(iso);
+
+        if (leadDetails?.name && leadDetails?.email) {
+          try {
+            await scheduleViewing({
+              name: leadDetails.name,
+              email: leadDetails.email,
+              phone: leadDetails.phone ?? null,
+              property,
+              scheduledAt: iso,
+            });
+            await submitLead(
+              leadDetails,
+              {
+                location: flow.data?.location ?? property.address ?? null,
+                minPrice: flow.data?.minPrice ?? null,
+                maxPrice: flow.data?.maxPrice ?? null,
+                bedrooms: flow.data?.bedrooms ?? null,
+                propertyType: property.propertyType ?? null,
+                transactionType:
+                  property.transactionType ??
+                  flow.data?.transactionType ??
+                  detectTransactionIntent(property?.transactionType) ??
+                  'rent',
+              },
+              [property],
+            );
+          } catch (error) {
+            console.error('Failed to confirm viewing for existing lead', error);
+            return [
+              {
+                type: 'text',
+                text: 'I hit a snag confirming that slot. Could you share another time or try again shortly?',
+              },
+            ];
+          }
+          setActiveFlow(null);
+          return [
+            {
+              type: 'text',
+              text: `All set — you're booked for ${readable}. I'll email the confirmation to ${leadDetails.email}.`,
+            },
+            buildQuickActionsMessage(),
+          ];
+        }
+
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingName',
+                data: {
+                  ...prev.data,
+                  scheduledAt: iso,
+                },
+              }
+            : prev,
+        );
+        return [
+          {
+            type: 'text',
+            text: `Perfect. May I take your name so I can confirm the ${readable} viewing?`,
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingName') {
+        if (!trimmed) {
+          return [
+            {
+              type: 'text',
+              text: 'What name should I pass to the viewing team?',
+            },
+          ];
+        }
+        const name = trimmed.replace(/\s+/g, ' ').trim();
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingEmail',
+                data: {
+                  ...prev.data,
+                  lead: {
+                    ...(prev.data.lead || {}),
+                    name,
+                  },
+                },
+              }
+            : prev,
+        );
+        return [
+          {
+            type: 'text',
+            text: `Thanks ${name}. What's the best email for the confirmation?`,
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingEmail') {
+        if (!isValidEmail(trimmed)) {
+          return [
+            {
+              type: 'text',
+              text: 'Could you share a valid email address so I can send the confirmation?',
+            },
+          ];
+        }
+        const email = trimmed.trim();
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingPhone',
+                data: {
+                  ...prev.data,
+                  lead: {
+                    ...(prev.data.lead || {}),
+                    email,
+                  },
+                },
+              }
+            : prev,
+        );
+        return [
+          {
+            type: 'text',
+            text: 'And finally, a contact number in case the agent needs to reach you?',
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingPhone') {
+        const phone = normalizePhone(trimmed);
+        if (!phone) {
+          return [
+            {
+              type: 'text',
+              text: 'Please include a contact number (with area code) so we can confirm details.',
+            },
+          ];
+        }
+        const property = flow.data?.property;
+        const scheduledAt = flow.data?.scheduledAt;
+        if (!property || !scheduledAt) {
+          setActiveFlow(null);
+          return [
+            {
+              type: 'text',
+              text: 'Let’s restart — tell me which property you’d like to view.',
+            },
+          ];
+        }
+        const lead = {
+          ...(flow.data.lead || {}),
+          phone,
+        };
+        try {
+          await scheduleViewing({
+            name: lead.name,
+            email: lead.email,
+            phone,
+            property,
+            scheduledAt,
+          });
+          await submitLead(
+            lead,
+            {
+              location: property.address ?? flow.data?.location ?? null,
+              minPrice: flow.data?.minPrice ?? null,
+              maxPrice: flow.data?.maxPrice ?? null,
+              bedrooms: flow.data?.bedrooms ?? null,
+              propertyType: property.propertyType ?? null,
+              transactionType:
+                property.transactionType ??
+                flow.data?.transactionType ??
+                detectTransactionIntent(property?.transactionType) ??
+                'rent',
+            },
+            [property],
+          );
+        } catch (error) {
+          console.error('Failed to schedule chatbot viewing', error);
+          return [
+            {
+              type: 'text',
+              text: 'Something went wrong scheduling that viewing. Could you try again or share another time?',
+            },
+          ];
+        }
+        setActiveFlow(null);
+        return [
+          {
+            type: 'text',
+            text: `All booked — I'll send the confirmation to ${lead.email} and the team will be in touch if anything changes.`,
+          },
+          buildQuickActionsMessage(),
+        ];
+      }
+
+      return [];
+    },
+    [
+      recentPropertyResults,
+      scheduleViewing,
+      submitLead,
+      leadDetails,
+      formatDateTime,
+      buildQuickActionsMessage,
+    ],
+  );
+
+  const handleIncomingMessage = useCallback(
+    async (text, metadata = null) => {
+      const trimmed = (text ?? '').trim();
+      const lower = trimmed.toLowerCase();
+
+      if (metadata?.intent === 'emailAlerts') {
+        if (leadDetails?.email) {
+          return [
+            {
+              type: 'text',
+              text: `I'll send new matches straight to ${leadDetails.email}. Let me know if you want to adjust your search.`,
+            },
+          ];
+        }
+        return [
+          {
+            type: 'text',
+            text: 'Share the area, budget and your email and I’ll set up instant alerts for you.',
+          },
+        ];
+      }
+
+      if (metadata?.intent === 'valuation') {
+        return [
+          {
+            type: 'text',
+            text: 'Request a valuation any time at https://aktonz.com/valuation or tell me your address and I’ll arrange the team to contact you.',
+          },
+        ];
+      }
+
+      if (metadata?.intent === 'bookViewing') {
+        return startBookViewingFlow({ property: metadata.property || null });
+      }
+
+      if (metadata?.intent === 'bookViewingSelect' && activeFlow?.type === 'bookViewing') {
+        return handleBookViewingFlow(trimmed, metadata, activeFlow);
+      }
+
+      if (activeFlow?.type === 'propertySearch') {
+        return handlePropertyFlowResponse(trimmed, metadata, activeFlow);
+      }
+
+      if (activeFlow?.type === 'bookViewing') {
+        return handleBookViewingFlow(trimmed, metadata, activeFlow);
+      }
+
+      if (metadata?.intent === 'bookViewingSelect') {
+        return startBookViewingFlow({
+          property: metadata.property || null,
+          propertyId: metadata.propertyId,
+        });
+      }
+
+      if (metadata?.intent === 'propertySearch') {
+        return startPropertyFlow({ initialText: trimmed, transactionType: metadata.transactionType });
+      }
+
+      if (shouldStartPropertyFlow(trimmed)) {
+        return startPropertyFlow({ initialText: trimmed });
+      }
+
+      if (
+        metadata?.intent === 'bookViewing' ||
+        (recentPropertyResults.length && /(book|schedule).*(viewing|tour)/.test(lower))
+      ) {
+        return startBookViewingFlow({});
+      }
+
+      if (!trimmed && !metadata) {
+        return [];
+      }
+
+      return buildReplies(trimmed);
+    },
+    [
+      activeFlow,
+      startBookViewingFlow,
+      handleBookViewingFlow,
+      handlePropertyFlowResponse,
+      startPropertyFlow,
+      recentPropertyResults,
+      buildReplies,
+      leadDetails,
+    ],
+  );
+
   const sendMessage = useCallback(
-    (providedText) => {
-      const text = (typeof providedText === 'string' ? providedText : inputValue).trim();
-      if (!text) return;
+    (providedText, options = {}) => {
+      const { metadata = null, skipUserMessage = false } = options;
+      const raw = typeof providedText === 'string' ? providedText : inputValue;
+      const text = raw != null ? raw.trim() : '';
+
+      if (!text && !metadata) {
+        return;
+      }
 
       if (!isOpen) {
         setIsOpen(true);
       }
 
-      const userMessage = {
-        id: `user-${Date.now()}`,
-        from: 'user',
-        type: 'text',
-        text,
-      };
+      if (!skipUserMessage && text) {
+        const userMessage = {
+          id: `user-${Date.now()}`,
+          from: 'user',
+          type: 'text',
+          text,
+        };
+        setMessages((prev) => [...prev, userMessage]);
+      }
 
-      setMessages((prev) => [...prev, userMessage]);
-      setInputValue('');
+      if (!skipUserMessage) {
+        setInputValue('');
+      }
+
       setIsTyping(true);
 
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
 
-      typingTimeoutRef.current = setTimeout(() => {
-        const replies = buildReplies(text).map((reply, index) => ({
-          ...reply,
-          from: 'bot',
-          id: `${reply.type}-${Date.now()}-${index}`,
-        }));
-        setMessages((prev) => [...prev, ...replies]);
-        setIsTyping(false);
-      }, 450);
+      const processResponse = async () => {
+        try {
+          const replies = await handleIncomingMessage(text, metadata);
+          if (Array.isArray(replies) && replies.length) {
+            const mapped = replies.map((reply, index) => ({
+              ...reply,
+              from: reply.from || 'bot',
+              id: `${reply.type || 'text'}-${Date.now()}-${index}`,
+            }));
+            setMessages((prev) => [...prev, ...mapped]);
+          }
+        } catch (error) {
+          console.error('Chatbot failed to handle message', error);
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `bot-error-${Date.now()}`,
+              from: 'bot',
+              type: 'text',
+              text: 'Something went wrong — please try again in a moment.',
+            },
+          ]);
+        } finally {
+          setIsTyping(false);
+        }
+      };
+
+      typingTimeoutRef.current = setTimeout(processResponse, 450);
     },
-    [inputValue, buildReplies, isOpen],
+    [inputValue, isOpen, handleIncomingMessage],
+  );
+
+  const handleAction = useCallback(
+    (action) => {
+      if (!action) {
+        return;
+      }
+
+      const metadata = action.metadata || null;
+      const value = action.value ?? action.label ?? '';
+      sendMessage(value, {
+        metadata,
+        skipUserMessage: Boolean(action.skipUserMessage),
+      });
+    },
+    [sendMessage],
   );
 
   useEffect(() => () => typingTimeoutRef.current && clearTimeout(typingTimeoutRef.current), []);
@@ -912,20 +2323,75 @@ export default function ChatWidget() {
                       <div className={styles.listingMeta}>{metaParts.join(' • ')}</div>
                     ) : null}
                     {listing.summary ? <p className={styles.listingSummary}>{listing.summary}</p> : null}
-                    {listing.link ? (
-                      <a
-                        className={styles.listingLink}
-                        href={listing.link}
-                        target={listing.link.startsWith('http') ? '_blank' : '_self'}
-                        rel={listing.link.startsWith('http') ? 'noopener noreferrer' : undefined}
+                    <div className={styles.listingActions}>
+                      <button
+                        type="button"
+                        className={styles.listingActionButton}
+                        onClick={() =>
+                          handleAction({
+                            id: `book-${listing.id}`,
+                            label: `Book a viewing`,
+                            value: `Book a viewing for ${listing.title}`,
+                            metadata: { intent: 'bookViewing', property: listing },
+                          })
+                        }
                       >
-                        View details
-                      </a>
-                    ) : null}
+                        <FaCalendarAlt aria-hidden="true" /> Book a viewing
+                      </button>
+                      {listing.link ? (
+                        <a
+                          className={styles.listingLink}
+                          href={listing.link}
+                          target={listing.link.startsWith('http') ? '_blank' : '_self'}
+                          rel={listing.link.startsWith('http') ? 'noopener noreferrer' : undefined}
+                        >
+                          View details
+                        </a>
+                      ) : null}
+                    </div>
                   </li>
                 );
               })}
             </ul>
+          </div>
+        );
+      }
+
+      if (message.type === 'actions') {
+        const renderActionIcon = (icon) => {
+          if (icon === 'calendar') return <FaCalendarAlt aria-hidden="true" />;
+          if (icon === 'bell') return <FaBell aria-hidden="true" />;
+          if (icon === 'mail') return <FaEnvelope aria-hidden="true" />;
+          if (icon === 'home') return <FaHome aria-hidden="true" />;
+          return null;
+        };
+
+        return (
+          <div className={styles.sectionContent}>
+            {message.title ? <p className={styles.sectionTitle}>{message.title}</p> : null}
+            <div className={styles.actionList}>
+              {Array.isArray(message.actions)
+                ? message.actions.map((action) => {
+                    const iconElement = action.icon ? renderActionIcon(action.icon) : null;
+                    return (
+                      <button
+                        key={action.id || action.label}
+                        type="button"
+                        className={styles.actionButton}
+                        onClick={() => handleAction(action)}
+                      >
+                        {iconElement ? <span className={styles.actionIcon}>{iconElement}</span> : null}
+                        <span className={styles.actionText}>
+                          <span className={styles.actionLabel}>{action.label}</span>
+                          {action.secondary ? (
+                            <span className={styles.actionSecondary}>{action.secondary}</span>
+                          ) : null}
+                        </span>
+                      </button>
+                    );
+                  })
+                : null}
+            </div>
           </div>
         );
       }
@@ -1044,12 +2510,12 @@ export default function ChatWidget() {
 
       return null;
     },
-    [describeRecency, formatDateTime],
+    [describeRecency, formatDateTime, handleAction],
   );
 
   const renderMessage = useCallback(
     (message) => {
-      const richContent = ['listings', 'events', 'contacts', 'timeline', 'team'].includes(message.type);
+      const richContent = ['listings', 'events', 'contacts', 'timeline', 'team', 'actions'].includes(message.type);
       return (
         <div
           className={`${styles.messageBubble} ${
