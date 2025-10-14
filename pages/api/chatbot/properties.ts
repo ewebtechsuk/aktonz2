@@ -163,13 +163,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       allowNetwork: true,
     });
 
-    const withScores = rawProperties.map((property: Record<string, unknown>) => {
+    type ScoredProperty = {
+      property: Record<string, unknown>;
+      score: number;
+      recency: number;
+    };
+
+    const withScores: ScoredProperty[] = rawProperties.map((property: Record<string, unknown>) => {
       const score = computeLocationScore(property, locationTokens);
       const recency = getRecencyScore(property);
       return { property, score, recency };
     });
 
-    let filtered = withScores;
+    let filtered: ScoredProperty[] = withScores;
     if (locationTokens.length) {
       filtered = withScores.filter((entry) => entry.score > 0);
       if (!filtered.length) {
