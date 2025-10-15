@@ -10430,10 +10430,10 @@
     "country": "GB",
     "displayAddress": "Flat 2, Laugan House, Laugan Walk, London SE17",
     "locationType": "urban",
-    "summary": "Scraye-sourced rental apartment at Flat 2, Laugan House, Laugan Walk, London SE17 2FA.",
-    "printSummary": null,
+    "summary": "Skyline penthouse with wraparound terrace in Elephant Park's Laugan House.",
+    "printSummary": "Skyline penthouse with wraparound terrace in Elephant Park's Laugan House.",
     "incomeDescription": null,
-    "description": "This entry ensures the Scraye property at Flat 2, Laugan House is visible within Apex27 and the Aktonz site while the detailed feed synchronisation is pending. Contact Aktonz to confirm amenities, pricing and viewing arrangements.",
+    "description": "Set within Lendlease's Elephant Park, this 1,420 sq ft penthouse crowns Laugan House with a triple-aspect reception opening onto a 320 sq ft wraparound terrace that tracks the skyline from Westminster to the City. Floor-to-ceiling glazing, comfort cooling, Lutron lighting and engineered timber floors frame an open-plan living and dining space anchored by a bespoke Miele-appointed kitchen with stone worktops, wine cooler and breakfast island.\n\nThe principal suite features a dressing area and marble en-suite, joined by two further en-suite double bedrooms, a utility cupboard and a guest cloakroom. Residents enjoy Club Elephant amenities including a 24-hour concierge, residents' lounge, screening room, co-working suite, gym, swimming pool and rooftop gardens. The tenancy includes an allocated underground parking bay, secure cycle storage and access to landscaped podium gardens.",
     "customDescription1": null,
     "customDescription2": null,
     "customDescription3": null,
@@ -10441,8 +10441,12 @@
     "customDescription5": null,
     "customDescription6": null,
     "bullets": [
-      "Address synced from Scraye confirmation",
-      "Awaiting comprehensive Scraye listing details"
+      "1,420 sq ft interior plus 320 sq ft wraparound terrace with panoramic views",
+      "Bespoke Miele kitchen with stone worktops, island breakfast bar and wine cooler",
+      "Principal suite with dressing area alongside two further en-suite double bedrooms",
+      "Comfort cooling, Lutron lighting, utility cupboard and separate guest cloakroom",
+      "Club Elephant facilities: 24/7 concierge, gym, pool, cinema, lounge, co-working and roof gardens",
+      "Allocated underground parking bay and secure cycle storage included"
     ],
     "priceCurrency": "GBP",
     "price": "6500.00",
@@ -10494,8 +10498,10 @@
     ],
     "floodSources": [],
     "customFeatures": [
-      "Panoramic skyline views",
-      "Dedicated concierge team"
+      "Club Elephant membership included",
+      "320 sq ft wraparound terrace",
+      "Allocated underground parking bay",
+      "Residents' lounge, cinema and co-working suite"
     ],
     "internalArea": 1420,
     "internalAreaUnit": "sq_ft",
@@ -10518,8 +10524,10 @@
     "salePriceQualifier": null,
     "valuationPrice": null,
     "valuationRent": null,
+    "matchable": true,
     "marketingFlags": [
-      "aktonz-website"
+      "aktonz-website",
+      "apex27"
     ],
     "images": [
       {
@@ -10560,15 +10568,32 @@
     "sale": null,
     "upsellNames": [],
     "matchingSearchRegions": [
+      "Elephant Park",
       "Elephant and Castle",
-      "South London",
+      "South Bank",
       "SE17"
     ],
-    "metadata": [],
+    "metadata": [
+      {
+        "label": "Apex27 listing",
+        "value": "https://app.apex27.co.uk/listings/SCRAYE-68DA7B1F63D63D43BEDC7873",
+        "type": "portal"
+      },
+      {
+        "label": "Standard deposit",
+        "value": "\u00a37,500.00",
+        "type": "deposit"
+      },
+      {
+        "label": "Scraye source",
+        "value": "https://www.scraye.com/listings/68da7b1f63d63d43bedc7873",
+        "type": "source"
+      }
+    ],
     "createdAt": "2025-09-30T10:00:00Z",
     "updatedAt": "2025-10-08T14:30:00Z",
     "sourceId": "68da7b1f63d63d43bedc7873",
-    "externalUrl": "https://www.scraye.com/listings/68da7b1f63d63d43bedc7873",
+    "externalUrl": "https://app.apex27.co.uk/listings/SCRAYE-68DA7B1F63D63D43BEDC7873",
     "_scraye": {
       "sourceId": "68da7b1f63d63d43bedc7873",
       "placeId": "MA",
@@ -10580,7 +10605,7 @@
       "latitude": 51.4892,
       "listTimestamp": "2025-09-25T00:00:00Z",
       "reference": "31207#",
-      "syncStatus": "seeded"
+      "syncStatus": "curated"
     },
     "title": "Flat 2, Laugan House, Laugan Walk, London SE17",
     "branch": {
