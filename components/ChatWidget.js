@@ -57,6 +57,327 @@ const STOP_WORDS = new Set([
 const PROPERTY_KEYWORD_REGEX =
   /(property|listing|home|flat|apartment|house|rent|rental|tenant|let|sale|buy|selling|purchase|to let|to rent|rooms?)/i;
 
+const PERSONA_PRIORITIES = ['landlord', 'vendor', 'applicant', 'buyer'];
+
+const PERSONA_KEYWORDS = {
+  landlord: [/landlord/, /land lord/, /portfolio landlord/, /owner/, /lessor/, /rental owner/],
+  vendor: [/vendor/, /seller/, /sale client/, /sales client/, /instruction/],
+  applicant: [/applicant/, /tenant/, /renter/, /let applicant/, /lettings applicant/, /rent applicant/],
+  buyer: [/buyer/, /purchaser/, /acquisition/, /investor/],
+};
+
+const PERSONA_SIGNAL_KEYS = [
+  'type',
+  'typeLabel',
+  'contactType',
+  'contact_type',
+  'tag',
+  'tags',
+  'contactTag',
+  'contactTags',
+  'stage',
+  'stageLabel',
+  'pipeline',
+  'pipelineLabel',
+  'role',
+  'roles',
+  'category',
+  'categories',
+  'segment',
+  'segments',
+  'status',
+];
+
+const GENERIC_GREETING_REGEX = /^(hi|hello|hey|help|support|menu|options|start|get started|what can you do|who are you|assistant|chatbot|help me)$/;
+
+function collectPersonaSignals(source, seen = new WeakSet()) {
+  if (!source || typeof source !== 'object') {
+    return [];
+  }
+
+  if (seen.has(source)) {
+    return [];
+  }
+
+  seen.add(source);
+
+  const signals = [];
+
+  const shouldInspectKey = (key) => {
+    if (!key) {
+      return false;
+    }
+    const lowerKey = String(key).toLowerCase();
+    return PERSONA_SIGNAL_KEYS.some((candidate) => lowerKey.includes(candidate.toLowerCase()));
+  };
+
+  for (const [key, value] of Object.entries(source)) {
+    if (value == null) {
+      continue;
+    }
+
+    if (typeof value === 'string') {
+      if (shouldInspectKey(key)) {
+        signals.push(value);
+      }
+      continue;
+    }
+
+    if (Array.isArray(value)) {
+      if (shouldInspectKey(key)) {
+        for (const entry of value) {
+          if (typeof entry === 'string') {
+            signals.push(entry);
+          } else if (entry && typeof entry === 'object') {
+            signals.push(...collectPersonaSignals(entry, seen));
+          }
+        }
+      } else {
+        for (const entry of value) {
+          if (entry && typeof entry === 'object') {
+            signals.push(...collectPersonaSignals(entry, seen));
+          }
+        }
+      }
+      continue;
+    }
+
+    if (typeof value === 'object') {
+      if (shouldInspectKey(key)) {
+        signals.push(...collectPersonaSignals(value, seen));
+      } else {
+        const nestedKeys = Object.keys(value || {});
+        if (nestedKeys.some((nestedKey) => shouldInspectKey(nestedKey))) {
+          signals.push(...collectPersonaSignals(value, seen));
+        }
+      }
+    }
+  }
+
+  return signals;
+}
+
+function deriveContactPersona(contact) {
+  if (!contact || typeof contact !== 'object') {
+    return null;
+  }
+
+  const firstName = contact.firstName || (typeof contact.name === 'string' ? contact.name.split(' ')[0] : null);
+  const pipeline = contact.pipeline ? String(contact.pipeline).toLowerCase() : null;
+  const type = contact.type ? String(contact.type).toLowerCase() : null;
+
+  const collectedSignals = new Set();
+
+  const pushSignal = (value) => {
+    if (!value) {
+      return;
+    }
+    const stringValue = String(value).trim().toLowerCase();
+    if (!stringValue) {
+      return;
+    }
+    collectedSignals.add(stringValue);
+  };
+
+  for (const key of PERSONA_SIGNAL_KEYS) {
+    const value = contact[key];
+    if (typeof value === 'string') {
+      pushSignal(value);
+    } else if (Array.isArray(value)) {
+      value.forEach((entry) => {
+        if (typeof entry === 'string') {
+          pushSignal(entry);
+        }
+      });
+    }
+  }
+
+  collectPersonaSignals(contact).forEach(pushSignal);
+
+  if (pipeline) {
+    pushSignal(pipeline);
+  }
+
+  if (type) {
+    pushSignal(type);
+  }
+
+  const normalisedSignals = Array.from(collectedSignals);
+
+  const matchPersonaFromSignals = () => {
+    for (const role of PERSONA_PRIORITIES) {
+      const patterns = PERSONA_KEYWORDS[role] || [];
+      const matchedSignal = normalisedSignals.find((signal) => patterns.some((regex) => regex.test(signal)));
+      if (matchedSignal) {
+        return { role, matchedSignal };
+      }
+    }
+    return null;
+  };
+
+  const matched = matchPersonaFromSignals();
+  if (matched) {
+    return { role: matched.role, firstName };
+  }
+
+  if (pipeline === 'sales') {
+    if (normalisedSignals.some((signal) => /buyer|applicant/.test(signal)) || type === 'buyer') {
+      return { role: 'buyer', firstName };
+    }
+    return { role: 'vendor', firstName };
+  }
+
+  if (pipeline === 'lettings') {
+    if (type === 'landlord' || normalisedSignals.some((signal) => /landlord/.test(signal))) {
+      return { role: 'landlord', firstName };
+    }
+    return { role: 'applicant', firstName };
+  }
+
+  if (type === 'landlord') {
+    return { role: 'landlord', firstName };
+  }
+
+  if (type === 'tenant' || type === 'applicant') {
+    return { role: 'applicant', firstName };
+  }
+
+  if (type === 'vendor') {
+    return { role: 'vendor', firstName };
+  }
+
+  if (type === 'buyer') {
+    return { role: 'buyer', firstName };
+  }
+
+  return firstName ? { role: null, firstName } : null;
+}
+
+function buildPersonaIntroMessages(persona) {
+  if (!persona?.role) {
+    return null;
+  }
+
+  const name = persona.firstName ? persona.firstName : null;
+  const greeting = name ? `Hi ${name},` : 'Hi there,';
+
+  if (persona.role === 'landlord') {
+    return [
+      {
+        id: 'welcome-landlord-1',
+        from: 'bot',
+        type: 'text',
+        text: `${greeting} I'm the Aktonz Intelligent Assistant for landlords. I can surface tenancy updates, compliance deadlines and valuations for your portfolio.`,
+      },
+      {
+        id: 'welcome-landlord-2',
+        from: 'bot',
+        type: 'text',
+        text: 'Ask me to arrange a rental valuation, share management highlights or chase tenancy actions whenever you need them.',
+      },
+    ];
+  }
+
+  if (persona.role === 'vendor') {
+    return [
+      {
+        id: 'welcome-vendor-1',
+        from: 'bot',
+        type: 'text',
+        text: `${greeting} I'm keeping an eye on your sale campaign. I can brief you on marketing performance, offers and buyer feedback in seconds.`,
+      },
+      {
+        id: 'welcome-vendor-2',
+        from: 'bot',
+        type: 'text',
+        text: 'Ask for offer updates, request a valuation review or let me know if you need fresh viewings booked.',
+      },
+    ];
+  }
+
+  if (persona.role === 'applicant') {
+    return [
+      {
+        id: 'welcome-applicant-1',
+        from: 'bot',
+        type: 'text',
+        text: `${greeting} I'm connected to your Aktonz account so I can confirm viewing times, progress applications and send new listings that match.`,
+      },
+      {
+        id: 'welcome-applicant-2',
+        from: 'bot',
+        type: 'text',
+        text: 'Tell me the areas or budget you have in mind, or say “show my viewings” to get started.',
+      },
+    ];
+  }
+
+  if (persona.role === 'buyer') {
+    return [
+      {
+        id: 'welcome-buyer-1',
+        from: 'bot',
+        type: 'text',
+        text: `${greeting} I'm here to streamline your purchase search. I can share comparables, schedule viewings and track offer progress.`,
+      },
+      {
+        id: 'welcome-buyer-2',
+        from: 'bot',
+        type: 'text',
+        text: 'Ask for fresh listings in your target postcodes or to review the status of any offers you have out.',
+      },
+    ];
+  }
+
+  return null;
+}
+
+function buildPersonaFollowUp(persona) {
+  if (!persona?.role) {
+    return null;
+  }
+
+  const name = persona.firstName ? `${persona.firstName}, ` : '';
+
+  if (persona.role === 'landlord') {
+    return {
+      id: `persona-followup-landlord-${Date.now()}`,
+      from: 'bot',
+      type: 'text',
+      text: `${name}I'll keep your landlord services organised. Ask about valuations, compliance or tenancy performance any time.`,
+    };
+  }
+
+  if (persona.role === 'vendor') {
+    return {
+      id: `persona-followup-vendor-${Date.now()}`,
+      from: 'bot',
+      type: 'text',
+      text: `${name}I'll keep you up to speed on marketing, viewings and offers. Let me know when you want an update or to book the next steps.`,
+    };
+  }
+
+  if (persona.role === 'applicant') {
+    return {
+      id: `persona-followup-applicant-${Date.now()}`,
+      from: 'bot',
+      type: 'text',
+      text: `${name}I'll watch your applications and viewings. Ask me for your schedule or share where you'd like new listings.`,
+    };
+  }
+
+  if (persona.role === 'buyer') {
+    return {
+      id: `persona-followup-buyer-${Date.now()}`,
+      from: 'bot',
+      type: 'text',
+      text: `${name}I'm ready with sales comparables, viewing slots and offer tracking whenever you are.`,
+    };
+  }
+
+  return null;
+}
+
 function detectTransactionIntent(text) {
   if (!text) {
     return null;
@@ -486,10 +807,74 @@ const searchListings = (input, knowledge) => {
 };
 
 const createBotReplies = (input, knowledge, formatters, options = {}) => {
-  const { isAuthenticated = false } = options;
+  const { isAuthenticated = false, persona = null } = options;
   const lower = input.toLowerCase();
   const now = new Date();
   const replies = [];
+  const trimmed = lower.trim();
+
+  const personaRole = persona?.role ?? null;
+  const personaName = persona?.firstName ?? null;
+
+  const respondWithPersonaPrimer = () => {
+    if (!personaRole) {
+      return false;
+    }
+
+    if (personaRole === 'landlord') {
+      const introName = personaName ? `${personaName},` : 'there,';
+      replies.push({
+        from: 'bot',
+        type: 'text',
+        text: `Hi ${introName} I can keep your lettings portfolio on track. Ask about compliance dates, tenancy updates or valuations whenever you need them.`,
+      });
+      respondWithLandlordOverview();
+      pushLandlordActions();
+      return true;
+    }
+
+    if (personaRole === 'applicant') {
+      const introName = personaName ? `${personaName},` : 'there,';
+      replies.push({
+        from: 'bot',
+        type: 'text',
+        text: `Hi ${introName} I'm ready with your viewing schedule and application status. Ask for your upcoming appointments or tell me where you want new listings.`,
+      });
+      return true;
+    }
+
+    if (personaRole === 'vendor') {
+      const introName = personaName ? `${personaName},` : 'there,';
+      replies.push({
+        from: 'bot',
+        type: 'text',
+        text: `Hi ${introName} I can brief you on marketing performance, offers and the next buyer viewings for your sale.`,
+      });
+      replies.push({
+        from: 'bot',
+        type: 'text',
+        text: 'Ask me for a campaign update, request a valuation check-in or let me know if you need more buyer feedback.',
+      });
+      return true;
+    }
+
+    if (personaRole === 'buyer') {
+      const introName = personaName ? `${personaName},` : 'there,';
+      replies.push({
+        from: 'bot',
+        type: 'text',
+        text: `Hi ${introName} I can surface new instructions, comparables and offer progress for your purchase search.`,
+      });
+      replies.push({
+        from: 'bot',
+        type: 'text',
+        text: 'Tell me which area you want to focus on or say “show my offers” and I’ll pull the latest details.',
+      });
+      return true;
+    }
+
+    return false;
+  };
 
   const respondWithCompanyProfile = () => {
     const company = knowledge.company;
@@ -786,6 +1171,12 @@ const createBotReplies = (input, knowledge, formatters, options = {}) => {
     });
 
     return replies;
+  }
+
+  if (personaRole && (!trimmed || GENERIC_GREETING_REGEX.test(trimmed))) {
+    if (respondWithPersonaPrimer()) {
+      return replies;
+    }
   }
 
   if (/(alert|notify|notification|update)/.test(lower)) {
@@ -1093,6 +1484,7 @@ export default function ChatWidget() {
   const knowledge = useMemo(() => createKnowledgeBase(), []);
   const { user, loading: sessionLoading } = useSession();
   const isAuthenticated = Boolean(user);
+  const persona = useMemo(() => deriveContactPersona(user), [user]);
   const panelId = useId();
   const [isOpen, setIsOpen] = useState(false);
   const [isPanelRendered, setIsPanelRendered] = useState(false);
@@ -1107,48 +1499,65 @@ export default function ChatWidget() {
   const panelVisibilityTimeoutRef = useRef();
   const previousAuthState = useRef(isAuthenticated);
 
+  const personaMessages = useMemo(() => buildPersonaIntroMessages(persona), [persona]);
+
   const defaultMessages = useMemo(
-    () =>
-      isAuthenticated
-        ? [
-            {
-              id: 'welcome-auth-1',
-              from: 'bot',
-              type: 'text',
-              text: "Hi, I'm the Aktonz Intelligent Assistant. I'm connected to your account, so ask me about clients, conversations or listings.",
-            },
-            {
-              id: 'welcome-auth-2',
-              from: 'bot',
-              type: 'text',
-              text: 'I can pull up your viewings, appointments, offers and tenancy updates whenever you need them.',
-            },
-          ]
-        : [
-            {
-              id: 'welcome-guest-1',
-              from: 'bot',
-              type: 'text',
-              text: "Hi, I'm the Aktonz assistant. Ask me about our company or the latest listings and I'll help you book a viewing.",
-            },
-            {
-              id: 'welcome-guest-2',
-              from: 'bot',
-              type: 'text',
-              text: 'Sign in to unlock your saved conversations, appointments and offers.',
-            },
-          ],
-    [isAuthenticated],
+    () => {
+      if (isAuthenticated) {
+        if (personaMessages?.length) {
+          return personaMessages;
+        }
+        return [
+          {
+            id: 'welcome-auth-1',
+            from: 'bot',
+            type: 'text',
+            text: "Hi, I'm the Aktonz Intelligent Assistant. I'm connected to your account, so ask me about clients, conversations or listings.",
+          },
+          {
+            id: 'welcome-auth-2',
+            from: 'bot',
+            type: 'text',
+            text: 'I can pull up your viewings, appointments, offers and tenancy updates whenever you need them.',
+          },
+        ];
+      }
+
+      return [
+        {
+          id: 'welcome-guest-1',
+          from: 'bot',
+          type: 'text',
+          text: "Hi, I'm the Aktonz assistant. Ask me about our company or the latest listings and I'll help you book a viewing.",
+        },
+        {
+          id: 'welcome-guest-2',
+          from: 'bot',
+          type: 'text',
+          text: 'Sign in to unlock your saved conversations, appointments and offers.',
+        },
+      ];
+    },
+    [isAuthenticated, personaMessages],
   );
+
+  const previousPersona = useRef(persona?.role ?? null);
 
   useEffect(() => {
     if (sessionLoading) {
       return;
     }
 
+    const personaRole = persona?.role ?? null;
+
     if (messages.length === 0) {
       setMessages(defaultMessages);
-    } else if (isAuthenticated && !previousAuthState.current) {
+      previousAuthState.current = isAuthenticated;
+      previousPersona.current = personaRole;
+      return;
+    }
+
+    if (isAuthenticated && !previousAuthState.current) {
       setMessages((prev) => [
         ...prev,
         {
@@ -1170,8 +1579,16 @@ export default function ChatWidget() {
       ]);
     }
 
+    if (personaRole && previousPersona.current !== personaRole) {
+      const followUp = buildPersonaFollowUp(persona);
+      if (followUp) {
+        setMessages((prev) => [...prev, followUp]);
+      }
+    }
+
     previousAuthState.current = isAuthenticated;
-  }, [sessionLoading, defaultMessages, isAuthenticated, messages.length]);
+    previousPersona.current = personaRole;
+  }, [sessionLoading, defaultMessages, isAuthenticated, messages.length, persona]);
 
   const dateTimeFormatter = useMemo(
     () =>
@@ -1271,9 +1688,9 @@ export default function ChatWidget() {
         input,
         knowledge,
         { formatDateTime, formatDate, describeRecency },
-        { isAuthenticated },
+        { isAuthenticated, persona },
       ),
-    [knowledge, formatDateTime, formatDate, describeRecency, isAuthenticated],
+    [knowledge, formatDateTime, formatDate, describeRecency, isAuthenticated, persona],
 
   );
 
