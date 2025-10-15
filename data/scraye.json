@@ -2863,7 +2863,7 @@
       "source": "scraye",
       "transactionType": "rent",
       "title": "Flat 1, 37 Chatsworth Road, London NW2",
-      "description": "Scraye-provided rental listing covering Flat 1, 37 Chatsworth Road, London NW2 4BL. Detailed amenities will sync from Scraye.",
+      "description": "Bright and beautifully refurbished one bedroom garden flat set on the ground floor of a period conversion on Chatsworth Road, NW2. The home spans around 592 sq ft with open-plan living, integrated Bosch kitchen, double bedroom with fitted wardrobes, contemporary shower room and direct access to a private south-facing garden.",
       "price": "\u00a32,650",
       "priceValue": 2650,
       "priceCurrency": "GBP",
@@ -2875,31 +2875,34 @@
       "propertyType": "FLAT",
       "status": "AVAILABLE",
       "features": [
-        "Scraye managed listing",
-        "Address verified: Flat 1, 37 Chatsworth Road NW2"
+        "Ground-floor period conversion",
+        "Private south-facing garden",
+        "Open-plan reception and kitchen",
+        "Double bedroom with fitted wardrobes",
+        "0.4 miles to Willesden Green Station"
       ],
       "furnishedState": "FURNISHED",
-      "image": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1600&q=80",
+      "image": "https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&w=1600&q=80",
       "images": [
         {
           "id": "68cae82f7323e3b4cff1df2b-img-1",
-          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1600&q=80",
-          "altText": "Open-plan living area"
+          "url": "https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Open-plan living area with bay window"
         },
         {
           "id": "68cae82f7323e3b4cff1df2b-img-2",
-          "url": "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=1600&q=80",
-          "altText": "Principal bedroom"
+          "url": "https://images.unsplash.com/photo-1520880867055-1e30d1cb001c?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Kitchen with integrated appliances"
         },
         {
           "id": "68cae82f7323e3b4cff1df2b-img-3",
-          "url": "https://images.unsplash.com/photo-1487956382158-bb926046304a?auto=format&fit=crop&w=1600&q=80",
-          "altText": "Development amenities"
+          "url": "https://images.unsplash.com/photo-1468413253725-0d5181091126?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Private south-facing garden"
         }
       ],
       "media": [],
       "tenure": null,
-      "size": "635 sq ft",
+      "size": "592 sq ft",
       "lat": 51.5536,
       "lng": -0.2161,
       "city": "London",
@@ -2925,9 +2928,9 @@
         "listTimestamp": "2025-09-20T00:00:00Z",
         "reference": "29844#"
       },
-      "createdAt": "2025-09-24T11:00:00Z",
-      "updatedAt": "2025-10-04T15:00:00Z",
-      "availableAt": "2025-10-05T00:00:00Z",
+      "createdAt": "2025-10-10T09:00:00Z",
+      "updatedAt": "2025-10-15T11:30:00Z",
+      "availableAt": "2025-10-18T00:00:00Z",
       "depositType": "FIVE_WEEKS",
       "allowedTenancyDurations": [
         {
