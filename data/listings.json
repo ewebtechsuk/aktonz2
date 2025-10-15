@@ -10015,8 +10015,13 @@
     "salePriceQualifier": null,
     "valuationPrice": null,
     "valuationRent": null,
+    "showPrice": true,
+    "exportable": true,
+    "matchable": true,
     "marketingFlags": [
-      "aktonz-website"
+      "aktonz-website",
+      "apex27",
+      "zoopla"
     ],
     "images": [
       {
