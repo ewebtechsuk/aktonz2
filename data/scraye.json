@@ -2905,6 +2905,255 @@
         "reference": null,
         "notes": "Manually seeded placeholder pending live Scraye sync"
       }
+    },
+    {
+      "id": "scraye-688a1ee10cf4e3796f9bbc84",
+      "sourceId": "688a1ee10cf4e3796f9bbc84",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Baltimore Wharf, Canary Wharf E14",
+      "description": "A twelfth-floor, dual-aspect apartment in Baltimore Wharf with a south-facing balcony, concierge and residents' health club featuring a gym, pool and climbing wall. Available fully furnished.",
+      "price": "\u00a33,250",
+      "priceValue": 3250,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "pcm",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "receptions": 1,
+      "propertyType": "FLAT",
+      "status": "AVAILABLE",
+      "features": [
+        "Balcony",
+        "Dock Views",
+        "Gym",
+        "Swimming Pool",
+        "24 Hour Concierge",
+        "Secure Cycle Storage"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1600&q=80",
+      "images": [
+        {
+          "id": "688a1ee10cf4e3796f9bbc84-img-1",
+          "url": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Open-plan living area"
+        },
+        {
+          "id": "688a1ee10cf4e3796f9bbc84-img-2",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Principal bedroom"
+        },
+        {
+          "id": "688a1ee10cf4e3796f9bbc84-img-3",
+          "url": "https://images.unsplash.com/photo-1505691726021-d8617a0ed23d?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Development amenities"
+        }
+      ],
+      "media": [],
+      "tenure": null,
+      "size": "872 sq ft",
+      "lat": 51.5033,
+      "lng": -0.0173,
+      "city": "London",
+      "county": "Tower Hamlets",
+      "outcode": "E14",
+      "matchingRegions": [
+        "London",
+        "Canary Wharf",
+        "E14"
+      ],
+      "url": "https://www.scraye.com/listings/688a1ee10cf4e3796f9bbc84",
+      "externalUrl": "https://www.scraye.com/listings/688a1ee10cf4e3796f9bbc84",
+      "provider": "Scraye",
+      "_scraye": {
+        "sourceId": "688a1ee10cf4e3796f9bbc84",
+        "placeId": "MA",
+        "placeName": "London",
+        "localityName": "Canary Wharf",
+        "administrativeArea": "Tower Hamlets",
+        "slug": "london/canary-wharf",
+        "longitude": -0.0173,
+        "latitude": 51.5033,
+        "listTimestamp": "2025-09-26T00:00:00Z",
+        "reference": "30512#"
+      },
+      "createdAt": "2025-09-28T09:00:00Z",
+      "updatedAt": "2025-10-05T12:00:00Z",
+      "availableAt": "2025-10-10T00:00:00Z",
+      "depositType": "FIVE_WEEKS",
+      "allowedTenancyDurations": [
+        {
+          "min": 12,
+          "max": 36
+        }
+      ]
+    },
+    {
+      "id": "scraye-68cae82f7323e3b4cff1df2b",
+      "sourceId": "68cae82f7323e3b4cff1df2b",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Embassy Gardens, Nine Elms SW11",
+      "description": "Eighth-floor one-bedroom apartment with winter garden at Embassy Gardens, offering access to the Sky Pool, Orangery clubhouse, cinema, gym and 24-hour concierge.",
+      "price": "\u00a32,650",
+      "priceValue": 2650,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "pcm",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "FLAT",
+      "status": "AVAILABLE",
+      "features": [
+        "Sky Pool Access",
+        "Winter Garden",
+        "Cinema Room",
+        "Concierge",
+        "Residents Lounge",
+        "Gym"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1600&q=80",
+      "images": [
+        {
+          "id": "68cae82f7323e3b4cff1df2b-img-1",
+          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Open-plan living area"
+        },
+        {
+          "id": "68cae82f7323e3b4cff1df2b-img-2",
+          "url": "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Principal bedroom"
+        },
+        {
+          "id": "68cae82f7323e3b4cff1df2b-img-3",
+          "url": "https://images.unsplash.com/photo-1487956382158-bb926046304a?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Development amenities"
+        }
+      ],
+      "media": [],
+      "tenure": null,
+      "size": "635 sq ft",
+      "lat": 51.482,
+      "lng": -0.125,
+      "city": "London",
+      "county": "Wandsworth",
+      "outcode": "SW11",
+      "matchingRegions": [
+        "London",
+        "Nine Elms",
+        "SW11"
+      ],
+      "url": "https://www.scraye.com/listings/68cae82f7323e3b4cff1df2b",
+      "externalUrl": "https://www.scraye.com/listings/68cae82f7323e3b4cff1df2b",
+      "provider": "Scraye",
+      "_scraye": {
+        "sourceId": "68cae82f7323e3b4cff1df2b",
+        "placeId": "MA",
+        "placeName": "London",
+        "localityName": "Nine Elms",
+        "administrativeArea": "Wandsworth",
+        "slug": "london/nine-elms",
+        "longitude": -0.125,
+        "latitude": 51.482,
+        "listTimestamp": "2025-09-20T00:00:00Z",
+        "reference": "29844#"
+      },
+      "createdAt": "2025-09-24T11:00:00Z",
+      "updatedAt": "2025-10-04T15:00:00Z",
+      "availableAt": "2025-10-05T00:00:00Z",
+      "depositType": "FIVE_WEEKS",
+      "allowedTenancyDurations": [
+        {
+          "min": 12,
+          "max": 24
+        }
+      ]
+    },
+    {
+      "id": "scraye-68da7b1f63d63d43bedc7873",
+      "sourceId": "68da7b1f63d63d43bedc7873",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Principal Tower, Shoreditch EC2A",
+      "description": "Three-bedroom penthouse on the 38th floor of Principal Tower with wraparound terrace, concierge, spa, pool and secure parking.",
+      "price": "\u00a36,500",
+      "priceValue": 6500,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "pcm",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "receptions": 1,
+      "propertyType": "FLAT",
+      "status": "AVAILABLE",
+      "features": [
+        "Terrace",
+        "Skyline Views",
+        "Cinema Room",
+        "Swimming Pool",
+        "24 Hour Concierge",
+        "Underground Parking"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1529429617124-aee453fd62be?auto=format&fit=crop&w=1600&q=80",
+      "images": [
+        {
+          "id": "68da7b1f63d63d43bedc7873-img-1",
+          "url": "https://images.unsplash.com/photo-1529429617124-aee453fd62be?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Open-plan living area"
+        },
+        {
+          "id": "68da7b1f63d63d43bedc7873-img-2",
+          "url": "https://images.unsplash.com/photo-1531785556514-bc1c0487489e?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Principal bedroom"
+        },
+        {
+          "id": "68da7b1f63d63d43bedc7873-img-3",
+          "url": "https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Development amenities"
+        }
+      ],
+      "media": [],
+      "tenure": null,
+      "size": "1,420 sq ft",
+      "lat": 51.5245,
+      "lng": -0.0789,
+      "city": "London",
+      "county": "Hackney",
+      "outcode": "EC2A",
+      "matchingRegions": [
+        "London",
+        "Shoreditch",
+        "EC2A"
+      ],
+      "url": "https://www.scraye.com/listings/68da7b1f63d63d43bedc7873",
+      "externalUrl": "https://www.scraye.com/listings/68da7b1f63d63d43bedc7873",
+      "provider": "Scraye",
+      "_scraye": {
+        "sourceId": "68da7b1f63d63d43bedc7873",
+        "placeId": "MA",
+        "placeName": "London",
+        "localityName": "Shoreditch",
+        "administrativeArea": "Hackney",
+        "slug": "london/shoreditch",
+        "longitude": -0.0789,
+        "latitude": 51.5245,
+        "listTimestamp": "2025-09-25T00:00:00Z",
+        "reference": "31207#"
+      },
+      "createdAt": "2025-09-30T10:00:00Z",
+      "updatedAt": "2025-10-08T14:30:00Z",
+      "availableAt": "2025-10-12T00:00:00Z",
+      "depositType": "FIVE_WEEKS",
+      "allowedTenancyDurations": [
+        {
+          "min": 12,
+          "max": 36
+        }
+      ]
     }
   ],
   "sale": []
