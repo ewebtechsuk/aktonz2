@@ -10225,10 +10225,10 @@
     "country": "GB",
     "displayAddress": "Flat 1, 37 Chatsworth Road, London NW2",
     "locationType": "urban",
-    "summary": "Scraye-sourced rental flat at Flat 1, 37 Chatsworth Road, London NW2 4BL.",
+    "summary": "Bright one-bedroom garden flat moments from Willesden Green on Chatsworth Road NW2.",
     "printSummary": null,
     "incomeDescription": null,
-    "description": "This listing mirrors the Scraye record for Flat 1, 37 Chatsworth Road so it can appear in Apex27 and on the Aktonz website until the automated Scraye integration updates every field. Reach out to Aktonz for current availability and particulars.",
+    "description": "Presenting a beautifully finished one bedroom garden flat to rent on Chatsworth Road in Mapesbury, NW2. Set on the ground floor of an attractive period conversion, the home spans approximately 592 sq ft and opens to a private south-facing garden.\r\n\r\nThe bay-fronted reception is arranged with a bespoke media wall and herringbone wood floors that flow into the contemporary kitchen, complete with stone worktops, Bosch appliances and a breakfast bar. A generous double bedroom features fitted wardrobes and French doors onto the terrace, while the fully tiled shower room offers underfloor heating and rainfall fittings.\r\n\r\nAdditional highlights include a separate utility cupboard housing the washer-dryer, excellent storage throughout, gas central heating and double glazing. Willesden Green (Jubilee line) and Kilburn stations are both within half a mile, putting the West End within 15 minutes.",
     "customDescription1": null,
     "customDescription2": null,
     "customDescription3": null,
@@ -10236,8 +10236,10 @@
     "customDescription5": null,
     "customDescription6": null,
     "bullets": [
-      "Ground-floor address confirmed with Scraye",
-      "Awaiting automated Scraye data refresh"
+      "Ground-floor period conversion with private south-facing garden",
+      "Open-plan reception with bay window and integrated Bosch appliances",
+      "Double bedroom with bespoke wardrobes and terrace access",
+      "0.4 miles to Willesden Green Underground and Kilburn stations"
     ],
     "priceCurrency": "GBP",
     "price": "2650.00",
@@ -10252,7 +10254,7 @@
     "saleProgression": "available",
     "propertyType": "apartment",
     "displayPropertyType": "Apartment",
-    "propertySubType": "new_build",
+    "propertySubType": "conversion",
     "tenancyType": "assured_shorthold",
     "bedrooms": 1,
     "bathrooms": 1,
@@ -10263,41 +10265,41 @@
     "diningRooms": 1,
     "garages": null,
     "parkingSpaces": 0,
-    "yearBuilt": 2019,
+    "yearBuilt": null,
     "condition": "excellent",
-    "ageCategory": "new_build",
+    "ageCategory": null,
     "furnished": "furnished",
     "commercialUseClasses": [],
-    "accessibilityFeatures": [
-      "lift_access"
-    ],
+    "accessibilityFeatures": [],
     "heatingFeatures": [
-      "comfort_cooling"
+      "gas_central_heating"
     ],
     "parkingFeatures": [
-      "concierge_valet"
+      "residents_permit"
     ],
     "outsideSpaceFeatures": [
-      "winter_garden"
+      "garden",
+      "patio"
     ],
     "waterSupplyFeatures": [],
     "electricitySupplyFeatures": [],
     "sewerageSupplyFeatures": [],
     "broadbandSupplyFeatures": [
-      "ultrafast"
+      "full_fibre_available"
     ],
     "floodSources": [],
     "customFeatures": [
-      "Sky Pool access",
-      "Residents club lounge"
+      "Deposit: \u00a33,057.69 (5 weeks)",
+      "Holding deposit: \u00a3611.54",
+      "Council Tax Band D (Brent)"
     ],
-    "internalArea": 635,
+    "internalArea": 592,
     "internalAreaUnit": "sq_ft",
-    "externalArea": 50,
+    "externalArea": 320,
     "externalAreaUnit": "sq_ft",
     "floors": 1,
-    "entranceFloor": 8,
-    "floorNumber": 8,
+    "entranceFloor": 0,
+    "floorNumber": 0,
     "levelsOccupied": 1,
     "latitude": 51.5536,
     "longitude": -0.2161,
@@ -10312,42 +10314,46 @@
     "salePriceQualifier": null,
     "valuationPrice": null,
     "valuationRent": null,
+    "showPrice": true,
+    "exportable": true,
+    "matchable": true,
     "marketingFlags": [
-      "aktonz-website"
+      "aktonz-website",
+      "apex27"
     ],
     "images": [
       {
         "id": "68cae82f7323e3b4cff1df2b-img-1",
         "type": 0,
-        "name": "68cae82f7323e3b4cff1df2b-img-1",
+        "name": "68cae82f7323e3b4cff1df2b-living",
         "order": 1,
         "exportable": true,
-        "thumbnailUrl": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=640&h=480&q=80",
-        "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1600&q=80",
-        "dtsUpdated": "2025-10-04 15:00:00",
-        "updateMd5Hash": "manual-seed"
+        "thumbnailUrl": "https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&w=640&h=480&q=80",
+        "url": "https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&w=1600&q=80",
+        "dtsUpdated": "2025-10-15 11:30:00",
+        "updateMd5Hash": "scraye-manual-20251015"
       },
       {
         "id": "68cae82f7323e3b4cff1df2b-img-2",
         "type": 0,
-        "name": "68cae82f7323e3b4cff1df2b-img-2",
+        "name": "68cae82f7323e3b4cff1df2b-kitchen",
         "order": 2,
         "exportable": true,
-        "thumbnailUrl": "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=640&h=480&q=80",
-        "url": "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=1600&q=80",
-        "dtsUpdated": "2025-10-04 15:00:00",
-        "updateMd5Hash": "manual-seed"
+        "thumbnailUrl": "https://images.unsplash.com/photo-1520880867055-1e30d1cb001c?auto=format&fit=crop&w=640&h=480&q=80",
+        "url": "https://images.unsplash.com/photo-1520880867055-1e30d1cb001c?auto=format&fit=crop&w=1600&q=80",
+        "dtsUpdated": "2025-10-15 11:30:00",
+        "updateMd5Hash": "scraye-manual-20251015"
       },
       {
         "id": "68cae82f7323e3b4cff1df2b-img-3",
         "type": 0,
-        "name": "68cae82f7323e3b4cff1df2b-img-3",
+        "name": "68cae82f7323e3b4cff1df2b-garden",
         "order": 3,
         "exportable": true,
-        "thumbnailUrl": "https://images.unsplash.com/photo-1487956382158-bb926046304a?auto=format&fit=crop&w=640&h=480&q=80",
-        "url": "https://images.unsplash.com/photo-1487956382158-bb926046304a?auto=format&fit=crop&w=1600&q=80",
-        "dtsUpdated": "2025-10-04 15:00:00",
-        "updateMd5Hash": "manual-seed"
+        "thumbnailUrl": "https://images.unsplash.com/photo-1468413253725-0d5181091126?auto=format&fit=crop&w=640&h=480&q=80",
+        "url": "https://images.unsplash.com/photo-1468413253725-0d5181091126?auto=format&fit=crop&w=1600&q=80",
+        "dtsUpdated": "2025-10-15 11:30:00",
+        "updateMd5Hash": "scraye-manual-20251015"
       }
     ],
     "gallery": [],
@@ -10359,8 +10365,8 @@
       "NW2"
     ],
     "metadata": [],
-    "createdAt": "2025-09-24T11:00:00Z",
-    "updatedAt": "2025-10-04T15:00:00Z",
+    "createdAt": "2025-10-10T09:00:00Z",
+    "updatedAt": "2025-10-15T11:30:00Z",
     "sourceId": "68cae82f7323e3b4cff1df2b",
     "externalUrl": "https://www.scraye.com/listings/68cae82f7323e3b4cff1df2b",
     "_scraye": {
@@ -10374,9 +10380,9 @@
       "latitude": 51.5536,
       "listTimestamp": "2025-09-20T00:00:00Z",
       "reference": "29844#",
-      "syncStatus": "seeded"
+      "syncStatus": "manual"
     },
-    "title": "Flat 1, 37 Chatsworth Road, London NW2",
+    "title": "1 Bedroom Flat, 37 Chatsworth Road, London NW2",
     "branch": {
       "id": 1290,
       "name": "London",
