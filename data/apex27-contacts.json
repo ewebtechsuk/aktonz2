@@ -216,6 +216,27 @@
       "assignedAgentId": "1724"
     },
     {
+      "id": "apx-contact-scraye",
+      "firstName": "Scraye",
+      "lastName": "Scraye",
+      "type": "landlord",
+      "stage": "active",
+      "pipeline": "lettings",
+      "source": "Scraye import",
+      "createdAt": "2024-12-01T09:00:00Z",
+      "lastActivityAt": "2025-03-18T08:00:00Z",
+      "nextStep": null,
+      "email": "support@scraye.com",
+      "phone": null,
+      "locationFocus": "Greater London",
+      "requirements": [
+        "Aggregate Scraye partnership stock"
+      ],
+      "budget": {},
+      "tags": ["Scraye integration", "Platform landlord"],
+      "assignedAgentId": "1724"
+    },
+    {
       "id": "apx-contact-009",
       "firstName": "Layla",
       "lastName": "Ahmed",
