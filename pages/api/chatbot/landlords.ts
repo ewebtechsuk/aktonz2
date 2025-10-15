@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { applyApiHeaders, handlePreflight } from '../../../lib/api-helpers';
 import { appendLandlordEnquiry } from '../../../lib/chatbot-storage';
+import { recordLandlordInstruction } from '../../../lib/apex27-crm';
+import { createValuationRequest } from '../../../lib/acaboom.mjs';
 
 function parseBody(req: NextApiRequest): Record<string, unknown> {
   if (req.body && typeof req.body === 'object') {
@@ -60,6 +62,17 @@ function parseDate(value: unknown): string | null {
   return null;
 }
 
+function splitName(name: string): { firstName: string; lastName: string } {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) {
+    return { firstName: 'Landlord', lastName: 'Aktonz' };
+  }
+  if (parts.length === 1) {
+    return { firstName: parts[0], lastName: parts[0] };
+  }
+  return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   applyApiHeaders(req, res, { methods: ['POST'] as const });
   if (handlePreflight(req, res)) {
@@ -109,8 +122,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       availableFrom,
       notes,
     });
+    let crm = null;
+    try {
+      crm = await recordLandlordInstruction({
+        name,
+        email,
+        phone: phone ?? null,
+        propertyAddress: propertyAddress ?? null,
+        propertyType: propertyType ?? null,
+        bedrooms: bedrooms ?? null,
+        expectedRent: expectedRent ?? null,
+        availableFrom: availableFrom ?? null,
+        notes: notes ?? null,
+      });
+    } catch (error) {
+      console.error('Failed to sync landlord enquiry to Apex27 CRM', error);
+    }
 
-    res.status(200).json({ ok: true, record });
+    let valuation = null;
+    if (propertyAddress && phone) {
+      const { firstName, lastName } = splitName(name);
+      try {
+        valuation = await createValuationRequest({
+          firstName,
+          lastName,
+          email,
+          phone,
+          address: propertyAddress,
+          notes: notes ?? undefined,
+          source: 'Chatbot landlord workflow',
+        });
+      } catch (error) {
+        console.error('Failed to create valuation from landlord enquiry', error);
+      }
+    }
+
+    res.status(200).json({ ok: true, record, crm, valuation });
   } catch (error) {
     console.error('Failed to store landlord enquiry', error);
     res.status(500).json({ error: 'Failed to store landlord enquiry' });

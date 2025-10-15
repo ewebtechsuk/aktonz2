@@ -35,6 +35,72 @@
       "email": "sales@aktonz.com"
     }
   ],
+  "landlordOverview": "Aktonz blends premium marketing, careful compliance control and proactive tenancy management so landlords achieve the strongest rents with zero stress.",
+  "landlordServiceTiers": [
+    {
+      "name": "Tenant find",
+      "summary": "Photography, premium listings, viewings and referencing with offer negotiation handled within 24 hours.",
+      "highlights": [
+        "Professional photography and 4K video tours within 48 hours",
+        "Accompanied viewings seven days a week",
+        "Digital offers portal with full referencing"
+      ]
+    },
+    {
+      "name": "Rent collection",
+      "summary": "Everything in tenant find plus rent collection, statements and arrears chasing within 3 working days.",
+      "highlights": [
+        "Automated rent reminders and arrears escalation",
+        "Monthly landlord statements delivered via the portal",
+        "Renewal benchmarking at least 90 days before tenancy end"
+      ]
+    },
+    {
+      "name": "Full management",
+      "summary": "Portfolio-style service with compliance tracking, 24/7 maintenance triage and resident experience reporting.",
+      "highlights": [
+        "EICR, gas safety and licence renewals tracked with reminders",
+        "Approved contractor panel with negotiated rates",
+        "Resident satisfaction reporting and retention planning"
+      ]
+    }
+  ],
+  "landlordManagementHighlights": [
+    "Dedicated landlord success manager with WhatsApp updates",
+    "Asset plans showing rent reviews, compliance expiries and renewal milestones",
+    "24/7 maintenance triage and repair approval workflow",
+    "Resident experience surveys after every key touchpoint"
+  ],
+  "landlordValuationSteps": [
+    "Digital pricing benchmark sent within two hours of enquiry",
+    "In-person valuation with lettings director to agree pricing strategy",
+    "Launch campaign scheduled with staging, photography and portal upload",
+    "Weekly performance reporting covering viewings, feedback and offers"
+  ],
+  "landlordFaqs": [
+    {
+      "question": "What lettings fee do you charge?",
+      "answer": "Our tenant-find service is 6% + VAT with no up-front marketing costs. Rent collection is 8% + VAT and full management is 12% + VAT which includes compliance tracking, renewals and maintenance oversight.",
+      "keywords": ["fee", "cost", "charge", "percentage", "commission"]
+    },
+    {
+      "question": "Do you cover compliance and licensing?",
+      "answer": "Yes — the management team tracks gas safety, EICR, EPC, HMO and selective licensing deadlines. We book inspections, hold certificates centrally and alert you at least 60 days before renewal dates.",
+      "keywords": ["compliance", "licence", "license", "certificate", "gas", "eicr", "epc"]
+    },
+    {
+      "question": "How quickly can you let my property?",
+      "answer": "Most Aktonz instructions secure qualified tenants in 14 days or less. We build a marketing calendar immediately, pre-qualify applicants from our database and provide feedback after every viewing.",
+      "keywords": ["fast", "quick", "speed", "how long", "days", "void"]
+    },
+    {
+      "question": "What happens once a tenant is found?",
+      "answer": "We carry out Right to Rent checks, collect move-in funds, arrange inventory and check-in, and deliver a welcome pack so the tenancy starts smoothly. If you choose management we remain first contact for residents.",
+      "keywords": ["tenant", "onboarding", "move in", "right to rent", "inventory", "check in"]
+    }
+  ],
+  "landlordOnboardingIntro": "Share a few details and I'll get a lettings valuation and onboarding pack arranged for you.",
+  "landlordConfirmation": "You'll receive a confirmation email with valuation details and our service summary straight away.",
   "listings": [
     {
       "id": "ALX-3756638",

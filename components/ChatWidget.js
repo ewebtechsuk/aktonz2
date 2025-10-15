@@ -85,6 +85,34 @@ function shouldStartPropertyFlow(text) {
   return /(find|show|looking|need|available|search|any|list|book|schedule|view|viewing|options?)/.test(lower);
 }
 
+function shouldStartLandlordFlow(text) {
+  if (!text) {
+    return false;
+  }
+  const lower = text.toLowerCase();
+  if (!/(landlord|let|rent out|let out|property management|valuation|list my)/.test(lower)) {
+    return false;
+  }
+
+  if (/(i'm a landlord|im a landlord|i am a landlord)/.test(lower)) {
+    return true;
+  }
+
+  if (/(rent|let|list)\s+(out\s+)?my\s+(home|flat|property|house)/.test(lower)) {
+    return true;
+  }
+
+  if (/(book|arrange|schedule).*(rental|lettings?)\s+valuation/.test(lower)) {
+    return true;
+  }
+
+  if (/(need|want).*(property management|manage my (home|property|flat))/.test(lower)) {
+    return true;
+  }
+
+  return false;
+}
+
 function parsePriceRange(input) {
   if (!input) {
     return null;
@@ -377,6 +405,38 @@ const createKnowledgeBase = () => {
     })
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+  const landlord = {
+    overview: supportData.landlordOverview || null,
+    serviceTiers: Array.isArray(supportData.landlordServiceTiers)
+      ? supportData.landlordServiceTiers
+          .map((tier) => ({
+            name: tier.name,
+            summary: tier.summary,
+            highlights: Array.isArray(tier.highlights) ? tier.highlights.filter(Boolean) : [],
+          }))
+          .filter((tier) => tier.name || tier.summary)
+      : [],
+    managementHighlights: Array.isArray(supportData.landlordManagementHighlights)
+      ? supportData.landlordManagementHighlights.filter(Boolean)
+      : [],
+    valuationSteps: Array.isArray(supportData.landlordValuationSteps)
+      ? supportData.landlordValuationSteps.filter(Boolean)
+      : [],
+    faqs: Array.isArray(supportData.landlordFaqs)
+      ? supportData.landlordFaqs
+          .map((faq) => ({
+            question: faq.question,
+            answer: faq.answer,
+            keywords: Array.isArray(faq.keywords)
+              ? faq.keywords.map((keyword) => String(keyword || '').toLowerCase()).filter(Boolean)
+              : [],
+          }))
+          .filter((faq) => faq.answer)
+      : [],
+    onboardingIntro: supportData.landlordOnboardingIntro || null,
+    confirmation: supportData.landlordConfirmation || null,
+  };
+
   return {
     company: supportData.company,
     team,
@@ -386,6 +446,7 @@ const createKnowledgeBase = () => {
     appointments,
     viewings,
     offers,
+    landlord,
   };
 };
 
@@ -518,6 +579,115 @@ const createBotReplies = (input, knowledge, formatters, options = {}) => {
     }
   };
 
+  const findLandlordFaq = () => {
+    if (!Array.isArray(knowledge.landlord?.faqs)) {
+      return null;
+    }
+
+    for (const faq of knowledge.landlord.faqs) {
+      if (!faq) continue;
+      if (Array.isArray(faq.keywords) && faq.keywords.length) {
+        if (faq.keywords.some((keyword) => lower.includes(keyword))) {
+          return faq;
+        }
+      }
+      if (faq.question && lower.includes(faq.question.toLowerCase())) {
+        return faq;
+      }
+    }
+
+    return null;
+  };
+
+  const respondWithLandlordOverview = () => {
+    const landlord = knowledge.landlord;
+    if (!landlord) {
+      return false;
+    }
+
+    const segments = [];
+    if (landlord.overview) {
+      segments.push(landlord.overview);
+    }
+
+    if (Array.isArray(landlord.serviceTiers) && landlord.serviceTiers.length) {
+      const lines = landlord.serviceTiers
+        .map((tier) => {
+          const label = tier.name ? `• ${tier.name}` : '• Service tier';
+          return tier.summary ? `${label}: ${tier.summary}` : label;
+        })
+        .join('\n');
+      segments.push(`Lettings service tiers:\n${lines}`);
+    }
+
+    if (Array.isArray(landlord.valuationSteps) && landlord.valuationSteps.length) {
+      segments.push(
+        `Valuation journey:\n${landlord.valuationSteps.map((step) => `• ${step}`).join('\n')}`,
+      );
+    }
+
+    if (!segments.length) {
+      return false;
+    }
+
+    replies.push({
+      from: 'bot',
+      type: 'text',
+      text: segments.join('\n\n'),
+    });
+
+    return true;
+  };
+
+  const respondWithLandlordManagement = () => {
+    const landlord = knowledge.landlord;
+    if (!landlord || !Array.isArray(landlord.managementHighlights) || !landlord.managementHighlights.length) {
+      return false;
+    }
+
+    replies.push({
+      from: 'bot',
+      type: 'text',
+      text: `Property management highlights:\n${landlord.managementHighlights
+        .map((item) => `• ${item}`)
+        .join('\n')}`,
+    });
+
+    return true;
+  };
+
+  const respondWithLandlordFaq = () => {
+    const faq = findLandlordFaq();
+    if (!faq) {
+      return false;
+    }
+
+    replies.push({
+      from: 'bot',
+      type: 'text',
+      text: faq.answer,
+    });
+
+    return true;
+  };
+
+  const pushLandlordActions = () => {
+    replies.push({
+      from: 'bot',
+      type: 'actions',
+      title: 'Ready to let with Aktonz?',
+      actions: [
+        {
+          id: 'landlord-onboarding',
+          label: 'Book a rental valuation',
+          icon: 'calendar',
+          value: 'Book a rental valuation',
+          metadata: { intent: 'landlordOnboarding' },
+        },
+      ],
+    });
+  };
+
   const respondWithViewingGuidance = () => {
     const office = knowledge.company?.office;
     const contactLine = office?.phone
@@ -625,6 +795,20 @@ const createBotReplies = (input, knowledge, formatters, options = {}) => {
 
   if (/(valuation|value my|appraisal|price my|market appraisal)/.test(lower)) {
     respondWithValuation();
+    return replies;
+  }
+
+  if (/(landlord|let(?:ting)?|rent out|let out|property management|manage my property|rental valuation)/.test(lower)) {
+    const answeredFaq = respondWithLandlordFaq();
+    const overviewShared = respondWithLandlordOverview();
+    const managementMentioned = /(manage|management|compliance|maintenance|rent collection|licen[cs]e)/.test(lower);
+    if (managementMentioned) {
+      respondWithLandlordManagement();
+    }
+    if (!answeredFaq && !overviewShared) {
+      respondWithLandlordOverview();
+    }
+    pushLandlordActions();
     return replies;
   }
 
@@ -1113,6 +1297,13 @@ export default function ChatWidget() {
           metadata: { intent: 'emailAlerts' },
         },
         {
+          id: 'landlord-workflow',
+          label: 'Let my property',
+          icon: 'home',
+          value: 'Let my property',
+          metadata: { intent: 'landlordOnboarding' },
+        },
+        {
           id: 'valuation-request',
           label: 'Request a valuation',
           icon: 'home',
@@ -1196,6 +1387,32 @@ export default function ChatWidget() {
     [setLeadDetails],
   );
 
+  const submitLandlordEnquiry = useCallback(async (payload) => {
+    const res = await fetch('/api/chatbot/landlords', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: payload.name,
+        email: payload.email,
+        phone: payload.phone,
+        propertyAddress: payload.propertyAddress,
+        propertyType: payload.propertyType,
+        bedrooms: payload.bedrooms,
+        expectedRent: payload.expectedRent,
+        availableFrom: payload.availableFrom,
+        notes: payload.notes,
+        source: 'chat-widget',
+      }),
+    });
+
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      throw new Error(data?.error || 'Failed to submit landlord enquiry');
+    }
+
+    return data;
+  }, []);
+
   const scheduleViewing = useCallback(async ({ name, email, phone, property, scheduledAt }) => {
     if (!property || !scheduledAt) {
       throw new Error('Missing property or time slot');
@@ -1224,6 +1441,47 @@ export default function ChatWidget() {
 
     return data;
   }, []);
+
+  const startLandlordFlow = useCallback(() => {
+    const flowId = `landlord-${Date.now()}`;
+    const landlordKnowledge = knowledge.landlord;
+    const introParts = [];
+    if (landlordKnowledge?.overview) {
+      introParts.push(landlordKnowledge.overview);
+    }
+    if (landlordKnowledge?.onboardingIntro) {
+      introParts.push(landlordKnowledge.onboardingIntro);
+    }
+    const introText = introParts.length
+      ? introParts.join(' ')
+      : 'Great — let me take the details so our lettings team can get your property live.';
+
+    setActiveFlow({
+      id: flowId,
+      type: 'landlordOnboarding',
+      step: 'awaitingPropertyAddress',
+      data: {
+        propertyAddress: null,
+        propertyType: null,
+        bedrooms: null,
+        expectedRent: null,
+        availableFrom: null,
+        landlord: { name: null, email: null, phone: null },
+        notes: null,
+      },
+    });
+
+    return [
+      {
+        type: 'text',
+        text: introText,
+      },
+      {
+        type: 'text',
+        text: 'First up, what is the rental property address?',
+      },
+    ];
+  }, [knowledge.landlord]);
 
   const startPropertyFlow = useCallback(
     (context = {}) => {
@@ -1258,6 +1516,389 @@ export default function ChatWidget() {
       ];
     },
     [],
+  );
+
+  const handleLandlordFlowResponse = useCallback(
+    async (text, metadata, flow) => {
+      if (!flow || flow.type !== 'landlordOnboarding') {
+        return [];
+      }
+
+      const flowId = flow.id;
+      const trimmed = text.trim();
+
+      if (isCancelMessage(trimmed)) {
+        setActiveFlow((prev) => (prev && prev.id === flowId ? null : prev));
+        return [
+          {
+            type: 'text',
+            text: 'No worries — say “let my property” if you want to restart the landlord handover.',
+          },
+          buildQuickActionsMessage(),
+        ];
+      }
+
+      if (flow.step === 'awaitingPropertyAddress') {
+        if (!trimmed) {
+          return [
+            {
+              type: 'text',
+              text: 'Could you share the full rental address?',
+            },
+          ];
+        }
+
+        const address = trimmed.replace(/\s+/g, ' ').trim();
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingPropertyType',
+                data: {
+                  ...prev.data,
+                  propertyAddress: address,
+                },
+              }
+            : prev,
+        );
+
+        return [
+          {
+            type: 'text',
+            text: 'Thanks! What type of property is it? (Flat, house, HMO etc. — or say skip)',
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingPropertyType') {
+        const propertyType = isSkipMessage(trimmed) ? null : trimmed.replace(/\s+/g, ' ').trim();
+
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingBedrooms',
+                data: {
+                  ...prev.data,
+                  propertyType,
+                },
+              }
+            : prev,
+        );
+
+        return [
+          {
+            type: 'text',
+            text: 'How many bedrooms does it have? (You can say skip)',
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingBedrooms') {
+        let bedrooms = null;
+        if (!isSkipMessage(trimmed)) {
+          bedrooms = parseBedrooms(trimmed);
+          if (bedrooms == null) {
+            return [
+              {
+                type: 'text',
+                text: 'I can log that as a number (e.g. 2). Let me know the bedroom count or say skip.',
+              },
+            ];
+          }
+        }
+
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingExpectedRent',
+                data: {
+                  ...prev.data,
+                  bedrooms,
+                },
+              }
+            : prev,
+        );
+
+        return [
+          {
+            type: 'text',
+            text: 'What monthly rent are you aiming for? A ballpark is perfect.',
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingExpectedRent') {
+        let expectedRent = null;
+        if (!isSkipMessage(trimmed)) {
+          const range = parsePriceRange(trimmed);
+          expectedRent = range?.max ?? range?.min ?? null;
+          if (expectedRent == null) {
+            return [
+              {
+                type: 'text',
+                text: 'Share an approximate monthly rent (e.g. £2200) or say skip if you’d like advice.',
+              },
+            ];
+          }
+        }
+
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingAvailability',
+                data: {
+                  ...prev.data,
+                  expectedRent,
+                },
+              }
+            : prev,
+        );
+
+        return [
+          {
+            type: 'text',
+            text: 'When will it be ready for new tenants? (A date or rough timeframe works.)',
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingAvailability') {
+        let availableFrom = null;
+        if (!isSkipMessage(trimmed)) {
+          const parsed = parseDateTimeInput(trimmed);
+          if (!parsed) {
+            return [
+              {
+                type: 'text',
+                text: 'Got it. When roughly will the property be available? You can also say skip.',
+              },
+            ];
+          }
+          availableFrom = parsed.toISOString();
+        }
+
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingLandlordName',
+                data: {
+                  ...prev.data,
+                  availableFrom,
+                },
+              }
+            : prev,
+        );
+
+        return [
+          {
+            type: 'text',
+            text: "Great. What's your name?",
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingLandlordName') {
+        if (!trimmed) {
+          return [
+            {
+              type: 'text',
+              text: 'What name should I share with the lettings team?',
+            },
+          ];
+        }
+
+        const name = trimmed.replace(/\s+/g, ' ').trim();
+        const firstName = name.split(' ')[0];
+
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingLandlordEmail',
+                data: {
+                  ...prev.data,
+                  landlord: {
+                    ...(prev.data.landlord || {}),
+                    name,
+                  },
+                },
+              }
+            : prev,
+        );
+
+        return [
+          {
+            type: 'text',
+            text: `Thanks ${firstName}! Which email should I send the valuation pack to?`,
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingLandlordEmail') {
+        if (!isValidEmail(trimmed)) {
+          return [
+            {
+              type: 'text',
+              text: 'Could you share a valid email address?',
+            },
+          ];
+        }
+
+        const email = trimmed.trim();
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingLandlordPhone',
+                data: {
+                  ...prev.data,
+                  landlord: {
+                    ...(prev.data.landlord || {}),
+                    email,
+                  },
+                },
+              }
+            : prev,
+        );
+
+        return [
+          {
+            type: 'text',
+            text: 'And the best contact number so our lettings director can confirm the valuation?',
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingLandlordPhone') {
+        const phone = normalizePhone(trimmed);
+        if (!phone) {
+          return [
+            {
+              type: 'text',
+              text: 'Please include a phone number (with area code) so we can confirm the appointment.',
+            },
+          ];
+        }
+
+        setActiveFlow((prev) =>
+          prev && prev.id === flowId
+            ? {
+                ...prev,
+                step: 'awaitingLandlordNotes',
+                data: {
+                  ...prev.data,
+                  landlord: {
+                    ...(prev.data.landlord || {}),
+                    phone,
+                  },
+                },
+              }
+            : prev,
+        );
+
+        return [
+          {
+            type: 'text',
+            text: 'Any questions or priorities for lettings or management? I can note them or you can say skip.',
+          },
+        ];
+      }
+
+      if (flow.step === 'awaitingLandlordNotes') {
+        const notes = isSkipMessage(trimmed) ? null : trimmed;
+        const payload = {
+          name: flow.data.landlord?.name || 'Aktonz landlord',
+          email: flow.data.landlord?.email || '',
+          phone: flow.data.landlord?.phone || null,
+          propertyAddress: flow.data.propertyAddress,
+          propertyType: flow.data.propertyType,
+          bedrooms: flow.data.bedrooms,
+          expectedRent: flow.data.expectedRent,
+          availableFrom: flow.data.availableFrom,
+          notes,
+        };
+
+        let knowledgeReplies = [];
+        if (notes) {
+          try {
+            knowledgeReplies = buildReplies(notes) || [];
+          } catch (error) {
+            console.error('Failed to build landlord FAQ reply', error);
+          }
+        }
+
+        try {
+          await submitLandlordEnquiry(payload);
+        } catch (error) {
+          console.error('Failed to submit landlord enquiry', error);
+          return [
+            {
+              type: 'text',
+              text: 'Something went wrong saving those details. Could you try again?',
+            },
+          ];
+        }
+
+        setActiveFlow(null);
+
+        const confirmationMessages = [];
+        if (knowledgeReplies.length) {
+          confirmationMessages.push(...knowledgeReplies);
+        }
+
+        const summaryParts = [];
+        const name = payload.name;
+        if (payload.propertyAddress) {
+          summaryParts.push(`Thanks ${name.split(' ')[0] || name} — I’ve passed ${payload.propertyAddress} to the lettings team.`);
+        } else {
+          summaryParts.push(`Thanks ${name.split(' ')[0] || name} — I’ve logged your landlord details for the lettings team.`);
+        }
+        if (typeof payload.expectedRent === 'number') {
+          summaryParts.push(`We’ll review pricing around ${currencyFormatter.format(payload.expectedRent)} pcm.`);
+        }
+        if (payload.availableFrom) {
+          summaryParts.push(`We’ll aim for a go-live around ${formatDate(payload.availableFrom)}.`);
+        }
+        if (payload.email || payload.phone) {
+          const contactBits = [];
+          if (payload.email) contactBits.push(`email ${payload.email}`);
+          if (payload.phone) contactBits.push(`call ${payload.phone}`);
+          if (contactBits.length) {
+            summaryParts.push(`We’ll ${contactBits.join(' and ')} with the valuation confirmation.`);
+          }
+        }
+
+        confirmationMessages.push({
+          type: 'text',
+          text: summaryParts.join(' '),
+        });
+
+        if (knowledge.landlord?.confirmation) {
+          confirmationMessages.push({
+            type: 'text',
+            text: knowledge.landlord.confirmation,
+          });
+        }
+
+        confirmationMessages.push(buildQuickActionsMessage());
+        return confirmationMessages;
+      }
+
+      return [];
+    },
+    [
+      setActiveFlow,
+      buildQuickActionsMessage,
+      buildReplies,
+      submitLandlordEnquiry,
+      knowledge.landlord,
+      currencyFormatter,
+      formatDate,
+    ],
   );
 
   const handlePropertyFlowResponse = useCallback(
@@ -2106,6 +2747,10 @@ export default function ChatWidget() {
         ];
       }
 
+      if (metadata?.intent === 'landlordOnboarding') {
+        return startLandlordFlow();
+      }
+
       if (metadata?.intent === 'valuation') {
         return [
           {
@@ -2121,6 +2766,10 @@ export default function ChatWidget() {
 
       if (metadata?.intent === 'bookViewingSelect' && activeFlow?.type === 'bookViewing') {
         return handleBookViewingFlow(trimmed, metadata, activeFlow);
+      }
+
+      if (activeFlow?.type === 'landlordOnboarding') {
+        return handleLandlordFlowResponse(trimmed, metadata, activeFlow);
       }
 
       if (activeFlow?.type === 'propertySearch') {
@@ -2140,6 +2789,10 @@ export default function ChatWidget() {
 
       if (metadata?.intent === 'propertySearch') {
         return startPropertyFlow({ initialText: trimmed, transactionType: metadata.transactionType });
+      }
+
+      if (shouldStartLandlordFlow(trimmed)) {
+        return startLandlordFlow();
       }
 
       if (shouldStartPropertyFlow(trimmed)) {
@@ -2163,8 +2816,10 @@ export default function ChatWidget() {
       activeFlow,
       startBookViewingFlow,
       handleBookViewingFlow,
+      handleLandlordFlowResponse,
       handlePropertyFlowResponse,
       startPropertyFlow,
+      startLandlordFlow,
       recentPropertyResults,
       buildReplies,
       leadDetails,
