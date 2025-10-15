@@ -3,6 +3,11 @@ import { formatPricePrefix } from '../lib/format.mjs';
 import { formatPropertyPriceLabel } from '../lib/rent.js';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
 import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
+import {
+  normalizeDeposit,
+  formatDepositDisplay,
+  formatAvailabilityDate,
+} from '../lib/deposits.mjs';
 
 export default function PropertyCard({ property }) {
   const rawStatus = property.status ? property.status.replace(/_/g, ' ') : null;
@@ -144,6 +149,60 @@ export default function PropertyCard({ property }) {
     return null;
   })();
 
+  const numericPriceValue = (() => {
+    if (property?.priceValue != null && Number.isFinite(Number(property.priceValue))) {
+      return Number(property.priceValue);
+    }
+    if (property?.price != null) {
+      const parsed = Number(String(property.price).replace(/[^0-9.]/g, ''));
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+    return null;
+  })();
+
+  const securityDepositInfo = normalizeDeposit(
+    property?.securityDeposit,
+    numericPriceValue,
+    property?.rentFrequency,
+    property?.depositType
+  );
+  const holdingDepositInfo = normalizeDeposit(
+    property?.holdingDeposit,
+    numericPriceValue,
+    property?.rentFrequency
+  );
+
+  const securityDepositLabel = formatDepositDisplay(securityDepositInfo, {
+    fallback: 'Please enquire',
+  });
+  const holdingDepositLabel = formatDepositDisplay(holdingDepositInfo, {
+    fallback: 'Please enquire',
+  });
+
+  const availabilityRaw =
+    property?.availableAt ??
+    property?.availableDate ??
+    property?.available_from ??
+    property?.availableFrom ??
+    property?.available ??
+    property?.dateAvailableFrom ??
+    property?.dateAvailable ??
+    property?.date_available_from ??
+    property?.date_available ??
+    null;
+  const availabilityLabel = availabilityRaw
+    ? formatAvailabilityDate(availabilityRaw, { fallback: 'Please enquire' })
+    : 'Please enquire';
+
+  const shouldShowSecurityDeposit = Boolean(securityDepositLabel);
+  const shouldShowHoldingDeposit = Boolean(holdingDepositLabel);
+  const shouldShowAvailability = Boolean(availabilityLabel);
+  const showRentMeta =
+    !isSaleListing &&
+    (shouldShowSecurityDeposit || shouldShowHoldingDeposit || shouldShowAvailability);
+
   return (
     <div className={`property-card${isArchived ? ' archived' : ''}`}>
       <div className="image-wrapper">
@@ -221,6 +280,28 @@ export default function PropertyCard({ property }) {
             {priceLabel}
             {pricePrefixLabel && ` ${pricePrefixLabel}`}
           </p>
+        )}
+        {showRentMeta && (
+          <dl className="rent-details">
+            {shouldShowSecurityDeposit && (
+              <>
+                <dt>Security deposit</dt>
+                <dd>{securityDepositLabel}</dd>
+              </>
+            )}
+            {shouldShowHoldingDeposit && (
+              <>
+                <dt>Holding deposit</dt>
+                <dd>{holdingDepositLabel}</dd>
+              </>
+            )}
+            {shouldShowAvailability && (
+              <>
+                <dt>Available from</dt>
+                <dd>{availabilityLabel}</dd>
+              </>
+            )}
+          </dl>
         )}
         {(property.receptions != null || property.bedrooms != null || property.bathrooms != null) && (
           <div className="features">
