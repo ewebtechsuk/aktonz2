@@ -324,6 +324,45 @@ body {
   color: var(--color-success);
 }
 
+.property-card .rent-details {
+  margin: 0;
+  margin-top: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  border-radius: 8px;
+  background: var(--color-surface-alt);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1fr;
+  gap: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.property-card .rent-details dt {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted-text);
+}
+
+.property-card .rent-details dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.property-list--five-per-row .property-card .rent-details {
+  grid-template-columns: 1fr;
+}
+
+.property-list--five-per-row .property-card .rent-details dt {
+  font-size: 0.65rem;
+}
+
+.property-list--five-per-row .property-card .rent-details dd {
+  font-size: 0.8rem;
+}
+
 .property-card .features {
   display: flex;
   gap: 1rem;

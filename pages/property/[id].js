@@ -39,6 +39,12 @@ import {
   formatPropertyPriceLabel,
 } from '../../lib/rent.js';
 import { formatOfferFrequencyLabel } from '../../lib/offer-frequency.mjs';
+import {
+  normalizeDeposit,
+  formatDepositDisplay,
+  formatAvailabilityDate,
+  resolveAvailabilityDate,
+} from '../../lib/deposits.mjs';
 
 function normalizeScrayeReference(value) {
   if (value == null) {
@@ -434,6 +440,80 @@ export default function Property({ property, recommendations }) {
     return stats;
   }, [property?.bathrooms, property?.bedrooms, property?.receptions]);
   const headlinePrice = formattedPrimaryPrice || priceLabel || '';
+  const numericPriceValue = useMemo(() => {
+    if (property?.priceValue != null && Number.isFinite(Number(property.priceValue))) {
+      return Number(property.priceValue);
+    }
+    if (property?.price != null) {
+      const parsed = Number(String(property.price).replace(/[^0-9.]/g, ''));
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+    return null;
+  }, [property?.price, property?.priceValue]);
+
+  const securityDepositInfo = useMemo(
+    () =>
+      normalizeDeposit(
+        property?.securityDeposit,
+        numericPriceValue,
+        property?.rentFrequency,
+        property?.depositType
+      ),
+    [
+      property?.depositType,
+      property?.rentFrequency,
+      property?.securityDeposit,
+      numericPriceValue,
+    ]
+  );
+
+  const holdingDepositInfo = useMemo(
+    () =>
+      normalizeDeposit(
+        property?.holdingDeposit,
+        numericPriceValue,
+        property?.rentFrequency
+      ),
+    [property?.holdingDeposit, property?.rentFrequency, numericPriceValue]
+  );
+
+  const securityDepositLabel = formatDepositDisplay(securityDepositInfo, {
+    fallback: 'Please enquire',
+  });
+  const holdingDepositLabel = formatDepositDisplay(holdingDepositInfo, {
+    fallback: 'Please enquire',
+  });
+
+  const availabilityRaw = useMemo(
+    () =>
+      property?.availableAt ??
+      property?.availableDate ??
+      property?.available_from ??
+      property?.availableFrom ??
+      property?.available ??
+      property?.dateAvailableFrom ??
+      property?.dateAvailable ??
+      property?.date_available_from ??
+      property?.date_available ??
+      null,
+    [
+      property?.available,
+      property?.availableAt,
+      property?.availableDate,
+      property?.availableFrom,
+      property?.available_from,
+      property?.dateAvailable,
+      property?.dateAvailableFrom,
+      property?.date_available,
+      property?.date_available_from,
+    ]
+  );
+
+  const availabilityLabel = formatAvailabilityDate(availabilityRaw, {
+    fallback: 'Please enquire',
+  });
   const mapProperties = useMemo(
     () => {
       if (!hasLocation || !property) return [];
@@ -568,6 +648,16 @@ export default function Property({ property, recommendations }) {
                         <p className={styles.priceSecondary}>{secondaryRentLabel}</p>
                       )}
                     </div>
+                    {property.rentFrequency && (
+                      <dl className={styles.rentMeta}>
+                        <dt>Security deposit</dt>
+                        <dd>{securityDepositLabel}</dd>
+                        <dt>Holding deposit</dt>
+                        <dd>{holdingDepositLabel}</dd>
+                        <dt>Available from</dt>
+                        <dd>{availabilityLabel}</dd>
+                      </dl>
+                    )}
                     <div className={styles.priceActions}>
                       <OfferDrawer property={property} />
                       <ViewingForm property={property} />
@@ -688,6 +778,59 @@ export async function getStaticProps({ params }) {
       cityCandidates.find(
         (value) => typeof value === 'string' && value.trim()
       )?.trim() ?? null;
+    const numericPriceValue = (() => {
+      if (rawProperty.priceValue != null && Number.isFinite(Number(rawProperty.priceValue))) {
+        return Number(rawProperty.priceValue);
+      }
+      if (rawProperty.price != null) {
+        const parsed = Number(String(rawProperty.price).replace(/[^0-9.]/g, ''));
+        if (Number.isFinite(parsed)) {
+          return parsed;
+        }
+      }
+      return null;
+    })();
+
+    const rawAvailabilityValue = (() => {
+      const candidates = [
+        rawProperty.availableAt,
+        rawProperty.availableDate,
+        rawProperty.available_from,
+        rawProperty.availableFrom,
+        rawProperty.available,
+        rawProperty.dateAvailableFrom,
+        rawProperty.dateAvailable,
+        rawProperty.date_available_from,
+        rawProperty.date_available,
+      ];
+      for (const candidate of candidates) {
+        if (candidate != null) {
+          return candidate;
+        }
+      }
+      return null;
+    })();
+
+    const resolvedAvailabilityDate = resolveAvailabilityDate(rawAvailabilityValue);
+    const normalizedAvailability = resolvedAvailabilityDate
+      ? resolvedAvailabilityDate.toISOString()
+      : typeof rawAvailabilityValue === 'string'
+      ? rawAvailabilityValue.trim()
+      : null;
+
+    const securityDeposit = normalizeDeposit(
+      rawProperty.securityDeposit,
+      numericPriceValue,
+      rawProperty.rentFrequency,
+      rawProperty.depositType
+    );
+
+    const holdingDeposit = normalizeDeposit(
+      rawProperty.holdingDeposit,
+      numericPriceValue,
+      rawProperty.rentFrequency
+    );
+
     formatted = {
       id: resolvePropertyIdentifier(rawProperty) ?? String(params.id),
       title:
@@ -703,6 +846,7 @@ export async function getStaticProps({ params }) {
             : rawProperty.price
           : null,
       pricePrefix: extractPricePrefix(rawProperty) ?? null,
+      priceValue: numericPriceValue,
 
       rentFrequency: rawProperty.rentFrequency ?? null,
       image: imgList[0] || null,
@@ -739,6 +883,10 @@ export async function getStaticProps({ params }) {
       outcode: normalizedOutcode,
       source: rawProperty.source ?? null,
       _scraye: rawProperty._scraye ?? null,
+      depositType: rawProperty.depositType ?? null,
+      securityDeposit,
+      holdingDeposit,
+      availableAt: normalizedAvailability,
       scrayeReference: deriveScrayeReference(rawProperty),
       epcScore: deriveEpcScore(rawProperty),
       councilTaxBand: deriveCouncilTaxBand(rawProperty),

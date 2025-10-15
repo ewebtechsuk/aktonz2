@@ -161,6 +161,32 @@
   gap: var(--spacing-sm);
 }
 
+.rentMeta {
+  margin: 0;
+  padding: var(--spacing-md);
+  border-radius: 12px;
+  background: var(--color-surface-alt);
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) 1fr;
+  gap: 0.5rem 1.25rem;
+}
+
+.rentMeta dt {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted-text);
+}
+
+.rentMeta dd {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
 .pricePrefixBadge {
   display: inline-flex;
   align-items: center;
@@ -358,5 +384,14 @@
 
   .priceCard {
     padding: var(--spacing-md);
+  }
+
+  .rentMeta {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+
+  .rentMeta dd {
+    font-size: 0.95rem;
   }
 }
