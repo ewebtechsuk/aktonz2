@@ -2945,7 +2945,7 @@
       "source": "scraye",
       "transactionType": "rent",
       "title": "Flat 2, Laugan House, Laugan Walk, London SE17",
-      "description": "Scraye-provided rental listing for Flat 2, Laugan House, Laugan Walk, London SE17 2FA. Awaiting the next Scraye data refresh for full details.",
+      "description": "Impeccably finished three-bedroom penthouse spanning the upper floors of Laugan House within Elephant Park. The 1,420 sq ft interior flows onto a 320 sq ft wraparound terrace with panoramic skyline views, while comfort cooling, Lutron lighting and engineered timber floors frame the open-plan reception. A bespoke Miele kitchen anchors the living space, complemented by a principal suite with dressing area and marble en-suite, two further en-suite double bedrooms, a guest cloakroom and a separate utility cupboard. Residents benefit from Club Elephant amenities including a 24 hour concierge, screening room, residents' lounge, gym, pool, co-working suite, rooftop gardens and secure cycle storage. The tenancy includes one underground parking bay and access to landscaped communal podium gardens.",
       "price": "\u00a36,500",
       "priceValue": 6500,
       "priceCurrency": "GBP",
@@ -2957,8 +2957,12 @@
       "propertyType": "FLAT",
       "status": "AVAILABLE",
       "features": [
-        "Scraye managed listing",
-        "Address verified: Flat 2, Laugan House SE17"
+        "Wraparound terrace",
+        "Club Elephant amenities",
+        "24 hour concierge",
+        "Miele kitchen appliances",
+        "Comfort cooling throughout",
+        "Secure underground parking included"
       ],
       "furnishedState": "FURNISHED",
       "image": "https://images.unsplash.com/photo-1529429617124-aee453fd62be?auto=format&fit=crop&w=1600&q=80",
@@ -2966,22 +2970,22 @@
         {
           "id": "68da7b1f63d63d43bedc7873-img-1",
           "url": "https://images.unsplash.com/photo-1529429617124-aee453fd62be?auto=format&fit=crop&w=1600&q=80",
-          "altText": "Open-plan living area"
+          "altText": "Open-plan living area with skyline views"
         },
         {
           "id": "68da7b1f63d63d43bedc7873-img-2",
           "url": "https://images.unsplash.com/photo-1531785556514-bc1c0487489e?auto=format&fit=crop&w=1600&q=80",
-          "altText": "Principal bedroom"
+          "altText": "Principal bedroom suite"
         },
         {
           "id": "68da7b1f63d63d43bedc7873-img-3",
           "url": "https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&w=1600&q=80",
-          "altText": "Development amenities"
+          "altText": "Residents' amenities"
         }
       ],
       "media": [],
       "tenure": null,
-      "size": "1,420 sq ft",
+      "size": "1,420 sq ft + 320 sq ft terrace",
       "lat": 51.4892,
       "lng": -0.0971,
       "city": "London",
@@ -2989,7 +2993,7 @@
       "outcode": "SE17",
       "matchingRegions": [
         "Elephant and Castle",
-        "South London",
+        "South Bank",
         "SE17"
       ],
       "url": "https://www.scraye.com/listings/68da7b1f63d63d43bedc7873",
@@ -3005,7 +3009,8 @@
         "longitude": -0.0971,
         "latitude": 51.4892,
         "listTimestamp": "2025-09-25T00:00:00Z",
-        "reference": "31207#"
+        "reference": "31207#",
+        "notes": "Manual summary curated for Apex27 and website publication"
       },
       "createdAt": "2025-09-30T10:00:00Z",
       "updatedAt": "2025-10-08T14:30:00Z",
@@ -3017,8 +3022,7 @@
           "max": 36
         }
       ]
-    }
-    ,
+    },
     {
       "id": "scraye-688a1ee10cf4e3796f9bbc84",
       "sourceId": "688a1ee10cf4e3796f9bbc84",
@@ -3121,51 +3125,6 @@
       "provider": "Scraye",
       "_scraye": {
         "sourceId": "68cae82f7323e3b4cff1df2b",
-        "placeId": "MANUAL",
-        "placeName": null,
-        "slug": null,
-        "longitude": null,
-        "latitude": null,
-        "listTimestamp": "2025-10-15T00:00:00Z",
-        "reference": null,
-        "notes": "Manually seeded placeholder pending live Scraye sync"
-      }
-    },
-    {
-      "id": "scraye-68da7b1f63d63d43bedc7873",
-      "sourceId": "68da7b1f63d63d43bedc7873",
-      "source": "scraye",
-      "transactionType": "rent",
-      "title": "Scraye listing 68da7b1f63d63d43bedc7873",
-      "description": "Placeholder entry queued for Apex27 publication. Run the Scraye sync job to replace this stub with the live listing details once network access is available.",
-      "price": "POA",
-      "priceValue": null,
-      "priceCurrency": "GBP",
-      "priceQualifier": null,
-      "rentFrequency": null,
-      "bedrooms": null,
-      "bathrooms": null,
-      "receptions": null,
-      "propertyType": null,
-      "status": "AVAILABLE",
-      "features": [],
-      "furnishedState": null,
-      "image": null,
-      "images": [],
-      "media": [],
-      "tenure": null,
-      "size": null,
-      "lat": null,
-      "lng": null,
-      "city": null,
-      "county": null,
-      "outcode": null,
-      "matchingRegions": [],
-      "url": "https://www.scraye.com/listings/68da7b1f63d63d43bedc7873",
-      "externalUrl": "https://www.scraye.com/listings/68da7b1f63d63d43bedc7873",
-      "provider": "Scraye",
-      "_scraye": {
-        "sourceId": "68da7b1f63d63d43bedc7873",
         "placeId": "MANUAL",
         "placeName": null,
         "slug": null,
@@ -3340,89 +3299,6 @@
         {
           "min": 12,
           "max": 24
-        }
-      ]
-    },
-    {
-      "id": "scraye-68da7b1f63d63d43bedc7873",
-      "sourceId": "68da7b1f63d63d43bedc7873",
-      "source": "scraye",
-      "transactionType": "rent",
-      "title": "Principal Tower, Shoreditch EC2A",
-      "description": "Three-bedroom penthouse on the 38th floor of Principal Tower with wraparound terrace, concierge, spa, pool and secure parking.",
-      "price": "\u00a36,500",
-      "priceValue": 6500,
-      "priceCurrency": "GBP",
-      "priceQualifier": null,
-      "rentFrequency": "pcm",
-      "bedrooms": 3,
-      "bathrooms": 3,
-      "receptions": 1,
-      "propertyType": "FLAT",
-      "status": "AVAILABLE",
-      "features": [
-        "Terrace",
-        "Skyline Views",
-        "Cinema Room",
-        "Swimming Pool",
-        "24 Hour Concierge",
-        "Underground Parking"
-      ],
-      "furnishedState": "FURNISHED",
-      "image": "https://images.unsplash.com/photo-1529429617124-aee453fd62be?auto=format&fit=crop&w=1600&q=80",
-      "images": [
-        {
-          "id": "68da7b1f63d63d43bedc7873-img-1",
-          "url": "https://images.unsplash.com/photo-1529429617124-aee453fd62be?auto=format&fit=crop&w=1600&q=80",
-          "altText": "Open-plan living area"
-        },
-        {
-          "id": "68da7b1f63d63d43bedc7873-img-2",
-          "url": "https://images.unsplash.com/photo-1531785556514-bc1c0487489e?auto=format&fit=crop&w=1600&q=80",
-          "altText": "Principal bedroom"
-        },
-        {
-          "id": "68da7b1f63d63d43bedc7873-img-3",
-          "url": "https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&w=1600&q=80",
-          "altText": "Development amenities"
-        }
-      ],
-      "media": [],
-      "tenure": null,
-      "size": "1,420 sq ft",
-      "lat": 51.5245,
-      "lng": -0.0789,
-      "city": "London",
-      "county": "Hackney",
-      "outcode": "EC2A",
-      "matchingRegions": [
-        "London",
-        "Shoreditch",
-        "EC2A"
-      ],
-      "url": "https://www.scraye.com/listings/68da7b1f63d63d43bedc7873",
-      "externalUrl": "https://www.scraye.com/listings/68da7b1f63d63d43bedc7873",
-      "provider": "Scraye",
-      "_scraye": {
-        "sourceId": "68da7b1f63d63d43bedc7873",
-        "placeId": "MA",
-        "placeName": "London",
-        "localityName": "Shoreditch",
-        "administrativeArea": "Hackney",
-        "slug": "london/shoreditch",
-        "longitude": -0.0789,
-        "latitude": 51.5245,
-        "listTimestamp": "2025-09-25T00:00:00Z",
-        "reference": "31207#"
-      },
-      "createdAt": "2025-09-30T10:00:00Z",
-      "updatedAt": "2025-10-08T14:30:00Z",
-      "availableAt": "2025-10-12T00:00:00Z",
-      "depositType": "FIVE_WEEKS",
-      "allowedTenancyDurations": [
-        {
-          "min": 12,
-          "max": 36
         }
       ]
     }
