@@ -2769,6 +2769,243 @@
         "listTimestamp": "2025-10-01T10:45:35Z",
         "reference": "28675#"
       }
+    },
+    {
+      "id": "scraye-688a1ee10cf4e3796f9bbc84",
+      "sourceId": "688a1ee10cf4e3796f9bbc84",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "14 Endersby Road, Barnet EN5",
+      "description": "Scraye-provided rental listing anchored to 14 Endersby Road, Barnet EN5 3AH. Full property particulars will continue to flow from Scraye.",
+      "price": "\u00a33,250",
+      "priceValue": 3250,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "pcm",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "receptions": 1,
+      "propertyType": "FLAT",
+      "status": "AVAILABLE",
+      "features": [
+        "Scraye managed listing",
+        "Address verified: 14 Endersby Road, Barnet EN5"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1600&q=80",
+      "images": [
+        {
+          "id": "688a1ee10cf4e3796f9bbc84-img-1",
+          "url": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Open-plan living area"
+        },
+        {
+          "id": "688a1ee10cf4e3796f9bbc84-img-2",
+          "url": "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Principal bedroom"
+        },
+        {
+          "id": "688a1ee10cf4e3796f9bbc84-img-3",
+          "url": "https://images.unsplash.com/photo-1505691726021-d8617a0ed23d?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Development amenities"
+        }
+      ],
+      "media": [],
+      "tenure": null,
+      "size": "872 sq ft",
+      "lat": 51.6499,
+      "lng": -0.2029,
+      "city": "London",
+      "county": "Barnet",
+      "outcode": "EN5",
+      "matchingRegions": [
+        "Barnet",
+        "North London",
+        "EN5"
+      ],
+      "url": "https://www.scraye.com/listings/688a1ee10cf4e3796f9bbc84",
+      "externalUrl": "https://www.scraye.com/listings/688a1ee10cf4e3796f9bbc84",
+      "provider": "Scraye",
+      "_scraye": {
+        "sourceId": "688a1ee10cf4e3796f9bbc84",
+        "placeId": "MA",
+        "placeName": "London",
+        "localityName": "High Barnet",
+        "administrativeArea": "Barnet",
+        "slug": "barnet/high-barnet",
+        "longitude": -0.2029,
+        "latitude": 51.6499,
+        "listTimestamp": "2025-09-26T00:00:00Z",
+        "reference": "30512#"
+      },
+      "createdAt": "2025-09-28T09:00:00Z",
+      "updatedAt": "2025-10-05T12:00:00Z",
+      "availableAt": "2025-10-10T00:00:00Z",
+      "depositType": "FIVE_WEEKS",
+      "allowedTenancyDurations": [
+        {
+          "min": 12,
+          "max": 36
+        }
+      ]
+    },
+    {
+      "id": "scraye-68cae82f7323e3b4cff1df2b",
+      "sourceId": "68cae82f7323e3b4cff1df2b",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Flat 1, 37 Chatsworth Road, London NW2",
+      "description": "Scraye-provided rental listing covering Flat 1, 37 Chatsworth Road, London NW2 4BL. Detailed amenities will sync from Scraye.",
+      "price": "\u00a32,650",
+      "priceValue": 2650,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "pcm",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "receptions": 1,
+      "propertyType": "FLAT",
+      "status": "AVAILABLE",
+      "features": [
+        "Scraye managed listing",
+        "Address verified: Flat 1, 37 Chatsworth Road NW2"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1600&q=80",
+      "images": [
+        {
+          "id": "68cae82f7323e3b4cff1df2b-img-1",
+          "url": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Open-plan living area"
+        },
+        {
+          "id": "68cae82f7323e3b4cff1df2b-img-2",
+          "url": "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Principal bedroom"
+        },
+        {
+          "id": "68cae82f7323e3b4cff1df2b-img-3",
+          "url": "https://images.unsplash.com/photo-1487956382158-bb926046304a?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Development amenities"
+        }
+      ],
+      "media": [],
+      "tenure": null,
+      "size": "635 sq ft",
+      "lat": 51.5536,
+      "lng": -0.2161,
+      "city": "London",
+      "county": "Brent",
+      "outcode": "NW2",
+      "matchingRegions": [
+        "Cricklewood",
+        "North West London",
+        "NW2"
+      ],
+      "url": "https://www.scraye.com/listings/68cae82f7323e3b4cff1df2b",
+      "externalUrl": "https://www.scraye.com/listings/68cae82f7323e3b4cff1df2b",
+      "provider": "Scraye",
+      "_scraye": {
+        "sourceId": "68cae82f7323e3b4cff1df2b",
+        "placeId": "MA",
+        "placeName": "London",
+        "localityName": "Cricklewood",
+        "administrativeArea": "Brent",
+        "slug": "london/cricklewood",
+        "longitude": -0.2161,
+        "latitude": 51.5536,
+        "listTimestamp": "2025-09-20T00:00:00Z",
+        "reference": "29844#"
+      },
+      "createdAt": "2025-09-24T11:00:00Z",
+      "updatedAt": "2025-10-04T15:00:00Z",
+      "availableAt": "2025-10-05T00:00:00Z",
+      "depositType": "FIVE_WEEKS",
+      "allowedTenancyDurations": [
+        {
+          "min": 12,
+          "max": 24
+        }
+      ]
+    },
+    {
+      "id": "scraye-68da7b1f63d63d43bedc7873",
+      "sourceId": "68da7b1f63d63d43bedc7873",
+      "source": "scraye",
+      "transactionType": "rent",
+      "title": "Flat 2, Laugan House, Laugan Walk, London SE17",
+      "description": "Scraye-provided rental listing for Flat 2, Laugan House, Laugan Walk, London SE17 2FA. Awaiting the next Scraye data refresh for full details.",
+      "price": "\u00a36,500",
+      "priceValue": 6500,
+      "priceCurrency": "GBP",
+      "priceQualifier": null,
+      "rentFrequency": "pcm",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "receptions": 1,
+      "propertyType": "FLAT",
+      "status": "AVAILABLE",
+      "features": [
+        "Scraye managed listing",
+        "Address verified: Flat 2, Laugan House SE17"
+      ],
+      "furnishedState": "FURNISHED",
+      "image": "https://images.unsplash.com/photo-1529429617124-aee453fd62be?auto=format&fit=crop&w=1600&q=80",
+      "images": [
+        {
+          "id": "68da7b1f63d63d43bedc7873-img-1",
+          "url": "https://images.unsplash.com/photo-1529429617124-aee453fd62be?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Open-plan living area"
+        },
+        {
+          "id": "68da7b1f63d63d43bedc7873-img-2",
+          "url": "https://images.unsplash.com/photo-1531785556514-bc1c0487489e?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Principal bedroom"
+        },
+        {
+          "id": "68da7b1f63d63d43bedc7873-img-3",
+          "url": "https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&w=1600&q=80",
+          "altText": "Development amenities"
+        }
+      ],
+      "media": [],
+      "tenure": null,
+      "size": "1,420 sq ft",
+      "lat": 51.4892,
+      "lng": -0.0971,
+      "city": "London",
+      "county": "Southwark",
+      "outcode": "SE17",
+      "matchingRegions": [
+        "Elephant and Castle",
+        "South London",
+        "SE17"
+      ],
+      "url": "https://www.scraye.com/listings/68da7b1f63d63d43bedc7873",
+      "externalUrl": "https://www.scraye.com/listings/68da7b1f63d63d43bedc7873",
+      "provider": "Scraye",
+      "_scraye": {
+        "sourceId": "68da7b1f63d63d43bedc7873",
+        "placeId": "MA",
+        "placeName": "London",
+        "localityName": "Elephant and Castle",
+        "administrativeArea": "Southwark",
+        "slug": "london/elephant-and-castle",
+        "longitude": -0.0971,
+        "latitude": 51.4892,
+        "listTimestamp": "2025-09-25T00:00:00Z",
+        "reference": "31207#"
+      },
+      "createdAt": "2025-09-30T10:00:00Z",
+      "updatedAt": "2025-10-08T14:30:00Z",
+      "availableAt": "2025-10-12T00:00:00Z",
+      "depositType": "FIVE_WEEKS",
+      "allowedTenancyDurations": [
+        {
+          "min": 12,
+          "max": 36
+        }
+      ]
     }
   ],
   "sale": []
