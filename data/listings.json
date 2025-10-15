@@ -10124,6 +10124,11 @@
     ],
     "metadata": [
       {
+        "label": "Apex27 listing",
+        "value": "https://app.apex27.co.uk/listings/SCRAYE-688A1EE10CF4E3796F9BBC84",
+        "type": "portal"
+      },
+      {
         "label": "Video tour",
         "value": "https://www.youtube.com/watch?v=O5dgm8UiT4M",
         "type": "video"
@@ -10142,12 +10147,17 @@
         "label": "Deposit free fee",
         "value": "£824.31",
         "type": "deposit_option"
+      },
+      {
+        "label": "Scraye source",
+        "value": "https://www.scraye.com/listings/688a1ee10cf4e3796f9bbc84",
+        "type": "source"
       }
     ],
     "createdAt": "2025-09-28T09:00:00Z",
     "updatedAt": "2025-10-15T12:30:00Z",
     "sourceId": "688a1ee10cf4e3796f9bbc84",
-    "externalUrl": "https://www.scraye.com/listings/688a1ee10cf4e3796f9bbc84",
+    "externalUrl": "https://app.apex27.co.uk/listings/SCRAYE-688A1EE10CF4E3796F9BBC84",
     "_scraye": {
       "sourceId": "688a1ee10cf4e3796f9bbc84",
       "placeId": "MA",
