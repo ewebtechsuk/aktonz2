@@ -1243,6 +1243,190 @@ export default function AdminDiaryWorkspacePage() {
 
   const showLoading = sessionLoading || loading;
 
+  const renderCalendar = () => (
+    <section className={styles.calendarPane}>
+      <header className={styles.calendarToolbar}>
+        <div className={styles.toolbarPrimary}>
+          <span className={styles.badge}>{BADGE_LABEL}</span>
+          <h1 className={styles.heading}>{PAGE_HEADING}</h1>
+        </div>
+        <div className={styles.toolbarActions}>
+          <button type="button" className={`${styles.toolbarButton} ${styles.toolbarButtonPrimary}`}>
+            Create viewing event
+          </button>
+          <button type="button" className={styles.toolbarButton}>
+            Today
+          </button>
+          <div className={styles.toolbarNavGroup}>
+            <button type="button" className={styles.toolbarNav} aria-label="Previous day">
+              ‹
+            </button>
+            <span className={styles.toolbarLabel}>Week of 11 Dec 2023</span>
+            <button type="button" className={styles.toolbarNav} aria-label="Next day">
+              ›
+            </button>
+          </div>
+          <div className={styles.toolbarToggleGroup}>
+            <button type="button" className={`${styles.toggleButton} ${styles.toggleButtonActive}`}>
+              Week
+            </button>
+            <button type="button" className={styles.toggleButton}>
+              Day
+            </button>
+            <button type="button" className={styles.toggleButton}>
+              Agenda
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className={styles.calendarGrid}>{CALENDAR_DAYS.map(renderDayColumn)}</div>
+    </section>
+  );
+
+  const renderSidebar = () => (
+    <aside className={styles.sidebarPane}>
+      <section className={styles.sidebarCard}>
+        <header className={styles.sidebarHeader}>
+          <h2 className={styles.sidebarHeading}>Viewing event composer</h2>
+          <p className={styles.sidebarDescription}>
+            Draft a new viewing, link it to a property, and choose the negotiator responsible.
+          </p>
+        </header>
+
+        <dl className={styles.focusList}>
+          <div className={styles.focusRow}>
+            <dt>Property</dt>
+            <dd>{FOCUS_EVENT.property}</dd>
+          </div>
+          <div className={styles.focusRow}>
+            <dt>Negotiator</dt>
+            <dd>{FOCUS_EVENT.attendees[0]}</dd>
+          </div>
+          <div className={styles.focusRow}>
+            <dt>Applicants</dt>
+            <dd>{FOCUS_EVENT.attendees.slice(1).join(', ')}</dd>
+          </div>
+          <div className={styles.focusRow}>
+            <dt>Time</dt>
+            <dd>{FOCUS_EVENT.time}</dd>
+          </div>
+          <div className={styles.focusRow}>
+            <dt>Status</dt>
+            <dd>{FOCUS_EVENT.status}</dd>
+          </div>
+          <div className={styles.focusRow}>
+            <dt>Notes</dt>
+            <dd>{FOCUS_EVENT.notes}</dd>
+          </div>
+        </dl>
+
+        <div className={styles.focusActions}>
+          <button type="button" className={styles.primaryAction}>
+            Duplicate for next week
+          </button>
+          <button type="button" className={styles.secondaryAction}>
+            Send confirmation
+          </button>
+        </div>
+      </section>
+
+      <section className={styles.sidebarCard}>
+        <header className={styles.sidebarHeader}>
+          <h2 className={styles.sidebarHeading}>Team availability</h2>
+          <p className={styles.sidebarDescription}>
+            Keep the Apex27 diary aligned so negotiators stay updated on viewings and callbacks.
+          </p>
+        </header>
+
+        <ul className={styles.availabilityList}>
+          {TEAM_AVAILABILITY.map((member) => (
+            <li key={member.name} className={styles.availabilityItem}>
+              <div className={styles.avatar} aria-hidden="true">
+                {member.name
+                  .split(' ')
+                  .map((part) => part[0])
+                  .join('')}
+              </div>
+              <div className={styles.availabilityMeta}>
+                <p className={styles.memberName}>{member.name}</p>
+                <p className={styles.memberRole}>{member.role}</p>
+                <p className={styles.memberAvailability}>{member.availability}</p>
+              </div>
+              <span
+                className={`${styles.statusPill} ${styles[`status${member.status}`] ?? ''}`.trim()}
+              >
+                {member.status}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className={styles.sidebarCard}>
+        <header className={styles.sidebarHeader}>
+          <h2 className={styles.sidebarHeading}>Diary settings</h2>
+          <p className={styles.sidebarDescription}>
+            Manage the same calendar preferences that live inside Apex27.
+          </p>
+        </header>
+
+        <ul className={styles.settingsList}>
+          {DIARY_SETTINGS.map((setting) => (
+            <li key={setting.label} className={styles.settingRow}>
+              <div className={styles.settingMeta}>
+                <p className={styles.settingLabel}>{setting.label}</p>
+                <p className={styles.settingDescription}>{setting.description}</p>
+              </div>
+              <span
+                className={`${styles.settingToggle} ${
+                  setting.enabled ? styles.settingToggleEnabled : ''
+                }`.trim()}
+              >
+                {setting.enabled ? 'On' : 'Off'}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className={styles.sidebarCard}>
+        <header className={styles.sidebarHeader}>
+          <h2 className={styles.sidebarHeading}>Quick actions</h2>
+          <p className={styles.sidebarDescription}>
+            Save time by triggering the same shortcuts your team uses in Apex27.
+          </p>
+        </header>
+
+        <ul className={styles.quickActions}>
+          {QUICK_ACTIONS.map((action) => (
+            <li key={action.label} className={styles.quickActionItem}>
+              <button type="button" className={styles.quickActionButton}>
+                <span className={styles.quickActionLabel}>{action.label}</span>
+                <span className={styles.quickActionDescription}>{action.description}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </aside>
+  );
+
+  const renderContent = () => (
+    <div className={styles.workspaceOuter}>
+      <section className={styles.heroSection}>
+        <p className={styles.heroEyebrow}>Apex27 diary parity</p>
+        <h1 className={styles.heroHeading}>{PAGE_HEADING}</h1>
+        <p className={styles.heroDescription}>{PAGE_TAGLINE}</p>
+      </section>
+
+      <div className={styles.workspaceGrid}>
+        {renderCalendar()}
+        {renderSidebar()}
+      </div>
+    </div>
+  );
+
   return (
     <>
       <Head>
