@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 import { useSession } from '../../../components/SessionProvider';
+import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import styles from '../../../styles/AdminOffers.module.css';
 import {
   formatOfferStatusLabel,
@@ -102,6 +103,7 @@ export default function AdminOffersPage() {
   const router = useRouter();
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
+  const pageTitle = 'Aktonz Admin — Offers workspace';
 
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -355,33 +357,46 @@ export default function AdminOffersPage() {
 
   if (sessionLoading) {
     return (
-      <main className={styles.page}>
-        <div className={styles.container}>
-          <p className={styles.loading}>Checking your admin access…</p>
-        </div>
-      </main>
+      <>
+        <Head>
+          <title>{pageTitle}</title>
+        </Head>
+        <AdminNavigation items={[]} />
+        <main className={styles.page}>
+          <div className={styles.container}>
+            <p className={styles.loading}>Checking your admin access…</p>
+          </div>
+        </main>
+      </>
     );
   }
 
   if (!isAdmin) {
     return (
-      <main className={styles.page}>
-        <div className={styles.container}>
-          <section className={styles.tableSection}>
-            <p className={styles.emptyState}>
-              You need to <Link href="/login">sign in with an admin account</Link> to review and manage offers.
-            </p>
-          </section>
-        </div>
-      </main>
+      <>
+        <Head>
+          <title>{pageTitle}</title>
+        </Head>
+        <AdminNavigation items={[]} />
+        <main className={styles.page}>
+          <div className={styles.container}>
+            <section className={styles.tableSection}>
+              <p className={styles.emptyState}>
+                You need to <Link href="/login">sign in with an admin account</Link> to review and manage offers.
+              </p>
+            </section>
+          </div>
+        </main>
+      </>
     );
   }
 
   return (
     <>
       <Head>
-        <title>Aktonz Admin — Offers workspace</title>
+        <title>{pageTitle}</title>
       </Head>
+      <AdminNavigation items={ADMIN_NAV_ITEMS} />
       <main className={styles.page}>
         <div className={styles.container}>
           <header className={styles.header}>

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 import { useSession } from '../../../components/SessionProvider';
+import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import styles from '../../../styles/AdminContactDetails.module.css';
 
 const STAGE_TONE_CLASS = {
@@ -438,6 +439,45 @@ export default function AdminContactDetailsPage() {
     ? `${contact.name} • Admin contacts`
     : 'Contact details • Admin contacts';
 
+  if (sessionLoading) {
+    return (
+      <>
+        <Head>
+          <title>{pageTitle}</title>
+        </Head>
+        <AdminNavigation items={[]} />
+        <div className={styles.page}>
+          <div className={styles.container}>
+            <section className={styles.stateCard} aria-live="polite">
+              <p>Checking your admin access…</p>
+            </section>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <>
+        <Head>
+          <title>{pageTitle}</title>
+        </Head>
+        <AdminNavigation items={[]} />
+        <div className={styles.page}>
+          <div className={styles.container}>
+            <section className={`${styles.stateCard} ${styles.errorState}`} role="alert">
+              <p>Admin access required.</p>
+              <p>
+                You need to <Link href="/login">sign in with an admin account</Link> to view contact details.
+              </p>
+            </section>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   const lastActivityRelative = contact?.lastActivityTimestamp
     ? formatRelativeTime(contact.lastActivityTimestamp)
     : null;
@@ -608,6 +648,7 @@ export default function AdminContactDetailsPage() {
       <Head>
         <title>{pageTitle}</title>
       </Head>
+      <AdminNavigation items={ADMIN_NAV_ITEMS} />
       <div className={styles.page}>
         <div className={styles.container}>
           <header className={styles.header}>

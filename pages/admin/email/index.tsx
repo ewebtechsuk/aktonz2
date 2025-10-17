@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 
 import adminStyles from '../../../styles/Admin.module.css';
 import styles from '../../../styles/AdminEmailSettings.module.css';
+import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import { useSession } from '../../../components/SessionProvider';
 
 type MicrosoftStatus = {
@@ -206,58 +207,29 @@ const AdminEmailSettingsPage = () => {
     return entries;
   }, [microsoftConnected, statusState.data?.expiresAt, statusState.data?.expiresInSeconds]);
 
-  const renderLayout = (title: string, content: ReactNode) => (
+  const emailSecondaryLinks = useMemo(
+    () => [
+      { label: 'Email integration', href: '#integration' },
+      { label: 'Notes', href: '#notes' },
+      { label: 'Overrides', href: '#overrides' },
+    ],
+    [],
+  );
+
+  const renderLayout = (title: string, content: ReactNode, showNavigation = false) => (
     <>
       <Head>
         <title>{title}</title>
       </Head>
-      <header className={adminStyles.adminHeader}>
-        <div className={adminStyles.adminHeaderInner}>
-          <div className={adminStyles.adminBrand}>
-            <span className={adminStyles.adminBrandName}>Aktonz</span>
-            <span className={adminStyles.adminBrandBadge}>Admin</span>
-          </div>
-          <nav className={adminStyles.adminNav} aria-label="Admin navigation">
-            <ul className={adminStyles.adminNavList}>
-              <li>
-                <Link href="/admin" className={adminStyles.adminNavLink}>
-                  Operations
-                </Link>
-              </li>
-              <li>
-                <a className={adminStyles.adminNavLink} href="#integration">
-                  Email integration
-                </a>
-              </li>
-              <li>
-                <a className={adminStyles.adminNavLink} href="#notes">
-                  Notes
-                </a>
-              </li>
-              <li>
-                <a className={adminStyles.adminNavLink} href="#overrides">
-                  Overrides
-                </a>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  className={adminStyles.adminNavButton}
-                  onClick={handleLogout}
-                  disabled={logoutLoading}
-                >
-                  {logoutLoading ? 'Signing out…' : 'Sign out'}
-                </button>
-              </li>
-            </ul>
-          </nav>
-          {logoutError ? (
-            <p className={adminStyles.logoutError} role="alert">
-              {logoutError}
-            </p>
-          ) : null}
-        </div>
-      </header>
+      <AdminNavigation
+        items={showNavigation ? ADMIN_NAV_ITEMS : []}
+        secondaryItems={showNavigation ? emailSecondaryLinks : []}
+        onLogout={showNavigation ? handleLogout : undefined}
+        logoutLoading={logoutLoading}
+        logoutLabel="Sign out"
+        logoutLoadingLabel="Signing out…"
+        errorMessage={logoutError ?? undefined}
+      />
       <main className={styles.pageMain}>{content}</main>
     </>
   );
@@ -278,6 +250,7 @@ const AdminEmailSettingsPage = () => {
           <Link href="/login">sign in with an admin account</Link> to manage the email integration.
         </p>
       </div>,
+      false,
     );
   }
 
@@ -426,6 +399,7 @@ const AdminEmailSettingsPage = () => {
         </section>
       </div>
     </div>,
+    true,
   );
 };
 
