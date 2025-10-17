@@ -3,6 +3,8 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
+import supportData from '../../../data/ai-support.json';
+import agentsData from '../../../data/agents.json';
 import { useSession } from '../../../components/SessionProvider';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import styles from '../../../styles/AdminContactDetails.module.css';
@@ -14,6 +16,242 @@ const STAGE_TONE_CLASS = {
   neutral: styles.stageNeutral,
   muted: styles.stageMuted,
 };
+
+const SUPPORT_CONTACTS = Array.isArray(supportData?.contacts) ? supportData.contacts : [];
+const SUPPORT_LISTING_MAP = new Map();
+(Array.isArray(supportData?.listings) ? supportData.listings : []).forEach((listing) => {
+  const key = listing?.id ?? listing?.listingId ?? '';
+  if (!key) {
+    return;
+  }
+  SUPPORT_LISTING_MAP.set(String(key), listing);
+});
+const SUPPORT_APPOINTMENTS = Array.isArray(supportData?.appointments) ? supportData.appointments : [];
+const SUPPORT_VIEWINGS = Array.isArray(supportData?.viewings) ? supportData.viewings : [];
+
+const MANAGEMENT_STAGE_METADATA = {
+  new: { label: 'New enquiry', tone: 'info' },
+  nurture: { label: 'Nurture', tone: 'neutral' },
+  warm: { label: 'Warm lead', tone: 'warning' },
+  hot: { label: 'Hot lead', tone: 'positive' },
+  client: { label: 'Active client', tone: 'positive' },
+  past_client: { label: 'Past client', tone: 'muted' },
+  archived: { label: 'Archived', tone: 'muted' },
+};
+
+const MANAGEMENT_PIPELINE_METADATA = {
+  sales: { label: 'Sales pipeline', order: 0 },
+  lettings: { label: 'Lettings pipeline', order: 10 },
+  management: { label: 'Property management', order: 20 },
+};
+
+const MANAGEMENT_TYPE_METADATA = {
+  buyer: { label: 'Buyer' },
+  vendor: { label: 'Vendor' },
+  tenant: { label: 'Tenant' },
+  landlord: { label: 'Landlord' },
+  applicant: { label: 'Applicant' },
+};
+
+const MANAGEMENT_SOURCE_OPTIONS = [
+  { value: 'Website enquiry', label: 'Website enquiry' },
+  { value: 'Portal lead', label: 'Portal lead' },
+  { value: 'Referral', label: 'Referral' },
+  { value: 'Walk-in', label: 'Walk-in' },
+  { value: 'Phone call', label: 'Phone call' },
+  { value: 'Campaign', label: 'Campaign' },
+];
+
+const AGENT_OPTIONS = Array.isArray(agentsData)
+  ? agentsData.map((agent) => ({
+      value: String(agent.id),
+      label: agent.name,
+      phone: agent.phone || null,
+    }))
+  : [];
+
+const INITIAL_FORM_STATE = Object.freeze({
+  stage: '',
+  pipeline: '',
+  type: '',
+  source: '',
+  assignedAgentId: '',
+  email: '',
+  phone: '',
+  locationFocus: '',
+  tags: '',
+  notes: '',
+  nextStepDescription: '',
+  nextStepDueAt: '',
+});
+
+const INITIAL_STATUS_STATE = Object.freeze({
+  type: 'idle',
+  message: '',
+  timestamp: null,
+});
+
+function ensureOption(collection, value, label) {
+  if (!value) {
+    return collection;
+  }
+
+  if (!collection.some((option) => option.value === value)) {
+    collection = collection.concat({ value, label: label || value });
+  }
+  return collection;
+}
+
+function toInputDateTime(value) {
+  if (!value) {
+    return '';
+  }
+
+  const date = new Date(value);
+  const timestamp = date.getTime();
+  if (!Number.isFinite(timestamp)) {
+    return '';
+  }
+
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  const local = new Date(timestamp - offsetMs);
+  return local.toISOString().slice(0, 16);
+}
+
+function buildFutureInputDate(daysFromNow, hour = 9, minute = 0) {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+  date.setHours(hour, minute, 0, 0);
+  return toInputDateTime(date.toISOString());
+}
+
+function normaliseDateTimeInput(value) {
+  if (!value) {
+    return { iso: null, timestamp: null };
+  }
+
+  const date = new Date(value);
+  const timestamp = date.getTime();
+  if (!Number.isFinite(timestamp)) {
+    return { iso: null, timestamp: null };
+  }
+
+  return { iso: new Date(timestamp).toISOString(), timestamp };
+}
+
+function normaliseManagementOptions(contact, supportContact) {
+  const stageOptions = Object.entries(MANAGEMENT_STAGE_METADATA).map(([value, meta]) => ({
+    value,
+    label: meta.label,
+  }));
+
+  const pipelineOptions = Object.entries(MANAGEMENT_PIPELINE_METADATA).map(([value, meta]) => ({
+    value,
+    label: meta.label,
+  }));
+
+  const typeOptions = Object.entries(MANAGEMENT_TYPE_METADATA).map(([value, meta]) => ({
+    value,
+    label: meta.label,
+  }));
+
+  const enrichedStages = contact
+    ? ensureOption(stageOptions, contact.stage, contact.stageLabel)
+    : stageOptions;
+  const enrichedPipelines = contact
+    ? ensureOption(pipelineOptions, contact.pipeline, contact.pipelineLabel)
+    : pipelineOptions;
+  const enrichedTypes = contact ? ensureOption(typeOptions, contact.type, contact.typeLabel) : typeOptions;
+  const enrichedSources = contact
+    ? ensureOption(MANAGEMENT_SOURCE_OPTIONS, contact.source, contact.source)
+    : MANAGEMENT_SOURCE_OPTIONS;
+
+  return {
+    stages: enrichedStages,
+    pipelines: enrichedPipelines,
+    types: enrichedTypes,
+    sources: enrichedSources,
+    agents: AGENT_OPTIONS,
+    preferredAgentId: supportContact?.preferredAgentId ? String(supportContact.preferredAgentId) : null,
+  };
+}
+
+function buildManagementFormState(contact) {
+  if (!contact) {
+    return INITIAL_FORM_STATE;
+  }
+
+  const nextStepDueAt = contact.nextStep?.dueAt || contact.nextStep?.dueTimestamp;
+
+  return {
+    stage: contact.stage || '',
+    pipeline: contact.pipeline || '',
+    type: contact.type || '',
+    source: contact.source || '',
+    assignedAgentId: contact.assignedAgentId ? String(contact.assignedAgentId) : '',
+    email: contact.email || '',
+    phone: contact.phone || '',
+    locationFocus: contact.locationFocus || '',
+    tags: Array.isArray(contact.tags) ? contact.tags.join(', ') : '',
+    notes: contact.generatedNotes || '',
+    nextStepDescription: contact.nextStep?.description || '',
+    nextStepDueAt: toInputDateTime(nextStepDueAt),
+  };
+}
+
+function buildManagementPayloadFromState(state, options) {
+  const stageMeta = state.stage ? MANAGEMENT_STAGE_METADATA[state.stage] || null : null;
+  const pipelineMeta = state.pipeline ? MANAGEMENT_PIPELINE_METADATA[state.pipeline] || null : null;
+  const typeMeta = state.type ? MANAGEMENT_TYPE_METADATA[state.type] || null : null;
+  const agentOption = state.assignedAgentId ? options?.agents?.find((agent) => agent.value === state.assignedAgentId) || null : null;
+
+  const tags = state.tags
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter((tag, index, arr) => tag && arr.indexOf(tag) === index);
+
+  const due = normaliseDateTimeInput(state.nextStepDueAt);
+  const nextStep = state.nextStepDescription || due.iso
+    ? {
+        description: state.nextStepDescription || 'Follow up scheduled',
+        dueAt: due.iso,
+        dueTimestamp: due.timestamp,
+      }
+    : null;
+
+  const contactUpdates = {
+    stage: state.stage || '',
+    stageLabel: stageMeta?.label || (state.stage ? state.stage.replace(/_/g, ' ') : ''),
+    stageTone: stageMeta?.tone || 'neutral',
+    pipeline: state.pipeline || '',
+    pipelineLabel: pipelineMeta?.label || (state.pipeline ? state.pipeline.replace(/_/g, ' ') : ''),
+    pipelineOrder: pipelineMeta?.order ?? null,
+    type: state.type || '',
+    typeLabel: typeMeta?.label || (state.type ? state.type.replace(/_/g, ' ') : ''),
+    source: state.source || '',
+    assignedAgentId: state.assignedAgentId || null,
+    assignedAgentName: agentOption?.label || null,
+    assignedAgent: agentOption
+      ? {
+          id: agentOption.value,
+          name: agentOption.label,
+          phone: agentOption.phone || null,
+        }
+      : null,
+    email: state.email || '',
+    phone: state.phone || '',
+    locationFocus: state.locationFocus || '',
+    tags,
+    generatedNotes: state.notes || '',
+    nextStep,
+  };
+
+  if (!nextStep) {
+    contactUpdates.nextStep = null;
+  }
+
+  return { contactUpdates };
+}
 
 function buildStageClass(tone) {
   return STAGE_TONE_CLASS[tone] || styles.stageNeutral;
@@ -435,9 +673,216 @@ export default function AdminContactDetailsPage() {
     return () => controller.abort();
   }, [router.isReady, sessionLoading, isAdmin, contactId]);
 
-  const pageTitle = contact
-    ? `${contact.name} • Admin contacts`
-    : 'Contact details • Admin contacts';
+  const supportContact = useMemo(() => findSupportContactFor(contact), [contact]);
+
+  useEffect(() => {
+    if (!contact) {
+      setOptions(normaliseManagementOptions(null, supportContact || null));
+      if (!skipSyncRef.current) {
+        setFormState(INITIAL_FORM_STATE);
+        setFormStatus(INITIAL_STATUS_STATE);
+      }
+      skipSyncRef.current = false;
+      return;
+    }
+
+    setOptions(normaliseManagementOptions(contact, supportContact));
+    if (!skipSyncRef.current) {
+      setFormState(buildManagementFormState(contact));
+      setFormStatus(INITIAL_STATUS_STATE);
+    }
+    skipSyncRef.current = false;
+  }, [contact, supportContact]);
+
+  const supportListings = useMemo(
+    () => getSupportListings(Array.isArray(supportContact?.relatedListings) ? supportContact.relatedListings : []),
+    [supportContact?.relatedListings],
+  );
+
+  const requirementItems = useMemo(
+    () =>
+      combineRequirements(
+        Array.isArray(contact?.requirements) ? contact.requirements : [],
+        Array.isArray(supportContact?.activeRequirements) ? supportContact.activeRequirements : [],
+      ),
+    [contact?.requirements, supportContact?.activeRequirements],
+  );
+
+  const supportSchedule = useMemo(() => {
+    if (!supportContact?.id) {
+      return [];
+    }
+
+    const appointmentEntries = SUPPORT_APPOINTMENTS.filter(
+      (entry) => entry.contactId === supportContact.id,
+    ).map((entry) => ({
+      id: entry.id,
+      date: entry.date,
+      label: 'Appointment',
+      title: entry.type,
+      location: entry.location,
+      meta: entry.notes || null,
+    }));
+
+    const viewingEntries = SUPPORT_VIEWINGS.filter((entry) => entry.contactId === supportContact.id).map((entry) => {
+      const listing = entry.propertyId ? SUPPORT_LISTING_MAP.get(String(entry.propertyId)) : null;
+      const listingTitle = listing?.title || 'Viewing';
+      return {
+        id: entry.id,
+        date: entry.date,
+        label: 'Viewing',
+        title: listingTitle,
+        location: listing?.address || entry.location,
+        meta: listing?.price || null,
+      };
+    });
+
+    const items = buildScheduleEntries([...appointmentEntries, ...viewingEntries]);
+    const now = Date.now();
+
+    return items.filter((item) => item.timestamp >= now - 24 * 60 * 60 * 1000);
+  }, [supportContact?.id]);
+
+  const recommendedAgent = useMemo(() => {
+    if (!options?.preferredAgentId) {
+      return null;
+    }
+    return options.agents.find((agent) => agent.value === options.preferredAgentId) || null;
+  }, [options.agents, options.preferredAgentId]);
+
+  const quickStageActions = useMemo(
+    () => [
+      {
+        key: 'hot',
+        label: 'Mark as hot lead',
+        stage: 'hot',
+        description: 'Priority follow-up and negotiation.',
+      },
+      {
+        key: 'nurture',
+        label: 'Move to nurture',
+        stage: 'nurture',
+        description: 'Keep warm with periodic check-ins.',
+      },
+      {
+        key: 'client',
+        label: 'Convert to client',
+        stage: 'client',
+        description: 'Terms agreed and instruction active.',
+      },
+    ],
+    [],
+  );
+
+  const quickNextStepActions = useMemo(
+    () => [
+      {
+        key: 'follow-up-call',
+        label: 'Follow-up call tomorrow',
+        description: 'Call to confirm feedback and next steps.',
+        days: 1,
+        hour: 10,
+      },
+      {
+        key: 'send-shortlist',
+        label: 'Send shortlist this afternoon',
+        description: 'Email curated properties with brochures.',
+        days: 0,
+        hour: 14,
+      },
+      {
+        key: 'book-viewing',
+        label: 'Arrange viewing for Saturday',
+        description: 'Coordinate viewing availability with landlord.',
+        days: 3,
+        hour: 11,
+      },
+    ],
+    [],
+  );
+
+  const handleFieldChange = (field) => (event) => {
+    const value = event.target.value;
+    setFormState((prev) => ({ ...prev, [field]: value }));
+    setFormStatus(INITIAL_STATUS_STATE);
+  };
+
+  const handleQuickStage = (stage) => {
+    setFormState((prev) => ({
+      ...prev,
+      stage,
+      pipeline: prev.pipeline || contact?.pipeline || '',
+    }));
+    setFormStatus(INITIAL_STATUS_STATE);
+  };
+
+  const handleNextStepTemplate = (template) => {
+    const nextDue = buildFutureInputDate(template.days ?? 0, template.hour ?? 9, template.minute ?? 0);
+    setFormState((prev) => ({
+      ...prev,
+      nextStepDescription: template.description,
+      nextStepDueAt: nextDue,
+    }));
+    setFormStatus(INITIAL_STATUS_STATE);
+  };
+
+  const handleResetForm = () => {
+    if (!contact) {
+      setFormState(INITIAL_FORM_STATE);
+      setFormStatus(INITIAL_STATUS_STATE);
+      return;
+    }
+
+    setFormState(buildManagementFormState(contact));
+    setFormStatus(INITIAL_STATUS_STATE);
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!contact) {
+      return;
+    }
+
+    setSaving(true);
+    setFormStatus({ type: 'pending', message: 'Saving updates…', timestamp: Date.now() });
+
+    try {
+      const { contactUpdates } = buildManagementPayloadFromState(formState, options);
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      const nextContact = { ...contact, ...contactUpdates };
+      skipSyncRef.current = true;
+      setContact(nextContact);
+      setOptions(normaliseManagementOptions(nextContact, supportContact));
+      setFormState(buildManagementFormState(nextContact));
+      setFormStatus({
+        type: 'success',
+        message: 'Contact workspace updated.',
+        timestamp: Date.now(),
+      });
+    } catch (err) {
+      console.error('Failed to update contact workspace', err);
+      setFormStatus({
+        type: 'error',
+        message: 'Unable to save changes right now. Please try again.',
+        timestamp: Date.now(),
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const formStatusHint = formStatus.timestamp ? formatRelativeTime(formStatus.timestamp) : null;
+  const formDisabled = !contact || saving || loading;
+  const formStatusClasses = [styles.formStatus];
+  if (formStatus.type === 'success') {
+    formStatusClasses.push(styles.formStatusSuccess);
+  } else if (formStatus.type === 'error') {
+    formStatusClasses.push(styles.formStatusError);
+  } else if (formStatus.type === 'pending') {
+    formStatusClasses.push(styles.formStatusPending);
+  }
+  const formStatusClassName = formStatusClasses.join(' ');
 
   if (sessionLoading) {
     return (
@@ -584,29 +1029,37 @@ export default function AdminContactDetailsPage() {
     [contactId, formState],
   );
 
-  const mainDetails = contact
-    ? [
-        { label: 'Stage', value: contact.stageLabel || '—' },
-        { label: 'Pipeline', value: contact.pipelineLabel || '—' },
-        { label: 'Contact type', value: contact.typeLabel || '—' },
-        { label: 'Source', value: contact.source || '—' },
-        {
-          label: 'Created',
-          value: formatDateTime(contact.createdAt),
-          hint: createdRelative ? `Added ${createdRelative}` : null,
-        },
-        {
-          label: 'Last activity',
-          value: formatDateTime(contact.lastActivityAt),
-          hint: lastActivityRelative ? `Updated ${lastActivityRelative}` : null,
-        },
-        { label: 'Days in pipeline', value: daysInPipelineLabel },
-        { label: 'Engagement score', value: engagementLabel },
-      ]
-    : [];
+  const headerPrimaryActions = useMemo(() => {
+    if (!apexActions.length) {
+      return [];
+    }
 
-  const requirements = Array.isArray(contact?.requirements) ? contact.requirements : [];
-  const tags = Array.isArray(contact?.tags) ? contact.tags : [];
+    const preferredOrder = ['update', 'newTask', 'tasks', 'view', 'timeline'];
+    const selected = [];
+
+    preferredOrder.forEach((key) => {
+      if (selected.length >= 2) {
+        return;
+      }
+      const match = apexActions.find((action) => action.key === key);
+      if (match && !selected.some((entry) => entry.key === match.key)) {
+        selected.push(match);
+      }
+    });
+
+    if (selected.length < 2) {
+      apexActions.forEach((action) => {
+        if (selected.length >= 2) {
+          return;
+        }
+        if (!selected.some((entry) => entry.key === action.key)) {
+          selected.push(action);
+        }
+      });
+    }
+
+    return selected;
+  }, [apexActions]);
 
   const stageOptions = useMemo(() => {
     const entries = [...options.stage];
@@ -690,7 +1143,9 @@ export default function AdminContactDetailsPage() {
                       ) : null}
                       {contact.source ? <span className={styles.metaPill}>Source: {contact.source}</span> : null}
                     </div>
-                    {contact.locationFocus ? (
+                    {supportContact?.searchFocus ? (
+                      <p className={styles.locationFocus}>{supportContact.searchFocus}</p>
+                    ) : contact.locationFocus ? (
                       <p className={styles.locationFocus}>Primary focus: {contact.locationFocus}</p>
                     ) : null}
                   </>
@@ -706,9 +1161,23 @@ export default function AdminContactDetailsPage() {
                     ) : null}
                   </div>
                 ) : null}
-                <Link href="/admin/contacts" className={styles.backLink}>
-                  ← Back to contacts
-                </Link>
+                <div className={styles.headerButtons}>
+                  {headerPrimaryActions.map((action) => (
+                    <button
+                      key={action.key}
+                      type="button"
+                      className={
+                        action.key === 'update' ? styles.primaryHeaderButton : styles.secondaryHeaderButton
+                      }
+                      onClick={() => openInNewTab(action.href)}
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                  <Link href="/admin/contacts" className={styles.backLink}>
+                    ← Back to contacts
+                  </Link>
+                </div>
               </div>
             </div>
           </header>
@@ -727,31 +1196,56 @@ export default function AdminContactDetailsPage() {
           ) : contact ? (
             <div className={styles.contentGrid}>
               <div className={styles.columnStack}>
-                <section className={styles.card} aria-labelledby="contact-main-details">
+                <section className={`${styles.card} ${styles.summaryCard}`} aria-labelledby="contact-overview">
                   <div className={styles.cardHeader}>
-                    <h2 id="contact-main-details">Main details</h2>
+                    <h2 id="contact-overview">Contact overview</h2>
                   </div>
-                  <div className={styles.fieldGrid}>
-                    {mainDetails.map((item) => (
-                      <div key={item.label} className={styles.field}>
-                        <span className={styles.fieldLabel}>{item.label}</span>
-                        <span className={styles.fieldValue}>{item.value || '—'}</span>
-                        {item.hint ? <span className={styles.fieldHint}>{item.hint}</span> : null}
-                      </div>
-                    ))}
+                  <div className={styles.metricGrid}>
+                    <div className={styles.metricCard}>
+                      <span className={styles.metricLabel}>Stage</span>
+                      <span className={styles.metricValue}>{contact.stageLabel || '—'}</span>
+                    </div>
+                    <div className={styles.metricCard}>
+                      <span className={styles.metricLabel}>Pipeline</span>
+                      <span className={styles.metricValue}>{contact.pipelineLabel || '—'}</span>
+                    </div>
+                    <div className={styles.metricCard}>
+                      <span className={styles.metricLabel}>Days active</span>
+                      <span className={styles.metricValue}>{daysInPipelineLabel}</span>
+                    </div>
+                    <div className={styles.metricCard}>
+                      <span className={styles.metricLabel}>Engagement</span>
+                      <span className={styles.metricValue}>{engagementLabel}</span>
+                    </div>
+                    <div className={styles.metricCard}>
+                      <span className={styles.metricLabel}>Created</span>
+                      <span className={styles.metricValue}>{formatDateTime(contact.createdAt)}</span>
+                      {createdRelative ? <span className={styles.metricHint}>{createdRelative}</span> : null}
+                    </div>
+                    <div className={styles.metricCard}>
+                      <span className={styles.metricLabel}>Last activity</span>
+                      <span className={styles.metricValue}>{formatDateTime(contact.lastActivityAt)}</span>
+                      {lastActivityRelative ? <span className={styles.metricHint}>{lastActivityRelative}</span> : null}
+                    </div>
                   </div>
                 </section>
 
                 <section className={styles.card} aria-labelledby="contact-requirements">
                   <div className={styles.cardHeader}>
-                    <h2 id="contact-requirements">Requirements &amp; focus</h2>
+                    <h2 id="contact-requirements">Focus &amp; requirements</h2>
                   </div>
-                  {contact.locationFocus ? (
+                  {supportContact?.searchFocus || contact.locationFocus ? (
+                    <p className={styles.focusHighlight}>
+                      {supportContact?.searchFocus || contact.locationFocus}
+                    </p>
+                  ) : null}
+                  {contact.locationFocus && supportContact?.searchFocus &&
+                  contact.locationFocus !== supportContact.searchFocus ? (
                     <p className={styles.fieldHint}>Primary area: {contact.locationFocus}</p>
                   ) : null}
-                  {requirements.length ? (
+                  {requirementItems.length ? (
                     <ul className={styles.requirementList}>
-                      {requirements.map((item) => (
+                      {requirementItems.map((item) => (
                         <li key={item}>{item}</li>
                       ))}
                     </ul>
@@ -771,8 +1265,11 @@ export default function AdminContactDetailsPage() {
 
                 <section className={styles.card} aria-labelledby="contact-notes">
                   <div className={styles.cardHeader}>
-                    <h2 id="contact-notes">Notes</h2>
+                    <h2 id="contact-notes">Insights &amp; notes</h2>
                   </div>
+                  {supportContact?.summary ? (
+                    <p className={styles.summaryNote}>{supportContact.summary}</p>
+                  ) : null}
                   {contact.generatedNotes ? (
                     <div className={styles.notesBody}>
                       <p>{contact.generatedNotes}</p>
@@ -780,12 +1277,11 @@ export default function AdminContactDetailsPage() {
                   ) : (
                     <p className={styles.emptyNote}>No additional notes have been added for this contact.</p>
                   )}
-
-                  {tags.length ? (
+                  {Array.isArray(contact?.tags) && contact.tags.length ? (
                     <div>
                       <span className={styles.fieldLabel}>Tags</span>
                       <div className={styles.tagsRow}>
-                        {tags.map((tag) => (
+                        {contact.tags.map((tag) => (
                           <span key={tag} className={styles.tagChip}>
                             {tag}
                           </span>
@@ -794,6 +1290,48 @@ export default function AdminContactDetailsPage() {
                     </div>
                   ) : null}
                 </section>
+
+                {supportListings.length ? (
+                  <section className={styles.card} aria-labelledby="contact-properties">
+                    <div className={styles.cardHeader}>
+                      <h2 id="contact-properties">Active properties</h2>
+                    </div>
+                    <ul className={styles.propertyList}>
+                      {supportListings.map((listing) => {
+                        const href = typeof listing.link === 'string' && listing.link ? listing.link : null;
+                        return (
+                          <li key={listing.id} className={styles.propertyItem}>
+                            <div className={styles.propertyHeader}>
+                              <span className={styles.propertyTitle}>{listing.title}</span>
+                              {listing.price ? <span className={styles.propertyPrice}>{listing.price}</span> : null}
+                            </div>
+                            <div className={styles.propertyMeta}>
+                              {listing.address ? <span>{listing.address}</span> : null}
+                              {listing.status ? <span>Status: {listing.status}</span> : null}
+                            </div>
+                            {Array.isArray(listing.tags) && listing.tags.length ? (
+                              <div className={styles.propertyTags}>
+                                {listing.tags.map((tag) => (
+                                  <span key={tag}>{tag}</span>
+                                ))}
+                              </div>
+                            ) : null}
+                            {href ? (
+                              <a
+                                href={href}
+                                target={href.startsWith('/') ? '_self' : '_blank'}
+                                rel={href.startsWith('/') ? undefined : 'noreferrer'}
+                                className={styles.propertyLink}
+                              >
+                                View listing
+                              </a>
+                            ) : null}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </section>
+                ) : null}
               </div>
 
               <div className={styles.columnStack}>
@@ -1195,32 +1733,44 @@ export default function AdminContactDetailsPage() {
                       </dd>
                     </div>
                     <div>
+                      <dt>Source</dt>
+                      <dd>{contact.source || '—'}</dd>
+                    </div>
+                    <div>
                       <dt>Preferred pipeline</dt>
                       <dd>{contact.pipelineLabel || '—'}</dd>
                     </div>
                     <div>
-                      <dt>Source</dt>
-                      <dd>{contact.source || '—'}</dd>
+                      <dt>Contact type</dt>
+                      <dd>{contact.typeLabel || '—'}</dd>
                     </div>
                   </dl>
                 </section>
 
                 <section className={styles.card} aria-labelledby="contact-team">
                   <div className={styles.cardHeader}>
-                    <h2 id="contact-team">Assigned team</h2>
+                    <h2 id="contact-team">Team &amp; ownership</h2>
                   </div>
-                  {contact.assignedAgentName ? (
+                  {contact.assignedAgentName || supportContact?.preferredAgentId ? (
                     <dl className={styles.contactList}>
-                      <div>
-                        <dt>Owner</dt>
-                        <dd>{contact.assignedAgentName}</dd>
-                      </div>
+                      {contact.assignedAgentName ? (
+                        <div>
+                          <dt>Owner</dt>
+                          <dd>{contact.assignedAgentName}</dd>
+                        </div>
+                      ) : null}
                       {contact.assignedAgent?.phone ? (
                         <div>
-                          <dt>Phone</dt>
+                          <dt>Owner phone</dt>
                           <dd>
                             <a href={`tel:${contact.assignedAgent.phone}`}>{contact.assignedAgent.phone}</a>
                           </dd>
+                        </div>
+                      ) : null}
+                      {supportContact?.preferredAgentId ? (
+                        <div>
+                          <dt>Preferred Apex27 agent</dt>
+                          <dd>{supportContact.preferredAgentId}</dd>
                         </div>
                       ) : null}
                     </dl>
@@ -1229,28 +1779,78 @@ export default function AdminContactDetailsPage() {
                   )}
                 </section>
 
+                {supportSchedule.length ? (
+                  <section className={styles.card} aria-labelledby="contact-schedule">
+                    <div className={styles.cardHeader}>
+                      <h2 id="contact-schedule">Upcoming activity</h2>
+                    </div>
+                    <ul className={styles.scheduleList}>
+                      {supportSchedule.map((item) => (
+                        <li key={item.id} className={styles.scheduleItem}>
+                          <div className={styles.scheduleHeader}>
+                            <span className={styles.scheduleLabel}>{item.label}</span>
+                            <span className={styles.scheduleDate}>{item.dateLabel}</span>
+                          </div>
+                          <p className={styles.scheduleTitle}>{item.title}</p>
+                          {item.location ? <p className={styles.scheduleMeta}>{item.location}</p> : null}
+                          {item.meta ? <p className={styles.scheduleMeta}>{item.meta}</p> : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
+
+                <section className={styles.card} aria-labelledby="contact-offers">
+                  <div className={styles.cardHeader}>
+                    <h2 id="contact-offers">Offers &amp; negotiations</h2>
+                  </div>
+                  {offersLoading ? (
+                    <p className={styles.emptyNote}>Checking for related offers…</p>
+                  ) : offersError ? (
+                    <p className={styles.emptyNote}>{offersError}</p>
+                  ) : relatedOffers.length ? (
+                    <ul className={styles.offerList}>
+                      {relatedOffers.map((offer) => (
+                        <li key={offer.id || `${offer.contactId}-${offer.propertyId}`} className={styles.offerItem}>
+                          <div className={styles.offerHeader}>
+                            <span className={styles.offerAmount}>{offer.amount || 'Offer recorded'}</span>
+                            <span className={styles.offerStatus}>{offer.statusLabel || offer.status || 'Status unknown'}</span>
+                          </div>
+                          {offer.property?.title ? (
+                            <p className={styles.offerMeta}>Property: {offer.property.title}</p>
+                          ) : null}
+                          {offer.contact?.name && offer.contact?.name !== contact.name ? (
+                            <p className={styles.offerMeta}>Submitted by {offer.contact.name}</p>
+                          ) : null}
+                          {offer.date ? (
+                            <p className={styles.offerMeta}>Updated {formatDateTime(offer.date)}</p>
+                          ) : null}
+                          {offer.notes ? <p className={styles.offerNotes}>{offer.notes}</p> : null}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className={styles.emptyNote}>No offers are linked to this contact yet.</p>
+                  )}
+                </section>
+
                 <section className={styles.card} aria-labelledby="contact-timeline">
                   <div className={styles.cardHeader}>
-                    <h2 id="contact-timeline">Timeline</h2>
+                    <h2 id="contact-timeline">Engagement timeline</h2>
                   </div>
-                  <div className={styles.timeline}>
-                    <div className={styles.timelineItem}>
-                      <span className={styles.timelineLabel}>Last activity</span>
-                      <span className={styles.timelineValue}>{formatDateTime(contact.lastActivityAt)}</span>
-                      {lastActivityRelative ? (
-                        <span className={styles.timelineHint}>{lastActivityRelative}</span>
-                      ) : null}
+                  {timelineEvents.length ? (
+                    <div className={styles.timeline}>
+                      {timelineEvents.map((event) => (
+                        <div key={event.id} className={styles.timelineItem}>
+                          <span className={styles.timelineLabel}>{event.label}</span>
+                          <span className={styles.timelineValue}>{event.value}</span>
+                          {event.hint ? <span className={styles.timelineHint}>{event.hint}</span> : null}
+                        </div>
+                      ))}
                     </div>
-                    <div className={styles.timelineItem}>
-                      <span className={styles.timelineLabel}>Created</span>
-                      <span className={styles.timelineValue}>{formatDateTime(contact.createdAt)}</span>
-                      {createdRelative ? <span className={styles.timelineHint}>{createdRelative}</span> : null}
-                    </div>
-                    <div className={styles.timelineItem}>
-                      <span className={styles.timelineLabel}>Days active</span>
-                      <span className={styles.timelineValue}>{daysInPipelineLabel}</span>
-                    </div>
-                  </div>
+                  ) : (
+                    <p className={styles.emptyNote}>No recent engagement has been recorded.</p>
+                  )}
                 </section>
               </div>
             </div>
