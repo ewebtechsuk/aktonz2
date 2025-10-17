@@ -25,6 +25,9 @@ type AdminNavigationProps = {
 
 export const ADMIN_NAV_ITEMS: NavigationItem[] = [
   { label: 'Dashboard', href: '/admin', match: ['/admin'] },
+  { label: 'Sales', href: '/admin/sales', match: ['/admin/sales'] },
+  { label: 'Lettings', href: '/admin/lettings', match: ['/admin/lettings', '/admin/listings'] },
+  { label: 'Diary', href: '/admin/diary', match: ['/admin/diary'] },
   { label: 'Contacts', href: '/admin/contacts', match: ['/admin/contacts', '/admin/contacts/[id]'] },
   { label: 'Valuations', href: '/admin/valuations' },
   { label: 'Offers', href: '/admin/offers' },
