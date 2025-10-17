@@ -140,6 +140,14 @@ function createFormStateFromListing(listing) {
       }))
     : [];
 
+  const images = Array.isArray(listing.images)
+    ? listing.images.map((url) => ({ url: typeof url === 'string' ? url : '' }))
+    : [];
+
+  const media = Array.isArray(listing.media)
+    ? listing.media.map((url) => ({ url: typeof url === 'string' ? url : '' }))
+    : [];
+
   return {
     status: listing.status || 'available',
     availabilityLabel: listing.availabilityLabel || '',
@@ -168,6 +176,8 @@ function createFormStateFromListing(listing) {
     description: listing.description || '',
     marketingLinks,
     metadata,
+    images,
+    media,
   };
 }
 
@@ -193,6 +203,14 @@ function buildUpdatePayload(values) {
         .map((item) => item.trim())
         .filter(Boolean)
     : [];
+
+  const images = (values.images || [])
+    .map((item) => (item?.url ? item.url.trim() : ''))
+    .filter(Boolean);
+
+  const media = (values.media || [])
+    .map((item) => (item?.url ? item.url.trim() : ''))
+    .filter(Boolean);
 
   return {
     status: values.status,
@@ -228,6 +246,8 @@ function buildUpdatePayload(values) {
     description: values.description,
     marketing: { links: marketingLinks },
     metadata,
+    images,
+    media,
   };
 }
 
@@ -544,6 +564,102 @@ export default function AdminListingDetailsPage() {
         const links = [...(prev.marketingLinks || [])];
         links.splice(index, 1);
         return { ...prev, marketingLinks: links };
+      });
+    },
+    [updateForm],
+  );
+
+  const addImage = useCallback(() => {
+    updateForm((prev) => ({
+      ...prev,
+      images: [...(prev.images || []), { url: '' }],
+    }));
+  }, [updateForm]);
+
+  const updateImage = useCallback(
+    (index, value) => {
+      updateForm((prev) => {
+        const items = [...(prev.images || [])];
+        const current = items[index] || { url: '' };
+        items[index] = { ...current, url: value };
+        return { ...prev, images: items };
+      });
+    },
+    [updateForm],
+  );
+
+  const removeImage = useCallback(
+    (index) => {
+      updateForm((prev) => {
+        const items = [...(prev.images || [])];
+        items.splice(index, 1);
+        return { ...prev, images: items };
+      });
+    },
+    [updateForm],
+  );
+
+  const moveImage = useCallback(
+    (index, direction) => {
+      updateForm((prev) => {
+        const items = [...(prev.images || [])];
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= items.length) {
+          return prev;
+        }
+
+        const nextItems = [...items];
+        const [moved] = nextItems.splice(index, 1);
+        nextItems.splice(targetIndex, 0, moved);
+        return { ...prev, images: nextItems };
+      });
+    },
+    [updateForm],
+  );
+
+  const addMediaItem = useCallback(() => {
+    updateForm((prev) => ({
+      ...prev,
+      media: [...(prev.media || []), { url: '' }],
+    }));
+  }, [updateForm]);
+
+  const updateMediaItem = useCallback(
+    (index, value) => {
+      updateForm((prev) => {
+        const items = [...(prev.media || [])];
+        const current = items[index] || { url: '' };
+        items[index] = { ...current, url: value };
+        return { ...prev, media: items };
+      });
+    },
+    [updateForm],
+  );
+
+  const removeMediaItem = useCallback(
+    (index) => {
+      updateForm((prev) => {
+        const items = [...(prev.media || [])];
+        items.splice(index, 1);
+        return { ...prev, media: items };
+      });
+    },
+    [updateForm],
+  );
+
+  const moveMediaItem = useCallback(
+    (index, direction) => {
+      updateForm((prev) => {
+        const items = [...(prev.media || [])];
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= items.length) {
+          return prev;
+        }
+
+        const nextItems = [...items];
+        const [moved] = nextItems.splice(index, 1);
+        nextItems.splice(targetIndex, 0, moved);
+        return { ...prev, media: nextItems };
       });
     },
     [updateForm],
@@ -958,6 +1074,137 @@ export default function AdminListingDetailsPage() {
               </div>
             </div>
           </article>
+        </section>
+
+        <section className={styles.panel}>
+          <header className={styles.panelHeader}>
+            <h2 className={styles.panelTitle}>Media</h2>
+          </header>
+          <div className={styles.panelBody}>
+            <div className={styles.mediaSection}>
+              <div className={styles.mediaSectionHeader}>
+                <h3 className={styles.mediaSubheading}>Property images</h3>
+                <p className={styles.mediaHint}>Displayed on the listing gallery.</p>
+              </div>
+              <div className={styles.repeatableList}>
+                {(formValues.images || []).map((image, index) => (
+                  <div key={`image-${index}`} className={`${styles.repeatableItem} ${styles.mediaItem}`}>
+                    <div className={styles.repeatableHeader}>
+                      <h4 className={styles.repeatableTitle}>Image {index + 1}</h4>
+                      <div className={styles.mediaActions}>
+                        <button
+                          type="button"
+                          className={styles.mediaMoveButton}
+                          onClick={() => moveImage(index, -1)}
+                          disabled={index === 0}
+                        >
+                          Move up
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.mediaMoveButton}
+                          onClick={() => moveImage(index, 1)}
+                          disabled={index === (formValues.images?.length || 0) - 1}
+                        >
+                          Move down
+                        </button>
+                        <button type="button" className={styles.removeButton} onClick={() => removeImage(index)}>
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                    <div className={styles.mediaPreview}>
+                      {image.url ? (
+                        <img src={image.url} alt={`Preview of image ${index + 1}`} referrerPolicy="no-referrer" />
+                      ) : (
+                        <span className={styles.mediaEmpty}>Add an image URL to preview.</span>
+                      )}
+                    </div>
+                    <div className={styles.formRow}>
+                      <label className={styles.formLabel} htmlFor={`image-url-${index}`}>
+                        Image URL
+                      </label>
+                      <input
+                        id={`image-url-${index}`}
+                        className={styles.input}
+                        value={image.url}
+                        onChange={(event) => updateImage(index, event.target.value)}
+                        placeholder="https://"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button type="button" className={styles.secondaryButton} onClick={addImage}>
+                Add image
+              </button>
+              {!formValues.images?.length ? (
+                <p className={styles.metaMuted}>No images synced from Apex27 yet.</p>
+              ) : null}
+            </div>
+
+            <div className={styles.mediaSection}>
+              <div className={styles.mediaSectionHeader}>
+                <h3 className={styles.mediaSubheading}>Media embeds</h3>
+                <p className={styles.mediaHint}>Video tours, Matterport, hosted walkthrough links.</p>
+              </div>
+              <div className={styles.repeatableList}>
+                {(formValues.media || []).map((item, index) => (
+                  <div key={`media-${index}`} className={styles.repeatableItem}>
+                    <div className={styles.repeatableHeader}>
+                      <h4 className={styles.repeatableTitle}>Media item {index + 1}</h4>
+                      <div className={styles.mediaActions}>
+                        <button
+                          type="button"
+                          className={styles.mediaMoveButton}
+                          onClick={() => moveMediaItem(index, -1)}
+                          disabled={index === 0}
+                        >
+                          Move up
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.mediaMoveButton}
+                          onClick={() => moveMediaItem(index, 1)}
+                          disabled={index === (formValues.media?.length || 0) - 1}
+                        >
+                          Move down
+                        </button>
+                        <button type="button" className={styles.removeButton} onClick={() => removeMediaItem(index)}>
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                    <div className={styles.formRow}>
+                      <label className={styles.formLabel} htmlFor={`media-url-${index}`}>
+                        Media URL
+                      </label>
+                      <input
+                        id={`media-url-${index}`}
+                        className={styles.input}
+                        value={item.url}
+                        onChange={(event) => updateMediaItem(index, event.target.value)}
+                        placeholder="https://"
+                      />
+                    </div>
+                    {item.url ? (
+                      <a className={styles.mediaLinkPreview} href={item.url} target="_blank" rel="noreferrer">
+                        Open media in new tab
+                      </a>
+                    ) : (
+                      <span className={styles.mediaEmpty}>Add a media URL to preview.</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button type="button" className={styles.secondaryButton} onClick={addMediaItem}>
+                Add media link
+              </button>
+              {!formValues.media?.length ? (
+                <p className={styles.metaMuted}>No media links recorded.</p>
+              ) : null}
+            </div>
+          </div>
         </section>
 
         <section className={styles.panelGroup}>
