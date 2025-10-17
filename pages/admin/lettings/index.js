@@ -25,6 +25,12 @@ const LETTINGS_SECTIONS = [
         description: 'Progress tenancy offers, referencing, and move-ins.',
         href: '/admin/offers',
       },
+      {
+        label: 'Available lettings archive',
+        description: 'Match the Apex27 archive with rent history and marketing links.',
+        href: '/admin/lettings/available-archive',
+        meta: 'New',
+      },
     ],
   },
   {

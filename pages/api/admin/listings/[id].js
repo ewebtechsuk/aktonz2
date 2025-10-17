@@ -1,0 +1,53 @@
+import { getLettingsListingById, serializeListing } from '../../../../lib/admin-listings.mjs';
+import { getAdminFromSession } from '../../../../lib/admin-users.mjs';
+import { readSession } from '../../../../lib/session.js';
+
+function requireAdmin(req, res) {
+  const session = readSession(req);
+  const admin = getAdminFromSession(session);
+
+  if (!admin) {
+    res.status(401).json({ error: 'Admin authentication required' });
+    return null;
+  }
+
+  return admin;
+}
+
+export default async function handler(req, res) {
+  if (!requireAdmin(req, res)) {
+    return;
+  }
+
+  if (req.method === 'HEAD') {
+    res.status(200).end();
+    return;
+  }
+
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', ['GET', 'HEAD']);
+    res.status(405).end('Method Not Allowed');
+    return;
+  }
+
+  const { id } = req.query;
+  const listingId = Array.isArray(id) ? id[0] : id;
+
+  if (!listingId) {
+    res.status(400).json({ error: 'Listing id is required' });
+    return;
+  }
+
+  try {
+    const listing = await getLettingsListingById(listingId);
+    if (!listing) {
+      res.status(404).json({ error: 'Listing not found' });
+      return;
+    }
+
+    res.status(200).json({ listing: serializeListing(listing) });
+  } catch (error) {
+    console.error('Failed to load admin listing by id', listingId, error);
+    res.status(500).json({ error: 'Failed to load listing' });
+  }
+}
