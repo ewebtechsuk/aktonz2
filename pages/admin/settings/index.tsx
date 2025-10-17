@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type CSSProperties,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -39,6 +48,11 @@ const INITIAL_PORTAL_STATE = {
 type GeneralState = typeof INITIAL_GENERAL_STATE;
 type BrandingState = typeof INITIAL_BRANDING_STATE;
 type PortalState = typeof INITIAL_PORTAL_STATE;
+
+type BrandPreviewStyle = CSSProperties & {
+  '--brand-primary': string;
+  '--brand-accent': string;
+};
 
 type SessionContext = {
   user: { role?: string | null } | null;
@@ -183,10 +197,10 @@ const AdminSettingsPage = () => {
     return () => window.clearTimeout(timer);
   }, [portalStatus]);
 
-  const brandPreviewStyle = useMemo(
+  const brandPreviewStyle = useMemo<BrandPreviewStyle>(
     () => ({
-      ['--brand-primary' as const]: brandingSettings.primaryColor,
-      ['--brand-accent' as const]: brandingSettings.accentColor,
+      '--brand-primary': brandingSettings.primaryColor,
+      '--brand-accent': brandingSettings.accentColor,
     }),
     [brandingSettings.accentColor, brandingSettings.primaryColor],
   );
