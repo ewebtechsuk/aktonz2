@@ -7,6 +7,230 @@ import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/Admi
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminListingDetails.module.css';
 
+const STATUS_OPTIONS = [
+  { value: 'available', label: 'Available' },
+  { value: 'pending', label: 'Marketing in progress' },
+  { value: 'let_agreed', label: 'Let agreed' },
+  { value: 'under_offer', label: 'Under offer' },
+];
+
+const STATUS_TONES = {
+  available: 'success',
+  pending: 'info',
+  let_agreed: 'muted',
+  under_offer: 'muted',
+};
+
+const RENT_FREQUENCY_OPTIONS = [
+  { value: 'pcm', label: 'Per month' },
+  { value: 'pw', label: 'Per week' },
+  { value: 'pq', label: 'Per quarter' },
+  { value: 'pa', label: 'Per annum' },
+];
+
+const MARKETING_TYPE_OPTIONS = [
+  { value: 'portal', label: 'Portal' },
+  { value: 'video', label: 'Video' },
+  { value: 'virtual_tour', label: 'Virtual tour' },
+  { value: 'source', label: 'Source' },
+  { value: 'link', label: 'Link' },
+];
+
+function normalizeRentFrequency(value) {
+  if (!value) {
+    return '';
+  }
+
+  const raw = String(value).trim();
+  if (!raw) {
+    return '';
+  }
+
+  const upper = raw.toUpperCase();
+  const direct = { W: 'pw', M: 'pcm', Q: 'pq', Y: 'pa' };
+  if (direct[upper]) {
+    return direct[upper];
+  }
+
+  const normalized = raw.toLowerCase().replace(/[^a-z]/g, '');
+  const aliases = {
+    w: 'pw',
+    week: 'pw',
+    weeks: 'pw',
+    weekly: 'pw',
+    perweek: 'pw',
+    pw: 'pw',
+    m: 'pcm',
+    month: 'pcm',
+    months: 'pcm',
+    monthly: 'pcm',
+    permonth: 'pcm',
+    pm: 'pcm',
+    pcm: 'pcm',
+    q: 'pq',
+    quarter: 'pq',
+    quarters: 'pq',
+    quarterly: 'pq',
+    perquarter: 'pq',
+    pq: 'pq',
+    y: 'pa',
+    year: 'pa',
+    years: 'pa',
+    yearly: 'pa',
+    annually: 'pa',
+    perannum: 'pa',
+    peryear: 'pa',
+    pa: 'pa',
+  };
+
+  return aliases[normalized] || normalized;
+}
+
+function formatHeroRent(amount, frequency, currency) {
+  if (amount == null || amount === '') {
+    return 'Rent not set';
+  }
+
+  const numeric = Number(String(amount).replace(/[^0-9.]/g, ''));
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return 'Rent not set';
+  }
+
+  const normalisedFrequency = normalizeRentFrequency(frequency);
+  const rentCurrency = currency && String(currency).trim() ? String(currency).trim().toUpperCase() : 'GBP';
+
+  let formattedAmount;
+  try {
+    const formatter = new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: rentCurrency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+    formattedAmount = formatter.format(numeric);
+  } catch (error) {
+    formattedAmount = `£${numeric.toLocaleString('en-GB')}`;
+  }
+
+  const frequencyLabel = RENT_FREQUENCY_OPTIONS.find((option) => option.value === normalisedFrequency)?.label;
+  return frequencyLabel ? `${formattedAmount} ${frequencyLabel}` : formattedAmount;
+}
+
+function cloneFormValues(values) {
+  return JSON.parse(JSON.stringify(values));
+}
+
+function createFormStateFromListing(listing) {
+  if (!listing) {
+    return null;
+  }
+
+  const marketingLinks = Array.isArray(listing.marketing?.links)
+    ? listing.marketing.links.map((link) => ({
+        label: link?.label || '',
+        type: link?.type || 'link',
+        url: link?.url || '',
+      }))
+    : [];
+
+  const metadata = Array.isArray(listing.metadata)
+    ? listing.metadata.map((entry) => ({
+        label: entry?.label || '',
+        value: entry?.value || '',
+      }))
+    : [];
+
+  return {
+    status: listing.status || 'available',
+    availabilityLabel: listing.availabilityLabel || '',
+    pricePrefix: listing.pricePrefix || '',
+    title: listing.title || '',
+    displayAddress: listing.displayAddress || '',
+    reference: listing.reference || '',
+    rentAmount: listing.rent?.amount != null ? String(listing.rent.amount) : '',
+    rentFrequency: normalizeRentFrequency(listing.rent?.frequency) || '',
+    rentCurrency: listing.rent?.currency || 'GBP',
+    bedrooms: listing.bedrooms != null ? String(listing.bedrooms) : '',
+    bathrooms: listing.bathrooms != null ? String(listing.bathrooms) : '',
+    receptions: listing.receptions != null ? String(listing.receptions) : '',
+    furnished: listing.furnished || '',
+    propertyType: listing.propertyType || '',
+    addressLine1: listing.address?.line1 || '',
+    addressLine2: listing.address?.line2 || '',
+    city: listing.address?.city || '',
+    county: listing.address?.county || '',
+    postalCode: listing.address?.postalCode || '',
+    country: listing.address?.country || '',
+    matchingAreasText: listing.matchingAreas?.length ? listing.matchingAreas.join('\n') : '',
+    latitude: listing.coordinates?.lat != null ? String(listing.coordinates.lat) : '',
+    longitude: listing.coordinates?.lng != null ? String(listing.coordinates.lng) : '',
+    summary: listing.summary || '',
+    description: listing.description || '',
+    marketingLinks,
+    metadata,
+  };
+}
+
+function buildUpdatePayload(values) {
+  const marketingLinks = (values.marketingLinks || [])
+    .map((link) => ({
+      label: link.label,
+      type: link.type,
+      url: link.url,
+    }))
+    .filter((link) => link.label || link.url);
+
+  const metadata = (values.metadata || [])
+    .map((entry) => ({
+      label: entry.label,
+      value: entry.value,
+    }))
+    .filter((entry) => entry.label || entry.value);
+
+  const matchingAreas = values.matchingAreasText
+    ? values.matchingAreasText
+        .split(/[\n,]/)
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : [];
+
+  return {
+    status: values.status,
+    availabilityLabel: values.availabilityLabel,
+    pricePrefix: values.pricePrefix,
+    title: values.title,
+    displayAddress: values.displayAddress,
+    reference: values.reference,
+    rent: {
+      amount: values.rentAmount,
+      frequency: values.rentFrequency,
+      currency: values.rentCurrency,
+    },
+    bedrooms: values.bedrooms,
+    bathrooms: values.bathrooms,
+    receptions: values.receptions,
+    furnished: values.furnished,
+    propertyType: values.propertyType,
+    address: {
+      line1: values.addressLine1,
+      line2: values.addressLine2,
+      city: values.city,
+      county: values.county,
+      postalCode: values.postalCode,
+      country: values.country,
+    },
+    matchingAreas,
+    coordinates: {
+      lat: values.latitude,
+      lng: values.longitude,
+    },
+    summary: values.summary,
+    description: values.description,
+    marketing: { links: marketingLinks },
+    metadata,
+  };
+}
+
 function formatDateTime(value) {
   if (!value) {
     return '—';
@@ -47,7 +271,7 @@ function formatRelativeTime(value) {
       return 'just now';
     }
     if (diffMinutes < 60) {
-      return `${diffMinutes} min ago`;
+      return `${diffMinutes} min${diffMinutes === 1 ? '' : 's'} ago`;
     }
     const diffHours = Math.round(diffMinutes / 60);
     if (diffHours < 24) {
@@ -68,24 +292,29 @@ function formatRelativeTime(value) {
   }
 }
 
-function formatFact(value, fallback = 'Not recorded') {
-  if (value == null || value === '') {
-    return fallback;
-  }
-  return value;
-}
-
-function formatNumber(value) {
-  if (value == null) {
-    return null;
+function renderDefinitionList(items) {
+  if (!items.length) {
+    return <p className={styles.metaMuted}>Nothing recorded yet.</p>;
   }
 
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) {
-    return null;
-  }
-
-  return String(numeric);
+  return (
+    <dl className={styles.definitionList}>
+      {items.map((item) => (
+        <div key={`${item.label}-${item.value}`} className={styles.definitionRow}>
+          <dt>{item.label}</dt>
+          <dd>
+            {item.type === 'phone' ? (
+              <a href={`tel:${item.value}`}>{item.value}</a>
+            ) : item.type === 'email' ? (
+              <a href={`mailto:${item.value}`}>{item.value}</a>
+            ) : (
+              item.value
+            )}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
 }
 
 export default function AdminListingDetailsPage() {
@@ -96,6 +325,12 @@ export default function AdminListingDetailsPage() {
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [formValues, setFormValues] = useState(null);
+  const [initialValues, setInitialValues] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState('');
+  const [validationErrors, setValidationErrors] = useState([]);
 
   const listingId = useMemo(() => {
     if (!router.isReady) {
@@ -143,50 +378,46 @@ export default function AdminListingDetailsPage() {
     fetchListing();
   }, [fetchListing, isAdmin, listingId, sessionLoading]);
 
-  const pageTitle = listing?.displayAddress
-    ? `${listing.displayAddress} • Aktonz Admin`
-    : 'Listing details • Aktonz Admin';
-
-  const marketingLinks = useMemo(() => listing?.marketing?.links ?? [], [listing]);
-
-  const metadataDetails = useMemo(() => {
-    if (!Array.isArray(listing?.metadata)) {
-      return [];
-    }
-
-    return listing.metadata
-      .filter((entry) => entry && typeof entry === 'object')
-      .filter((entry) => {
-        const type = typeof entry.type === 'string' ? entry.type.toLowerCase() : '';
-        return type && !['portal', 'video', 'virtual_tour', '360', 'source'].includes(type);
-      })
-      .map((entry, index) => ({
-        key: `${entry.label || entry.type || 'metadata'}-${index}`,
-        label: entry.label || entry.type || 'Metadata',
-        value: entry.value || entry.text || '',
-      }))
-      .filter((entry) => entry.value);
-  }, [listing]);
-
-  const propertyFacts = useMemo(() => {
+  useEffect(() => {
     if (!listing) {
-      return [];
+      setFormValues(null);
+      setInitialValues(null);
+      return;
     }
 
-    const facts = [
-      { label: 'Bedrooms', value: formatNumber(listing.bedrooms) },
-      { label: 'Bathrooms', value: formatNumber(listing.bathrooms) },
-      { label: 'Receptions', value: formatNumber(listing.receptions) },
-      { label: 'Furnished', value: listing.furnished ? listing.furnished.replace(/_/g, ' ') : null },
-      { label: 'Property type', value: listing.propertyType },
-      { label: 'Reference', value: listing.reference },
-    ];
-
-    return facts.map((fact) => ({
-      label: fact.label,
-      value: fact.value ? fact.value : 'Not recorded',
-    }));
+    const next = createFormStateFromListing(listing);
+    const cloned = cloneFormValues(next);
+    setFormValues(cloned);
+    setInitialValues(cloneFormValues(next));
+    setSaveError('');
+    setSaveSuccess('');
+    setValidationErrors([]);
   }, [listing]);
+
+  const pageTitle = useMemo(() => {
+    const address = formValues?.displayAddress || listing?.displayAddress;
+    return address ? `${address} • Aktonz Admin` : 'Listing details • Aktonz Admin';
+  }, [formValues, listing]);
+
+  const formDirty = useMemo(() => {
+    if (!formValues || !initialValues) {
+      return false;
+    }
+    return JSON.stringify(formValues) !== JSON.stringify(initialValues);
+  }, [formValues, initialValues]);
+
+  const updateForm = useCallback((updater) => {
+    setFormValues((prev) => {
+      if (!prev) {
+        return prev;
+      }
+      const base = { ...prev };
+      return typeof updater === 'function' ? updater(base) : updater;
+    });
+    setSaveError('');
+    setSaveSuccess('');
+    setValidationErrors([]);
+  }, []);
 
   const branchDetails = useMemo(() => {
     const branch = listing?.branch;
@@ -229,143 +460,124 @@ export default function AdminListingDetailsPage() {
     return details;
   }, [listing]);
 
-  const locationDetails = useMemo(() => {
-    if (!listing) {
-      return [];
+  const heroRentLabel = useMemo(() => {
+    if (formValues) {
+      return formatHeroRent(formValues.rentAmount, formValues.rentFrequency, formValues.rentCurrency);
     }
+    return formatHeroRent(listing?.rent?.amount, listing?.rent?.frequency, listing?.rent?.currency);
+  }, [formValues, listing]);
 
-    const details = [];
-    if (listing.address?.line1) {
-      details.push({ label: 'Address line 1', value: listing.address.line1 });
+  const handleSubmit = useCallback(
+    async (event) => {
+      event.preventDefault();
+      if (!formValues || !listingId) {
+        return;
+      }
+
+      setSaving(true);
+      setSaveError('');
+      setSaveSuccess('');
+      setValidationErrors([]);
+
+      try {
+        const payload = buildUpdatePayload(formValues);
+        const response = await fetch(`/api/admin/listings/${encodeURIComponent(listingId)}`, {
+          method: 'PATCH',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const errorPayload = await response.json().catch(() => null);
+          const message = errorPayload?.error || 'Failed to save listing changes.';
+          setSaveError(message);
+          setValidationErrors(Array.isArray(errorPayload?.details) ? errorPayload.details.filter(Boolean) : []);
+          return;
+        }
+
+        const result = await response.json();
+        setListing(result.listing || null);
+        setSaveSuccess('Listing changes saved.');
+        setValidationErrors([]);
+      } catch (err) {
+        console.error(err);
+        setSaveError('Failed to save listing changes.');
+      } finally {
+        setSaving(false);
+      }
+    },
+    [formValues, listingId],
+  );
+
+  const handleReset = useCallback(() => {
+    if (!initialValues) {
+      return;
     }
-    if (listing.address?.line2) {
-      details.push({ label: 'Address line 2', value: listing.address.line2 });
-    }
-    if (listing.address?.city) {
-      details.push({ label: 'Town/City', value: listing.address.city });
-    }
-    if (listing.address?.postalCode) {
-      details.push({ label: 'Postcode', value: listing.address.postalCode });
-    }
-    if (listing.matchingAreas?.length) {
-      details.push({ label: 'Matching areas', value: listing.matchingAreas.join(', ') });
-    }
-    if (listing.coordinates) {
-      details.push({
-        label: 'Coordinates',
-        value: `${listing.coordinates.lat.toFixed(5)}, ${listing.coordinates.lng.toFixed(5)}`,
+    setFormValues(cloneFormValues(initialValues));
+    setSaveError('');
+    setSaveSuccess('');
+    setValidationErrors([]);
+  }, [initialValues]);
+
+  const addMarketingLink = useCallback(() => {
+    updateForm((prev) => ({
+      ...prev,
+      marketingLinks: [...(prev.marketingLinks || []), { label: '', type: 'link', url: '' }],
+    }));
+  }, [updateForm]);
+
+  const updateMarketingLink = useCallback(
+    (index, field, value) => {
+      updateForm((prev) => {
+        const links = [...(prev.marketingLinks || [])];
+        const current = links[index] || { label: '', type: 'link', url: '' };
+        links[index] = { ...current, [field]: value };
+        return { ...prev, marketingLinks: links };
       });
-    }
-    return details;
-  }, [listing]);
+    },
+    [updateForm],
+  );
 
-  const renderDefinitionList = (items) => {
-    if (!items.length) {
-      return <p className={styles.metaMuted}>Nothing recorded yet.</p>;
-    }
+  const removeMarketingLink = useCallback(
+    (index) => {
+      updateForm((prev) => {
+        const links = [...(prev.marketingLinks || [])];
+        links.splice(index, 1);
+        return { ...prev, marketingLinks: links };
+      });
+    },
+    [updateForm],
+  );
 
-    return (
-      <dl className={styles.definitionList}>
-        {items.map((item) => (
-          <div key={`${item.label}-${item.value}`} className={styles.definitionRow}>
-            <dt>{item.label}</dt>
-            <dd>
-              {item.type === 'phone' ? (
-                <a href={`tel:${item.value}`}>{item.value}</a>
-              ) : item.type === 'email' ? (
-                <a href={`mailto:${item.value}`}>{item.value}</a>
-              ) : (
-                item.value
-              )}
-            </dd>
-          </div>
-        ))}
-      </dl>
-    );
-  };
+  const addMetadataEntry = useCallback(() => {
+    updateForm((prev) => ({
+      ...prev,
+      metadata: [...(prev.metadata || []), { label: '', value: '' }],
+    }));
+  }, [updateForm]);
 
-  const renderHero = () => {
-    if (!listing) {
-      return null;
-    }
+  const updateMetadataEntry = useCallback(
+    (index, field, value) => {
+      updateForm((prev) => {
+        const entries = [...(prev.metadata || [])];
+        const current = entries[index] || { label: '', value: '' };
+        entries[index] = { ...current, [field]: value };
+        return { ...prev, metadata: entries };
+      });
+    },
+    [updateForm],
+  );
 
-    return (
-      <section className={styles.hero}>
-        <div className={styles.heroTopRow}>
-          <Link href="/admin/lettings/available-archive" className={styles.backLink}>
-            ← Back to lettings archive
-          </Link>
-          <div className={styles.heroStatusGroup}>
-            <span className={styles.statusBadge} data-tone={listing.statusTone}>
-              {listing.statusLabel}
-            </span>
-            {listing.availabilityLabel ? (
-              <span className={styles.availability}>{listing.availabilityLabel}</span>
-            ) : null}
-          </div>
-        </div>
-        <h1 className={styles.heroTitle}>{listing.displayAddress || listing.title}</h1>
-        <div className={styles.heroRent}>{listing.rent?.label || 'Rent not set'}</div>
-        <div className={styles.heroMetaRow}>
-          <span className={styles.metaPill}>Reference {listing.reference}</span>
-          <span className={styles.metaPill}>Updated {formatDateTime(listing.updatedAt)}</span>
-          <span className={styles.metaMuted}>{formatRelativeTime(listing.updatedAt)}</span>
-        </div>
-        {listing.pricePrefix ? <p className={styles.metaMuted}>{listing.pricePrefix}</p> : null}
-      </section>
-    );
-  };
-
-  const renderMarketing = () => {
-    if (!marketingLinks.length) {
-      return <p className={styles.metaMuted}>No marketing links recorded.</p>;
-    }
-
-    return (
-      <ul className={styles.linkList}>
-        {marketingLinks.map((link) => (
-          <li key={link.url} className={styles.linkItem}>
-            <span className={styles.linkType}>{link.label}</span>
-            <a href={link.url} target="_blank" rel="noreferrer">
-              {link.url}
-            </a>
-          </li>
-        ))}
-      </ul>
-    );
-  };
-
-  const renderMetadata = () => {
-    if (!metadataDetails.length) {
-      return <p className={styles.metaMuted}>No additional metadata captured.</p>;
-    }
-
-    return (
-      <dl className={styles.definitionList}>
-        {metadataDetails.map((entry) => (
-          <div key={entry.key} className={styles.definitionRow}>
-            <dt>{entry.label}</dt>
-            <dd>{entry.value}</dd>
-          </div>
-        ))}
-      </dl>
-    );
-  };
-
-  const renderDescription = () => {
-    if (!listing?.summary && !listing?.description) {
-      return <p className={styles.metaMuted}>No description supplied.</p>;
-    }
-
-    return (
-      <div className={styles.descriptionBody}>
-        {listing.summary ? <p>{listing.summary}</p> : null}
-        {listing.description ? (
-          <pre className={styles.descriptionPre}>{listing.description}</pre>
-        ) : null}
-      </div>
-    );
-  };
+  const removeMetadataEntry = useCallback(
+    (index) => {
+      updateForm((prev) => {
+        const entries = [...(prev.metadata || [])];
+        entries.splice(index, 1);
+        return { ...prev, metadata: entries };
+      });
+    },
+    [updateForm],
+  );
 
   const renderContent = () => {
     if (sessionLoading || (loading && !listing && !error)) {
@@ -380,27 +592,371 @@ export default function AdminListingDetailsPage() {
       return <div className={styles.stateMessage}>{error}</div>;
     }
 
-    if (!listing) {
+    if (!listing || !formValues) {
       return <div className={styles.stateMessage}>Listing details unavailable.</div>;
     }
 
+    const statusOption = STATUS_OPTIONS.find((option) => option.value === formValues.status);
+    const statusLabel = statusOption ? statusOption.label : listing.statusLabel;
+    const statusTone = STATUS_TONES[formValues.status] || 'info';
+    const availabilityLabel = formValues.availabilityLabel || listing.availabilityLabel;
+    const referenceValue = formValues.reference || '—';
+    const updatedLabel = formatDateTime(listing.updatedAt);
+    const updatedRelative = formatRelativeTime(listing.updatedAt);
+
     return (
-      <>
-        {renderHero()}
+      <form className={styles.form} onSubmit={handleSubmit} noValidate>
+        <section className={styles.hero}>
+          <div className={styles.heroTopRow}>
+            <Link href="/admin/lettings/available-archive" className={styles.backLink}>
+              ← Back to lettings archive
+            </Link>
+            <div className={styles.heroActions}>
+              <button
+                type="submit"
+                className={styles.primaryButton}
+                disabled={!formDirty || saving}
+              >
+                {saving ? 'Saving…' : 'Save changes'}
+              </button>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={handleReset}
+                disabled={!formDirty || saving}
+              >
+                Discard changes
+              </button>
+            </div>
+          </div>
+
+          {saveSuccess ? (
+            <p className={`${styles.statusMessage} ${styles.statusSuccess}`}>{saveSuccess}</p>
+          ) : null}
+          {saveError ? (
+            <p className={`${styles.statusMessage} ${styles.statusError}`}>{saveError}</p>
+          ) : null}
+          {validationErrors.length ? (
+            <ul className={`${styles.statusMessage} ${styles.statusError} ${styles.statusDetails}`}>
+              {validationErrors.map((message) => (
+                <li key={message}>{message}</li>
+              ))}
+            </ul>
+          ) : null}
+
+          <div className={styles.heroStatusGroup}>
+            <div className={styles.formRow}>
+              <label className={styles.formLabel} htmlFor="listing-status">
+                Status
+              </label>
+              <select
+                id="listing-status"
+                className={styles.select}
+                value={formValues.status}
+                onChange={(event) => updateForm((prev) => ({ ...prev, status: event.target.value }))}
+              >
+                {STATUS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <span className={styles.statusBadge} data-tone={statusTone}>
+              {statusLabel}
+            </span>
+            {availabilityLabel ? <span className={styles.availability}>{availabilityLabel}</span> : null}
+          </div>
+
+          <div className={styles.formRow}>
+            <label className={styles.formLabel} htmlFor="listing-availability">
+              Availability badge label
+            </label>
+            <input
+              id="listing-availability"
+              className={styles.input}
+              value={formValues.availabilityLabel}
+              onChange={(event) => updateForm((prev) => ({ ...prev, availabilityLabel: event.target.value }))}
+              placeholder="e.g. Available now"
+            />
+          </div>
+
+          <div className={styles.formRow}>
+            <label className={styles.formLabel} htmlFor="listing-display-address">
+              Display address
+            </label>
+            <input
+              id="listing-display-address"
+              className={`${styles.input} ${styles.titleInput}`}
+              value={formValues.displayAddress}
+              onChange={(event) => updateForm((prev) => ({ ...prev, displayAddress: event.target.value }))}
+              placeholder="Property headline address"
+            />
+          </div>
+
+          <div className={styles.formRow}>
+            <label className={styles.formLabel} htmlFor="listing-title">
+              Marketing headline
+            </label>
+            <input
+              id="listing-title"
+              className={styles.input}
+              value={formValues.title}
+              onChange={(event) => updateForm((prev) => ({ ...prev, title: event.target.value }))}
+              placeholder="Optional marketing title"
+            />
+          </div>
+
+          <div className={styles.formRow}>
+            <label className={styles.formLabel} htmlFor="listing-rent-amount">
+              Headline rent
+            </label>
+            <div className={styles.inlineFields}>
+              <input
+                id="listing-rent-amount"
+                className={styles.input}
+                value={formValues.rentAmount}
+                onChange={(event) => updateForm((prev) => ({ ...prev, rentAmount: event.target.value }))}
+                placeholder="2500"
+              />
+              <select
+                className={styles.select}
+                value={formValues.rentFrequency}
+                onChange={(event) => updateForm((prev) => ({ ...prev, rentFrequency: event.target.value }))}
+              >
+                <option value="">Select frequency</option>
+                {RENT_FREQUENCY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <input
+                className={styles.input}
+                value={formValues.rentCurrency}
+                onChange={(event) => updateForm((prev) => ({ ...prev, rentCurrency: event.target.value }))}
+                placeholder="GBP"
+              />
+            </div>
+          </div>
+
+          <div className={styles.heroRent}>{heroRentLabel}</div>
+
+          <div className={styles.heroMetaRow}>
+            <span className={styles.metaPill}>Reference {referenceValue}</span>
+            <span className={styles.metaPill}>Updated {updatedLabel}</span>
+            <span className={styles.metaMuted}>{updatedRelative}</span>
+          </div>
+        </section>
 
         <section className={styles.panelGroup}>
           <article className={styles.panel}>
             <header className={styles.panelHeader}>
               <h2 className={styles.panelTitle}>Key facts</h2>
             </header>
-            <div className={styles.panelBody}>{renderDefinitionList(propertyFacts)}</div>
+            <div className={styles.panelBody}>
+              <div className={styles.formGrid}>
+                <div className={styles.formRow}>
+                  <label className={styles.formLabel} htmlFor="listing-bedrooms">
+                    Bedrooms
+                  </label>
+                  <input
+                    id="listing-bedrooms"
+                    className={styles.input}
+                    value={formValues.bedrooms}
+                    onChange={(event) => updateForm((prev) => ({ ...prev, bedrooms: event.target.value }))}
+                    placeholder="e.g. 2"
+                  />
+                </div>
+                <div className={styles.formRow}>
+                  <label className={styles.formLabel} htmlFor="listing-bathrooms">
+                    Bathrooms
+                  </label>
+                  <input
+                    id="listing-bathrooms"
+                    className={styles.input}
+                    value={formValues.bathrooms}
+                    onChange={(event) => updateForm((prev) => ({ ...prev, bathrooms: event.target.value }))}
+                    placeholder="e.g. 1"
+                  />
+                </div>
+                <div className={styles.formRow}>
+                  <label className={styles.formLabel} htmlFor="listing-receptions">
+                    Receptions
+                  </label>
+                  <input
+                    id="listing-receptions"
+                    className={styles.input}
+                    value={formValues.receptions}
+                    onChange={(event) => updateForm((prev) => ({ ...prev, receptions: event.target.value }))}
+                    placeholder="e.g. 1"
+                  />
+                </div>
+                <div className={styles.formRow}>
+                  <label className={styles.formLabel} htmlFor="listing-furnished">
+                    Furnished state
+                  </label>
+                  <input
+                    id="listing-furnished"
+                    className={styles.input}
+                    value={formValues.furnished}
+                    onChange={(event) => updateForm((prev) => ({ ...prev, furnished: event.target.value }))}
+                    placeholder="e.g. Furnished"
+                  />
+                </div>
+                <div className={styles.formRow}>
+                  <label className={styles.formLabel} htmlFor="listing-property-type">
+                    Property type
+                  </label>
+                  <input
+                    id="listing-property-type"
+                    className={styles.input}
+                    value={formValues.propertyType}
+                    onChange={(event) => updateForm((prev) => ({ ...prev, propertyType: event.target.value }))}
+                    placeholder="e.g. Apartment"
+                  />
+                </div>
+                <div className={styles.formRow}>
+                  <label className={styles.formLabel} htmlFor="listing-reference-input">
+                    Reference
+                  </label>
+                  <input
+                    id="listing-reference-input"
+                    className={styles.input}
+                    value={formValues.reference}
+                    onChange={(event) => updateForm((prev) => ({ ...prev, reference: event.target.value }))}
+                  />
+                </div>
+                <div className={styles.formRow}>
+                  <label className={styles.formLabel} htmlFor="listing-price-prefix">
+                    Price prefix
+                  </label>
+                  <input
+                    id="listing-price-prefix"
+                    className={styles.input}
+                    value={formValues.pricePrefix}
+                    onChange={(event) => updateForm((prev) => ({ ...prev, pricePrefix: event.target.value }))}
+                    placeholder="e.g. Offers over"
+                  />
+                </div>
+              </div>
+            </div>
           </article>
 
           <article className={styles.panel}>
             <header className={styles.panelHeader}>
               <h2 className={styles.panelTitle}>Location</h2>
             </header>
-            <div className={styles.panelBody}>{renderDefinitionList(locationDetails)}</div>
+            <div className={styles.panelBody}>
+              <div className={styles.formGrid}>
+                <div className={styles.formRow}>
+                  <label className={styles.formLabel} htmlFor="listing-address-line1">
+                    Address line 1
+                  </label>
+                  <input
+                    id="listing-address-line1"
+                    className={styles.input}
+                    value={formValues.addressLine1}
+                    onChange={(event) => updateForm((prev) => ({ ...prev, addressLine1: event.target.value }))}
+                  />
+                </div>
+                <div className={styles.formRow}>
+                  <label className={styles.formLabel} htmlFor="listing-address-line2">
+                    Address line 2
+                  </label>
+                  <input
+                    id="listing-address-line2"
+                    className={styles.input}
+                    value={formValues.addressLine2}
+                    onChange={(event) => updateForm((prev) => ({ ...prev, addressLine2: event.target.value }))}
+                  />
+                </div>
+                <div className={styles.formRow}>
+                  <label className={styles.formLabel} htmlFor="listing-city">
+                    Town/City
+                  </label>
+                  <input
+                    id="listing-city"
+                    className={styles.input}
+                    value={formValues.city}
+                    onChange={(event) => updateForm((prev) => ({ ...prev, city: event.target.value }))}
+                  />
+                </div>
+                <div className={styles.formRow}>
+                  <label className={styles.formLabel} htmlFor="listing-county">
+                    County
+                  </label>
+                  <input
+                    id="listing-county"
+                    className={styles.input}
+                    value={formValues.county}
+                    onChange={(event) => updateForm((prev) => ({ ...prev, county: event.target.value }))}
+                  />
+                </div>
+                <div className={styles.formRow}>
+                  <label className={styles.formLabel} htmlFor="listing-postcode">
+                    Postcode
+                  </label>
+                  <input
+                    id="listing-postcode"
+                    className={styles.input}
+                    value={formValues.postalCode}
+                    onChange={(event) => updateForm((prev) => ({ ...prev, postalCode: event.target.value }))}
+                  />
+                </div>
+                <div className={styles.formRow}>
+                  <label className={styles.formLabel} htmlFor="listing-country">
+                    Country
+                  </label>
+                  <input
+                    id="listing-country"
+                    className={styles.input}
+                    value={formValues.country}
+                    onChange={(event) => updateForm((prev) => ({ ...prev, country: event.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.formRow}>
+                <label className={styles.formLabel} htmlFor="listing-matching-areas">
+                  Matching areas
+                </label>
+                <textarea
+                  id="listing-matching-areas"
+                  className={styles.textarea}
+                  value={formValues.matchingAreasText}
+                  onChange={(event) => updateForm((prev) => ({ ...prev, matchingAreasText: event.target.value }))}
+                  placeholder="Add one area per line"
+                />
+              </div>
+
+              <div className={styles.formGrid}>
+                <div className={styles.formRow}>
+                  <label className={styles.formLabel} htmlFor="listing-latitude">
+                    Latitude
+                  </label>
+                  <input
+                    id="listing-latitude"
+                    className={styles.input}
+                    value={formValues.latitude}
+                    onChange={(event) => updateForm((prev) => ({ ...prev, latitude: event.target.value }))}
+                    placeholder="51.5074"
+                  />
+                </div>
+                <div className={styles.formRow}>
+                  <label className={styles.formLabel} htmlFor="listing-longitude">
+                    Longitude
+                  </label>
+                  <input
+                    id="listing-longitude"
+                    className={styles.input}
+                    value={formValues.longitude}
+                    onChange={(event) => updateForm((prev) => ({ ...prev, longitude: event.target.value }))}
+                    placeholder="-0.1278"
+                  />
+                </div>
+              </div>
+            </div>
           </article>
         </section>
 
@@ -418,7 +974,72 @@ export default function AdminListingDetailsPage() {
             <header className={styles.panelHeader}>
               <h2 className={styles.panelTitle}>Marketing links</h2>
             </header>
-            <div className={styles.panelBody}>{renderMarketing()}</div>
+            <div className={styles.panelBody}>
+              <div className={styles.repeatableList}>
+                {(formValues.marketingLinks || []).map((link, index) => (
+                  <div key={`marketing-${index}`} className={styles.repeatableItem}>
+                    <div className={styles.repeatableHeader}>
+                      <h3 className={styles.repeatableTitle}>Link {index + 1}</h3>
+                      <button
+                        type="button"
+                        className={styles.removeButton}
+                        onClick={() => removeMarketingLink(index)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className={styles.formGrid}>
+                      <div className={styles.formRow}>
+                        <label className={styles.formLabel} htmlFor={`marketing-label-${index}`}>
+                          Label
+                        </label>
+                        <input
+                          id={`marketing-label-${index}`}
+                          className={styles.input}
+                          value={link.label}
+                          onChange={(event) => updateMarketingLink(index, 'label', event.target.value)}
+                        />
+                      </div>
+                      <div className={styles.formRow}>
+                        <label className={styles.formLabel} htmlFor={`marketing-type-${index}`}>
+                          Type
+                        </label>
+                        <select
+                          id={`marketing-type-${index}`}
+                          className={styles.select}
+                          value={link.type}
+                          onChange={(event) => updateMarketingLink(index, 'type', event.target.value)}
+                        >
+                          {MARKETING_TYPE_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className={styles.formRow}>
+                      <label className={styles.formLabel} htmlFor={`marketing-url-${index}`}>
+                        URL
+                      </label>
+                      <input
+                        id={`marketing-url-${index}`}
+                        className={styles.input}
+                        value={link.url}
+                        onChange={(event) => updateMarketingLink(index, 'url', event.target.value)}
+                        placeholder="https://"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button type="button" className={styles.secondaryButton} onClick={addMarketingLink}>
+                Add marketing link
+              </button>
+              {!formValues.marketingLinks?.length ? (
+                <p className={styles.metaMuted}>No marketing links recorded.</p>
+              ) : null}
+            </div>
           </article>
         </section>
 
@@ -426,16 +1047,108 @@ export default function AdminListingDetailsPage() {
           <header className={styles.panelHeader}>
             <h2 className={styles.panelTitle}>Property description</h2>
           </header>
-          <div className={styles.panelBody}>{renderDescription()}</div>
+          <div className={styles.panelBody}>
+            <div className={styles.formRow}>
+              <label className={styles.formLabel} htmlFor="listing-summary">
+                Summary
+              </label>
+              <textarea
+                id="listing-summary"
+                className={styles.textarea}
+                value={formValues.summary}
+                onChange={(event) => updateForm((prev) => ({ ...prev, summary: event.target.value }))}
+                placeholder="Short summary used on portals"
+              />
+            </div>
+            <div className={styles.formRow}>
+              <label className={styles.formLabel} htmlFor="listing-description">
+                Full description
+              </label>
+              <textarea
+                id="listing-description"
+                className={`${styles.textarea} ${styles.descriptionTextarea}`}
+                value={formValues.description}
+                onChange={(event) => updateForm((prev) => ({ ...prev, description: event.target.value }))}
+                placeholder="Detailed property description"
+              />
+            </div>
+          </div>
         </section>
 
         <section className={styles.panel}>
           <header className={styles.panelHeader}>
             <h2 className={styles.panelTitle}>Additional metadata</h2>
           </header>
-          <div className={styles.panelBody}>{renderMetadata()}</div>
+          <div className={styles.panelBody}>
+            <div className={styles.repeatableList}>
+              {(formValues.metadata || []).map((entry, index) => (
+                <div key={`metadata-${index}`} className={styles.repeatableItem}>
+                  <div className={styles.repeatableHeader}>
+                    <h3 className={styles.repeatableTitle}>Entry {index + 1}</h3>
+                    <button
+                      type="button"
+                      className={styles.removeButton}
+                      onClick={() => removeMetadataEntry(index)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className={styles.formGrid}>
+                    <div className={styles.formRow}>
+                      <label className={styles.formLabel} htmlFor={`metadata-label-${index}`}>
+                        Label
+                      </label>
+                      <input
+                        id={`metadata-label-${index}`}
+                        className={styles.input}
+                        value={entry.label}
+                        onChange={(event) => updateMetadataEntry(index, 'label', event.target.value)}
+                        placeholder="e.g. EPC rating"
+                      />
+                    </div>
+                    <div className={styles.formRow}>
+                      <label className={styles.formLabel} htmlFor={`metadata-value-${index}`}>
+                        Value
+                      </label>
+                      <input
+                        id={`metadata-value-${index}`}
+                        className={styles.input}
+                        value={entry.value}
+                        onChange={(event) => updateMetadataEntry(index, 'value', event.target.value)}
+                        placeholder="e.g. B"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button type="button" className={styles.secondaryButton} onClick={addMetadataEntry}>
+              Add metadata entry
+            </button>
+            {!formValues.metadata?.length ? (
+              <p className={styles.metaMuted}>No additional metadata captured.</p>
+            ) : null}
+          </div>
         </section>
-      </>
+
+        <div className={styles.formActions}>
+          <button
+            type="submit"
+            className={styles.primaryButton}
+            disabled={!formDirty || saving}
+          >
+            {saving ? 'Saving…' : 'Save changes'}
+          </button>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={handleReset}
+            disabled={!formDirty || saving}
+          >
+            Discard changes
+          </button>
+        </div>
+      </form>
     );
   };
 
