@@ -140,7 +140,6 @@ const EMPTY_MANAGEMENT_OPTIONS = Object.freeze({
 const MANAGEMENT_INITIAL_FORM_STATE = Object.freeze({
   firstName: '',
   lastName: '',
-  name: '',
   stage: '',
   type: '',
   pipeline: '',
@@ -149,7 +148,6 @@ const MANAGEMENT_INITIAL_FORM_STATE = Object.freeze({
   email: '',
   phone: '',
   locationFocus: '',
-  generatedNotes: '',
   tags: '',
   requirements: '',
   budgetSaleMax: '',
@@ -205,7 +203,6 @@ function buildManagementFormState(contact) {
   return {
     firstName: contact.firstName || '',
     lastName: contact.lastName || '',
-    name: contact.name || '',
     stage: contact.stage || '',
     type: contact.type || '',
     pipeline: contact.pipeline || '',
@@ -214,7 +211,6 @@ function buildManagementFormState(contact) {
     email: contact.email || '',
     phone: contact.phone || '',
     locationFocus: contact.locationFocus || '',
-    generatedNotes: contact.generatedNotes || '',
     tags: Array.isArray(contact.tags) ? contact.tags.join('\n') : '',
     requirements: Array.isArray(contact.requirements) ? contact.requirements.join('\n') : '',
     budgetSaleMax:
@@ -315,7 +311,6 @@ function buildManagementPayloadFromState(state) {
   return {
     firstName: state.firstName,
     lastName: state.lastName,
-    name: state.name,
     stage: state.stage,
     type: state.type,
     pipeline: state.pipeline,
@@ -324,7 +319,6 @@ function buildManagementPayloadFromState(state) {
     email: state.email,
     phone: state.phone,
     locationFocus: state.locationFocus,
-    generatedNotes: state.generatedNotes,
     tags: parseListInput(state.tags),
     requirements: parseListInput(state.requirements),
     budget: buildBudgetPayloadFromState(state),
@@ -484,12 +478,6 @@ export default function AdminContactDetailsPage() {
   const createdRelative = contact?.createdAtTimestamp
     ? formatRelativeTime(contact.createdAtTimestamp)
     : null;
-  const daysInPipelineLabel = Number.isFinite(contact?.daysInPipeline)
-    ? `${contact.daysInPipeline} day${contact.daysInPipeline === 1 ? '' : 's'}`
-    : '—';
-  const engagementLabel = Number.isFinite(contact?.engagementScore)
-    ? `${contact.engagementScore}/100`
-    : '—';
   const budgetLines = contact ? formatBudget(contact.budget) : [];
   const nextStepDueLabel = contact?.nextStep?.dueTimestamp
     ? formatDueLabel(contact.nextStep.dueTimestamp)
@@ -600,8 +588,6 @@ export default function AdminContactDetailsPage() {
           value: formatDateTime(contact.lastActivityAt),
           hint: lastActivityRelative ? `Updated ${lastActivityRelative}` : null,
         },
-        { label: 'Days in pipeline', value: daysInPipelineLabel },
-        { label: 'Engagement score', value: engagementLabel },
       ]
     : [];
 
@@ -769,30 +755,21 @@ export default function AdminContactDetailsPage() {
                   ) : null}
                 </section>
 
-                <section className={styles.card} aria-labelledby="contact-notes">
+                <section className={styles.card} aria-labelledby="contact-tags">
                   <div className={styles.cardHeader}>
-                    <h2 id="contact-notes">Notes</h2>
+                    <h2 id="contact-tags">Tags</h2>
                   </div>
-                  {contact.generatedNotes ? (
-                    <div className={styles.notesBody}>
-                      <p>{contact.generatedNotes}</p>
+                  {tags.length ? (
+                    <div className={styles.tagsRow}>
+                      {tags.map((tag) => (
+                        <span key={tag} className={styles.tagChip}>
+                          {tag}
+                        </span>
+                      ))}
                     </div>
                   ) : (
-                    <p className={styles.emptyNote}>No additional notes have been added for this contact.</p>
+                    <p className={styles.emptyNote}>No tags recorded for this contact.</p>
                   )}
-
-                  {tags.length ? (
-                    <div>
-                      <span className={styles.fieldLabel}>Tags</span>
-                      <div className={styles.tagsRow}>
-                        {tags.map((tag) => (
-                          <span key={tag} className={styles.tagChip}>
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
                 </section>
               </div>
 
@@ -831,21 +808,6 @@ export default function AdminContactDetailsPage() {
                           onChange={handleManagementChange}
                           disabled={!contact || saving}
                           autoComplete="family-name"
-                        />
-                      </div>
-                      <div className={styles.formRow}>
-                        <label htmlFor="contact-display-name" className={styles.formLabel}>
-                          Display name
-                        </label>
-                        <input
-                          id="contact-display-name"
-                          name="name"
-                          type="text"
-                          className={styles.input}
-                          value={formState.name}
-                          onChange={handleManagementChange}
-                          disabled={!contact || saving}
-                          autoComplete="off"
                         />
                       </div>
                       <div className={styles.formRow}>
@@ -1103,22 +1065,6 @@ export default function AdminContactDetailsPage() {
                       </div>
                     </div>
 
-                    <div className={styles.formGrid}>
-                      <div className={styles.formRow}>
-                        <label htmlFor="contact-notes-field" className={styles.formLabel}>
-                          Notes
-                        </label>
-                        <textarea
-                          id="contact-notes-field"
-                          name="generatedNotes"
-                          className={styles.textarea}
-                          value={formState.generatedNotes}
-                          onChange={handleManagementChange}
-                          disabled={!contact || saving}
-                        />
-                      </div>
-                    </div>
-
                     <div className={styles.formActions}>
                       <button type="submit" className={styles.primaryButton} disabled={!contact || saving}>
                         {saving ? 'Saving…' : 'Save changes'}
@@ -1245,10 +1191,6 @@ export default function AdminContactDetailsPage() {
                       <span className={styles.timelineLabel}>Created</span>
                       <span className={styles.timelineValue}>{formatDateTime(contact.createdAt)}</span>
                       {createdRelative ? <span className={styles.timelineHint}>{createdRelative}</span> : null}
-                    </div>
-                    <div className={styles.timelineItem}>
-                      <span className={styles.timelineLabel}>Days active</span>
-                      <span className={styles.timelineValue}>{daysInPipelineLabel}</span>
                     </div>
                   </div>
                 </section>

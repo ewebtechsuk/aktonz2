@@ -431,7 +431,6 @@ export default function AdminLettingsArchivePage() {
                 <td>
                   <div className={styles.propertyCell}>
                     {listing.image?.thumbnail ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={listing.image.thumbnail}
                         alt={listing.displayAddress || listing.title}
