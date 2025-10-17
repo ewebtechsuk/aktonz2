@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
+import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../components/admin/AdminNavigation';
 import styles from '../../styles/Admin.module.css';
 import { useSession } from '../../components/SessionProvider';
 
@@ -207,6 +208,15 @@ export default function AdminDashboard() {
     [offers],
   );
 
+  const dashboardSecondaryLinks = useMemo(
+    () => [
+      { label: 'Email setup', href: '#email-settings' },
+      { label: 'Valuation requests', href: '#valuations' },
+      { label: 'Offers workspace', href: '#offers' },
+    ],
+    [],
+  );
+
   const handleConnectClick = useCallback(() => {
     setConnectRedirecting(true);
     window.location.href = '/api/microsoft/connect';
@@ -250,60 +260,15 @@ export default function AdminDashboard() {
       <Head>
         <title>{title}</title>
       </Head>
-      <header className={styles.adminHeader}>
-        <div className={styles.adminHeaderInner}>
-          <div className={styles.adminBrand}>
-            <span className={styles.adminBrandName}>Aktonz</span>
-            <span className={styles.adminBrandBadge}>Admin</span>
-          </div>
-          {showNavigation ? (
-            <nav className={styles.adminNav} aria-label="Admin sections">
-              <ul className={styles.adminNavList}>
-                <li>
-                  <a className={styles.adminNavLink} href="#email-settings">
-                    Email
-                  </a>
-                </li>
-                <li>
-                  <a className={styles.adminNavLink} href="#valuations">
-                    Valuations
-                  </a>
-                </li>
-                <li>
-                  <a className={styles.adminNavLink} href="#viewings">
-                    Viewings
-                  </a>
-                </li>
-                <li>
-                  <Link href="/admin/contacts" className={styles.adminNavLink}>
-                    Contacts
-                  </Link>
-                </li>
-                <li>
-                  <a className={styles.adminNavLink} href="#offers">
-                    Offers
-                  </a>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    className={styles.adminNavButton}
-                    onClick={handleLogout}
-                    disabled={logoutLoading}
-                  >
-                    {logoutLoading ? 'Signing out…' : 'Sign out'}
-                  </button>
-                </li>
-              </ul>
-            </nav>
-          ) : null}
-          {logoutError ? (
-            <p className={styles.logoutError} role="alert">
-              {logoutError}
-            </p>
-          ) : null}
-        </div>
-      </header>
+      <AdminNavigation
+        items={showNavigation ? ADMIN_NAV_ITEMS : []}
+        secondaryItems={showNavigation ? dashboardSecondaryLinks : []}
+        onLogout={showNavigation ? handleLogout : undefined}
+        logoutLoading={logoutLoading}
+        logoutLabel="Sign out"
+        logoutLoadingLabel="Signing out…"
+        errorMessage={logoutError || undefined}
+      />
       <main className={styles.main}>
         <div className={styles.container}>{content}</div>
       </main>

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 import { useSession } from '../../../components/SessionProvider';
+import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import styles from '../../../styles/AdminContacts.module.css';
 
 const STAGE_BADGE_CLASS = {
@@ -519,6 +520,7 @@ function formatGeneratedAt(value) {
 export default function AdminContactsPage() {
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
+  const pageTitle = 'Contacts • Aktonz Admin';
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -667,26 +669,47 @@ export default function AdminContactsPage() {
   }, []);
 
   if (sessionLoading) {
-    return null;
+    return (
+      <>
+        <Head>
+          <title>{pageTitle}</title>
+        </Head>
+        <AdminNavigation items={[]} />
+        <main className={styles.page}>
+          <div className={styles.container}>
+            <div className={styles.errorState}>
+              <p>Checking your admin access…</p>
+            </div>
+          </div>
+        </main>
+      </>
+    );
   }
 
   if (!isAdmin) {
     return (
-      <main className={styles.page}>
-        <div className={styles.container}>
-          <div className={styles.errorState}>
-            <p>Admin access required.</p>
+      <>
+        <Head>
+          <title>{pageTitle}</title>
+        </Head>
+        <AdminNavigation items={[]} />
+        <main className={styles.page}>
+          <div className={styles.container}>
+            <div className={styles.errorState}>
+              <p>Admin access required.</p>
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </>
     );
   }
 
   return (
     <>
       <Head>
-        <title>Contacts • Aktonz Admin</title>
+        <title>{pageTitle}</title>
       </Head>
+      <AdminNavigation items={ADMIN_NAV_ITEMS} />
       <main className={styles.page}>
         <div className={styles.container}>
           <header className={styles.header}>

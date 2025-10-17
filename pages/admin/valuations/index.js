@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 import { useSession } from '../../../components/SessionProvider';
+import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import styles from '../../../styles/AdminValuations.module.css';
 
 const DEFAULT_STATUS_OPTIONS = [
@@ -187,6 +188,7 @@ export default function AdminValuationsPage() {
   const router = useRouter();
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
+  const pageTitle = 'Aktonz Admin — Valuation requests';
 
   const [valuations, setValuations] = useState([]);
   const [statusOptions, setStatusOptions] = useState(DEFAULT_STATUS_OPTIONS);
@@ -579,33 +581,46 @@ export default function AdminValuationsPage() {
 
   if (sessionLoading) {
     return (
-      <main className={styles.page}>
-        <div className={styles.container}>
-          <p className={styles.loading}>Checking your admin access…</p>
-        </div>
-      </main>
+      <>
+        <Head>
+          <title>{pageTitle}</title>
+        </Head>
+        <AdminNavigation items={[]} />
+        <main className={styles.page}>
+          <div className={styles.container}>
+            <p className={styles.loading}>Checking your admin access…</p>
+          </div>
+        </main>
+      </>
     );
   }
 
   if (!isAdmin) {
     return (
-      <main className={styles.page}>
-        <div className={styles.container}>
-          <section className={styles.detailPanel}>
-            <p className={styles.emptyState}>
-              You need to <Link href="/login">sign in with an admin account</Link> to manage valuation requests.
-            </p>
-          </section>
-        </div>
-      </main>
+      <>
+        <Head>
+          <title>{pageTitle}</title>
+        </Head>
+        <AdminNavigation items={[]} />
+        <main className={styles.page}>
+          <div className={styles.container}>
+            <section className={styles.detailPanel}>
+              <p className={styles.emptyState}>
+                You need to <Link href="/login">sign in with an admin account</Link> to manage valuation requests.
+              </p>
+            </section>
+          </div>
+        </main>
+      </>
     );
   }
 
   return (
     <>
       <Head>
-        <title>Aktonz Admin — Valuation requests</title>
+        <title>{pageTitle}</title>
       </Head>
+      <AdminNavigation items={ADMIN_NAV_ITEMS} />
       <main className={styles.page}>
         <div className={styles.container}>
           <header className={styles.header}>
