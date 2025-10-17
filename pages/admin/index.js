@@ -198,6 +198,31 @@ export default function AdminDashboard() {
       ),
     [valuations],
   );
+  const newValuationsCount = useMemo(
+    () =>
+      valuations.filter((valuation) => (valuation.status || '').toLowerCase() === 'new').length,
+    [valuations],
+  );
+  const scheduledValuationsCount = useMemo(
+    () => valuations.filter((valuation) => Boolean(valuation.appointmentAt)).length,
+    [valuations],
+  );
+  const valuationsThisWeek = useMemo(() => {
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+    return valuations.filter((valuation) => {
+      if (!valuation.createdAt) {
+        return false;
+      }
+
+      const createdAt = new Date(valuation.createdAt).getTime();
+      if (Number.isNaN(createdAt)) {
+        return false;
+      }
+
+      return createdAt >= weekAgo;
+    }).length;
+  }, [valuations]);
 
   const salesOffers = useMemo(
     () => offers.filter((offer) => offer.type === 'sale'),
@@ -210,12 +235,35 @@ export default function AdminDashboard() {
 
   const dashboardSecondaryLinks = useMemo(
     () => [
-      { label: 'Email setup', href: '#email-settings' },
+      { label: 'Dashboard overview', href: '#dashboard-overview' },
       { label: 'Valuation requests', href: '#valuations' },
       { label: 'Offers workspace', href: '#offers' },
+      { label: 'Email setup', href: '#email-settings' },
     ],
     [],
   );
+
+  const lastActivityLabel = useMemo(() => {
+    const timestamps = [
+      ...valuations.map((valuation) => valuation.updatedAt || valuation.createdAt),
+      ...offers.map((offer) => offer.updatedAt || offer.date),
+    ]
+      .map((value) => {
+        if (!value) {
+          return null;
+        }
+
+        const timestamp = new Date(value).getTime();
+        return Number.isNaN(timestamp) ? null : timestamp;
+      })
+      .filter((value) => typeof value === 'number');
+
+    if (!timestamps.length) {
+      return null;
+    }
+
+    return formatDate(new Date(Math.max(...timestamps)));
+  }, [offers, valuations]);
 
   const handleConnectClick = useCallback(() => {
     setConnectRedirecting(true);
@@ -303,64 +351,125 @@ export default function AdminDashboard() {
   }
 
   return renderLayout(
-    'Aktonz Admin — Offers & valuations',
+    'Aktonz Admin — Apex dashboard',
     <>
-      <header className={styles.pageHeader}>
-        <div>
-          <p className={styles.pageEyebrow}>Operations</p>
-          <h1 className={styles.pageTitle}>Offers & valuation requests</h1>
-        </div>
-        <button type="button" className={styles.refreshButton} onClick={loadData} disabled={loading}>
-          Refresh
-        </button>
-      </header>
-
-      {error ? <div className={styles.error}>{error}</div> : null}
-
-      <section id="email-settings" className={`${styles.panel} ${styles.anchorSection}`}>
-        <div className={styles.panelHeader}>
-          <div>
-            <h2>Microsoft 365 email</h2>
-            <p>Connect the info@aktonz.com mailbox so Aktonz can send website forms through Microsoft Graph.</p>
-            <div className={styles.panelLinks}>
-              <Link href="/admin/email" className={styles.panelLink}>
-                Open email settings
-              </Link>
-            </div>
+      <header
+        id="dashboard-overview"
+        className={`${styles.pageHeader} ${styles.dashboardHero} ${styles.anchorSection}`}
+      >
+        <div className={styles.heroContent}>
+          <div className={styles.heroHeading}>
+            <p className={styles.pageEyebrow}>Operations</p>
+            <h1 className={styles.pageTitle}>Aktonz Apex dashboard</h1>
+            <p className={styles.pageIntro}>
+              Monitor valuation requests, keep an eye on live offers, and act quickly with the tools
+              you use every day.
+            </p>
           </div>
-          <div className={styles.integrationActions}>
+          {lastActivityLabel ? (
+            <p className={styles.heroMeta}>Last activity {lastActivityLabel}</p>
+          ) : null}
+          <div className={styles.heroActions}>
             <button
               type="button"
-              onClick={handleConnectClick}
-              className={styles.integrationButton}
-              disabled={connectRedirecting}
+              className={`${styles.refreshButton} ${styles.heroAction}`}
+              onClick={loadData}
+              disabled={loading}
             >
-              {connectRedirecting ? 'Redirecting…' : 'Connect Microsoft 365'}
+              Refresh data
             </button>
+            <Link href="/admin/valuations" className={`${styles.heroAction} ${styles.heroActionLink}`}>
+              Go to valuation workspace
+            </Link>
           </div>
         </div>
-        {integrationStatusMessage ? (
-          <p
-            role="status"
-            className={`${styles.integrationAlert} ${
-              integrationStatus === 'success'
-                ? styles.integrationAlertSuccess
-                : styles.integrationAlertError
-            }`}
+        <dl className={styles.heroStats}>
+          <div>
+            <dt>Open valuations</dt>
+            <dd>
+              <span className={styles.heroStatValue}>{openValuations.length}</span>
+              <span className={styles.heroStatDetail}>
+                {valuations.length
+                  ? `${newValuationsCount} new · ${valuations.length} total`
+                  : 'Awaiting first lead'}
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt>New this week</dt>
+            <dd>
+              <span className={styles.heroStatValue}>{valuationsThisWeek}</span>
+              <span className={styles.heroStatDetail}>Fresh enquiries in the last 7 days</span>
+            </dd>
+          </div>
+          <div>
+            <dt>Appointments booked</dt>
+            <dd>
+              <span className={styles.heroStatValue}>{scheduledValuationsCount}</span>
+              <span className={styles.heroStatDetail}>With an appointment date scheduled</span>
+            </dd>
+          </div>
+          <div>
+            <dt>Live offers</dt>
+            <dd>
+              <span className={styles.heroStatValue}>{offers.length}</span>
+              <span className={styles.heroStatDetail}>
+                {salesOffers.length} sale · {rentalOffers.length} rent
+              </span>
+            </dd>
+          </div>
+        </dl>
+      </header>
+
+      <section className={styles.quickActionsSection}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Quick actions</h2>
+          <p className={styles.sectionSubtitle}>Jump straight into the work that needs attention.</p>
+        </div>
+        <div className={styles.quickActionsGrid}>
+          <Link href="/admin/valuations" className={styles.quickActionCard}>
+            <span className={styles.quickActionLabel}>Valuation pipeline</span>
+            <span className={styles.quickActionValue}>{openValuations.length} open leads</span>
+            <span className={styles.quickActionMeta}>
+              {newValuationsCount} new instructions ready for follow-up.
+            </span>
+          </Link>
+          <Link href="/admin/offers" className={styles.quickActionCard}>
+            <span className={styles.quickActionLabel}>Offers workspace</span>
+            <span className={styles.quickActionValue}>{offers.length} active offers</span>
+            <span className={styles.quickActionMeta}>
+              Review sales and tenancy offers from a single queue.
+            </span>
+          </Link>
+          <Link href="/admin/email" className={styles.quickActionCard}>
+            <span className={styles.quickActionLabel}>Email preferences</span>
+            <span className={styles.quickActionValue}>info@aktonz.com</span>
+            <span className={styles.quickActionMeta}>Manage Microsoft 365 connection and routing.</span>
+          </Link>
+          <button
+            type="button"
+            onClick={handleConnectClick}
+            className={styles.quickActionCard}
+            disabled={connectRedirecting}
           >
-            {integrationStatusMessage}
-          </p>
-        ) : null}
-        <div className={styles.integrationDetails}>
-          <ul className={styles.integrationList}>
-            <li>Sign in with info@aktonz.com when Microsoft prompts for an account.</li>
-            <li>Grant the requested permissions so Aktonz can send messages via Microsoft Graph.</li>
-            <li>Tokens are encrypted and saved to <code>.aktonz-ms-tokens.json</code> on the server.</li>
-          </ul>
+            <span className={styles.quickActionLabel}>Connect Microsoft 365</span>
+            <span className={styles.quickActionValue}>
+              {connectRedirecting ? 'Redirecting…' : 'Update Graph link'}
+            </span>
+            <span className={styles.quickActionMeta}>
+              Enable outbound messaging through the Aktonz mailbox.
+            </span>
+          </button>
         </div>
       </section>
 
-      <section id="valuations" className={`${styles.panel} ${styles.anchorSection}`}>
+      {error ? <div className={styles.error}>{error}</div> : null}
+
+      <div className={styles.dashboardGrid}>
+        <section
+          id="valuations"
+          className={`${styles.panel} ${styles.anchorSection} ${styles.dashboardPanel} ${styles.dashboardPanelWide}`}
+        >
         <div className={styles.panelHeader}>
           <div>
             <h2>Valuation requests</h2>
@@ -489,7 +598,10 @@ export default function AdminDashboard() {
         )}
       </section>
 
-      <section id="offers" className={`${styles.panel} ${styles.anchorSection}`}>
+        <section
+          id="offers"
+          className={`${styles.panel} ${styles.anchorSection} ${styles.dashboardPanel} ${styles.dashboardPanelWide}`}
+        >
         <div className={styles.panelHeader}>
           <div>
             <h2>Offers pipeline</h2>
@@ -592,7 +704,63 @@ export default function AdminDashboard() {
         ) : (
           <p className={styles.emptyState}>No live offers at the moment.</p>
         )}
-      </section>
+        </section>
+
+        <section
+          id="email-settings"
+          className={`${styles.panel} ${styles.anchorSection} ${styles.dashboardPanel}`}
+        >
+          <div className={styles.panelHeader}>
+            <div>
+              <h2>Microsoft 365 email</h2>
+              <p>
+                Connect the info@aktonz.com mailbox so Aktonz can send website forms through Microsoft
+                Graph.
+              </p>
+              <div className={styles.panelLinks}>
+                <Link href="/admin/email" className={styles.panelLink}>
+                  Open email settings
+                </Link>
+              </div>
+            </div>
+            <div className={styles.integrationActions}>
+              <button
+                type="button"
+                onClick={handleConnectClick}
+                className={styles.integrationButton}
+                disabled={connectRedirecting}
+              >
+                {connectRedirecting ? 'Redirecting…' : 'Connect Microsoft 365'}
+              </button>
+            </div>
+          </div>
+          {integrationStatusMessage ? (
+            <p
+              role="status"
+              className={`${styles.integrationAlert} ${
+                integrationStatus === 'success'
+                  ? styles.integrationAlertSuccess
+                  : styles.integrationAlertError
+              }`}
+            >
+              {integrationStatusMessage}
+            </p>
+          ) : null}
+          <div className={styles.integrationDetails}>
+            <ul className={styles.integrationList}>
+              <li>Sign in with info@aktonz.com when Microsoft prompts for an account.</li>
+              <li>Grant the requested permissions so Aktonz can send messages via Microsoft Graph.</li>
+              <li>Tokens are encrypted and saved to <code>.aktonz-ms-tokens.json</code> on the server.</li>
+            </ul>
+            {integrationStatus === 'idle' ? (
+              <p className={styles.integrationStatus}>
+                Need help? Visit the <Link href="/admin/email">email workspace</Link> for a full
+                breakdown.
+              </p>
+            ) : null}
+          </div>
+        </section>
+      </div>
     </>,
     true,
   );
