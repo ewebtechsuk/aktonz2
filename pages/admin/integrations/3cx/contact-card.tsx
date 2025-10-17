@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 import AdminContactCard from '../../../../components/admin/ContactCard';
+import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../../components/admin/AdminNavigation';
 import { useSession } from '../../../../components/SessionProvider';
 import styles from '../../../../styles/AdminContactCard.module.css';
 
@@ -164,28 +165,42 @@ const AdminIntegrationContactCardPage = () => {
 
   if (sessionLoading) {
     return (
-      <main className={styles.page}>
-        <div className={styles.pageInner}>
-          <AdminContactCard status="loading" />
-        </div>
-      </main>
+      <>
+        <Head>
+          <title>{pageTitle}</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+        </Head>
+        <AdminNavigation items={[]} />
+        <main className={styles.page}>
+          <div className={styles.pageInner}>
+            <AdminContactCard status="loading" />
+          </div>
+        </main>
+      </>
     );
   }
 
   if (!isAdmin) {
     return (
-      <main className={styles.page}>
-        <div className={styles.pageInner}>
-          <div className={styles.statePanel}>
-            <h1>Admin access required</h1>
-            <p>
-              You need to{' '}
-              <Link href="/login">sign in with an admin account</Link> to open contact dossiers from the phone
-              system.
-            </p>
+      <>
+        <Head>
+          <title>{pageTitle}</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+        </Head>
+        <AdminNavigation items={[]} />
+        <main className={styles.page}>
+          <div className={styles.pageInner}>
+            <div className={styles.statePanel}>
+              <h1>Admin access required</h1>
+              <p>
+                You need to{' '}
+                <Link href="/login">sign in with an admin account</Link> to open contact dossiers from the phone
+                system.
+              </p>
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </>
     );
   }
 
@@ -195,6 +210,7 @@ const AdminIntegrationContactCardPage = () => {
         <title>{pageTitle}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
+      <AdminNavigation items={ADMIN_NAV_ITEMS} />
       <main className={styles.page}>
         <div className={styles.pageInner}>
           <AdminContactCard
