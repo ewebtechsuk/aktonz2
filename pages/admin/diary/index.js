@@ -877,7 +877,7 @@ export default function AdminDiaryWorkspacePage() {
     </section>
   );
 
-  const renderSidebar = () => (
+  const renderSidebarPane = () => (
     <aside className={styles.sidebarPane}>
       <section className={styles.sidebarCard}>
         <header className={styles.sidebarHeader}>
@@ -1236,7 +1236,7 @@ export default function AdminDiaryWorkspacePage() {
 
       <div className={styles.workspaceGrid}>
         {renderCalendarPane()}
-        {renderSidebar()}
+        {renderSidebarPane()}
       </div>
     </div>
   );
