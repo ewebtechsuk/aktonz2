@@ -114,16 +114,20 @@ const AdminSettingsPage = () => {
 
   const handleBrandingChange = useCallback(
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const { name, value, type, checked } = event.target;
-      setBrandingSettings((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+      const { name, value } = event.target;
+      const isCheckbox = event.target instanceof HTMLInputElement && event.target.type === 'checkbox';
+
+      setBrandingSettings((prev) => ({ ...prev, [name]: isCheckbox ? event.target.checked : value }));
     },
     [],
   );
 
   const handlePortalChange = useCallback(
     (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const { name, value, type, checked } = event.target;
-      setPortalSettings((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+      const { name, value } = event.target;
+      const isCheckbox = event.target instanceof HTMLInputElement && event.target.type === 'checkbox';
+
+      setPortalSettings((prev) => ({ ...prev, [name]: isCheckbox ? event.target.checked : value }));
     },
     [],
   );
