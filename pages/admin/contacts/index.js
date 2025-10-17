@@ -749,7 +749,7 @@ export default function AdminContactsPage() {
                 <input
                   type="search"
                   className={styles.textInput}
-                  placeholder="Search name, email, phone or notes"
+                  placeholder="Search name, email or phone"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                 />
@@ -861,8 +861,6 @@ export default function AdminContactsPage() {
                       const budgetLabel = formatBudget(contact.budget);
                       const lastActivityRelative = formatRelativeTime(contact.lastActivityTimestamp);
                       const nextStepDueLabel = formatDueLabel(contact.nextStep?.dueTimestamp);
-                      const createdRelative = formatRelativeTime(contact.createdAtTimestamp);
-
                       return (
                         <tr key={contact.id}>
                           <td className={styles.nameCell}>
@@ -878,7 +876,6 @@ export default function AdminContactsPage() {
                             <div className={styles.meta}>
                               <span>{contact.typeLabel}</span>
                               {contact.pipelineLabel ? <span> • {contact.pipelineLabel}</span> : null}
-                              {createdRelative ? <span> • in pipeline {createdRelative}</span> : null}
                             </div>
                             {contact.tags?.length ? (
                               <div className={styles.badges}>
@@ -892,7 +889,6 @@ export default function AdminContactsPage() {
                           </td>
                           <td>
                             <div className={`${styles.badge} ${stageClass}`}>{contact.stageLabel}</div>
-                            <div className={styles.meta}>Engagement score {contact.engagementScore}</div>
                           </td>
                           <td>
                             <div>{contact.source || '—'}</div>
