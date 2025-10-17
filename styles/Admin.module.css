@@ -12,6 +12,233 @@
   gap: var(--spacing-xl);
 }
 
+.dashboardHero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: var(--spacing-xl);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(59, 130, 246, 0.82));
+  color: var(--color-background);
+  border-radius: 28px;
+  padding: var(--spacing-xxl);
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.25);
+  overflow: hidden;
+}
+
+.dashboardHero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.7), transparent 55%),
+    radial-gradient(circle at bottom left, rgba(34, 197, 94, 0.45), transparent 60%);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.dashboardHero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.heroContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  max-width: 520px;
+}
+
+.heroHeading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.pageIntro {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.heroMeta {
+  margin: 0;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.heroAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.heroActionLink {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--color-background);
+  border-radius: 999px;
+  padding: calc(var(--spacing-sm) * 1.4) calc(var(--spacing-md) * 1.6);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.heroActionLink:hover,
+.heroActionLink:focus-visible {
+  background: rgba(255, 255, 255, 0.24);
+  transform: translateY(-1px);
+}
+
+.heroStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--spacing-md);
+  margin: 0;
+  padding: var(--spacing-xl);
+  background: rgba(15, 23, 42, 0.35);
+  border-radius: 20px;
+  backdrop-filter: blur(12px);
+}
+
+.heroStats div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.heroStats dt {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+  margin: 0;
+}
+
+.heroStats dd {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.heroStatValue {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.heroStatDetail {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.quickActionsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.sectionSubtitle {
+  margin: 0;
+  color: var(--color-muted-text);
+}
+
+.quickActionsGrid {
+  display: grid;
+  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.quickActionCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  background: var(--color-background);
+  border: 1px solid var(--color-border-light);
+  border-radius: 18px;
+  padding: var(--spacing-lg);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease;
+  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.08);
+  cursor: pointer;
+  appearance: none;
+}
+
+.quickActionCard:hover,
+.quickActionCard:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 40px rgba(15, 23, 42, 0.12);
+  border-color: var(--color-secondary);
+}
+
+.quickActionCard:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.08);
+}
+
+.quickActionCard:disabled:hover,
+.quickActionCard:disabled:focus-visible {
+  transform: none;
+  border-color: var(--color-border-light);
+  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.08);
+}
+
+.quickActionLabel {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-muted-text);
+}
+
+.quickActionValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.quickActionMeta {
+  font-size: 0.95rem;
+  color: var(--color-muted-text);
+}
+
+.dashboardGrid {
+  display: grid;
+  gap: var(--spacing-xl);
+}
+
+.dashboardPanel {
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboardPanelWide {
+  grid-column: 1 / -1;
+}
+
 .adminHeader {
   background: var(--color-background);
   border-bottom: 1px solid var(--color-border-light);
@@ -183,6 +410,20 @@
 .refreshButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.dashboardHero .refreshButton {
+  background: var(--color-background);
+  color: var(--color-text);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboardHero .refreshButton:hover,
+.dashboardHero .refreshButton:focus-visible {
+  opacity: 1;
+  transform: translateY(-1px);
+  box-shadow: 0 22px 42px rgba(15, 23, 42, 0.34);
 }
 
 .panel {
@@ -484,6 +725,12 @@
   font-size: 0.9rem;
 }
 
+@media (min-width: 900px) {
+  .dashboardHero {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  }
+}
+
 @media (max-width: 768px) {
   .adminHeaderInner {
     justify-content: center;
@@ -501,6 +748,24 @@
     padding: var(--spacing-lg);
   }
 
+  .dashboardHero {
+    padding: var(--spacing-xl);
+  }
+
+  .heroStats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: var(--spacing-lg);
+  }
+
+  .heroActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .quickActionsGrid {
+    grid-template-columns: 1fr;
+  }
+
   .table {
     min-width: 100%;
   }
@@ -513,4 +778,17 @@
   .summaryList div {
     text-align: left;
   }
+}
+
+@media (min-width: 1024px) {
+  .dashboardGrid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  }
+}
+.dashboardHero .pageEyebrow {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.dashboardHero .pageTitle {
+  color: var(--color-background);
 }
