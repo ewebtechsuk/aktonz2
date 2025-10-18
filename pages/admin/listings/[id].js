@@ -7,6 +7,7 @@ import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/Admi
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminListingDetails.module.css';
 import { formatOfferStatusLabel } from '../../../lib/offer-statuses.js';
+import { fetchListing as fetchListingApi } from '../../../lib/client/api';
 import {
   FaAlignLeft,
   FaBalanceScale,
@@ -785,7 +786,7 @@ export default function AdminListingDetailsPage() {
     return Array.isArray(id) ? id[0] : id;
   }, [router.isReady, router.query]);
 
-  const fetchListing = useCallback(async () => {
+  const loadListing = useCallback(async () => {
     if (!listingId) {
       return;
     }
@@ -794,15 +795,10 @@ export default function AdminListingDetailsPage() {
     setError('');
 
     try {
-      const basePath = router?.basePath ?? '';
-      const response = await fetch(`${basePath}/api/admin/listings/${encodeURIComponent(listingId)}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('Listing not found');
-        }
-        throw new Error('Failed to fetch listing');
+      const payload = await fetchListingApi(listingId);
+      if (!payload?.listing) {
+        throw new Error('Listing not found');
       }
-      const payload = await response.json();
       setListing(payload.listing || null);
     } catch (err) {
       console.error(err);
@@ -811,7 +807,7 @@ export default function AdminListingDetailsPage() {
     } finally {
       setLoading(false);
     }
-  }, [listingId, router.basePath]);
+  }, [listingId]);
 
   useEffect(() => {
     if (!isAdmin || !listingId) {
@@ -821,8 +817,8 @@ export default function AdminListingDetailsPage() {
       return;
     }
 
-    fetchListing();
-  }, [fetchListing, isAdmin, listingId, sessionLoading]);
+    loadListing();
+  }, [loadListing, isAdmin, listingId, sessionLoading]);
 
   useEffect(() => {
     if (!listing) {
