@@ -250,14 +250,19 @@ export async function HEAD(request: NextRequest) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  context: { params?: Promise<Record<string, string | string[] | undefined>> },
 ) {
   const adminCheck = requireAdmin(request);
   if ("response" in adminCheck) {
     return adminCheck.response;
   }
 
-  const id = params?.id;
+  const resolvedParams = (context.params ? await context.params : {}) as {
+    id?: string | string[];
+  };
+
+  const rawId = resolvedParams?.id;
+  const id = Array.isArray(rawId) ? rawId[0] : rawId;
   if (!id) {
     return NextResponse.json(
       { error: "Missing listing id", code: "BAD_REQUEST" },
@@ -286,14 +291,19 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  context: { params?: Promise<Record<string, string | string[] | undefined>> },
 ) {
   const adminCheck = requireAdmin(request);
   if ("response" in adminCheck) {
     return adminCheck.response;
   }
 
-  const id = params?.id;
+  const resolvedParams = (context.params ? await context.params : {}) as {
+    id?: string | string[];
+  };
+
+  const rawId = resolvedParams?.id;
+  const id = Array.isArray(rawId) ? rawId[0] : rawId;
   if (!id) {
     return NextResponse.json(
       { error: "Missing listing id", code: "BAD_REQUEST" },
