@@ -123,7 +123,32 @@ const computedBasePath = isProd && repo ? `/${repo}` : '';
 const publicBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? computedBasePath;
 
 const nextConfig = {
-  ...(shouldExport ? { output: 'export' } : {}),
+  ...(shouldExport
+    ? {
+        output: 'export',
+        exportPathMap: async (defaultPathMap) => {
+          const blockedPrefixes = ['/admin'];
+
+          const filteredEntries = Object.entries(defaultPathMap).filter(([path]) => {
+            if (path.startsWith('/_')) {
+              return true;
+            }
+
+            return !blockedPrefixes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+          });
+
+          const filteredPathMap = Object.fromEntries(filteredEntries);
+
+          const removedRoutes = Object.keys(defaultPathMap).filter((path) => !(path in filteredPathMap));
+
+          if (removedRoutes.length) {
+            console.warn('Omitting the following routes from static export:', removedRoutes.join(', '));
+          }
+
+          return filteredPathMap;
+        },
+      }
+    : {}),
   images: { unoptimized: true },
   basePath: computedBasePath || undefined,
   assetPrefix: computedBasePath ? `${computedBasePath}/` : undefined,
