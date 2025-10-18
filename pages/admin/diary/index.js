@@ -1429,6 +1429,3 @@ export default function AdminDiaryWorkspacePage() {
   );
 }
 
-export async function getServerSideProps() {
-  return { props: {} };
-}
