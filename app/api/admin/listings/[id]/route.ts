@@ -7,16 +7,16 @@ import {
   getLettingsListingById,
   serializeListing,
   updateLettingsListingById,
-} from "../../../../lib/admin-listings.mjs";
+} from "@/lib/admin-listings.mjs";
 // @ts-expect-error -- admin session helpers are JavaScript modules
-import { getAdminFromSession } from "../../../../lib/admin-users.mjs";
+import { getAdminFromSession } from "@/lib/admin-users.mjs";
 // @ts-expect-error -- admin offers helpers are JavaScript modules
-import { listOffersForAdmin } from "../../../../lib/offers-admin.mjs";
+import { listOffersForAdmin } from "@/lib/offers-admin.mjs";
 // @ts-expect-error -- admin maintenance helpers are JavaScript modules
-import { listMaintenanceTasksForAdmin } from "../../../../lib/maintenance-admin.mjs";
+import { listMaintenanceTasksForAdmin } from "@/lib/maintenance-admin.mjs";
 // @ts-expect-error -- property identifier helpers are JavaScript modules
-import { normalizePropertyIdentifierForComparison } from "../../../../lib/property-id.mjs";
-import { readSession } from "../../../../lib/session.js";
+import { normalizePropertyIdentifierForComparison } from "@/lib/property-id.mjs";
+import { readSession } from "@/lib/session.js";
 
 type AdminCheck = { admin: unknown } | { response: NextResponse };
 
