@@ -400,55 +400,234 @@ function renderDefinitionList(items) {
   );
 }
 
-function flattenRecord(value, prefix = '') {
-  if (value === null || value === undefined) {
-    return [{ key: prefix, value: null }];
+function buildSummaryCards({
+  listing,
+  formValues,
+  listingOffers,
+  listingMaintenance,
+  heroRentLabel,
+  statusLabel,
+  statusTone,
+  availabilityLabel,
+  referenceValue,
+  updatedLabel,
+  updatedRelative,
+}) {
+  if (!listing || !formValues) {
+    return [];
   }
 
-  if (Array.isArray(value)) {
-    if (!value.length) {
-      return [{ key: prefix, value: [] }];
+  const seenApplicants = new Set();
+  const seenAgents = new Set();
+
+  listingOffers.forEach((offer) => {
+    const applicantKey =
+      offer?.contact?.id ||
+      offer?.contact?.email ||
+      offer?.email ||
+      (offer?.contact?.name ? `name:${offer.contact.name}` : null);
+    if (applicantKey) {
+      seenApplicants.add(applicantKey);
     }
 
-    return value.flatMap((item, index) => {
-      const nextPrefix = prefix ? `${prefix}[${index}]` : `[${index}]`;
-      return flattenRecord(item, nextPrefix);
-    });
-  }
-
-  if (typeof value === 'object') {
-    const entries = Object.entries(value);
-    if (!entries.length) {
-      return [{ key: prefix, value: {} }];
+    const agentKey =
+      offer?.agent?.id ||
+      offer?.agent?.email ||
+      (offer?.agent?.name ? `name:${offer.agent.name}` : null);
+    if (agentKey) {
+      seenAgents.add(agentKey);
     }
+  });
 
-    return entries.flatMap(([key, nested]) => {
-      const nextPrefix = prefix ? `${prefix}.${key}` : key;
-      return flattenRecord(nested, nextPrefix);
-    });
-  }
+  const marketingLinks = Array.isArray(formValues.marketingLinks) ? formValues.marketingLinks : [];
+  const marketingCount = marketingLinks.filter((link) => link?.url).length;
+  const portalCount = marketingLinks.filter(
+    (link) => (link?.type || '').toLowerCase() === 'portal',
+  ).length;
 
-  return [{ key: prefix, value }];
-}
+  const metadataEntries = Array.isArray(formValues.metadata) ? formValues.metadata : [];
+  const metadataCount = metadataEntries.filter((entry) => entry?.label || entry?.value).length;
 
-function formatFlattenedValue(value) {
-  if (value === null || value === undefined) {
-    return '—';
-  }
+  const images = Array.isArray(formValues.images) ? formValues.images : [];
+  const imagesCount = images.filter((image) => image?.url).length;
+  const media = Array.isArray(formValues.media) ? formValues.media : [];
+  const mediaCount = media.filter((item) => item?.url).length;
 
-  if (typeof value === 'boolean') {
-    return value ? 'true' : 'false';
-  }
+  const summaryText = (formValues.summary || listing.summary || '').trim();
+  const summaryWords = summaryText ? summaryText.split(/\s+/).filter(Boolean).length : 0;
 
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? value.toString() : '—';
-  }
+  const addressParts = [
+    formValues.addressLine1,
+    formValues.addressLine2,
+    formValues.city,
+    formValues.postalCode,
+  ]
+    .map((entry) => (entry ? String(entry).trim() : ''))
+    .filter(Boolean);
 
-  if (typeof value === 'string') {
-    return value.length ? value : '—';
-  }
+  const locationDisplay =
+    addressParts.join(', ') ||
+    listing.displayAddress ||
+    listing.address?.display ||
+    listing.address?.line1 ||
+    'Address not provided';
 
-  return JSON.stringify(value);
+  const latestOffer = listingOffers[0];
+  const offersHint = latestOffer
+    ? `${formatDateDisplay(latestOffer.date) || 'Recently updated'} • ${
+        latestOffer.statusLabel || formatOfferStatusLabel(latestOffer.status)
+      }`
+    : 'No offers recorded yet.';
+
+  const maintenanceOpenCount = listingMaintenance.filter(
+    (task) => task?.statusCategory !== 'closed',
+  ).length;
+  const nextMaintenance = listingMaintenance.find((task) => task?.statusCategory !== 'closed');
+  const maintenanceHint = nextMaintenance
+    ? `${formatDateDisplay(nextMaintenance.dueAt) || 'No due date'} • ${
+        nextMaintenance.statusLabel || nextMaintenance.status
+      }`
+    : 'No maintenance tasks recorded.';
+
+  const bedroomsValue = formValues.bedrooms ?? listing.bedrooms;
+  const bathroomsValue = formValues.bathrooms ?? listing.bathrooms;
+  const receptionsValue = formValues.receptions ?? listing.receptions;
+
+  return [
+    {
+      key: 'offers',
+      icon: FaClipboardList,
+      label: 'Offers',
+      value: String(listingOffers.length),
+      hint: offersHint,
+      tone: listingOffers.length ? 'info' : 'muted',
+    },
+    {
+      key: 'maintenance',
+      icon: FaStickyNote,
+      label: 'Maintenance',
+      value: String(listingMaintenance.length),
+      hint:
+        listingMaintenance.length === 0
+          ? 'No maintenance tasks recorded.'
+          : `${maintenanceOpenCount} open • ${listingMaintenance.length - maintenanceOpenCount} closed`,
+      tone: listingMaintenance.length ? 'warning' : 'muted',
+    },
+    {
+      key: 'rent',
+      icon: FaMoneyBillWave,
+      label: 'Rent',
+      value: heroRentLabel,
+      hint: availabilityLabel || 'Rent frequency configurable in key facts.',
+      tone: heroRentLabel === 'Rent not set' ? 'muted' : 'success',
+    },
+    {
+      key: 'branch',
+      icon: FaBuilding,
+      label: 'Branch',
+      value: listing.branch?.name || 'Not assigned',
+      hint: listing.branch?.contact?.phone || listing.branch?.contact?.email || null,
+      tone: listing.branch?.name ? 'info' : 'muted',
+    },
+    {
+      key: 'negotiator',
+      icon: FaUserPlus,
+      label: 'Negotiator',
+      value: listing.negotiator?.name || 'Not assigned',
+      hint: listing.negotiator?.contact?.email || listing.negotiator?.contact?.phone || null,
+      tone: listing.negotiator?.name ? 'info' : 'muted',
+    },
+    {
+      key: 'applicants',
+      icon: FaUserFriends,
+      label: 'Applicants',
+      value: String(seenApplicants.size),
+      hint: seenApplicants.size
+        ? 'Unique contacts across linked offers.'
+        : 'No applicants recorded yet.',
+      tone: seenApplicants.size ? 'info' : 'muted',
+    },
+    {
+      key: 'agents',
+      icon: FaUsers,
+      label: 'Agents',
+      value: String(seenAgents.size),
+      hint: seenAgents.size ? 'Agents involved in the latest offers.' : 'No agents assigned yet.',
+      tone: seenAgents.size ? 'info' : 'muted',
+    },
+    {
+      key: 'status',
+      icon: FaBalanceScale,
+      label: 'Status',
+      value: statusLabel,
+      hint: availabilityLabel || null,
+      tone: statusTone,
+    },
+    {
+      key: 'location',
+      icon: FaMapMarkedAlt,
+      label: 'Location',
+      value: locationDisplay,
+      hint: formValues.postalCode || listing.address?.postalCode || null,
+      tone: addressParts.length ? 'info' : 'muted',
+    },
+    {
+      key: 'summary',
+      icon: FaAlignLeft,
+      label: 'Summary',
+      value: summaryWords ? 'Ready' : 'Missing',
+      hint: summaryWords ? `${summaryWords} words` : 'Add a short portal summary.',
+      tone: summaryWords ? 'success' : 'muted',
+    },
+    {
+      key: 'beds',
+      icon: FaBed,
+      label: 'Bedrooms',
+      value: bedroomsValue != null && bedroomsValue !== '' ? String(bedroomsValue) : '—',
+      hint: `Baths ${bathroomsValue ?? '—'} • Receptions ${receptionsValue ?? '—'}`,
+      tone: bedroomsValue ? 'info' : 'muted',
+    },
+    {
+      key: 'media',
+      icon: FaImages,
+      label: 'Media items',
+      value: String(imagesCount + mediaCount),
+      hint: `${imagesCount} images • ${mediaCount} embeds`,
+      tone: imagesCount + mediaCount ? 'info' : 'muted',
+    },
+    {
+      key: 'marketing',
+      icon: FaBullhorn,
+      label: 'Marketing links',
+      value: String(marketingCount),
+      hint: portalCount ? `${portalCount} portal links` : 'No marketing links added yet.',
+      tone: marketingCount ? 'info' : 'muted',
+    },
+    {
+      key: 'metadata',
+      icon: FaListUl,
+      label: 'Metadata entries',
+      value: String(metadataCount),
+      hint: metadataCount ? 'Synced from Apex27.' : 'No additional metadata recorded.',
+      tone: metadataCount ? 'info' : 'muted',
+    },
+    {
+      key: 'reference',
+      icon: FaGavel,
+      label: 'Reference',
+      value: referenceValue,
+      hint: statusLabel ? `Status ${statusLabel}` : null,
+      tone: referenceValue && referenceValue !== '—' ? 'info' : 'muted',
+    },
+    {
+      key: 'updated',
+      icon: FaCalendarCheck,
+      label: 'Last updated',
+      value: updatedLabel,
+      hint: updatedRelative || null,
+      tone: 'muted',
+    },
+  ];
 }
 
 export default function AdminListingDetailsPage() {
@@ -1275,6 +1454,42 @@ export default function AdminListingDetailsPage() {
     const referenceValue = formValues.reference || '—';
     const updatedLabel = formatDateTime(listing.updatedAt);
     const updatedRelative = formatRelativeTime(listing.updatedAt);
+    const listingOffers = (Array.isArray(listing.offers) ? listing.offers : [])
+      .slice()
+      .sort((a, b) => {
+        const right = new Date(b.updatedAt || b.date || 0).getTime();
+        const left = new Date(a.updatedAt || a.date || 0).getTime();
+        return right - left;
+      });
+    const listingMaintenance = (Array.isArray(listing.maintenanceTasks)
+      ? listing.maintenanceTasks
+      : [])
+      .slice()
+      .sort((a, b) => {
+        const left = Number.isFinite(a.dueTimestamp) ? a.dueTimestamp : Infinity;
+        const right = Number.isFinite(b.dueTimestamp) ? b.dueTimestamp : Infinity;
+        if (left !== right) {
+          return left - right;
+        }
+        const leftUpdated = Number.isFinite(a.updatedAtTimestamp) ? a.updatedAtTimestamp : 0;
+        const rightUpdated = Number.isFinite(b.updatedAtTimestamp) ? b.updatedAtTimestamp : 0;
+        return rightUpdated - leftUpdated;
+      });
+
+    const summaryCards = buildSummaryCards({
+      listing,
+      formValues,
+      listingOffers,
+      listingMaintenance,
+      heroRentLabel,
+      statusLabel,
+      statusTone,
+      availabilityLabel,
+      referenceValue,
+      updatedLabel,
+      updatedRelative,
+    });
+
     return (
       <>
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
@@ -1420,6 +1635,29 @@ export default function AdminListingDetailsPage() {
             <span className={styles.metaMuted}>{updatedRelative}</span>
           </div>
         </section>
+
+        {summaryCards.length ? (
+          <section className={styles.summarySection} aria-label="Listing overview">
+            <div className={styles.summaryGrid}>
+              {summaryCards.map((card) => {
+                const IconComponent = card.icon;
+                const displayValue = card.value != null && card.value !== '' ? card.value : '—';
+                return (
+                  <article key={card.key} className={styles.summaryCard}>
+                    <span className={styles.summaryIcon} data-tone={card.tone}>
+                      <IconComponent aria-hidden="true" />
+                    </span>
+                    <div className={styles.summaryContent}>
+                      <p className={styles.summaryLabel}>{card.label}</p>
+                      <p className={styles.summaryValue}>{displayValue}</p>
+                      {card.hint ? <p className={styles.summaryHint}>{card.hint}</p> : null}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
 
         <section className={styles.panelGroup}>
           <article id="section-rooms" className={styles.panel}>
@@ -2038,7 +2276,7 @@ export default function AdminListingDetailsPage() {
           </p>
         </header>
         <div className={styles.activityGrid}>
-          <article id="section-leads" className={styles.activityCard}>
+          <article className={styles.activityCard}>
             <header className={styles.activityCardHeader}>
               <div>
                 <h3>Offers</h3>
@@ -2133,97 +2371,6 @@ export default function AdminListingDetailsPage() {
               <p className={styles.activityEmpty}>No maintenance tasks recorded for this listing.</p>
             )}
           </article>
-        </div>
-      </section>
-
-      <section id="section-interested-parties" className={styles.panel}>
-        <header className={styles.panelHeader}>
-          <h2 className={styles.panelTitle}>Interested parties</h2>
-        </header>
-        <div className={styles.panelBody}>
-          {interestedParties.length ? (
-            <ul className={styles.simpleList}>
-              {interestedParties.map((party) => (
-                <li key={`${party.name}-${party.updatedAt || party.status}`} className={styles.simpleListItem}>
-                  <div className={styles.simpleListPrimary}>{party.name}</div>
-                  <div className={styles.simpleListMeta}>
-                    {party.statusLabel ? <span>{party.statusLabel}</span> : null}
-                    {party.updatedAt ? <span>{formatDateDisplay(party.updatedAt)}</span> : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={styles.metaMuted}>No interested parties recorded for this listing.</p>
-          )}
-        </div>
-      </section>
-
-      <section id="section-matching-applicants" className={styles.panel}>
-        <header className={styles.panelHeader}>
-          <h2 className={styles.panelTitle}>Matching applicants</h2>
-        </header>
-        <div className={styles.panelBody}>
-          {matchingAreasList.length ? (
-            <ul className={styles.simpleList}>
-              {matchingAreasList.map((area) => (
-                <li key={area} className={styles.simpleListItem}>
-                  <div className={styles.simpleListPrimary}>{area}</div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={styles.metaMuted}>No matching applicant areas recorded.</p>
-          )}
-        </div>
-      </section>
-
-      <section id="section-valuations" className={styles.panel}>
-        <header className={styles.panelHeader}>
-          <h2 className={styles.panelTitle}>Valuations</h2>
-        </header>
-        <div className={styles.panelBody}>
-          {valuationEntries.length ? (
-            renderDefinitionList(valuationEntries)
-          ) : (
-            <p className={styles.metaMuted}>No valuation information recorded.</p>
-          )}
-        </div>
-      </section>
-
-      <section id="section-auctions" className={styles.panel}>
-        <header className={styles.panelHeader}>
-          <h2 className={styles.panelTitle}>Auctions</h2>
-        </header>
-        <div className={styles.panelBody}>
-          {auctionEntries.length ? (
-            renderDefinitionList(auctionEntries)
-          ) : (
-            <p className={styles.metaMuted}>No auction details available for this listing.</p>
-          )}
-        </div>
-      </section>
-
-      <section id="section-viewings" className={styles.panel}>
-        <header className={styles.panelHeader}>
-          <h2 className={styles.panelTitle}>Viewings &amp; site activity</h2>
-        </header>
-        <div className={styles.panelBody}>
-          {listingMaintenance.length ? (
-            <ul className={styles.simpleList}>
-              {listingMaintenance.map((task) => (
-                <li key={task.id} className={styles.simpleListItem}>
-                  <div className={styles.simpleListPrimary}>{task.title}</div>
-                  <div className={styles.simpleListMeta}>
-                    {task.dueAt ? <span>Due {formatDateDisplay(task.dueAt)}</span> : null}
-                    {task.statusLabel ? <span>{task.statusLabel}</span> : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={styles.metaMuted}>No viewings or site activity recorded.</p>
-          )}
         </div>
       </section>
       </>
