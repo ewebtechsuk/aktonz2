@@ -484,7 +484,8 @@ export default function AdminListingDetailsPage() {
     setError('');
 
     try {
-      const response = await fetch(`/api/admin/listings/${encodeURIComponent(listingId)}`);
+      const basePath = router?.basePath ?? '';
+      const response = await fetch(`${basePath}/api/admin/listings/${encodeURIComponent(listingId)}`);
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error('Listing not found');
@@ -500,7 +501,7 @@ export default function AdminListingDetailsPage() {
     } finally {
       setLoading(false);
     }
-  }, [listingId]);
+  }, [listingId, router.basePath]);
 
   useEffect(() => {
     if (!isAdmin || !listingId) {
@@ -1055,7 +1056,8 @@ export default function AdminListingDetailsPage() {
 
       try {
         const payload = buildUpdatePayload(formValues);
-        const response = await fetch(`/api/admin/listings/${encodeURIComponent(listingId)}`, {
+        const basePath = router?.basePath ?? '';
+        const response = await fetch(`${basePath}/api/admin/listings/${encodeURIComponent(listingId)}`, {
           method: 'PATCH',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify(payload),
@@ -1080,7 +1082,7 @@ export default function AdminListingDetailsPage() {
         setSaving(false);
       }
     },
-    [formValues, listingId],
+    [formValues, listingId, router.basePath],
   );
 
   const handleReset = useCallback(() => {

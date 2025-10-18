@@ -177,7 +177,10 @@ export default function AdminLettingsArchivePage() {
         }
       });
 
-      const response = await fetch(`/api/admin/listings?${params.toString()}`);
+      const basePath = router?.basePath ?? '';
+      const query = params.toString();
+      const url = `${basePath}/api/admin/listings${query ? `?${query}` : ''}`;
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch lettings archive');
       }
@@ -191,7 +194,7 @@ export default function AdminLettingsArchivePage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [router.basePath]);
 
   useEffect(() => {
     if (!isAdmin || !initialized) {
