@@ -20,8 +20,6 @@ import { readSession } from "@/lib/session.js";
 
 type AdminCheck = { admin: unknown } | { response: NextResponse };
 
-type RouteContext = { params: { id?: string } };
-
 function getEnv(name: string, required = false): string | undefined {
   const value = process.env[name];
   if (required && (!value || value.trim() === "")) {
@@ -250,7 +248,10 @@ export async function HEAD(request: NextRequest) {
   return new NextResponse(null, { status: 200 });
 }
 
-export async function GET(request: NextRequest, { params }: RouteContext) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id?: string } },
+) {
   const adminCheck = requireAdmin(request);
   if ("response" in adminCheck) {
     return adminCheck.response;
@@ -283,7 +284,10 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: RouteContext) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id?: string } },
+) {
   const adminCheck = requireAdmin(request);
   if ("response" in adminCheck) {
     return adminCheck.response;
