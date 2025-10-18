@@ -73,10 +73,25 @@ export default async function handler(req, res) {
       registerId(listing?.raw?.sourceId);
       registerId(listing?.raw?.fullReference);
 
-      const [offers, maintenance] = await Promise.all([
+      const [offersResult, maintenanceResult] = await Promise.allSettled([
         listOffersForAdmin(),
         listMaintenanceTasksForAdmin(),
       ]);
+
+      if (offersResult.status === 'rejected') {
+        console.error('Failed to load offers for admin listing', listingId, offersResult.reason);
+      }
+      if (maintenanceResult.status === 'rejected') {
+        console.error(
+          'Failed to load maintenance tasks for admin listing',
+          listingId,
+          maintenanceResult.reason,
+        );
+      }
+
+      const offers = offersResult.status === 'fulfilled' ? offersResult.value : [];
+      const maintenance =
+        maintenanceResult.status === 'fulfilled' ? maintenanceResult.value : [];
 
       const matchesListing = (candidates = []) => {
         for (const candidate of candidates) {
