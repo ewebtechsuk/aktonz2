@@ -47,6 +47,7 @@ function formatStatusLabel(status, options) {
 export default function AdminDashboard() {
   const [offers, setOffers] = useState([]);
   const [valuations, setValuations] = useState([]);
+  const [maintenanceTasks, setMaintenanceTasks] = useState([]);
   const [statusOptions, setStatusOptions] = useState(DEFAULT_STATUS_OPTIONS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -96,9 +97,10 @@ export default function AdminDashboard() {
     setError(null);
 
     try {
-      const [offersRes, valuationsRes] = await Promise.all([
+      const [offersRes, valuationsRes, maintenanceRes] = await Promise.all([
         fetch('/api/admin/offers'),
         fetch('/api/admin/valuations'),
+        fetch('/api/admin/maintenance'),
       ]);
 
       if (!offersRes.ok) {
@@ -107,12 +109,17 @@ export default function AdminDashboard() {
       if (!valuationsRes.ok) {
         throw new Error('Failed to fetch valuations');
       }
+      if (!maintenanceRes.ok) {
+        throw new Error('Failed to fetch maintenance tasks');
+      }
 
       const offersJson = await offersRes.json();
       const valuationsJson = await valuationsRes.json();
+      const maintenanceJson = await maintenanceRes.json();
 
       setOffers(Array.isArray(offersJson.offers) ? offersJson.offers : []);
       setValuations(Array.isArray(valuationsJson.valuations) ? valuationsJson.valuations : []);
+      setMaintenanceTasks(Array.isArray(maintenanceJson.tasks) ? maintenanceJson.tasks : []);
 
       const resolvedStatusOptions = Array.isArray(valuationsJson.statusOptions)
         ? valuationsJson.statusOptions
@@ -151,6 +158,7 @@ export default function AdminDashboard() {
     if (!isAdmin) {
       setOffers([]);
       setValuations([]);
+      setMaintenanceTasks([]);
       return;
     }
 
@@ -232,12 +240,26 @@ export default function AdminDashboard() {
     () => offers.filter((offer) => offer.type === 'rent'),
     [offers],
   );
+  const openMaintenanceTasks = useMemo(
+    () => maintenanceTasks.filter((task) => task.statusCategory !== 'closed'),
+    [maintenanceTasks],
+  );
+  const overdueMaintenanceTasks = useMemo(
+    () => openMaintenanceTasks.filter((task) => task.overdue),
+    [openMaintenanceTasks],
+  );
+  const dueSoonMaintenanceTasks = useMemo(
+    () => openMaintenanceTasks.filter((task) => task.dueSoon && !task.overdue),
+    [openMaintenanceTasks],
+  );
+  const maintenanceTaskList = useMemo(() => maintenanceTasks.slice(), [maintenanceTasks]);
 
   const dashboardSecondaryLinks = useMemo(
     () => [
       { label: 'Dashboard overview', href: '#dashboard-overview' },
       { label: 'Valuation requests', href: '#valuations' },
       { label: 'Offers workspace', href: '#offers' },
+      { label: 'Maintenance tasks', href: '#maintenance' },
       { label: 'Email setup', href: '#email-settings' },
     ],
     [],
@@ -247,6 +269,7 @@ export default function AdminDashboard() {
     const timestamps = [
       ...valuations.map((valuation) => valuation.updatedAt || valuation.createdAt),
       ...offers.map((offer) => offer.updatedAt || offer.date),
+      ...maintenanceTasks.map((task) => task.updatedAt || task.dueAt || task.createdAt),
     ]
       .map((value) => {
         if (!value) {
@@ -263,7 +286,7 @@ export default function AdminDashboard() {
     }
 
     return formatDate(new Date(Math.max(...timestamps)));
-  }, [offers, valuations]);
+  }, [offers, maintenanceTasks, valuations]);
 
   const handleConnectClick = useCallback(() => {
     setConnectRedirecting(true);
@@ -415,6 +438,15 @@ export default function AdminDashboard() {
               <span className={styles.heroStatValue}>{offers.length}</span>
               <span className={styles.heroStatDetail}>
                 {salesOffers.length} sale · {rentalOffers.length} rent
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt>Maintenance</dt>
+            <dd>
+              <span className={styles.heroStatValue}>{openMaintenanceTasks.length}</span>
+              <span className={styles.heroStatDetail}>
+                {overdueMaintenanceTasks.length} overdue · {maintenanceTasks.length} total
               </span>
             </dd>
           </div>
@@ -703,6 +735,107 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <p className={styles.emptyState}>No live offers at the moment.</p>
+        )}
+        </section>
+
+        <section
+          id="maintenance"
+          className={`${styles.panel} ${styles.anchorSection} ${styles.dashboardPanel} ${styles.dashboardPanelWide}`}
+        >
+        <div className={styles.panelHeader}>
+          <div>
+            <h2>Maintenance tasks</h2>
+            <p>Track open repairs, contractor appointments, and resident requests in one view.</p>
+          </div>
+          <dl className={styles.summaryList}>
+            <div>
+              <dt>Open</dt>
+              <dd>{openMaintenanceTasks.length}</dd>
+            </div>
+            <div>
+              <dt>Due soon</dt>
+              <dd>{dueSoonMaintenanceTasks.length}</dd>
+            </div>
+            <div>
+              <dt>Overdue</dt>
+              <dd>{overdueMaintenanceTasks.length}</dd>
+            </div>
+          </dl>
+          <button
+            type="button"
+            className={styles.refreshButton}
+            onClick={loadData}
+            disabled={loading}
+          >
+            Refresh
+          </button>
+        </div>
+
+        {loading ? (
+          <p className={styles.loading}>Loading maintenance tasks…</p>
+        ) : maintenanceTaskList.length ? (
+          <div className={styles.tableScroll}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Due</th>
+                  <th>Task</th>
+                  <th>Property</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {maintenanceTaskList.map((task) => (
+                  <tr key={task.id}>
+                    <td>
+                      <div className={styles.primaryText}>
+                        {task.dueAt ? formatDate(task.dueAt) : 'No due date'}
+                      </div>
+                      {task.overdue ? (
+                        <div className={`${styles.badge} ${styles.maintenanceBadgeOverdue}`}>Overdue</div>
+                      ) : task.dueSoon ? (
+                        <div className={`${styles.badge} ${styles.maintenanceBadgeSoon}`}>Due soon</div>
+                      ) : null}
+                    </td>
+                    <td>
+                      <div className={styles.primaryText}>{task.title}</div>
+                      {task.priorityLabel ? (
+                        <div className={`${styles.maintenancePriority}`} data-level={task.priority}>
+                          {task.priorityLabel}
+                        </div>
+                      ) : null}
+                      {task.reporter?.name ? (
+                        <div className={styles.meta}>Reported by {task.reporter.name}</div>
+                      ) : null}
+                    </td>
+                    <td>
+                      <div className={styles.primaryText}>
+                        {task.property?.title || 'Unlinked property'}
+                      </div>
+                      {task.property?.address ? (
+                        <div className={styles.meta}>{task.property.address}</div>
+                      ) : null}
+                    </td>
+                    <td>
+                      <div className={styles.maintenanceStatus} data-tone={task.statusTone}>
+                        {task.statusLabel}
+                      </div>
+                      {task.assignee?.name ? (
+                        <div className={styles.meta}>Assigned to {task.assignee.name}</div>
+                      ) : null}
+                      {task.costEstimate != null ? (
+                        <div className={styles.meta}>
+                          Est. cost £{Number(task.costEstimate).toLocaleString('en-GB')}
+                        </div>
+                      ) : null}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className={styles.emptyState}>No maintenance items in progress.</p>
         )}
         </section>
 
