@@ -174,12 +174,15 @@ export default function PropertyCard({ property }) {
     property?.rentFrequency
   );
 
-  const securityDepositLabel = formatDepositDisplay(securityDepositInfo, {
-    fallback: 'Please enquire',
+  const isLettings = Boolean(property?.rentFrequency);
+  const securityDepositResolved = formatDepositDisplay(securityDepositInfo, {
+    fallback: null,
   });
-  const holdingDepositLabel = formatDepositDisplay(holdingDepositInfo, {
-    fallback: 'Please enquire',
+  const holdingDepositResolved = formatDepositDisplay(holdingDepositInfo, {
+    fallback: null,
   });
+  const securityDepositLabel = securityDepositResolved ?? (isLettings ? 'Please enquire' : null);
+  const holdingDepositLabel = holdingDepositResolved ?? (isLettings ? 'Please enquire' : null);
 
   const availabilityRaw =
     property?.availableAt ??
@@ -193,8 +196,12 @@ export default function PropertyCard({ property }) {
     property?.date_available ??
     null;
   const availabilityLabel = availabilityRaw
-    ? formatAvailabilityDate(availabilityRaw, { fallback: 'Please enquire' })
-    : 'Please enquire';
+    ? formatAvailabilityDate(availabilityRaw, {
+        fallback: isLettings ? 'Please enquire' : null,
+      })
+    : isLettings
+    ? 'Please enquire'
+    : null;
 
   const shouldShowSecurityDeposit = Boolean(securityDepositLabel);
   const shouldShowHoldingDeposit = Boolean(holdingDepositLabel);
