@@ -7,17 +7,8 @@ const ciRequestedStaticExport =
   process.env.GITHUB_ACTIONS === 'true' && process.env.NEXT_EXPORT !== 'false';
 
 const serverRuntimeOnlyRoutes = ['/integrations/3cx/contact-card'];
-const hasServerOnlyRoutes = serverRuntimeOnlyRoutes.length > 0;
 
 const shouldExport = requestedStaticExport || ciRequestedStaticExport;
-
-if (shouldExport && hasServerOnlyRoutes) {
-  console.warn(
-    'NEXT_EXPORT requested; attempting a static export but the following routes rely on server rendering:',
-    serverRuntimeOnlyRoutes.join(', ')
-  );
-  console.warn('Those routes may not function correctly in the exported build.');
-}
 
 /** @type {import('next').NextConfig} */
 function withNoSniff(headers) {
@@ -128,10 +119,15 @@ const nextConfig = {
         output: 'export',
         exportPathMap: async (defaultPathMap) => {
           const blockedPrefixes = ['/admin'];
+          const blockedRoutes = new Set(serverRuntimeOnlyRoutes);
 
           const filteredEntries = Object.entries(defaultPathMap).filter(([path]) => {
             if (path.startsWith('/_')) {
               return true;
+            }
+
+            if (blockedRoutes.has(path)) {
+              return false;
             }
 
             return !blockedPrefixes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));

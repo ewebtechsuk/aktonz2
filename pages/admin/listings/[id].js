@@ -7,24 +7,6 @@ import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/Admi
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminListingDetails.module.css';
 import { formatOfferStatusLabel } from '../../../lib/offer-statuses.js';
-import {
-  FaAlignLeft,
-  FaBalanceScale,
-  FaBed,
-  FaBullhorn,
-  FaBuilding,
-  FaCalendarCheck,
-  FaClipboardList,
-  FaGavel,
-  FaImages,
-  FaListUl,
-  FaMapMarkedAlt,
-  FaMoneyBillWave,
-  FaStickyNote,
-  FaUserFriends,
-  FaUserPlus,
-  FaUsers,
-} from 'react-icons/fa';
 
 const STATUS_OPTIONS = [
   { value: 'available', label: 'Available' },
@@ -1273,6 +1255,28 @@ export default function AdminListingDetailsPage() {
     const referenceValue = formValues.reference || '—';
     const updatedLabel = formatDateTime(listing.updatedAt);
     const updatedRelative = formatRelativeTime(listing.updatedAt);
+    const listingOffers = (Array.isArray(listing.offers) ? listing.offers : [])
+      .slice()
+      .sort((a, b) => {
+        const right = new Date(b.updatedAt || b.date || 0).getTime();
+        const left = new Date(a.updatedAt || a.date || 0).getTime();
+        return right - left;
+      });
+    const listingMaintenance = (Array.isArray(listing.maintenanceTasks)
+      ? listing.maintenanceTasks
+      : [])
+      .slice()
+      .sort((a, b) => {
+        const left = Number.isFinite(a.dueTimestamp) ? a.dueTimestamp : Infinity;
+        const right = Number.isFinite(b.dueTimestamp) ? b.dueTimestamp : Infinity;
+        if (left !== right) {
+          return left - right;
+        }
+        const leftUpdated = Number.isFinite(a.updatedAtTimestamp) ? a.updatedAtTimestamp : 0;
+        const rightUpdated = Number.isFinite(b.updatedAtTimestamp) ? b.updatedAtTimestamp : 0;
+        return rightUpdated - leftUpdated;
+      });
+
     return (
       <>
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
@@ -2036,7 +2040,7 @@ export default function AdminListingDetailsPage() {
           </p>
         </header>
         <div className={styles.activityGrid}>
-          <article id="section-leads" className={styles.activityCard}>
+          <article className={styles.activityCard}>
             <header className={styles.activityCardHeader}>
               <div>
                 <h3>Offers</h3>
@@ -2131,97 +2135,6 @@ export default function AdminListingDetailsPage() {
               <p className={styles.activityEmpty}>No maintenance tasks recorded for this listing.</p>
             )}
           </article>
-        </div>
-      </section>
-
-      <section id="section-interested-parties" className={styles.panel}>
-        <header className={styles.panelHeader}>
-          <h2 className={styles.panelTitle}>Interested parties</h2>
-        </header>
-        <div className={styles.panelBody}>
-          {interestedParties.length ? (
-            <ul className={styles.simpleList}>
-              {interestedParties.map((party) => (
-                <li key={`${party.name}-${party.updatedAt || party.status}`} className={styles.simpleListItem}>
-                  <div className={styles.simpleListPrimary}>{party.name}</div>
-                  <div className={styles.simpleListMeta}>
-                    {party.statusLabel ? <span>{party.statusLabel}</span> : null}
-                    {party.updatedAt ? <span>{formatDateDisplay(party.updatedAt)}</span> : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={styles.metaMuted}>No interested parties recorded for this listing.</p>
-          )}
-        </div>
-      </section>
-
-      <section id="section-matching-applicants" className={styles.panel}>
-        <header className={styles.panelHeader}>
-          <h2 className={styles.panelTitle}>Matching applicants</h2>
-        </header>
-        <div className={styles.panelBody}>
-          {matchingAreasList.length ? (
-            <ul className={styles.simpleList}>
-              {matchingAreasList.map((area) => (
-                <li key={area} className={styles.simpleListItem}>
-                  <div className={styles.simpleListPrimary}>{area}</div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={styles.metaMuted}>No matching applicant areas recorded.</p>
-          )}
-        </div>
-      </section>
-
-      <section id="section-valuations" className={styles.panel}>
-        <header className={styles.panelHeader}>
-          <h2 className={styles.panelTitle}>Valuations</h2>
-        </header>
-        <div className={styles.panelBody}>
-          {valuationEntries.length ? (
-            renderDefinitionList(valuationEntries)
-          ) : (
-            <p className={styles.metaMuted}>No valuation information recorded.</p>
-          )}
-        </div>
-      </section>
-
-      <section id="section-auctions" className={styles.panel}>
-        <header className={styles.panelHeader}>
-          <h2 className={styles.panelTitle}>Auctions</h2>
-        </header>
-        <div className={styles.panelBody}>
-          {auctionEntries.length ? (
-            renderDefinitionList(auctionEntries)
-          ) : (
-            <p className={styles.metaMuted}>No auction details available for this listing.</p>
-          )}
-        </div>
-      </section>
-
-      <section id="section-viewings" className={styles.panel}>
-        <header className={styles.panelHeader}>
-          <h2 className={styles.panelTitle}>Viewings &amp; site activity</h2>
-        </header>
-        <div className={styles.panelBody}>
-          {listingMaintenance.length ? (
-            <ul className={styles.simpleList}>
-              {listingMaintenance.map((task) => (
-                <li key={task.id} className={styles.simpleListItem}>
-                  <div className={styles.simpleListPrimary}>{task.title}</div>
-                  <div className={styles.simpleListMeta}>
-                    {task.dueAt ? <span>Due {formatDateDisplay(task.dueAt)}</span> : null}
-                    {task.statusLabel ? <span>{task.statusLabel}</span> : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={styles.metaMuted}>No viewings or site activity recorded.</p>
-          )}
         </div>
       </section>
       </>
