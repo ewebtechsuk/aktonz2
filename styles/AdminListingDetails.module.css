@@ -878,6 +878,59 @@
   line-height: 1.5;
 }
 
+.apexFieldList {
+  display: grid;
+  gap: var(--spacing-sm);
+  max-height: 360px;
+  overflow: auto;
+  padding-right: var(--spacing-sm);
+}
+
+.apexFieldRow {
+  display: grid;
+  gap: calc(var(--spacing-xs) / 2);
+  background: var(--color-surface-alt);
+  border-radius: 12px;
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.apexFieldKey {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted-text);
+}
+
+.apexFieldValue {
+  font-size: 0.95rem;
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.apexRawDetails {
+  background: var(--color-surface-alt);
+  border-radius: 12px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.apexRawDetails summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.apexRawPre {
+  margin: var(--spacing-sm) 0 0 0;
+  max-height: 360px;
+  overflow: auto;
+  background: transparent;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 @media (max-width: 720px) {
   .heroTitle {
     font-size: 1.8rem;
@@ -885,5 +938,214 @@
 
   .panelGroup {
     grid-template-columns: 1fr;
+  }
+}
+.tabLayout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: var(--spacing-xl);
+  align-items: flex-start;
+}
+
+.tabSidebar {
+  position: sticky;
+  top: var(--spacing-xl);
+  align-self: flex-start;
+}
+
+.tabNav {
+  background: var(--color-background);
+  border-radius: 20px;
+  padding: var(--spacing-lg) var(--spacing-md);
+  box-shadow: 0 18px 36px rgba(27, 40, 64, 0.08);
+}
+
+.tabNavList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.tabNavItem {
+  width: 100%;
+}
+
+.tabNavButton {
+  width: 100%;
+  border: none;
+  background: transparent;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 14px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--color-muted-text);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.tabNavButton:hover,
+.tabNavButton:focus-visible {
+  background: rgba(27, 40, 64, 0.06);
+  color: var(--color-text);
+}
+
+.tabNavButtonActive {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 16px 32px rgba(37, 99, 235, 0.25);
+  transform: translateY(-1px);
+}
+
+.tabNavIcon {
+  font-size: 1rem;
+}
+
+.tabNavLabel {
+  text-align: left;
+}
+
+.tabNavBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  padding: calc(var(--spacing-xs) * 0.75) var(--spacing-xs);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(27, 40, 64, 0.12);
+  color: inherit;
+}
+
+.tabNavButtonActive .tabNavBadge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.tabContentArea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.featureSummary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.featureHeading {
+  margin: 0;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted-text);
+}
+
+.featureGroupList {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.featureGroup {
+  background: var(--color-surface-alt);
+  border-radius: 16px;
+  padding: var(--spacing-md);
+  display: grid;
+  gap: var(--spacing-xs);
+}
+
+.featureGroupTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.featureList {
+  margin: 0;
+  padding-left: var(--spacing-lg);
+  display: grid;
+  gap: calc(var(--spacing-xs) * 0.75);
+  color: var(--color-text);
+}
+
+.featureListItem {
+  font-size: 0.9rem;
+}
+
+.featureDivider {
+  height: 1px;
+  background: var(--color-border-light);
+  margin: var(--spacing-md) 0;
+}
+
+.metadataSubheading {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted-text);
+}
+
+.simpleList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.simpleListItem {
+  background: var(--color-surface-alt);
+  border-radius: 14px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  display: grid;
+  gap: calc(var(--spacing-xs) * 0.75);
+}
+
+.simpleListPrimary {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.simpleListMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  font-size: 0.8rem;
+  color: var(--color-muted-text);
+}
+
+@media (max-width: 1024px) {
+  .tabLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tabSidebar {
+    position: static;
+  }
+
+  .tabNav {
+    display: flex;
+    overflow-x: auto;
+    padding: var(--spacing-md);
+  }
+
+  .tabNavList {
+    flex-direction: row;
+    gap: var(--spacing-sm);
+  }
+
+  .tabNavItem {
+    min-width: 180px;
   }
 }

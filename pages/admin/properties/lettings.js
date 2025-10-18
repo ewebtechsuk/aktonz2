@@ -24,6 +24,12 @@ const INITIAL_FORM_STATE = {
   availableDate: '',
   size: '',
   depositType: 'standard',
+  securityDepositFixed: '',
+  securityDepositWeeks: '',
+  securityDepositMonths: '',
+  holdingDepositFixed: '',
+  holdingDepositWeeks: '',
+  holdingDepositMonths: '',
   features: '',
   address1: '',
   postcode: '',
@@ -220,6 +226,12 @@ export default function AdminLettingsPropertyPage() {
         availableDate: formState.availableDate,
         size: formState.size,
         depositType: formState.depositType,
+        securityDepositFixed: formState.securityDepositFixed,
+        securityDepositWeeks: formState.securityDepositWeeks,
+        securityDepositMonths: formState.securityDepositMonths,
+        holdingDepositFixed: formState.holdingDepositFixed,
+        holdingDepositWeeks: formState.holdingDepositWeeks,
+        holdingDepositMonths: formState.holdingDepositMonths,
         features: formState.features,
         address1: formState.address1,
         postcode: formState.postcode,
@@ -650,6 +662,114 @@ export default function AdminLettingsPropertyPage() {
                         </option>
                       ))}
                     </select>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label htmlFor="securityDepositFixed" className={styles.label}>
+                      Security deposit amount (£)
+                    </label>
+                    <input
+                      id="securityDepositFixed"
+                      name="securityDepositFixed"
+                      type="number"
+                      inputMode="decimal"
+                      value={formState.securityDepositFixed}
+                      onChange={handleInputChange}
+                      className={styles.input}
+                      placeholder="e.g. 3000"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label htmlFor="securityDepositWeeks" className={styles.label}>
+                      Security deposit weeks
+                    </label>
+                    <input
+                      id="securityDepositWeeks"
+                      name="securityDepositWeeks"
+                      type="number"
+                      inputMode="numeric"
+                      value={formState.securityDepositWeeks}
+                      onChange={handleInputChange}
+                      className={styles.input}
+                      placeholder="Optional"
+                      min="0"
+                      step="1"
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label htmlFor="securityDepositMonths" className={styles.label}>
+                      Security deposit months
+                    </label>
+                    <input
+                      id="securityDepositMonths"
+                      name="securityDepositMonths"
+                      type="number"
+                      inputMode="numeric"
+                      value={formState.securityDepositMonths}
+                      onChange={handleInputChange}
+                      className={styles.input}
+                      placeholder="Optional"
+                      min="0"
+                      step="1"
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label htmlFor="holdingDepositFixed" className={styles.label}>
+                      Holding deposit amount (£)
+                    </label>
+                    <input
+                      id="holdingDepositFixed"
+                      name="holdingDepositFixed"
+                      type="number"
+                      inputMode="decimal"
+                      value={formState.holdingDepositFixed}
+                      onChange={handleInputChange}
+                      className={styles.input}
+                      placeholder="Optional"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label htmlFor="holdingDepositWeeks" className={styles.label}>
+                      Holding deposit weeks
+                    </label>
+                    <input
+                      id="holdingDepositWeeks"
+                      name="holdingDepositWeeks"
+                      type="number"
+                      inputMode="numeric"
+                      value={formState.holdingDepositWeeks}
+                      onChange={handleInputChange}
+                      className={styles.input}
+                      placeholder="Optional"
+                      min="0"
+                      step="1"
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label htmlFor="holdingDepositMonths" className={styles.label}>
+                      Holding deposit months
+                    </label>
+                    <input
+                      id="holdingDepositMonths"
+                      name="holdingDepositMonths"
+                      type="number"
+                      inputMode="numeric"
+                      value={formState.holdingDepositMonths}
+                      onChange={handleInputChange}
+                      className={styles.input}
+                      placeholder="Optional"
+                      min="0"
+                      step="1"
+                    />
                   </div>
 
                   <div className={styles.formGroupFull}>
