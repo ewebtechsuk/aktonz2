@@ -19,6 +19,57 @@ function buildStageClass(tone) {
   return STAGE_TONE_CLASS[tone] || styles.stageNeutral;
 }
 
+function flattenRecord(value, prefix = '') {
+  if (value === null || value === undefined) {
+    return [{ key: prefix, value: null }];
+  }
+
+  if (Array.isArray(value)) {
+    if (!value.length) {
+      return [{ key: prefix, value: [] }];
+    }
+
+    return value.flatMap((item, index) => {
+      const nextPrefix = prefix ? `${prefix}[${index}]` : `[${index}]`;
+      return flattenRecord(item, nextPrefix);
+    });
+  }
+
+  if (typeof value === 'object') {
+    const entries = Object.entries(value);
+    if (!entries.length) {
+      return [{ key: prefix, value: {} }];
+    }
+
+    return entries.flatMap(([key, nested]) => {
+      const nextPrefix = prefix ? `${prefix}.${key}` : key;
+      return flattenRecord(nested, nextPrefix);
+    });
+  }
+
+  return [{ key: prefix, value }];
+}
+
+function formatApexFieldValue(value) {
+  if (value === null || value === undefined) {
+    return '—';
+  }
+
+  if (typeof value === 'boolean') {
+    return value ? 'true' : 'false';
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value.toString() : '—';
+  }
+
+  if (typeof value === 'string') {
+    return value.length ? value : '—';
+  }
+
+  return JSON.stringify(value);
+}
+
 function normalizeRouteParam(value) {
   if (Array.isArray(value)) {
     return value[0] || null;
@@ -140,7 +191,6 @@ const EMPTY_MANAGEMENT_OPTIONS = Object.freeze({
 const MANAGEMENT_INITIAL_FORM_STATE = Object.freeze({
   firstName: '',
   lastName: '',
-  name: '',
   stage: '',
   type: '',
   pipeline: '',
@@ -149,7 +199,6 @@ const MANAGEMENT_INITIAL_FORM_STATE = Object.freeze({
   email: '',
   phone: '',
   locationFocus: '',
-  generatedNotes: '',
   tags: '',
   requirements: '',
   budgetSaleMax: '',
@@ -205,7 +254,6 @@ function buildManagementFormState(contact) {
   return {
     firstName: contact.firstName || '',
     lastName: contact.lastName || '',
-    name: contact.name || '',
     stage: contact.stage || '',
     type: contact.type || '',
     pipeline: contact.pipeline || '',
@@ -214,7 +262,6 @@ function buildManagementFormState(contact) {
     email: contact.email || '',
     phone: contact.phone || '',
     locationFocus: contact.locationFocus || '',
-    generatedNotes: contact.generatedNotes || '',
     tags: Array.isArray(contact.tags) ? contact.tags.join('\n') : '',
     requirements: Array.isArray(contact.requirements) ? contact.requirements.join('\n') : '',
     budgetSaleMax:
@@ -315,7 +362,6 @@ function buildManagementPayloadFromState(state) {
   return {
     firstName: state.firstName,
     lastName: state.lastName,
-    name: state.name,
     stage: state.stage,
     type: state.type,
     pipeline: state.pipeline,
@@ -324,7 +370,6 @@ function buildManagementPayloadFromState(state) {
     email: state.email,
     phone: state.phone,
     locationFocus: state.locationFocus,
-    generatedNotes: state.generatedNotes,
     tags: parseListInput(state.tags),
     requirements: parseListInput(state.requirements),
     budget: buildBudgetPayloadFromState(state),
@@ -484,12 +529,6 @@ export default function AdminContactDetailsPage() {
   const createdRelative = contact?.createdAtTimestamp
     ? formatRelativeTime(contact.createdAtTimestamp)
     : null;
-  const daysInPipelineLabel = Number.isFinite(contact?.daysInPipeline)
-    ? `${contact.daysInPipeline} day${contact.daysInPipeline === 1 ? '' : 's'}`
-    : '—';
-  const engagementLabel = Number.isFinite(contact?.engagementScore)
-    ? `${contact.engagementScore}/100`
-    : '—';
   const budgetLines = contact ? formatBudget(contact.budget) : [];
   const nextStepDueLabel = contact?.nextStep?.dueTimestamp
     ? formatDueLabel(contact.nextStep.dueTimestamp)
@@ -600,13 +639,25 @@ export default function AdminContactDetailsPage() {
           value: formatDateTime(contact.lastActivityAt),
           hint: lastActivityRelative ? `Updated ${lastActivityRelative}` : null,
         },
-        { label: 'Days in pipeline', value: daysInPipelineLabel },
-        { label: 'Engagement score', value: engagementLabel },
       ]
     : [];
 
   const requirements = Array.isArray(contact?.requirements) ? contact.requirements : [];
   const tags = Array.isArray(contact?.tags) ? contact.tags : [];
+  const apexFields = Array.isArray(contact?.apexFields) ? contact.apexFields : null;
+  const apexRaw = contact?.apexRaw ?? null;
+
+  const apexEntries = useMemo(() => {
+    let entries = Array.isArray(apexFields) ? apexFields : [];
+
+    if (!entries.length && apexRaw) {
+      entries = flattenRecord(apexRaw);
+    }
+
+    return entries
+      .filter((entry) => entry && typeof entry.key === 'string' && entry.key.length)
+      .map((entry) => ({ key: entry.key, value: entry.value }));
+  }, [apexFields, apexRaw]);
 
   const stageOptions = useMemo(() => {
     const entries = [...options.stage];
@@ -769,30 +820,21 @@ export default function AdminContactDetailsPage() {
                   ) : null}
                 </section>
 
-                <section className={styles.card} aria-labelledby="contact-notes">
+                <section className={styles.card} aria-labelledby="contact-tags">
                   <div className={styles.cardHeader}>
-                    <h2 id="contact-notes">Notes</h2>
+                    <h2 id="contact-tags">Tags</h2>
                   </div>
-                  {contact.generatedNotes ? (
-                    <div className={styles.notesBody}>
-                      <p>{contact.generatedNotes}</p>
+                  {tags.length ? (
+                    <div className={styles.tagsRow}>
+                      {tags.map((tag) => (
+                        <span key={tag} className={styles.tagChip}>
+                          {tag}
+                        </span>
+                      ))}
                     </div>
                   ) : (
-                    <p className={styles.emptyNote}>No additional notes have been added for this contact.</p>
+                    <p className={styles.emptyNote}>No tags recorded for this contact.</p>
                   )}
-
-                  {tags.length ? (
-                    <div>
-                      <span className={styles.fieldLabel}>Tags</span>
-                      <div className={styles.tagsRow}>
-                        {tags.map((tag) => (
-                          <span key={tag} className={styles.tagChip}>
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
                 </section>
               </div>
 
@@ -831,21 +873,6 @@ export default function AdminContactDetailsPage() {
                           onChange={handleManagementChange}
                           disabled={!contact || saving}
                           autoComplete="family-name"
-                        />
-                      </div>
-                      <div className={styles.formRow}>
-                        <label htmlFor="contact-display-name" className={styles.formLabel}>
-                          Display name
-                        </label>
-                        <input
-                          id="contact-display-name"
-                          name="name"
-                          type="text"
-                          className={styles.input}
-                          value={formState.name}
-                          onChange={handleManagementChange}
-                          disabled={!contact || saving}
-                          autoComplete="off"
                         />
                       </div>
                       <div className={styles.formRow}>
@@ -1103,22 +1130,6 @@ export default function AdminContactDetailsPage() {
                       </div>
                     </div>
 
-                    <div className={styles.formGrid}>
-                      <div className={styles.formRow}>
-                        <label htmlFor="contact-notes-field" className={styles.formLabel}>
-                          Notes
-                        </label>
-                        <textarea
-                          id="contact-notes-field"
-                          name="generatedNotes"
-                          className={styles.textarea}
-                          value={formState.generatedNotes}
-                          onChange={handleManagementChange}
-                          disabled={!contact || saving}
-                        />
-                      </div>
-                    </div>
-
                     <div className={styles.formActions}>
                       <button type="submit" className={styles.primaryButton} disabled={!contact || saving}>
                         {saving ? 'Saving…' : 'Save changes'}
@@ -1246,11 +1257,31 @@ export default function AdminContactDetailsPage() {
                       <span className={styles.timelineValue}>{formatDateTime(contact.createdAt)}</span>
                       {createdRelative ? <span className={styles.timelineHint}>{createdRelative}</span> : null}
                     </div>
-                    <div className={styles.timelineItem}>
-                      <span className={styles.timelineLabel}>Days active</span>
-                      <span className={styles.timelineValue}>{daysInPipelineLabel}</span>
-                    </div>
                   </div>
+                </section>
+
+                <section className={styles.card} aria-labelledby="contact-apex-record">
+                  <div className={styles.cardHeader}>
+                    <h2 id="contact-apex-record">Apex27 fields</h2>
+                  </div>
+                  {apexEntries.length ? (
+                    <div className={styles.apexFieldList}>
+                      {apexEntries.map(({ key, value }) => (
+                        <div key={key} className={styles.apexFieldItem}>
+                          <span className={styles.apexFieldKey}>{key}</span>
+                          <span className={styles.apexFieldValue}>{formatApexFieldValue(value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className={styles.emptyNote}>No Apex27 data available for this contact.</p>
+                  )}
+                  {apexRaw ? (
+                    <details className={styles.apexRawDetails}>
+                      <summary>View raw Apex27 payload</summary>
+                      <pre className={styles.apexRawPre}>{JSON.stringify(apexRaw, null, 2)}</pre>
+                    </details>
+                  ) : null}
                 </section>
               </div>
             </div>
