@@ -248,12 +248,11 @@ export async function HEAD(request: NextRequest) {
   return new NextResponse(null, { status: 200 });
 }
 
-async function resolveRouteId(
-  params?: { id: unknown } | Promise<{ id: unknown }>,
-): Promise<string | null> {
-  const resolved = params && typeof (params as any)?.then === "function"
-    ? await params
-    : (params as { id: unknown } | undefined);
+type RouteParams = Record<string, string | string[] | undefined>;
+type RouteContext = { params?: Promise<RouteParams> };
+
+async function resolveRouteId(params: RouteContext["params"]): Promise<string | null> {
+  const resolved = params ? await params : undefined;
 
   const rawId = resolved?.id;
   const id = Array.isArray(rawId) ? rawId[0] : rawId;
@@ -263,7 +262,7 @@ async function resolveRouteId(
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } },
+  context: RouteContext,
 ) {
   const adminCheck = requireAdmin(request);
   if ("response" in adminCheck) {
@@ -299,7 +298,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  context: { params: { id: string } },
+  context: RouteContext,
 ) {
   const adminCheck = requireAdmin(request);
   if ("response" in adminCheck) {
