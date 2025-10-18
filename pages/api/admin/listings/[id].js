@@ -6,6 +6,9 @@ import {
 } from '../../../../lib/admin-listings.mjs';
 import { getAdminFromSession } from '../../../../lib/admin-users.mjs';
 import { readSession } from '../../../../lib/session.js';
+import { listOffersForAdmin } from '../../../../lib/offers-admin.mjs';
+import { listMaintenanceTasksForAdmin } from '../../../../lib/maintenance-admin.mjs';
+import { normalizePropertyIdentifierForComparison } from '../../../../lib/property-id.mjs';
 
 function requireAdmin(req, res) {
   const session = readSession(req);
@@ -51,7 +54,65 @@ export default async function handler(req, res) {
         return;
       }
 
-      res.status(200).json({ listing: serializeListing(listing) });
+      const serialized = serializeListing(listing);
+      const comparisonIds = new Set();
+
+      const registerId = (value) => {
+        const normalized = normalizePropertyIdentifierForComparison(value);
+        if (normalized) {
+          comparisonIds.add(normalized);
+        }
+      };
+
+      registerId(listingId);
+      registerId(serialized.id);
+      registerId(serialized.reference);
+      registerId(listing?.raw?.id);
+      registerId(listing?.raw?.externalId);
+      registerId(listing?.raw?.externalReference);
+      registerId(listing?.raw?.sourceId);
+      registerId(listing?.raw?.fullReference);
+
+      const [offers, maintenance] = await Promise.all([
+        listOffersForAdmin(),
+        listMaintenanceTasksForAdmin(),
+      ]);
+
+      const matchesListing = (candidates = []) => {
+        for (const candidate of candidates) {
+          const normalized = normalizePropertyIdentifierForComparison(candidate);
+          if (normalized && comparisonIds.has(normalized)) {
+            return true;
+          }
+        }
+        return false;
+      };
+
+      const linkedOffers = offers.filter((offer) =>
+        matchesListing([
+          offer.property?.id,
+          offer.property?.reference,
+          offer.property?.externalReference,
+          offer.property?.sourceId,
+          offer.propertyId,
+        ]),
+      );
+
+      const linkedMaintenance = maintenance.filter((task) =>
+        matchesListing([
+          task.property?.id,
+          task.property?.reference,
+          task.property?.externalReference,
+        ]),
+      );
+
+      res.status(200).json({
+        listing: {
+          ...serialized,
+          offers: linkedOffers,
+          maintenanceTasks: linkedMaintenance,
+        },
+      });
     } catch (error) {
       console.error('Failed to load admin listing by id', listingId, error);
       res.status(500).json({ error: 'Failed to load listing' });
