@@ -6,6 +6,25 @@ import { useRouter } from 'next/router';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminListingDetails.module.css';
+import { formatOfferStatusLabel } from '../../../lib/offer-statuses.js';
+import {
+  FaAlignLeft,
+  FaBalanceScale,
+  FaBed,
+  FaBullhorn,
+  FaBuilding,
+  FaCalendarCheck,
+  FaClipboardList,
+  FaGavel,
+  FaImages,
+  FaListUl,
+  FaMapMarkedAlt,
+  FaMoneyBillWave,
+  FaStickyNote,
+  FaUserFriends,
+  FaUserPlus,
+  FaUsers,
+} from 'react-icons/fa';
 
 const STATUS_OPTIONS = [
   { value: 'available', label: 'Available' },
@@ -274,6 +293,158 @@ function formatDateTime(value) {
   }
 }
 
+  function formatDateDisplay(value) {
+    if (!value) {
+      return '—';
+    }
+
+    try {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        return '—';
+      }
+
+      return new Intl.DateTimeFormat('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      }).format(date);
+    } catch (error) {
+      return '—';
+    }
+  }
+
+  function formatFlattenedKey(path) {
+    if (!path) {
+      return '';
+    }
+
+    return path
+      .replace(/\[(\d+)\]/g, '.$1')
+      .split('.')
+      .map((segment) => segment.trim())
+      .filter(Boolean)
+      .map((segment) => {
+        if (/^\d+$/.test(segment)) {
+          return `#${Number(segment) + 1}`;
+        }
+
+        return segment
+          .replace(/[_-]+/g, ' ')
+          .replace(/\b\w/g, (char) => char.toUpperCase());
+      })
+      .join(' • ');
+  }
+
+  function formatFlattenedValue(value) {
+    if (value == null) {
+      return '—';
+    }
+
+    if (value instanceof Date) {
+      return formatDateDisplay(value);
+    }
+
+    if (Array.isArray(value)) {
+      if (!value.length) {
+        return '—';
+      }
+
+      const formatted = value
+        .map((item) => formatFlattenedValue(item))
+        .filter((entry) => entry && entry !== '—');
+
+      return formatted.length ? formatted.join(', ') : '—';
+    }
+
+    const type = typeof value;
+    if (type === 'boolean') {
+      return value ? 'Yes' : 'No';
+    }
+
+    if (type === 'number') {
+      return Number.isFinite(value) ? value.toLocaleString('en-GB') : String(value);
+    }
+
+    if (type === 'string') {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return '—';
+      }
+
+      const parsedTimestamp = Date.parse(trimmed);
+      if (Number.isFinite(parsedTimestamp) && trimmed.length >= 8) {
+        return formatDateDisplay(trimmed) || trimmed;
+      }
+
+      return trimmed;
+    }
+
+    if (type === 'object') {
+      const entries = Object.entries(value);
+      if (!entries.length) {
+        return '—';
+      }
+
+      return entries
+        .map(([key, entryValue]) => `${formatFlattenedKey(key)}: ${formatFlattenedValue(entryValue)}`)
+        .join('; ');
+    }
+
+    return String(value);
+  }
+
+  function flattenRecord(record, { maxDepth = 3, skipNull = false, prefix = '' } = {}) {
+    if (!record || typeof record !== 'object' || record instanceof Date) {
+      return [];
+    }
+
+    const pairs = [];
+
+    const traverse = (value, currentPath, depth) => {
+      if (value instanceof Date) {
+        pairs.push({ key: currentPath, value });
+        return;
+      }
+
+      if (typeof value !== 'object' || value === null) {
+        if (skipNull && (value == null || value === '')) {
+          return;
+        }
+        pairs.push({ key: currentPath, value });
+        return;
+      }
+
+      if (depth >= maxDepth) {
+        if (skipNull && (value == null || value === '')) {
+          return;
+        }
+        pairs.push({ key: currentPath, value });
+        return;
+      }
+
+      const entries = Array.isArray(value)
+        ? value.map((entry, index) => [String(index), entry])
+        : Object.entries(value);
+
+      for (const [key, entryValue] of entries) {
+        const nextPath = currentPath
+          ? Array.isArray(value)
+            ? `${currentPath}[${key}]`
+            : `${currentPath}.${key}`
+          : Array.isArray(value)
+            ? `[${key}]`
+            : key;
+
+        traverse(entryValue, nextPath, depth + 1);
+      }
+    };
+
+    traverse(record, prefix, 0);
+
+    return pairs;
+  }
+
 function formatRelativeTime(value) {
   if (!value) {
     return '';
@@ -335,6 +506,236 @@ function renderDefinitionList(items) {
       ))}
     </dl>
   );
+}
+
+function buildSummaryCards({
+  listing,
+  formValues,
+  listingOffers,
+  listingMaintenance,
+  heroRentLabel,
+  statusLabel,
+  statusTone,
+  availabilityLabel,
+  referenceValue,
+  updatedLabel,
+  updatedRelative,
+}) {
+  if (!listing || !formValues) {
+    return [];
+  }
+
+  const seenApplicants = new Set();
+  const seenAgents = new Set();
+
+  listingOffers.forEach((offer) => {
+    const applicantKey =
+      offer?.contact?.id ||
+      offer?.contact?.email ||
+      offer?.email ||
+      (offer?.contact?.name ? `name:${offer.contact.name}` : null);
+    if (applicantKey) {
+      seenApplicants.add(applicantKey);
+    }
+
+    const agentKey =
+      offer?.agent?.id ||
+      offer?.agent?.email ||
+      (offer?.agent?.name ? `name:${offer.agent.name}` : null);
+    if (agentKey) {
+      seenAgents.add(agentKey);
+    }
+  });
+
+  const marketingLinks = Array.isArray(formValues.marketingLinks) ? formValues.marketingLinks : [];
+  const marketingCount = marketingLinks.filter((link) => link?.url).length;
+  const portalCount = marketingLinks.filter(
+    (link) => (link?.type || '').toLowerCase() === 'portal',
+  ).length;
+
+  const metadataEntries = Array.isArray(formValues.metadata) ? formValues.metadata : [];
+  const metadataCount = metadataEntries.filter((entry) => entry?.label || entry?.value).length;
+
+  const images = Array.isArray(formValues.images) ? formValues.images : [];
+  const imagesCount = images.filter((image) => image?.url).length;
+  const media = Array.isArray(formValues.media) ? formValues.media : [];
+  const mediaCount = media.filter((item) => item?.url).length;
+
+  const summaryText = (formValues.summary || listing.summary || '').trim();
+  const summaryWords = summaryText ? summaryText.split(/\s+/).filter(Boolean).length : 0;
+
+  const addressParts = [
+    formValues.addressLine1,
+    formValues.addressLine2,
+    formValues.city,
+    formValues.postalCode,
+  ]
+    .map((entry) => (entry ? String(entry).trim() : ''))
+    .filter(Boolean);
+
+  const locationDisplay =
+    addressParts.join(', ') ||
+    listing.displayAddress ||
+    listing.address?.display ||
+    listing.address?.line1 ||
+    'Address not provided';
+
+  const latestOffer = listingOffers[0];
+  const offersHint = latestOffer
+    ? `${formatDateDisplay(latestOffer.date) || 'Recently updated'} • ${
+        latestOffer.statusLabel || formatOfferStatusLabel(latestOffer.status)
+      }`
+    : 'No offers recorded yet.';
+
+  const maintenanceOpenCount = listingMaintenance.filter(
+    (task) => task?.statusCategory !== 'closed',
+  ).length;
+  const nextMaintenance = listingMaintenance.find((task) => task?.statusCategory !== 'closed');
+  const maintenanceHint = nextMaintenance
+    ? `${formatDateDisplay(nextMaintenance.dueAt) || 'No due date'} • ${
+        nextMaintenance.statusLabel || nextMaintenance.status
+      }`
+    : 'No maintenance tasks recorded.';
+
+  const bedroomsValue = formValues.bedrooms ?? listing.bedrooms;
+  const bathroomsValue = formValues.bathrooms ?? listing.bathrooms;
+  const receptionsValue = formValues.receptions ?? listing.receptions;
+
+  return [
+    {
+      key: 'offers',
+      icon: FaClipboardList,
+      label: 'Offers',
+      value: String(listingOffers.length),
+      hint: offersHint,
+      tone: listingOffers.length ? 'info' : 'muted',
+    },
+    {
+      key: 'maintenance',
+      icon: FaStickyNote,
+      label: 'Maintenance',
+      value: String(listingMaintenance.length),
+      hint:
+        listingMaintenance.length === 0
+          ? 'No maintenance tasks recorded.'
+          : `${maintenanceOpenCount} open • ${listingMaintenance.length - maintenanceOpenCount} closed`,
+      tone: listingMaintenance.length ? 'warning' : 'muted',
+    },
+    {
+      key: 'rent',
+      icon: FaMoneyBillWave,
+      label: 'Rent',
+      value: heroRentLabel,
+      hint: availabilityLabel || 'Rent frequency configurable in key facts.',
+      tone: heroRentLabel === 'Rent not set' ? 'muted' : 'success',
+    },
+    {
+      key: 'branch',
+      icon: FaBuilding,
+      label: 'Branch',
+      value: listing.branch?.name || 'Not assigned',
+      hint: listing.branch?.contact?.phone || listing.branch?.contact?.email || null,
+      tone: listing.branch?.name ? 'info' : 'muted',
+    },
+    {
+      key: 'negotiator',
+      icon: FaUserPlus,
+      label: 'Negotiator',
+      value: listing.negotiator?.name || 'Not assigned',
+      hint: listing.negotiator?.contact?.email || listing.negotiator?.contact?.phone || null,
+      tone: listing.negotiator?.name ? 'info' : 'muted',
+    },
+    {
+      key: 'applicants',
+      icon: FaUserFriends,
+      label: 'Applicants',
+      value: String(seenApplicants.size),
+      hint: seenApplicants.size
+        ? 'Unique contacts across linked offers.'
+        : 'No applicants recorded yet.',
+      tone: seenApplicants.size ? 'info' : 'muted',
+    },
+    {
+      key: 'agents',
+      icon: FaUsers,
+      label: 'Agents',
+      value: String(seenAgents.size),
+      hint: seenAgents.size ? 'Agents involved in the latest offers.' : 'No agents assigned yet.',
+      tone: seenAgents.size ? 'info' : 'muted',
+    },
+    {
+      key: 'status',
+      icon: FaBalanceScale,
+      label: 'Status',
+      value: statusLabel,
+      hint: availabilityLabel || null,
+      tone: statusTone,
+    },
+    {
+      key: 'location',
+      icon: FaMapMarkedAlt,
+      label: 'Location',
+      value: locationDisplay,
+      hint: formValues.postalCode || listing.address?.postalCode || null,
+      tone: addressParts.length ? 'info' : 'muted',
+    },
+    {
+      key: 'summary',
+      icon: FaAlignLeft,
+      label: 'Summary',
+      value: summaryWords ? 'Ready' : 'Missing',
+      hint: summaryWords ? `${summaryWords} words` : 'Add a short portal summary.',
+      tone: summaryWords ? 'success' : 'muted',
+    },
+    {
+      key: 'beds',
+      icon: FaBed,
+      label: 'Bedrooms',
+      value: bedroomsValue != null && bedroomsValue !== '' ? String(bedroomsValue) : '—',
+      hint: `Baths ${bathroomsValue ?? '—'} • Receptions ${receptionsValue ?? '—'}`,
+      tone: bedroomsValue ? 'info' : 'muted',
+    },
+    {
+      key: 'media',
+      icon: FaImages,
+      label: 'Media items',
+      value: String(imagesCount + mediaCount),
+      hint: `${imagesCount} images • ${mediaCount} embeds`,
+      tone: imagesCount + mediaCount ? 'info' : 'muted',
+    },
+    {
+      key: 'marketing',
+      icon: FaBullhorn,
+      label: 'Marketing links',
+      value: String(marketingCount),
+      hint: portalCount ? `${portalCount} portal links` : 'No marketing links added yet.',
+      tone: marketingCount ? 'info' : 'muted',
+    },
+    {
+      key: 'metadata',
+      icon: FaListUl,
+      label: 'Metadata entries',
+      value: String(metadataCount),
+      hint: metadataCount ? 'Synced from Apex27.' : 'No additional metadata recorded.',
+      tone: metadataCount ? 'info' : 'muted',
+    },
+    {
+      key: 'reference',
+      icon: FaGavel,
+      label: 'Reference',
+      value: referenceValue,
+      hint: statusLabel ? `Status ${statusLabel}` : null,
+      tone: referenceValue && referenceValue !== '—' ? 'info' : 'muted',
+    },
+    {
+      key: 'updated',
+      icon: FaCalendarCheck,
+      label: 'Last updated',
+      value: updatedLabel,
+      hint: updatedRelative || null,
+      tone: 'muted',
+    },
+  ];
 }
 
 export default function AdminListingDetailsPage() {
@@ -719,8 +1120,44 @@ export default function AdminListingDetailsPage() {
     const referenceValue = formValues.reference || '—';
     const updatedLabel = formatDateTime(listing.updatedAt);
     const updatedRelative = formatRelativeTime(listing.updatedAt);
+    const listingOffers = (Array.isArray(listing.offers) ? listing.offers : [])
+      .slice()
+      .sort((a, b) => {
+        const right = new Date(b.updatedAt || b.date || 0).getTime();
+        const left = new Date(a.updatedAt || a.date || 0).getTime();
+        return right - left;
+      });
+    const listingMaintenance = (Array.isArray(listing.maintenanceTasks)
+      ? listing.maintenanceTasks
+      : [])
+      .slice()
+      .sort((a, b) => {
+        const left = Number.isFinite(a.dueTimestamp) ? a.dueTimestamp : Infinity;
+        const right = Number.isFinite(b.dueTimestamp) ? b.dueTimestamp : Infinity;
+        if (left !== right) {
+          return left - right;
+        }
+        const leftUpdated = Number.isFinite(a.updatedAtTimestamp) ? a.updatedAtTimestamp : 0;
+        const rightUpdated = Number.isFinite(b.updatedAtTimestamp) ? b.updatedAtTimestamp : 0;
+        return rightUpdated - leftUpdated;
+      });
+
+    const summaryCards = buildSummaryCards({
+      listing,
+      formValues,
+      listingOffers,
+      listingMaintenance,
+      heroRentLabel,
+      statusLabel,
+      statusTone,
+      availabilityLabel,
+      referenceValue,
+      updatedLabel,
+      updatedRelative,
+    });
 
     return (
+      <>
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
         <section className={styles.hero}>
           <div className={styles.heroTopRow}>
@@ -864,6 +1301,29 @@ export default function AdminListingDetailsPage() {
             <span className={styles.metaMuted}>{updatedRelative}</span>
           </div>
         </section>
+
+        {summaryCards.length ? (
+          <section className={styles.summarySection} aria-label="Listing overview">
+            <div className={styles.summaryGrid}>
+              {summaryCards.map((card) => {
+                const IconComponent = card.icon;
+                const displayValue = card.value != null && card.value !== '' ? card.value : '—';
+                return (
+                  <article key={card.key} className={styles.summaryCard}>
+                    <span className={styles.summaryIcon} data-tone={card.tone}>
+                      <IconComponent aria-hidden="true" />
+                    </span>
+                    <div className={styles.summaryContent}>
+                      <p className={styles.summaryLabel}>{card.label}</p>
+                      <p className={styles.summaryValue}>{displayValue}</p>
+                      {card.hint ? <p className={styles.summaryHint}>{card.hint}</p> : null}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
 
         <section className={styles.panelGroup}>
           <article className={styles.panel}>
@@ -1396,6 +1856,204 @@ export default function AdminListingDetailsPage() {
           </button>
         </div>
       </form>
+
+      <section className={styles.activitySection} id="listing-activity">
+        <header className={styles.activityHeader}>
+          <h2 className={styles.activityTitle}>Linked activity</h2>
+          <p className={styles.activitySubtitle}>
+            Offers and maintenance jobs connected to this property across the Aktonz platform.
+          </p>
+        </header>
+        <div className={styles.activityGrid}>
+          <article className={styles.activityCard}>
+            <header className={styles.activityCardHeader}>
+              <div>
+                <h3>Offers</h3>
+                <p className={styles.activityCountLabel}>Live and archived offers</p>
+              </div>
+              <span className={styles.activityCount}>{listingOffers.length}</span>
+            </header>
+              {listingOffers.length ? (
+                <ul className={styles.activityList}>
+                  {listingOffers.map((offer) => {
+                    const offerDetails = flattenRecord(
+                      {
+                        id: offer.id,
+                        source: offer.source,
+                        frequency: offer.frequency,
+                        createdAt: offer.createdAt || offer.date,
+                        updatedAt: offer.updatedAt,
+                        status: offer.statusLabel || formatOfferStatusLabel(offer.status),
+                        contact: {
+                          name: offer.contact?.name,
+                          email: offer.contact?.email || offer.email,
+                          phone: offer.contact?.phone,
+                        },
+                        agent: {
+                          name: offer.agent?.name,
+                          email: offer.agent?.email,
+                          phone: offer.agent?.phone,
+                        },
+                      },
+                      { maxDepth: 2, skipNull: true },
+                    )
+                      .map(({ key, value }) => ({
+                        label: formatFlattenedKey(key),
+                        value: formatFlattenedValue(value),
+                      }))
+                      .filter((detail) => detail.value && detail.value !== '—');
+
+                    return (
+                      <li key={offer.id} className={styles.activityListItem}>
+                        <div className={styles.activityItemHeader}>
+                          <span className={styles.activityPrimary}>
+                            {offer.contact?.name || offer.email || 'Applicant'}
+                          </span>
+                          <span
+                            className={`${styles.offerTag} ${
+                              offer.type === 'sale' ? styles.offerTagSale : styles.offerTagRent
+                            }`}
+                          >
+                            {offer.type === 'sale' ? 'Sale' : 'Rent'}
+                          </span>
+                        </div>
+                        <div className={styles.activityMetaRow}>
+                          <span>{offer.amount || '—'}</span>
+                          <span className={styles.activityStatusLabel}>
+                            {offer.statusLabel || formatOfferStatusLabel(offer.status)}
+                          </span>
+                        </div>
+                        <div className={styles.activityMetaRow}>
+                          <span>{formatDateDisplay(offer.date)}</span>
+                          {offer.agent?.name ? <span>Agent {offer.agent.name}</span> : null}
+                        </div>
+                        {offerDetails.length ? (
+                          <details className={styles.activityDetails}>
+                            <summary className={styles.activityDetailsSummary}>View record details</summary>
+                            <dl className={styles.activityDetailsList}>
+                              {offerDetails.map((detail, index) => (
+                                <div
+                                  key={`${offer.id}-${detail.label}-${index}`}
+                                  className={styles.activityDetailsRow}
+                                >
+                                  <dt>{detail.label}</dt>
+                                  <dd>{detail.value}</dd>
+                                </div>
+                              ))}
+                            </dl>
+                          </details>
+                        ) : null}
+                        <Link
+                          href={`/admin/offers?id=${encodeURIComponent(offer.id)}`}
+                          className={styles.activityLink}
+                        >
+                          Open offer workspace
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className={styles.activityEmpty}>No offers linked to this listing yet.</p>
+              )}
+            </article>
+
+          <article className={styles.activityCard}>
+            <header className={styles.activityCardHeader}>
+              <div>
+                <h3>Maintenance</h3>
+                <p className={styles.activityCountLabel}>Tasks synced from Apex27</p>
+              </div>
+              <span className={styles.activityCount}>{listingMaintenance.length}</span>
+            </header>
+              {listingMaintenance.length ? (
+                <ul className={styles.activityList}>
+                  {listingMaintenance.map((task) => {
+                    const maintenanceDetails = flattenRecord(
+                      {
+                        id: task.id,
+                        reference: task.reference,
+                        category: task.category,
+                        priority: task.priorityLabel || task.priority,
+                        status: task.statusLabel,
+                        createdAt: task.createdAt,
+                        updatedAt: task.updatedAt,
+                        dueAt: task.dueAt,
+                        property: {
+                          name: task.property?.name,
+                          address: task.property?.address,
+                        },
+                        assignee: {
+                          name: task.assignee?.name,
+                          email: task.assignee?.email,
+                          phone: task.assignee?.phone,
+                        },
+                      },
+                      { maxDepth: 2, skipNull: true },
+                    )
+                      .map(({ key, value }) => ({
+                        label: formatFlattenedKey(key),
+                        value: formatFlattenedValue(value),
+                      }))
+                      .filter((detail) => detail.value && detail.value !== '—');
+
+                    return (
+                      <li key={task.id} className={styles.activityListItem}>
+                        <div className={styles.activityItemHeader}>
+                          <span className={styles.activityPrimary}>{task.title}</span>
+                          <span className={styles.activityStatusBadge} data-tone={task.statusTone}>
+                            {task.statusLabel}
+                          </span>
+                        </div>
+                        <div className={styles.activityMetaRow}>
+                          <span>{formatDateDisplay(task.dueAt)}</span>
+                          {task.priorityLabel ? (
+                            <span className={styles.activityPriorityBadge} data-level={task.priority}>
+                              {task.priorityLabel}
+                            </span>
+                          ) : null}
+                        </div>
+                        {task.assignee?.name ? (
+                          <div className={styles.activityMetaRow}>
+                            <span>Assigned to {task.assignee.name}</span>
+                          </div>
+                        ) : null}
+                        {maintenanceDetails.length ? (
+                          <details className={styles.activityDetails}>
+                            <summary className={styles.activityDetailsSummary}>View task details</summary>
+                            <dl className={styles.activityDetailsList}>
+                              {maintenanceDetails.map((detail, index) => (
+                                <div
+                                  key={`${task.id}-${detail.label}-${index}`}
+                                  className={styles.activityDetailsRow}
+                                >
+                                  <dt>{detail.label}</dt>
+                                  <dd>{detail.value}</dd>
+                                </div>
+                              ))}
+                            </dl>
+                          </details>
+                        ) : null}
+                        {task.overdue ? (
+                          <span className={`${styles.activityTag} ${styles.activityTagOverdue}`}>
+                            Overdue
+                          </span>
+                        ) : task.dueSoon ? (
+                          <span className={`${styles.activityTag} ${styles.activityTagSoon}`}>
+                            Due soon
+                          </span>
+                        ) : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className={styles.activityEmpty}>No maintenance tasks recorded for this listing.</p>
+              )}
+            </article>
+        </div>
+      </section>
+      </>
     );
   };
 
