@@ -130,7 +130,7 @@ export default async function handler(req, res) {
         return;
       }
 
-      res.status(200).json({ listing: serializeListing(listing) });
+      res.status(200).json({ listing: serializeListing(listing, { includeRaw: true, includeApexFields: true }) });
     } catch (error) {
       if (error instanceof AdminListingValidationError) {
         res.status(400).json({ error: error.message, details: error.messages });
