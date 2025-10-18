@@ -5,7 +5,7 @@ import tsParser from '@typescript-eslint/parser';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 
 const sharedLanguageOptions = {
-  ecmaVersion: 2023,
+  ecmaVersion: 2024,
   sourceType: 'module',
   parserOptions: {
     ecmaFeatures: {
