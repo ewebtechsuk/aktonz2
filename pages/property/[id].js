@@ -17,6 +17,8 @@ import {
   extractMedia,
   normalizeImages,
   extractPricePrefix,
+  resolveSecurityDepositSource,
+  resolveHoldingDepositSource,
 } from '../../lib/apex27.mjs';
 import {
   resolvePropertyIdentifier,
@@ -479,12 +481,17 @@ export default function Property({ property, recommendations }) {
     [property?.holdingDeposit, property?.rentFrequency, numericPriceValue]
   );
 
-  const securityDepositLabel = formatDepositDisplay(securityDepositInfo, {
-    fallback: 'Please enquire',
+  const isLettings = Boolean(property?.rentFrequency);
+  const securityDepositResolved = formatDepositDisplay(securityDepositInfo, {
+    fallback: null,
   });
-  const holdingDepositLabel = formatDepositDisplay(holdingDepositInfo, {
-    fallback: 'Please enquire',
+  const holdingDepositResolved = formatDepositDisplay(holdingDepositInfo, {
+    fallback: null,
   });
+  const securityDepositLabel = securityDepositResolved ?? (isLettings ? 'Please enquire' : null);
+  const holdingDepositLabel = holdingDepositResolved ?? (isLettings ? 'Please enquire' : null);
+  const shouldShowSecurityDeposit = Boolean(securityDepositLabel);
+  const shouldShowHoldingDeposit = Boolean(holdingDepositLabel);
 
   const availabilityRaw = useMemo(
     () =>
@@ -512,8 +519,9 @@ export default function Property({ property, recommendations }) {
   );
 
   const availabilityLabel = formatAvailabilityDate(availabilityRaw, {
-    fallback: 'Please enquire',
+    fallback: isLettings ? 'Please enquire' : null,
   });
+  const shouldShowAvailability = Boolean(availabilityLabel);
   const mapProperties = useMemo(
     () => {
       if (!hasLocation || !property) return [];
@@ -648,14 +656,28 @@ export default function Property({ property, recommendations }) {
                         <p className={styles.priceSecondary}>{secondaryRentLabel}</p>
                       )}
                     </div>
-                    {property.rentFrequency && (
+                    {(shouldShowSecurityDeposit ||
+                      shouldShowHoldingDeposit ||
+                      shouldShowAvailability) && (
                       <dl className={styles.rentMeta}>
-                        <dt>Security deposit</dt>
-                        <dd>{securityDepositLabel}</dd>
-                        <dt>Holding deposit</dt>
-                        <dd>{holdingDepositLabel}</dd>
-                        <dt>Available from</dt>
-                        <dd>{availabilityLabel}</dd>
+                        {shouldShowSecurityDeposit && (
+                          <>
+                            <dt>Security deposit</dt>
+                            <dd>{securityDepositLabel}</dd>
+                          </>
+                        )}
+                        {shouldShowHoldingDeposit && (
+                          <>
+                            <dt>Holding deposit</dt>
+                            <dd>{holdingDepositLabel}</dd>
+                          </>
+                        )}
+                        {shouldShowAvailability && (
+                          <>
+                            <dt>Available from</dt>
+                            <dd>{availabilityLabel}</dd>
+                          </>
+                        )}
                       </dl>
                     )}
                     <div className={styles.priceActions}>
@@ -818,15 +840,18 @@ export async function getStaticProps({ params }) {
       ? rawAvailabilityValue.trim()
       : null;
 
+    const securityDepositSource = resolveSecurityDepositSource(rawProperty);
+    const holdingDepositSource = resolveHoldingDepositSource(rawProperty);
+
     const securityDeposit = normalizeDeposit(
-      rawProperty.securityDeposit,
+      securityDepositSource,
       numericPriceValue,
       rawProperty.rentFrequency,
       rawProperty.depositType
     );
 
     const holdingDeposit = normalizeDeposit(
-      rawProperty.holdingDeposit,
+      holdingDepositSource,
       numericPriceValue,
       rawProperty.rentFrequency
     );
