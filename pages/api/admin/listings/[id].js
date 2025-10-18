@@ -1,6 +1,14 @@
-import { getLettingsListingById, serializeListing } from '../../../../lib/admin-listings.mjs';
+import {
+  AdminListingValidationError,
+  getLettingsListingById,
+  serializeListing,
+  updateLettingsListingById,
+} from '../../../../lib/admin-listings.mjs';
 import { getAdminFromSession } from '../../../../lib/admin-users.mjs';
 import { readSession } from '../../../../lib/session.js';
+import { listOffersForAdmin } from '../../../../lib/offers-admin.mjs';
+import { listMaintenanceTasksForAdmin } from '../../../../lib/maintenance-admin.mjs';
+import { normalizePropertyIdentifierForComparison } from '../../../../lib/property-id.mjs';
 
 function requireAdmin(req, res) {
   const session = readSession(req);
@@ -24,8 +32,8 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (req.method !== 'GET') {
-    res.setHeader('Allow', ['GET', 'HEAD']);
+  if (req.method !== 'GET' && req.method !== 'PATCH') {
+    res.setHeader('Allow', ['GET', 'PATCH', 'HEAD']);
     res.status(405).end('Method Not Allowed');
     return;
   }
@@ -38,16 +46,99 @@ export default async function handler(req, res) {
     return;
   }
 
-  try {
-    const listing = await getLettingsListingById(listingId);
-    if (!listing) {
-      res.status(404).json({ error: 'Listing not found' });
-      return;
-    }
+  if (req.method === 'GET') {
+    try {
+      const listing = await getLettingsListingById(listingId);
+      if (!listing) {
+        res.status(404).json({ error: 'Listing not found' });
+        return;
+      }
 
-    res.status(200).json({ listing: serializeListing(listing) });
-  } catch (error) {
-    console.error('Failed to load admin listing by id', listingId, error);
-    res.status(500).json({ error: 'Failed to load listing' });
+      const serialized = serializeListing(listing);
+      const comparisonIds = new Set();
+
+      const registerId = (value) => {
+        const normalized = normalizePropertyIdentifierForComparison(value);
+        if (normalized) {
+          comparisonIds.add(normalized);
+        }
+      };
+
+      registerId(listingId);
+      registerId(serialized.id);
+      registerId(serialized.reference);
+      registerId(listing?.raw?.id);
+      registerId(listing?.raw?.externalId);
+      registerId(listing?.raw?.externalReference);
+      registerId(listing?.raw?.sourceId);
+      registerId(listing?.raw?.fullReference);
+
+      const [offers, maintenance] = await Promise.all([
+        listOffersForAdmin(),
+        listMaintenanceTasksForAdmin(),
+      ]);
+
+      const matchesListing = (candidates = []) => {
+        for (const candidate of candidates) {
+          const normalized = normalizePropertyIdentifierForComparison(candidate);
+          if (normalized && comparisonIds.has(normalized)) {
+            return true;
+          }
+        }
+        return false;
+      };
+
+      const linkedOffers = offers.filter((offer) =>
+        matchesListing([
+          offer.property?.id,
+          offer.property?.reference,
+          offer.property?.externalReference,
+          offer.property?.sourceId,
+          offer.propertyId,
+        ]),
+      );
+
+      const linkedMaintenance = maintenance.filter((task) =>
+        matchesListing([
+          task.property?.id,
+          task.property?.reference,
+          task.property?.externalReference,
+        ]),
+      );
+
+      res.status(200).json({
+        listing: {
+          ...serialized,
+          offers: linkedOffers,
+          maintenanceTasks: linkedMaintenance,
+        },
+      });
+    } catch (error) {
+      console.error('Failed to load admin listing by id', listingId, error);
+      res.status(500).json({ error: 'Failed to load listing' });
+    }
+    return;
+  }
+
+  if (req.method === 'PATCH') {
+    try {
+      const updates = req.body && typeof req.body === 'object' ? req.body : {};
+      const listing = await updateLettingsListingById(listingId, updates);
+
+      if (!listing) {
+        res.status(404).json({ error: 'Listing not found' });
+        return;
+      }
+
+      res.status(200).json({ listing: serializeListing(listing, { includeRaw: true, includeApexFields: true }) });
+    } catch (error) {
+      if (error instanceof AdminListingValidationError) {
+        res.status(400).json({ error: error.message, details: error.messages });
+        return;
+      }
+
+      console.error('Failed to update admin listing', listingId, error);
+      res.status(500).json({ error: 'Failed to update listing' });
+    }
   }
 }
