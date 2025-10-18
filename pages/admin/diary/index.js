@@ -411,3 +411,7 @@ export default function AdminDiaryWorkspacePage() {
     </>
   );
 }
+
+export async function getStaticProps() {
+  return { props: {} };
+}

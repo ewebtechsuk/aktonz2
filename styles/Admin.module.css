@@ -653,6 +653,90 @@
   background: var(--color-surface-alt);
 }
 
+.maintenanceBadgeOverdue {
+  background: rgba(255, 0, 0, 0.12);
+  color: var(--color-error);
+  margin-top: var(--spacing-xs);
+}
+
+.maintenanceBadgeSoon {
+  background: rgba(255, 196, 0, 0.2);
+  color: #5a4a00;
+  margin-top: var(--spacing-xs);
+}
+
+.maintenanceStatus {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(27, 40, 64, 0.08);
+  color: var(--color-text);
+  margin-bottom: var(--spacing-xs);
+}
+
+.maintenanceStatus[data-tone='success'] {
+  background: rgba(27, 111, 68, 0.14);
+  color: #1b6f44;
+}
+
+.maintenanceStatus[data-tone='info'] {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--color-secondary);
+}
+
+.maintenanceStatus[data-tone='warning'] {
+  background: rgba(255, 196, 0, 0.2);
+  color: #5a4a00;
+}
+
+.maintenanceStatus[data-tone='muted'] {
+  background: rgba(75, 88, 115, 0.16);
+  color: var(--color-muted-text);
+}
+
+.maintenanceStatus[data-tone='danger'] {
+  background: rgba(255, 0, 0, 0.15);
+  color: var(--color-error);
+}
+
+.maintenancePriority {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--spacing-xs) * 1.1) var(--spacing-sm);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: rgba(27, 40, 64, 0.08);
+  color: var(--color-muted-text);
+  width: fit-content;
+  margin-top: var(--spacing-xs);
+}
+
+.maintenancePriority[data-level='high'],
+.maintenancePriority[data-level='emergency'] {
+  background: rgba(255, 0, 0, 0.15);
+  color: var(--color-error);
+}
+
+.maintenancePriority[data-level='medium'] {
+  background: rgba(255, 196, 0, 0.2);
+  color: #5a4a00;
+}
+
+.maintenancePriority[data-level='low'],
+.maintenancePriority[data-level='routine'] {
+  background: rgba(15, 118, 110, 0.15);
+  color: #0f766e;
+}
+
 .rowLink {
   display: inline-flex;
   align-items: center;
