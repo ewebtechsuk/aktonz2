@@ -19,6 +19,57 @@ function buildStageClass(tone) {
   return STAGE_TONE_CLASS[tone] || styles.stageNeutral;
 }
 
+function flattenRecord(value, prefix = '') {
+  if (value === null || value === undefined) {
+    return [{ key: prefix, value: null }];
+  }
+
+  if (Array.isArray(value)) {
+    if (!value.length) {
+      return [{ key: prefix, value: [] }];
+    }
+
+    return value.flatMap((item, index) => {
+      const nextPrefix = prefix ? `${prefix}[${index}]` : `[${index}]`;
+      return flattenRecord(item, nextPrefix);
+    });
+  }
+
+  if (typeof value === 'object') {
+    const entries = Object.entries(value);
+    if (!entries.length) {
+      return [{ key: prefix, value: {} }];
+    }
+
+    return entries.flatMap(([key, nested]) => {
+      const nextPrefix = prefix ? `${prefix}.${key}` : key;
+      return flattenRecord(nested, nextPrefix);
+    });
+  }
+
+  return [{ key: prefix, value }];
+}
+
+function formatApexFieldValue(value) {
+  if (value === null || value === undefined) {
+    return '—';
+  }
+
+  if (typeof value === 'boolean') {
+    return value ? 'true' : 'false';
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value.toString() : '—';
+  }
+
+  if (typeof value === 'string') {
+    return value.length ? value : '—';
+  }
+
+  return JSON.stringify(value);
+}
+
 function normalizeRouteParam(value) {
   if (Array.isArray(value)) {
     return value[0] || null;
@@ -593,6 +644,20 @@ export default function AdminContactDetailsPage() {
 
   const requirements = Array.isArray(contact?.requirements) ? contact.requirements : [];
   const tags = Array.isArray(contact?.tags) ? contact.tags : [];
+  const apexFields = Array.isArray(contact?.apexFields) ? contact.apexFields : null;
+  const apexRaw = contact?.apexRaw ?? null;
+
+  const apexEntries = useMemo(() => {
+    let entries = Array.isArray(apexFields) ? apexFields : [];
+
+    if (!entries.length && apexRaw) {
+      entries = flattenRecord(apexRaw);
+    }
+
+    return entries
+      .filter((entry) => entry && typeof entry.key === 'string' && entry.key.length)
+      .map((entry) => ({ key: entry.key, value: entry.value }));
+  }, [apexFields, apexRaw]);
 
   const stageOptions = useMemo(() => {
     const entries = [...options.stage];
@@ -1193,6 +1258,30 @@ export default function AdminContactDetailsPage() {
                       {createdRelative ? <span className={styles.timelineHint}>{createdRelative}</span> : null}
                     </div>
                   </div>
+                </section>
+
+                <section className={styles.card} aria-labelledby="contact-apex-record">
+                  <div className={styles.cardHeader}>
+                    <h2 id="contact-apex-record">Apex27 fields</h2>
+                  </div>
+                  {apexEntries.length ? (
+                    <div className={styles.apexFieldList}>
+                      {apexEntries.map(({ key, value }) => (
+                        <div key={key} className={styles.apexFieldItem}>
+                          <span className={styles.apexFieldKey}>{key}</span>
+                          <span className={styles.apexFieldValue}>{formatApexFieldValue(value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className={styles.emptyNote}>No Apex27 data available for this contact.</p>
+                  )}
+                  {apexRaw ? (
+                    <details className={styles.apexRawDetails}>
+                      <summary>View raw Apex27 payload</summary>
+                      <pre className={styles.apexRawPre}>{JSON.stringify(apexRaw, null, 2)}</pre>
+                    </details>
+                  ) : null}
                 </section>
               </div>
             </div>

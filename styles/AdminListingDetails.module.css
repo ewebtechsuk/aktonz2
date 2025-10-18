@@ -784,6 +784,59 @@
   line-height: 1.5;
 }
 
+.apexFieldList {
+  display: grid;
+  gap: var(--spacing-sm);
+  max-height: 360px;
+  overflow: auto;
+  padding-right: var(--spacing-sm);
+}
+
+.apexFieldRow {
+  display: grid;
+  gap: calc(var(--spacing-xs) / 2);
+  background: var(--color-surface-alt);
+  border-radius: 12px;
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.apexFieldKey {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted-text);
+}
+
+.apexFieldValue {
+  font-size: 0.95rem;
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.apexRawDetails {
+  background: var(--color-surface-alt);
+  border-radius: 12px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.apexRawDetails summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.apexRawPre {
+  margin: var(--spacing-sm) 0 0 0;
+  max-height: 360px;
+  overflow: auto;
+  background: transparent;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 @media (max-width: 720px) {
   .heroTitle {
     font-size: 1.8rem;
