@@ -1,0 +1,269 @@
+{
+  "generatedAt": "2024-02-24T07:30:00Z",
+  "events": [
+    {
+      "id": "apx-diary-2401",
+      "title": "Viewing — 41 Ilkeston Court",
+      "type": "Viewing",
+      "status": "confirmed",
+      "start": "2024-02-26T09:00:00Z",
+      "end": "2024-02-26T09:45:00Z",
+      "negotiator": "Amelia Carter",
+      "property": {
+        "id": "ALX-3756638",
+        "address": "Overbury Street, Hackney, London E5",
+        "href": "/property/ALX-3756638"
+      },
+      "location": "Meet at property",
+      "attendees": [
+        { "name": "Amelia Carter", "role": "Negotiator", "email": "amelia.carter@aktonz.com" },
+        { "name": "Lauren Atkinson", "role": "Applicant", "email": "lauren.atkinson@example.com" },
+        { "name": "Jonathan Spencer", "role": "Applicant", "email": "jonathan.spencer@example.com" }
+      ],
+      "notes": "Key safe code 4582. Confirmed via SMS.",
+      "links": [
+        { "label": "View property record", "href": "/property/ALX-3756638" },
+        { "label": "Open in Apex27", "href": "https://app.apex27.co.uk/diary/events/apx-diary-2401" }
+      ]
+    },
+    {
+      "id": "apx-diary-2402",
+      "title": "Valuation — Dereham Road",
+      "type": "Valuation",
+      "status": "awaiting_confirmation",
+      "start": "2024-02-26T11:30:00Z",
+      "end": "2024-02-26T12:15:00Z",
+      "negotiator": "David Nwosu",
+      "property": {
+        "id": "ALX-48996807",
+        "address": "Dereham Road, Barking, Essex",
+        "href": "/property/ALX-48996807"
+      },
+      "location": "Vendor home visit",
+      "attendees": [
+        { "name": "David Nwosu", "role": "Valuer", "email": "david.nwosu@aktonz.com" },
+        { "name": "Annabelle Hart", "role": "Vendor", "email": "annabelle.hart@example.com" }
+      ],
+      "notes": "Prepare lettings comparables and landlord onboarding pack.",
+      "links": [
+        { "label": "Open valuation record", "href": "/admin/valuations?reference=ALX-48996807" },
+        { "label": "Open in Apex27", "href": "https://app.apex27.co.uk/diary/events/apx-diary-2402" }
+      ]
+    },
+    {
+      "id": "apx-diary-2403",
+      "title": "Applicant follow-up — Lordsmead Road",
+      "type": "Follow-up",
+      "status": "internal",
+      "start": "2024-02-26T15:30:00Z",
+      "end": "2024-02-26T15:50:00Z",
+      "negotiator": "Sofia Patel",
+      "property": {
+        "id": "ALX-30847117",
+        "address": "Lordsmead Road, Tottenham, London N17",
+        "href": "/property/ALX-30847117"
+      },
+      "location": "Teams call",
+      "attendees": [
+        { "name": "Sofia Patel", "role": "Lettings Negotiator", "email": "sofia.patel@aktonz.com" },
+        { "name": "Patrick Hughes", "role": "Applicant", "email": "patrick.hughes@example.com" }
+      ],
+      "notes": "Confirm paperwork received and reference progress.",
+      "links": [
+        { "label": "View applicant record", "href": "/admin/contacts?contact=patrick-hughes" }
+      ]
+    },
+    {
+      "id": "apx-diary-2404",
+      "title": "Viewing — Beechcroft Avenue",
+      "type": "Viewing",
+      "status": "confirmed",
+      "start": "2024-02-27T10:00:00Z",
+      "end": "2024-02-27T10:40:00Z",
+      "negotiator": "Amelia Carter",
+      "property": {
+        "id": "ALX-22506174",
+        "address": "Beechcroft Avenue, Harrow, Greater London",
+        "href": "/property/ALX-22506174"
+      },
+      "location": "Meet at property",
+      "attendees": [
+        { "name": "Amelia Carter", "role": "Negotiator", "email": "amelia.carter@aktonz.com" },
+        { "name": "Rebecca Cole", "role": "Applicant", "email": "rebecca.cole@example.com" }
+      ],
+      "notes": "Vendor confirmed keys with concierge.",
+      "links": [
+        { "label": "View property record", "href": "/property/ALX-22506174" }
+      ]
+    },
+    {
+      "id": "apx-diary-2405",
+      "title": "Contract signing — Brancaster Road",
+      "type": "Tenancy",
+      "status": "confirmed",
+      "start": "2024-02-27T13:30:00Z",
+      "end": "2024-02-27T14:15:00Z",
+      "negotiator": "Sofia Patel",
+      "property": {
+        "id": "ALX-84599090",
+        "address": "Brancaster Road, London, London",
+        "href": "/property/ALX-84599090"
+      },
+      "location": "Aktonz HQ boardroom",
+      "attendees": [
+        { "name": "Sofia Patel", "role": "Lettings Negotiator", "email": "sofia.patel@aktonz.com" },
+        { "name": "George Li", "role": "Applicant", "email": "george.li@example.com" },
+        { "name": "Hannah Li", "role": "Applicant", "email": "hannah.li@example.com" }
+      ],
+      "notes": "Arrange deposit invoice before appointment.",
+      "links": [
+        { "label": "Open tenancy workflow", "href": "/admin/lettings?tenancy=ALX-84599090" }
+      ]
+    },
+    {
+      "id": "apx-diary-2406",
+      "title": "Morning stand-up",
+      "type": "Internal",
+      "status": "internal",
+      "start": "2024-02-28T08:45:00Z",
+      "end": "2024-02-28T09:15:00Z",
+      "negotiator": "Whole lettings team",
+      "property": null,
+      "location": "Zoom",
+      "attendees": [
+        { "name": "Lettings team", "role": "Team" }
+      ],
+      "notes": "Daily pipeline review before viewings.",
+      "links": []
+    },
+    {
+      "id": "apx-diary-2407",
+      "title": "Viewing — Lordsmead Road",
+      "type": "Viewing",
+      "status": "confirmed",
+      "start": "2024-02-28T11:00:00Z",
+      "end": "2024-02-28T11:30:00Z",
+      "negotiator": "David Nwosu",
+      "property": {
+        "id": "ALX-30847117",
+        "address": "Lordsmead Road, Tottenham, London N17",
+        "href": "/property/ALX-30847117"
+      },
+      "location": "Meet at property",
+      "attendees": [
+        { "name": "David Nwosu", "role": "Valuer", "email": "david.nwosu@aktonz.com" },
+        { "name": "Priya Banerjee", "role": "Applicant", "email": "priya.banerjee@example.com" }
+      ],
+      "notes": "Bring updated floorplan and highlight loft conversion.",
+      "links": [
+        { "label": "View property record", "href": "/property/ALX-30847117" }
+      ]
+    },
+    {
+      "id": "apx-diary-2408",
+      "title": "Landlord onboarding — Brancaster Road",
+      "type": "Onboarding",
+      "status": "confirmed",
+      "start": "2024-02-28T15:00:00Z",
+      "end": "2024-02-28T16:00:00Z",
+      "negotiator": "Amelia Carter",
+      "property": {
+        "id": "ALX-84599090",
+        "address": "Brancaster Road, London, London",
+        "href": "/property/ALX-84599090"
+      },
+      "location": "Teams call",
+      "attendees": [
+        { "name": "Amelia Carter", "role": "Negotiator", "email": "amelia.carter@aktonz.com" },
+        { "name": "James Porter", "role": "Landlord", "email": "james.porter@example.com" }
+      ],
+      "notes": "Review management agreement and compliance pack.",
+      "links": [
+        { "label": "Landlord CRM record", "href": "/admin/contacts?contact=james-porter" }
+      ]
+    },
+    {
+      "id": "apx-diary-2409",
+      "title": "Viewing — Ilford Park",
+      "type": "Viewing",
+      "status": "tentative",
+      "start": "2024-02-29T10:30:00Z",
+      "end": "2024-02-29T11:00:00Z",
+      "negotiator": "Sofia Patel",
+      "property": {
+        "id": "ALX-40695661",
+        "address": "Ilford Park, London IG1",
+        "href": "/property/ALX-40695661"
+      },
+      "location": "Meet at property",
+      "attendees": [
+        { "name": "Sofia Patel", "role": "Lettings Negotiator", "email": "sofia.patel@aktonz.com" },
+        { "name": "Michael Green", "role": "Applicant", "email": "michael.green@example.com" }
+      ],
+      "notes": "Awaiting key collection confirmation from concierge.",
+      "links": [
+        { "label": "View property record", "href": "/property/ALX-40695661" }
+      ]
+    },
+    {
+      "id": "apx-diary-2410",
+      "title": "Team diary catch-up",
+      "type": "Internal",
+      "status": "internal",
+      "start": "2024-02-29T16:00:00Z",
+      "end": "2024-02-29T16:45:00Z",
+      "negotiator": "Lettings leadership",
+      "property": null,
+      "location": "Aktonz HQ boardroom",
+      "attendees": [
+        { "name": "Amelia Carter", "role": "Senior Negotiator" },
+        { "name": "Sofia Patel", "role": "Lettings Negotiator" },
+        { "name": "David Nwosu", "role": "Sales Valuer" }
+      ],
+      "notes": "Review weekly performance and outstanding follow-ups.",
+      "links": []
+    },
+    {
+      "id": "apx-diary-2411",
+      "title": "Viewing — South Tottenham",
+      "type": "Viewing",
+      "status": "confirmed",
+      "start": "2024-03-01T09:15:00Z",
+      "end": "2024-03-01T09:45:00Z",
+      "negotiator": "Amelia Carter",
+      "property": {
+        "id": "ALX-78362252",
+        "address": "Cavendish Road, South Tottenham, London",
+        "href": "/property/ALX-78362252"
+      },
+      "location": "Meet at property",
+      "attendees": [
+        { "name": "Amelia Carter", "role": "Negotiator", "email": "amelia.carter@aktonz.com" },
+        { "name": "Sara Martins", "role": "Applicant", "email": "sara.martins@example.com" }
+      ],
+      "notes": "Parking restricted — advise clients to use Frobisher Road car park.",
+      "links": [
+        { "label": "View property record", "href": "/property/ALX-78362252" }
+      ]
+    },
+    {
+      "id": "apx-diary-2412",
+      "title": "Compliance audit — tenancy files",
+      "type": "Compliance",
+      "status": "internal",
+      "start": "2024-03-01T14:00:00Z",
+      "end": "2024-03-01T15:00:00Z",
+      "negotiator": "Lettings operations",
+      "property": null,
+      "location": "Aktonz HQ operations floor",
+      "attendees": [
+        { "name": "Holly Briggs", "role": "Compliance lead", "email": "holly.briggs@aktonz.com" },
+        { "name": "Lettings administrators", "role": "Team" }
+      ],
+      "notes": "Audit randomly selected tenancy files for onboarding completeness.",
+      "links": [
+        { "label": "Compliance checklist", "href": "/docs/lettings-compliance-checklist" }
+      ]
+    }
+  ]
+}
