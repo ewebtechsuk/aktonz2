@@ -248,21 +248,29 @@ export async function HEAD(request: NextRequest) {
   return new NextResponse(null, { status: 200 });
 }
 
+async function resolveRouteId(
+  params?: { id: unknown } | Promise<{ id: unknown }>,
+): Promise<string | null> {
+  const resolved = params && typeof (params as any)?.then === "function"
+    ? await params
+    : (params as { id: unknown } | undefined);
+
+  const rawId = resolved?.id;
+  const id = Array.isArray(rawId) ? rawId[0] : rawId;
+
+  return typeof id === "string" && id.trim() ? id : null;
+}
+
 export async function GET(
   request: NextRequest,
-  context: { params?: Promise<Record<string, string | string[] | undefined>> },
+  context: { params: { id: string } },
 ) {
   const adminCheck = requireAdmin(request);
   if ("response" in adminCheck) {
     return adminCheck.response;
   }
 
-  const resolvedParams = (context.params ? await context.params : {}) as {
-    id?: string | string[];
-  };
-
-  const rawId = resolvedParams?.id;
-  const id = Array.isArray(rawId) ? rawId[0] : rawId;
+  const id = await resolveRouteId(context.params);
   if (!id) {
     return NextResponse.json(
       { error: "Missing listing id", code: "BAD_REQUEST" },
@@ -291,19 +299,14 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  context: { params?: Promise<Record<string, string | string[] | undefined>> },
+  context: { params: { id: string } },
 ) {
   const adminCheck = requireAdmin(request);
   if ("response" in adminCheck) {
     return adminCheck.response;
   }
 
-  const resolvedParams = (context.params ? await context.params : {}) as {
-    id?: string | string[];
-  };
-
-  const rawId = resolvedParams?.id;
-  const id = Array.isArray(rawId) ? rawId[0] : rawId;
+  const id = await resolveRouteId(context.params);
   if (!id) {
     return NextResponse.json(
       { error: "Missing listing id", code: "BAD_REQUEST" },
