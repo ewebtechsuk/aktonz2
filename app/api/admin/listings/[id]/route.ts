@@ -249,7 +249,9 @@ export async function HEAD(request: NextRequest) {
 }
 
 type RouteParams = Record<string, string | string[] | undefined>;
-type RouteContext = { params?: Promise<RouteParams> };
+type RouteContext = {
+  params?: RouteParams | Promise<RouteParams>;
+};
 
 async function resolveRouteId(params: RouteContext["params"]): Promise<string | null> {
   const resolved = params ? await params : undefined;
