@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminListingDetails.module.css';
+import { formatOfferStatusLabel } from '../../../lib/offer-statuses.js';
 
 const STATUS_OPTIONS = [
   { value: 'available', label: 'Available' },
@@ -268,6 +269,27 @@ function formatDateTime(value) {
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+    }).format(date);
+  } catch (error) {
+    return '—';
+  }
+}
+
+function formatDateDisplay(value) {
+  if (!value) {
+    return '—';
+  }
+
+  try {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return '—';
+    }
+
+    return new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
     }).format(date);
   } catch (error) {
     return '—';
@@ -785,8 +807,30 @@ export default function AdminListingDetailsPage() {
     const referenceValue = formValues.reference || '—';
     const updatedLabel = formatDateTime(listing.updatedAt);
     const updatedRelative = formatRelativeTime(listing.updatedAt);
+    const listingOffers = (Array.isArray(listing.offers) ? listing.offers : [])
+      .slice()
+      .sort((a, b) => {
+        const right = new Date(b.updatedAt || b.date || 0).getTime();
+        const left = new Date(a.updatedAt || a.date || 0).getTime();
+        return right - left;
+      });
+    const listingMaintenance = (Array.isArray(listing.maintenanceTasks)
+      ? listing.maintenanceTasks
+      : [])
+      .slice()
+      .sort((a, b) => {
+        const left = Number.isFinite(a.dueTimestamp) ? a.dueTimestamp : Infinity;
+        const right = Number.isFinite(b.dueTimestamp) ? b.dueTimestamp : Infinity;
+        if (left !== right) {
+          return left - right;
+        }
+        const leftUpdated = Number.isFinite(a.updatedAtTimestamp) ? a.updatedAtTimestamp : 0;
+        const rightUpdated = Number.isFinite(b.updatedAtTimestamp) ? b.updatedAtTimestamp : 0;
+        return rightUpdated - leftUpdated;
+      });
 
     return (
+      <>
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
         <section className={styles.hero}>
           <div className={styles.heroTopRow}>
@@ -1488,6 +1532,113 @@ export default function AdminListingDetailsPage() {
           </button>
         </div>
       </form>
+
+      <section className={styles.activitySection} id="listing-activity">
+        <header className={styles.activityHeader}>
+          <h2 className={styles.activityTitle}>Linked activity</h2>
+          <p className={styles.activitySubtitle}>
+            Offers and maintenance jobs connected to this property across the Aktonz platform.
+          </p>
+        </header>
+        <div className={styles.activityGrid}>
+          <article className={styles.activityCard}>
+            <header className={styles.activityCardHeader}>
+              <div>
+                <h3>Offers</h3>
+                <p className={styles.activityCountLabel}>Live and archived offers</p>
+              </div>
+              <span className={styles.activityCount}>{listingOffers.length}</span>
+            </header>
+            {listingOffers.length ? (
+              <ul className={styles.activityList}>
+                {listingOffers.map((offer) => (
+                  <li key={offer.id} className={styles.activityListItem}>
+                    <div className={styles.activityItemHeader}>
+                      <span className={styles.activityPrimary}>
+                        {offer.contact?.name || offer.email || 'Applicant'}
+                      </span>
+                      <span
+                        className={`${styles.offerTag} ${
+                          offer.type === 'sale' ? styles.offerTagSale : styles.offerTagRent
+                        }`}
+                      >
+                        {offer.type === 'sale' ? 'Sale' : 'Rent'}
+                      </span>
+                    </div>
+                    <div className={styles.activityMetaRow}>
+                      <span>{offer.amount || '—'}</span>
+                      <span className={styles.activityStatusLabel}>
+                        {offer.statusLabel || formatOfferStatusLabel(offer.status)}
+                      </span>
+                    </div>
+                    <div className={styles.activityMetaRow}>
+                      <span>{formatDateDisplay(offer.date)}</span>
+                      {offer.agent?.name ? <span>Agent {offer.agent.name}</span> : null}
+                    </div>
+                    <Link
+                      href={`/admin/offers?id=${encodeURIComponent(offer.id)}`}
+                      className={styles.activityLink}
+                    >
+                      Open offer workspace
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.activityEmpty}>No offers linked to this listing yet.</p>
+            )}
+          </article>
+
+          <article className={styles.activityCard}>
+            <header className={styles.activityCardHeader}>
+              <div>
+                <h3>Maintenance</h3>
+                <p className={styles.activityCountLabel}>Tasks synced from Apex27</p>
+              </div>
+              <span className={styles.activityCount}>{listingMaintenance.length}</span>
+            </header>
+            {listingMaintenance.length ? (
+              <ul className={styles.activityList}>
+                {listingMaintenance.map((task) => (
+                  <li key={task.id} className={styles.activityListItem}>
+                    <div className={styles.activityItemHeader}>
+                      <span className={styles.activityPrimary}>{task.title}</span>
+                      <span className={styles.activityStatusBadge} data-tone={task.statusTone}>
+                        {task.statusLabel}
+                      </span>
+                    </div>
+                    <div className={styles.activityMetaRow}>
+                      <span>{formatDateDisplay(task.dueAt)}</span>
+                      {task.priorityLabel ? (
+                        <span className={styles.activityPriorityBadge} data-level={task.priority}>
+                          {task.priorityLabel}
+                        </span>
+                      ) : null}
+                    </div>
+                    {task.assignee?.name ? (
+                      <div className={styles.activityMetaRow}>
+                        <span>Assigned to {task.assignee.name}</span>
+                      </div>
+                    ) : null}
+                    {task.overdue ? (
+                      <span className={`${styles.activityTag} ${styles.activityTagOverdue}`}>
+                        Overdue
+                      </span>
+                    ) : task.dueSoon ? (
+                      <span className={`${styles.activityTag} ${styles.activityTagSoon}`}>
+                        Due soon
+                      </span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.activityEmpty}>No maintenance tasks recorded for this listing.</p>
+            )}
+          </article>
+        </div>
+      </section>
+      </>
     );
   };
 
