@@ -337,6 +337,57 @@ function renderDefinitionList(items) {
   );
 }
 
+function flattenRecord(value, prefix = '') {
+  if (value === null || value === undefined) {
+    return [{ key: prefix, value: null }];
+  }
+
+  if (Array.isArray(value)) {
+    if (!value.length) {
+      return [{ key: prefix, value: [] }];
+    }
+
+    return value.flatMap((item, index) => {
+      const nextPrefix = prefix ? `${prefix}[${index}]` : `[${index}]`;
+      return flattenRecord(item, nextPrefix);
+    });
+  }
+
+  if (typeof value === 'object') {
+    const entries = Object.entries(value);
+    if (!entries.length) {
+      return [{ key: prefix, value: {} }];
+    }
+
+    return entries.flatMap(([key, nested]) => {
+      const nextPrefix = prefix ? `${prefix}.${key}` : key;
+      return flattenRecord(nested, nextPrefix);
+    });
+  }
+
+  return [{ key: prefix, value }];
+}
+
+function formatFlattenedValue(value) {
+  if (value === null || value === undefined) {
+    return '—';
+  }
+
+  if (typeof value === 'boolean') {
+    return value ? 'true' : 'false';
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value.toString() : '—';
+  }
+
+  if (typeof value === 'string') {
+    return value.length ? value : '—';
+  }
+
+  return JSON.stringify(value);
+}
+
 export default function AdminListingDetailsPage() {
   const router = useRouter();
   const { user, loading: sessionLoading } = useSession();
@@ -486,6 +537,21 @@ export default function AdminListingDetailsPage() {
     }
     return formatHeroRent(listing?.rent?.amount, listing?.rent?.frequency, listing?.rent?.currency);
   }, [formValues, listing]);
+
+  const apexFields = Array.isArray(listing?.apexFields) ? listing.apexFields : null;
+  const apexRaw = listing?.apexRaw ?? null;
+
+  const apexEntries = useMemo(() => {
+    let entries = Array.isArray(apexFields) ? apexFields : [];
+
+    if (!entries.length && apexRaw) {
+      entries = flattenRecord(apexRaw);
+    }
+
+    return entries
+      .filter((entry) => entry && typeof entry.key === 'string' && entry.key.length)
+      .map((entry) => ({ key: entry.key, value: entry.value }));
+  }, [apexFields, apexRaw]);
 
   const handleSubmit = useCallback(
     async (event) => {
@@ -1374,6 +1440,32 @@ export default function AdminListingDetailsPage() {
             </button>
             {!formValues.metadata?.length ? (
               <p className={styles.metaMuted}>No additional metadata captured.</p>
+            ) : null}
+          </div>
+        </section>
+
+        <section className={styles.panel}>
+          <header className={styles.panelHeader}>
+            <h2 className={styles.panelTitle}>Apex27 record</h2>
+          </header>
+          <div className={styles.panelBody}>
+            {apexEntries.length ? (
+              <div className={styles.apexFieldList}>
+                {apexEntries.map(({ key, value }) => (
+                  <div key={key} className={styles.apexFieldRow}>
+                    <span className={styles.apexFieldKey}>{key}</span>
+                    <span className={styles.apexFieldValue}>{formatFlattenedValue(value)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.metaMuted}>No Apex27 data available for this listing.</p>
+            )}
+            {apexRaw ? (
+              <details className={styles.apexRawDetails}>
+                <summary>View raw Apex27 payload</summary>
+                <pre className={styles.apexRawPre}>{JSON.stringify(apexRaw, null, 2)}</pre>
+              </details>
             ) : null}
           </div>
         </section>
