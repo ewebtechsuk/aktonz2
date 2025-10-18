@@ -7,6 +7,24 @@ import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/Admi
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminListingDetails.module.css';
 import { formatOfferStatusLabel } from '../../../lib/offer-statuses.js';
+import {
+  FaAlignLeft,
+  FaBalanceScale,
+  FaBed,
+  FaBullhorn,
+  FaBuilding,
+  FaCalendarCheck,
+  FaClipboardList,
+  FaGavel,
+  FaImages,
+  FaListUl,
+  FaMapMarkedAlt,
+  FaMoneyBillWave,
+  FaStickyNote,
+  FaUserFriends,
+  FaUserPlus,
+  FaUsers,
+} from 'react-icons/fa';
 
 const STATUS_OPTIONS = [
   { value: 'available', label: 'Available' },
@@ -115,6 +133,29 @@ function formatHeroRent(amount, frequency, currency) {
 
   const frequencyLabel = RENT_FREQUENCY_OPTIONS.find((option) => option.value === normalisedFrequency)?.label;
   return frequencyLabel ? `${formattedAmount} ${frequencyLabel}` : formattedAmount;
+}
+
+function formatCurrencyValue(amount, currency = 'GBP') {
+  if (amount == null || amount === '') {
+    return '';
+  }
+
+  const numeric = Number(String(amount).replace(/[^0-9.-]/g, ''));
+  if (!Number.isFinite(numeric)) {
+    return '';
+  }
+
+  try {
+    const formatter = new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: currency && String(currency).trim() ? String(currency).trim().toUpperCase() : 'GBP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+    return formatter.format(numeric);
+  } catch (error) {
+    return `£${numeric.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+  }
 }
 
 function cloneFormValues(values) {
@@ -424,6 +465,7 @@ export default function AdminListingDetailsPage() {
   const [saveError, setSaveError] = useState('');
   const [saveSuccess, setSaveSuccess] = useState('');
   const [validationErrors, setValidationErrors] = useState([]);
+  const [activeTab, setActiveTab] = useState('main-details');
 
   const listingId = useMemo(() => {
     if (!router.isReady) {
@@ -486,6 +528,10 @@ export default function AdminListingDetailsPage() {
     setSaveSuccess('');
     setValidationErrors([]);
   }, [listing]);
+
+  useEffect(() => {
+    setActiveTab('main-details');
+  }, [listingId]);
 
   const pageTitle = useMemo(() => {
     const address = formValues?.displayAddress || listing?.displayAddress;
@@ -560,6 +606,310 @@ export default function AdminListingDetailsPage() {
     return formatHeroRent(listing?.rent?.amount, listing?.rent?.frequency, listing?.rent?.currency);
   }, [formValues, listing]);
 
+  const listingOffers = useMemo(() => {
+    const offers = Array.isArray(listing?.offers) ? listing.offers : [];
+    return offers.slice().sort((a, b) => {
+      const right = new Date(b.updatedAt || b.date || 0).getTime();
+      const left = new Date(a.updatedAt || a.date || 0).getTime();
+      return right - left;
+    });
+  }, [listing]);
+
+  const listingMaintenance = useMemo(() => {
+    const tasks = Array.isArray(listing?.maintenanceTasks) ? listing.maintenanceTasks : [];
+    return tasks.slice().sort((a, b) => {
+      const left = Number.isFinite(a.dueTimestamp) ? a.dueTimestamp : Infinity;
+      const right = Number.isFinite(b.dueTimestamp) ? b.dueTimestamp : Infinity;
+      if (left !== right) {
+        return left - right;
+      }
+      const leftUpdated = Number.isFinite(a.updatedAtTimestamp) ? a.updatedAtTimestamp : 0;
+      const rightUpdated = Number.isFinite(b.updatedAtTimestamp) ? b.updatedAtTimestamp : 0;
+      return rightUpdated - leftUpdated;
+    });
+  }, [listing]);
+
+  const interestedParties = useMemo(() => {
+    const parties = [];
+    const seen = new Set();
+    listingOffers.forEach((offer) => {
+      const name = offer?.contact?.name || offer?.name || offer?.email || 'Applicant';
+      const key = offer?.contact?.email || offer?.contact?.phone || offer?.email || offer?.id || name;
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        const status = offer?.status;
+        parties.push({
+          name,
+          status,
+          statusLabel: formatOfferStatusLabel(status),
+          updatedAt: offer?.updatedAt || offer?.date,
+        });
+      }
+    });
+    return parties;
+  }, [listingOffers]);
+
+  const matchingAreasList = useMemo(() => {
+    if (formValues?.matchingAreasText) {
+      return formValues.matchingAreasText
+        .split(/[\n,]/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+    if (Array.isArray(listing?.matchingAreas)) {
+      return listing.matchingAreas.filter((item) => typeof item === 'string' && item.trim().length);
+    }
+    return [];
+  }, [formValues?.matchingAreasText, listing]);
+
+  const noteEntries = useMemo(() => {
+    const entries = [];
+    const raw = listing?.raw || {};
+
+    const addEntry = (label, value) => {
+      if (typeof value !== 'string') {
+        return;
+      }
+      const trimmed = value.trim();
+      if (trimmed) {
+        entries.push({ label, value: trimmed });
+      }
+    };
+
+    addEntry('Summary note', raw.summary || listing?.summary || '');
+    addEntry('Print summary', raw.printSummary || '');
+
+    for (let index = 1; index <= 6; index += 1) {
+      addEntry(`Custom note ${index}`, raw[`customDescription${index}`] || '');
+    }
+
+    if (Array.isArray(raw.bullets)) {
+      raw.bullets
+        .map((bullet) => (typeof bullet === 'string' ? bullet.trim() : ''))
+        .filter(Boolean)
+        .forEach((bullet, index) => {
+          entries.push({ label: `Highlight ${index + 1}`, value: bullet });
+        });
+    }
+
+    return entries;
+  }, [listing]);
+
+  const financialEntries = useMemo(() => {
+    const entries = [];
+    const raw = listing?.raw || {};
+
+    if (listing?.rent?.amount != null) {
+      const label = formatHeroRent(listing.rent.amount, listing.rent.frequency, listing.rent.currency);
+      if (label && label !== 'Rent not set') {
+        entries.push({ label: 'Asking rent', value: label });
+      }
+    }
+
+    if (raw.minimumTermMonths) {
+      entries.push({ label: 'Minimum term', value: `${raw.minimumTermMonths} months` });
+    }
+
+    if (raw.councilTaxBand) {
+      entries.push({ label: 'Council tax band', value: raw.councilTaxBand });
+    }
+
+    if (raw.councilTaxAmount != null) {
+      const formatted = formatCurrencyValue(raw.councilTaxAmount, raw.priceCurrency || 'GBP');
+      if (formatted) {
+        entries.push({ label: 'Council tax', value: formatted });
+      }
+    }
+
+    if (raw.serviceChargeAmount != null) {
+      const formatted = formatCurrencyValue(raw.serviceChargeAmount, raw.priceCurrency || 'GBP');
+      if (formatted) {
+        entries.push({ label: 'Service charge', value: formatted });
+      }
+    }
+
+    if (raw.groundRentAmount != null) {
+      const formatted = formatCurrencyValue(raw.groundRentAmount, raw.priceCurrency || 'GBP');
+      if (formatted) {
+        entries.push({ label: 'Ground rent', value: formatted });
+      }
+    }
+
+    if (raw.totalIncomeText) {
+      entries.push({ label: 'Total income', value: raw.totalIncomeText });
+    }
+
+    if (raw.saleFee) {
+      const formatted = formatCurrencyValue(raw.saleFee, raw.priceCurrency || 'GBP');
+      if (formatted) {
+        entries.push({ label: 'Sale fee', value: formatted });
+      }
+    }
+
+    if (raw.groundRentDescription) {
+      entries.push({ label: 'Ground rent notes', value: raw.groundRentDescription });
+    }
+
+    if (raw.serviceChargeDescription) {
+      entries.push({ label: 'Service charge notes', value: raw.serviceChargeDescription });
+    }
+
+    return entries;
+  }, [listing]);
+
+  const valuationEntries = useMemo(() => {
+    const entries = [];
+    const raw = listing?.raw || {};
+
+    if (raw.valuationRent != null) {
+      const formatted = formatCurrencyValue(raw.valuationRent, raw.priceCurrency || 'GBP');
+      if (formatted) {
+        entries.push({ label: 'Valuation rent', value: formatted });
+      }
+    }
+
+    if (raw.valuationPrice != null) {
+      const formatted = formatCurrencyValue(raw.valuationPrice, raw.priceCurrency || 'GBP');
+      if (formatted) {
+        entries.push({ label: 'Valuation price', value: formatted });
+      }
+    }
+
+    if (raw.dateOfInstruction) {
+      entries.push({ label: 'Instruction date', value: formatDateDisplay(raw.dateOfInstruction) });
+    }
+
+    if (raw.dateAvailableFrom) {
+      entries.push({ label: 'Available from', value: formatDateDisplay(raw.dateAvailableFrom) });
+    }
+
+    if (raw.leaseYearsRemaining != null) {
+      entries.push({ label: 'Lease years remaining', value: String(raw.leaseYearsRemaining) });
+    }
+
+    return entries;
+  }, [listing]);
+
+  const auctionEntries = useMemo(() => {
+    const entries = [];
+    const sale = (listing?.raw && typeof listing.raw === 'object' && listing.raw.sale) || {};
+
+    if (sale.auctionDate) {
+      entries.push({ label: 'Auction date', value: formatDateDisplay(sale.auctionDate) });
+    }
+
+    if (sale.auctionTime) {
+      entries.push({ label: 'Auction time', value: sale.auctionTime });
+    }
+
+    if (sale.auctionLocation) {
+      entries.push({ label: 'Auction location', value: sale.auctionLocation });
+    }
+
+    if (sale.auctionGuidePrice != null) {
+      const formatted = formatCurrencyValue(sale.auctionGuidePrice, listing?.rent?.currency || 'GBP');
+      if (formatted) {
+        entries.push({ label: 'Guide price', value: formatted });
+      }
+    }
+
+    if (sale.auctionNotes) {
+      entries.push({ label: 'Auction notes', value: sale.auctionNotes });
+    }
+
+    return entries;
+  }, [listing]);
+
+  const roomEntries = useMemo(() => {
+    const entries = [];
+    const raw = listing?.raw || {};
+
+    const addEntry = (label, value) => {
+      const numeric = Number(value);
+      if (Number.isFinite(numeric) && numeric > 0) {
+        entries.push({ label, value: numeric });
+      }
+    };
+
+    addEntry('Bedrooms', listing?.bedrooms);
+    addEntry('Bathrooms', listing?.bathrooms);
+    addEntry('Receptions', listing?.receptions);
+    addEntry('Ensuites', raw.ensuites);
+    addEntry('Toilets', raw.toilets);
+    addEntry('Kitchens', raw.kitchens);
+    addEntry('Dining rooms', raw.diningRooms);
+    addEntry('Garages', raw.garages);
+    addEntry('Parking spaces', raw.parkingSpaces);
+    addEntry('Floors', raw.floors);
+
+    return entries;
+  }, [listing]);
+
+  const featureGroups = useMemo(() => {
+    const raw = listing?.raw || {};
+
+    const normaliseList = (value) => {
+      if (!value) {
+        return [];
+      }
+      if (Array.isArray(value)) {
+        return value
+          .map((entry) => {
+            if (typeof entry === 'string') {
+              return entry.trim();
+            }
+            if (entry && typeof entry === 'object' && entry.label) {
+              return String(entry.label).trim();
+            }
+            return '';
+          })
+          .filter(Boolean);
+      }
+      if (typeof value === 'string') {
+        return value
+          .split(/[;,\n]/)
+          .map((part) => part.trim())
+          .filter(Boolean);
+      }
+      return [];
+    };
+
+    const groups = [
+      { label: 'Custom features', items: normaliseList(raw.customFeatures) },
+      { label: 'Parking', items: normaliseList(raw.parkingFeatures) },
+      { label: 'Heating', items: normaliseList(raw.heatingFeatures) },
+      { label: 'Outside space', items: normaliseList(raw.outsideSpaceFeatures) },
+      { label: 'Accessibility', items: normaliseList(raw.accessibilityFeatures) },
+      { label: 'Utilities', items: normaliseList(raw.includedUtilities) },
+      { label: 'Water supply', items: normaliseList(raw.waterSupplyFeatures) },
+      { label: 'Electricity supply', items: normaliseList(raw.electricitySupplyFeatures) },
+      { label: 'Broadband', items: normaliseList(raw.broadbandSupplyFeatures) },
+      { label: 'Flood sources', items: normaliseList(raw.floodSources) },
+    ];
+
+    return groups.filter((group) => group.items.length);
+  }, [listing]);
+
+  const marketingLinksCount = useMemo(() => {
+    if (formValues?.marketingLinks?.length) {
+      return formValues.marketingLinks.filter((link) => (link?.label || link?.url)?.trim()).length;
+    }
+    if (Array.isArray(listing?.marketing?.links)) {
+      return listing.marketing.links.filter((link) => (link?.label || link?.url)?.trim()).length;
+    }
+    return 0;
+  }, [formValues?.marketingLinks, listing]);
+
+  const metadataEntriesCount = useMemo(() => {
+    if (formValues?.metadata?.length) {
+      return formValues.metadata.filter((entry) => (entry?.label || entry?.value)?.trim()).length;
+    }
+    if (Array.isArray(listing?.metadata)) {
+      return listing.metadata.filter((entry) => (entry?.label || entry?.value)?.trim()).length;
+    }
+    return 0;
+  }, [formValues?.metadata, listing]);
+
   const apexFields = Array.isArray(listing?.apexFields) ? listing.apexFields : null;
   const apexRaw = listing?.apexRaw ?? null;
 
@@ -574,6 +924,122 @@ export default function AdminListingDetailsPage() {
       .filter((entry) => entry && typeof entry.key === 'string' && entry.key.length)
       .map((entry) => ({ key: entry.key, value: entry.value }));
   }, [apexFields, apexRaw]);
+
+  const tabItems = useMemo(() => {
+    const mediaCount = Array.isArray(formValues?.images)
+      ? formValues.images.filter((image) => (image?.url || '').trim().length).length
+      : Array.isArray(listing?.images)
+        ? listing.images.filter((url) => typeof url === 'string' && url.trim().length).length
+        : 0;
+    const offersCount = listingOffers.length;
+    const interestedCount = interestedParties.length;
+    const applicantsCount = matchingAreasList.length;
+    const valuationCount = valuationEntries.length;
+    const roomsCount = roomEntries.length;
+    const featuresCount = featureGroups.reduce((total, group) => total + group.items.length, 0) + metadataEntriesCount;
+
+    return [
+      { id: 'main-details', label: 'Main Details', icon: FaClipboardList, targetId: 'section-main-details' },
+      { id: 'notes', label: 'Notes', icon: FaStickyNote, targetId: 'section-notes', badge: noteEntries.length || null },
+      { id: 'financials', label: 'Financials', icon: FaMoneyBillWave, targetId: 'section-financials', badge: financialEntries.length || null },
+      {
+        id: 'agency',
+        label: 'Agency',
+        icon: FaBuilding,
+        targetId: 'section-agency',
+        badge: branchDetails.length + negotiatorDetails.length || null,
+      },
+      { id: 'leads', label: 'Leads', icon: FaUserPlus, targetId: 'section-leads', badge: offersCount || null },
+      {
+        id: 'interested-parties',
+        label: 'Interested Parties',
+        icon: FaUserFriends,
+        targetId: 'section-interested-parties',
+        badge: interestedCount || null,
+      },
+      {
+        id: 'matching-applicants',
+        label: 'Matching Applicants',
+        icon: FaUsers,
+        targetId: 'section-matching-applicants',
+        badge: applicantsCount || null,
+      },
+      {
+        id: 'valuations',
+        label: 'Valuations',
+        icon: FaBalanceScale,
+        targetId: 'section-valuations',
+        badge: valuationCount || null,
+      },
+      { id: 'address', label: 'Address & Map', icon: FaMapMarkedAlt, targetId: 'section-address' },
+      { id: 'descriptions', label: 'Descriptions', icon: FaAlignLeft, targetId: 'section-descriptions' },
+      { id: 'rooms', label: 'Rooms', icon: FaBed, targetId: 'section-rooms', badge: roomsCount || null },
+      { id: 'media', label: 'Media', icon: FaImages, targetId: 'section-media', badge: mediaCount || null },
+      {
+        id: 'marketing',
+        label: 'Marketing',
+        icon: FaBullhorn,
+        targetId: 'section-marketing',
+        badge: marketingLinksCount || null,
+      },
+      {
+        id: 'features',
+        label: 'Features & Restrictions',
+        icon: FaListUl,
+        targetId: 'section-features',
+        badge: featuresCount || null,
+      },
+      {
+        id: 'auctions',
+        label: 'Auctions',
+        icon: FaGavel,
+        targetId: 'section-auctions',
+        badge: auctionEntries.length || null,
+      },
+      {
+        id: 'viewings',
+        label: 'Viewings',
+        icon: FaCalendarCheck,
+        targetId: 'section-viewings',
+        badge: listingMaintenance.length || null,
+      },
+      {
+        id: 'apex-record',
+        label: 'Apex27 Data',
+        icon: FaClipboardList,
+        targetId: 'section-apex',
+        badge: apexEntries.length || null,
+      },
+    ];
+  }, [
+    apexEntries.length,
+    branchDetails.length,
+    auctionEntries.length,
+    featureGroups,
+    financialEntries.length,
+    formValues?.images,
+    interestedParties.length,
+    listing,
+    listingMaintenance.length,
+    listingOffers.length,
+    marketingLinksCount,
+    matchingAreasList.length,
+    metadataEntriesCount,
+    negotiatorDetails.length,
+    noteEntries.length,
+    roomEntries.length,
+    valuationEntries.length,
+  ]);
+
+  const handleTabClick = useCallback((item) => {
+    setActiveTab(item.id);
+    if (typeof window !== 'undefined') {
+      const section = document.getElementById(item.targetId);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }, []);
 
   const handleSubmit = useCallback(
     async (event) => {
@@ -807,32 +1273,10 @@ export default function AdminListingDetailsPage() {
     const referenceValue = formValues.reference || '—';
     const updatedLabel = formatDateTime(listing.updatedAt);
     const updatedRelative = formatRelativeTime(listing.updatedAt);
-    const listingOffers = (Array.isArray(listing.offers) ? listing.offers : [])
-      .slice()
-      .sort((a, b) => {
-        const right = new Date(b.updatedAt || b.date || 0).getTime();
-        const left = new Date(a.updatedAt || a.date || 0).getTime();
-        return right - left;
-      });
-    const listingMaintenance = (Array.isArray(listing.maintenanceTasks)
-      ? listing.maintenanceTasks
-      : [])
-      .slice()
-      .sort((a, b) => {
-        const left = Number.isFinite(a.dueTimestamp) ? a.dueTimestamp : Infinity;
-        const right = Number.isFinite(b.dueTimestamp) ? b.dueTimestamp : Infinity;
-        if (left !== right) {
-          return left - right;
-        }
-        const leftUpdated = Number.isFinite(a.updatedAtTimestamp) ? a.updatedAtTimestamp : 0;
-        const rightUpdated = Number.isFinite(b.updatedAtTimestamp) ? b.updatedAtTimestamp : 0;
-        return rightUpdated - leftUpdated;
-      });
-
     return (
       <>
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
-        <section className={styles.hero}>
+        <section id="section-main-details" className={styles.hero}>
           <div className={styles.heroTopRow}>
             <Link href="/admin/lettings/available-archive" className={styles.backLink}>
               ← Back to lettings archive
@@ -976,7 +1420,7 @@ export default function AdminListingDetailsPage() {
         </section>
 
         <section className={styles.panelGroup}>
-          <article className={styles.panel}>
+          <article id="section-rooms" className={styles.panel}>
             <header className={styles.panelHeader}>
               <h2 className={styles.panelTitle}>Key facts</h2>
             </header>
@@ -1069,7 +1513,7 @@ export default function AdminListingDetailsPage() {
             </div>
           </article>
 
-          <article className={styles.panel}>
+          <article id="section-address" className={styles.panel}>
             <header className={styles.panelHeader}>
               <h2 className={styles.panelTitle}>Location</h2>
             </header>
@@ -1186,7 +1630,33 @@ export default function AdminListingDetailsPage() {
           </article>
         </section>
 
-        <section className={styles.panel}>
+        <section id="section-notes" className={styles.panel}>
+          <header className={styles.panelHeader}>
+            <h2 className={styles.panelTitle}>Notes</h2>
+          </header>
+          <div className={styles.panelBody}>
+            {noteEntries.length ? (
+              renderDefinitionList(noteEntries)
+            ) : (
+              <p className={styles.metaMuted}>No notes synced from Apex27.</p>
+            )}
+          </div>
+        </section>
+
+        <section id="section-financials" className={styles.panel}>
+          <header className={styles.panelHeader}>
+            <h2 className={styles.panelTitle}>Financials</h2>
+          </header>
+          <div className={styles.panelBody}>
+            {financialEntries.length ? (
+              renderDefinitionList(financialEntries)
+            ) : (
+              <p className={styles.metaMuted}>No financial data recorded from Apex27.</p>
+            )}
+          </div>
+        </section>
+
+        <section id="section-media" className={styles.panel}>
           <header className={styles.panelHeader}>
             <h2 className={styles.panelTitle}>Media</h2>
           </header>
@@ -1318,7 +1788,7 @@ export default function AdminListingDetailsPage() {
         </section>
 
         <section className={styles.panelGroup}>
-          <article className={styles.panel}>
+          <article id="section-agency" className={styles.panel}>
             <header className={styles.panelHeader}>
               <h2 className={styles.panelTitle}>Branch &amp; negotiator</h2>
             </header>
@@ -1327,7 +1797,7 @@ export default function AdminListingDetailsPage() {
             </div>
           </article>
 
-          <article className={styles.panel}>
+          <article id="section-marketing" className={styles.panel}>
             <header className={styles.panelHeader}>
               <h2 className={styles.panelTitle}>Marketing links</h2>
             </header>
@@ -1400,7 +1870,7 @@ export default function AdminListingDetailsPage() {
           </article>
         </section>
 
-        <section className={styles.panel}>
+        <section id="section-descriptions" className={styles.panel}>
           <header className={styles.panelHeader}>
             <h2 className={styles.panelTitle}>Property description</h2>
           </header>
@@ -1432,11 +1902,36 @@ export default function AdminListingDetailsPage() {
           </div>
         </section>
 
-        <section className={styles.panel}>
+        <section id="section-features" className={styles.panel}>
           <header className={styles.panelHeader}>
-            <h2 className={styles.panelTitle}>Additional metadata</h2>
+            <h2 className={styles.panelTitle}>Features &amp; restrictions</h2>
           </header>
           <div className={styles.panelBody}>
+            <div className={styles.featureSummary}>
+              <h3 className={styles.featureHeading}>Synced from Apex27</h3>
+              {featureGroups.length ? (
+                <div className={styles.featureGroupList}>
+                  {featureGroups.map((group) => (
+                    <div key={group.label} className={styles.featureGroup}>
+                      <h4 className={styles.featureGroupTitle}>{group.label}</h4>
+                      <ul className={styles.featureList}>
+                        {group.items.map((item) => (
+                          <li key={`${group.label}-${item}`} className={styles.featureListItem}>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.metaMuted}>No feature data recorded from Apex27.</p>
+              )}
+            </div>
+
+            <div className={styles.featureDivider} />
+            <h3 className={styles.metadataSubheading}>Additional metadata</h3>
+
             <div className={styles.repeatableList}>
               {(formValues.metadata || []).map((entry, index) => (
                 <div key={`metadata-${index}`} className={styles.repeatableItem}>
@@ -1488,7 +1983,7 @@ export default function AdminListingDetailsPage() {
           </div>
         </section>
 
-        <section className={styles.panel}>
+        <section id="section-apex" className={styles.panel}>
           <header className={styles.panelHeader}>
             <h2 className={styles.panelTitle}>Apex27 record</h2>
           </header>
@@ -1541,7 +2036,7 @@ export default function AdminListingDetailsPage() {
           </p>
         </header>
         <div className={styles.activityGrid}>
-          <article className={styles.activityCard}>
+          <article id="section-leads" className={styles.activityCard}>
             <header className={styles.activityCardHeader}>
               <div>
                 <h3>Offers</h3>
@@ -1638,6 +2133,97 @@ export default function AdminListingDetailsPage() {
           </article>
         </div>
       </section>
+
+      <section id="section-interested-parties" className={styles.panel}>
+        <header className={styles.panelHeader}>
+          <h2 className={styles.panelTitle}>Interested parties</h2>
+        </header>
+        <div className={styles.panelBody}>
+          {interestedParties.length ? (
+            <ul className={styles.simpleList}>
+              {interestedParties.map((party) => (
+                <li key={`${party.name}-${party.updatedAt || party.status}`} className={styles.simpleListItem}>
+                  <div className={styles.simpleListPrimary}>{party.name}</div>
+                  <div className={styles.simpleListMeta}>
+                    {party.statusLabel ? <span>{party.statusLabel}</span> : null}
+                    {party.updatedAt ? <span>{formatDateDisplay(party.updatedAt)}</span> : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.metaMuted}>No interested parties recorded for this listing.</p>
+          )}
+        </div>
+      </section>
+
+      <section id="section-matching-applicants" className={styles.panel}>
+        <header className={styles.panelHeader}>
+          <h2 className={styles.panelTitle}>Matching applicants</h2>
+        </header>
+        <div className={styles.panelBody}>
+          {matchingAreasList.length ? (
+            <ul className={styles.simpleList}>
+              {matchingAreasList.map((area) => (
+                <li key={area} className={styles.simpleListItem}>
+                  <div className={styles.simpleListPrimary}>{area}</div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.metaMuted}>No matching applicant areas recorded.</p>
+          )}
+        </div>
+      </section>
+
+      <section id="section-valuations" className={styles.panel}>
+        <header className={styles.panelHeader}>
+          <h2 className={styles.panelTitle}>Valuations</h2>
+        </header>
+        <div className={styles.panelBody}>
+          {valuationEntries.length ? (
+            renderDefinitionList(valuationEntries)
+          ) : (
+            <p className={styles.metaMuted}>No valuation information recorded.</p>
+          )}
+        </div>
+      </section>
+
+      <section id="section-auctions" className={styles.panel}>
+        <header className={styles.panelHeader}>
+          <h2 className={styles.panelTitle}>Auctions</h2>
+        </header>
+        <div className={styles.panelBody}>
+          {auctionEntries.length ? (
+            renderDefinitionList(auctionEntries)
+          ) : (
+            <p className={styles.metaMuted}>No auction details available for this listing.</p>
+          )}
+        </div>
+      </section>
+
+      <section id="section-viewings" className={styles.panel}>
+        <header className={styles.panelHeader}>
+          <h2 className={styles.panelTitle}>Viewings &amp; site activity</h2>
+        </header>
+        <div className={styles.panelBody}>
+          {listingMaintenance.length ? (
+            <ul className={styles.simpleList}>
+              {listingMaintenance.map((task) => (
+                <li key={task.id} className={styles.simpleListItem}>
+                  <div className={styles.simpleListPrimary}>{task.title}</div>
+                  <div className={styles.simpleListMeta}>
+                    {task.dueAt ? <span>Due {formatDateDisplay(task.dueAt)}</span> : null}
+                    {task.statusLabel ? <span>{task.statusLabel}</span> : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.metaMuted}>No viewings or site activity recorded.</p>
+          )}
+        </div>
+      </section>
       </>
     );
   };
@@ -1649,7 +2235,35 @@ export default function AdminListingDetailsPage() {
       </Head>
       <AdminNavigation items={ADMIN_NAV_ITEMS} />
       <main className={styles.main}>
-        <div className={styles.container}>{renderContent()}</div>
+        <div className={styles.container}>
+          <div className={styles.tabLayout}>
+            <aside className={styles.tabSidebar}>
+              <nav className={styles.tabNav} aria-label="Listing overview">
+                <ul className={styles.tabNavList}>
+                  {tabItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                      <li key={item.id} className={styles.tabNavItem}>
+                        <button
+                          type="button"
+                          className={`${styles.tabNavButton} ${isActive ? styles.tabNavButtonActive : ''}`}
+                          onClick={() => handleTabClick(item)}
+                          aria-current={isActive ? 'page' : undefined}
+                        >
+                          <Icon aria-hidden="true" className={styles.tabNavIcon} />
+                          <span className={styles.tabNavLabel}>{item.label}</span>
+                          {item.badge ? <span className={styles.tabNavBadge}>{item.badge}</span> : null}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </nav>
+            </aside>
+            <div className={styles.tabContentArea}>{renderContent()}</div>
+          </div>
+        </div>
       </main>
     </>
   );
