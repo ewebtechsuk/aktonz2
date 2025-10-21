@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { applyApiHeaders, handlePreflight } from '../../../lib/api-helpers';
 import { appendChatbotLead } from '../../../lib/chatbot-storage';
 import type { JsonValue } from '../../../lib/chatbot-storage';
+import { verifyVapiSecret } from '../../../lib/verifyVapiSecret';
 
 function parseBody(req: NextApiRequest): Record<string, unknown> {
   if (req.body && typeof req.body === 'object') {
@@ -30,6 +31,10 @@ function normalizeText(value: unknown): string | null {
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   applyApiHeaders(req, res, { methods: ['POST'] as const });
   if (handlePreflight(req, res)) {
+    return;
+  }
+
+  if (!verifyVapiSecret(req, res)) {
     return;
   }
 

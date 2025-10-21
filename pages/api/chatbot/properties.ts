@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { applyApiHeaders, handlePreflight } from '../../../lib/api-helpers';
 import { fetchPropertiesByType } from '../../../lib/apex27.mjs';
+import { verifyVapiSecret } from '../../../lib/verifyVapiSecret';
 
 const DEFAULT_RESULT_LIMIT = 3;
 
@@ -123,6 +124,10 @@ async function parseBody(req: NextApiRequest): Promise<Record<string, unknown>> 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   applyApiHeaders(req, res, { methods: ['POST'] as const });
   if (handlePreflight(req, res)) {
+    return;
+  }
+
+  if (!verifyVapiSecret(req, res)) {
     return;
   }
 

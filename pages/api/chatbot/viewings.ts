@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { applyApiHeaders, handlePreflight } from '../../../lib/api-helpers';
 import { appendChatbotViewing } from '../../../lib/chatbot-storage';
 import { sendMailGraph } from '../../../lib/ms-graph';
+import { verifyVapiSecret } from '../../../lib/verifyVapiSecret';
 
 const RECIPIENTS = ['info@aktonz.com'];
 const SUBJECT = 'Chatbot viewing request';
@@ -84,6 +85,10 @@ function buildHtml(payload: {
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   applyApiHeaders(req, res, { methods: ['POST'] as const });
   if (handlePreflight(req, res)) {
+    return;
+  }
+
+  if (!verifyVapiSecret(req, res)) {
     return;
   }
 
