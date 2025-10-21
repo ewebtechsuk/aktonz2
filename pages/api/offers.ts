@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { sendMailGraph } from '../../lib/ms-graph';
 import { addOffer } from '../../lib/offers.js';
 import { formatOfferFrequencyLabel } from '../../lib/offer-frequency.mjs';
+import { verifyVapiSecret } from '../../lib/verifyVapiSecret';
 
 type FormBody = {
   name?: string;
@@ -459,6 +460,10 @@ function resolveReplyTo(email: unknown): string | undefined {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+  if (!verifyVapiSecret(req, res)) {
+    return;
+  }
+
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     res.status(405).json({ error: 'Method Not Allowed' });

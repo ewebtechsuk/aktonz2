@@ -3,6 +3,7 @@ import { applyApiHeaders, handlePreflight } from '../../../lib/api-helpers';
 import { appendLandlordEnquiry } from '../../../lib/chatbot-storage';
 import { recordLandlordInstruction } from '../../../lib/apex27-crm';
 import { createValuationRequest } from '../../../lib/acaboom.mjs';
+import { verifyVapiSecret } from '../../../lib/verifyVapiSecret';
 
 function parseBody(req: NextApiRequest): Record<string, unknown> {
   if (req.body && typeof req.body === 'object') {
@@ -76,6 +77,10 @@ function splitName(name: string): { firstName: string; lastName: string } {
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   applyApiHeaders(req, res, { methods: ['POST'] as const });
   if (handlePreflight(req, res)) {
+    return;
+  }
+
+  if (!verifyVapiSecret(req, res)) {
     return;
   }
 
