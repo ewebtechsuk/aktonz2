@@ -27,7 +27,7 @@ jobs:
       - name: Detect optional secrets
         id: detect-secrets
         shell: bash
-        run: scripts/detect_optional_secrets.sh
+        run: bash scripts/detect_optional_secrets.sh
       - name: Detect package manager
         id: detect-package-manager
         run: |
