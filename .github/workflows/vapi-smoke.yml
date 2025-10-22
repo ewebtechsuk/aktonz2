@@ -1,0 +1,36 @@
+name: VAPI Secret Smoke Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      enable_endpoint_test:
+        description: 'Set to true to call the health endpoint'
+        required: false
+        default: 'false'
+      healthcheck_url:
+        description: 'Optional endpoint to ping with the VAPI token'
+        required: false
+        default: 'https://api.yourservice.example/health'
+
+jobs:
+  check-vapi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify secret is available
+        env:
+          VAPI: ${{ secrets.VAPI }}
+        run: |
+          if [ -z "$VAPI" ]; then
+            echo "VAPI secret is missing!" >&2
+            exit 1
+          fi
+          echo "✅ VAPI secret is present (value masked)."
+
+      - name: Optional: hit test endpoint
+        if: ${{ inputs.enable_endpoint_test == 'true' }}
+        env:
+          VAPI: ${{ secrets.VAPI }}
+          HEALTHCHECK_URL: ${{ inputs.healthcheck_url }}
+        run: |
+          curl -sSf -H "Authorization: Bearer $VAPI" "$HEALTHCHECK_URL"
+          echo "✅ Health endpoint responded successfully."
