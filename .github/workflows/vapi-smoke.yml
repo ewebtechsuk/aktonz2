@@ -1,0 +1,81 @@
+name: VAPI Secret Smoke Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      enable_endpoint_test:
+        description: 'Set to true to call the health endpoint'
+        required: false
+        default: 'false'
+      healthcheck_url:
+        description: 'Optional endpoint to ping with the VAPI token'
+        required: false
+        default: ''
+
+jobs:
+  check-vapi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify secret is available
+        env:
+          VAPI: ${{ secrets.VAPI }}
+        run: |
+          if [ -z "$VAPI" ]; then
+            echo "VAPI secret is missing!" >&2
+            exit 1
+          fi
+          echo "✅ VAPI secret is present (value masked)."
+          {
+            echo "## VAPI Secret"
+            echo "✅ Secret injected into workflow context."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Optional: hit test endpoint
+        if: ${{ inputs.enable_endpoint_test == 'true' }}
+        env:
+          VAPI: ${{ secrets.VAPI }}
+          HEALTHCHECK_URL: ${{ inputs.healthcheck_url }}
+          PLACEHOLDER_URL: 'https://api.yourservice.example/health'
+        run: |
+          set -euo pipefail
+
+          if [ -z "${HEALTHCHECK_URL}" ]; then
+            echo "ℹ️  No healthcheck_url input provided; skipping endpoint smoke test."
+            {
+              echo "## Health Endpoint"
+              echo "ℹ️  Endpoint test skipped because no URL was supplied."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if [ "${HEALTHCHECK_URL}" = "${PLACEHOLDER_URL}" ]; then
+            echo "ℹ️  Using placeholder URL (${PLACEHOLDER_URL}); skipping endpoint smoke test."
+            {
+              echo "## Health Endpoint"
+              echo "ℹ️  Endpoint test skipped because the placeholder URL was supplied."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          response_file="$(mktemp)"
+          status_code="$(curl -sS -w '%{http_code}' -o "$response_file" -H "Authorization: Bearer $VAPI" "$HEALTHCHECK_URL" || true)"
+
+          if [ "$status_code" -ge 200 ] && [ "$status_code" -lt 300 ]; then
+            echo "✅ Health endpoint responded successfully with status $status_code."
+            {
+              echo "## Health Endpoint"
+              echo "✅ ${HEALTHCHECK_URL} responded successfully (status $status_code)."
+            } >> "$GITHUB_STEP_SUMMARY"
+            rm -f "$response_file"
+          else
+            echo "❌ Health endpoint check failed with status $status_code." >&2
+            {
+              echo "## Health Endpoint"
+              echo "❌ ${HEALTHCHECK_URL} responded with status $status_code."
+              echo ""
+              echo "Response body:"
+              sed 's/^/    /' "$response_file"
+            } >> "$GITHUB_STEP_SUMMARY"
+            rm -f "$response_file"
+            exit 1
+          fi
