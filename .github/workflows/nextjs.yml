@@ -97,7 +97,12 @@ jobs:
         env:
           CI: true
       - name: Generate lettings brochure
-        run: python scripts/create_aktonz_lettings_brochure.py --public
+        run: |
+          if command -v python3 >/dev/null 2>&1; then
+            python3 scripts/create_aktonz_lettings_brochure.py --public
+          else
+            python scripts/create_aktonz_lettings_brochure.py --public
+          fi
       - name: Upload lettings brochure artifact
         uses: actions/upload-artifact@v4
         with:
