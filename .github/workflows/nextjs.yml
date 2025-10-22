@@ -48,6 +48,7 @@ jobs:
             echo "command=install" >> $GITHUB_OUTPUT
             echo "build=yarn build" >> $GITHUB_OUTPUT
             echo "test=yarn test --ci --runInBand" >> $GITHUB_OUTPUT
+            echo "lint=yarn lint" >> $GITHUB_OUTPUT
             echo "runner=yarn" >> $GITHUB_OUTPUT
             echo "cache=yarn" >> $GITHUB_OUTPUT
             echo "lockfile=yarn.lock" >> $GITHUB_OUTPUT
@@ -56,6 +57,7 @@ jobs:
             echo "manager=npm" >> $GITHUB_OUTPUT
             echo "build=npm run build" >> $GITHUB_OUTPUT
             echo "test=npm test -- --runInBand" >> $GITHUB_OUTPUT
+            echo "lint=npm run lint" >> $GITHUB_OUTPUT
             echo "runner=npx" >> $GITHUB_OUTPUT
             if [ -f "${{ github.workspace }}/package-lock.json" ]; then
               echo "command=ci" >> $GITHUB_OUTPUT
@@ -92,6 +94,8 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
+      - name: Run lint
+        run: ${{ steps.detect-package-manager.outputs.lint }}
       - name: Run unit tests
         run: ${{ steps.detect-package-manager.outputs.test }}
         env:
