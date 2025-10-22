@@ -30,7 +30,7 @@ jobs:
             echo "✅ Secret injected into workflow context."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Optional: hit test endpoint
+      - name: "Optional: hit test endpoint"
         if: ${{ inputs.enable_endpoint_test == 'true' }}
         env:
           VAPI: ${{ secrets.VAPI }}
@@ -58,7 +58,16 @@ jobs:
           fi
 
           response_file="$(mktemp)"
-          status_code="$(curl -sS -w '%{http_code}' -o "$response_file" -H "Authorization: Bearer $VAPI" "$HEALTHCHECK_URL" || true)"
+          if ! status_code="$(curl -sS -w '%{http_code}' -o "$response_file" -H "Authorization: Bearer $VAPI" "$HEALTHCHECK_URL")"; then
+            curl_exit_code=$?
+            echo "❌ curl failed to reach ${HEALTHCHECK_URL} (exit code $curl_exit_code)." >&2
+            {
+              echo "## Health Endpoint"
+              echo "❌ Failed to query ${HEALTHCHECK_URL}: curl exited with code $curl_exit_code."
+            } >> "$GITHUB_STEP_SUMMARY"
+            rm -f "$response_file"
+            exit "$curl_exit_code"
+          fi
 
           if [ "$status_code" -ge 200 ] && [ "$status_code" -lt 300 ]; then
             echo "✅ Health endpoint responded successfully with status $status_code."
