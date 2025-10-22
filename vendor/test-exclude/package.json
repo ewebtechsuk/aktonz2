@@ -1,0 +1,11 @@
+{
+  "name": "test-exclude",
+  "version": "6.1.0-aktonz2.0",
+  "description": "Lightweight drop-in replacement for test-exclude without glob",
+  "main": "index.js",
+  "license": "ISC",
+  "dependencies": {
+    "@istanbuljs/schema": "^0.1.2",
+    "minimatch": "^3.1.2"
+  }
+}
