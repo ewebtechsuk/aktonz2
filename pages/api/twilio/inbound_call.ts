@@ -1,119 +1,102 @@
+// pages/api/twilio/inbound_call.ts
+
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { applyApiHeaders, handlePreflight } from '../../../lib/api-helpers';
-import { verifyVapiSecret } from '../../../lib/verifyVapiSecret';
 
 /**
- * API handler for Twilio inbound calls via Vapi.
- * 
- * This endpoint enables the AI assistant (James) to handle incoming phone calls 
- * as a senior Sales & Lettings Consultant. It verifies requests using a secret, 
- * processes the call data from Vapi, and returns a response for James to speak.
+ * Verifies that the incoming request contains the correct VAPI secret.
+ * Checks Authorization Bearer header or x-aktonz-secret custom header.
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
-  // Apply standard headers (e.g. CORS) and allow only POST and OPTIONS methods.
-  applyApiHeaders(req, res, { methods: ['POST'] as const });
-  if (handlePreflight(req, res)) {
-    // If this is a preflight OPTIONS request (for CORS), respond OK and exit.
-    return;
+function verifyVapiSecret(req: NextApiRequest, res: NextApiResponse): boolean {
+  const expected = process.env.VAPI_ACCESS_SECRET?.trim();
+  if (!expected) {
+    console.error('VAPI_ACCESS_SECRET is not set');
+    res.status(500).json({ error: 'Internal server error: missing configuration' });
+    return false;
   }
 
-  // Security check: ensure the request includes the correct secret key.
-  // The secret is expected in the "x-aktonz-secret" header (or as a Bearer token).
-  if (!verifyVapiSecret(req, res)) {
-    // verifyVapiSecret will respond with 401 Unauthorized if the secret is missing or wrong.
-    return;
+  // Get provided token from Authorization header
+  const authHeader = (req.headers['authorization'] ?? '').toString().trim();
+  const bearerToken = authHeader.toLowerCase().startsWith('bearer ')
+    ? authHeader.slice(7).trim()
+    : '';
+
+  // Also check custom header x-aktonz-secret if used
+  const providedCustom = (req.headers['x-aktonz-secret'] ?? '').toString().trim();
+
+  // Compare case-insensitive to avoid mismatches in hex string casing
+  if (
+    providedCustom.toLowerCase() === expected.toLowerCase() ||
+    bearerToken.toLowerCase() === expected.toLowerCase()
+  ) {
+    return true;
   }
 
-  // Only accept POST requests for this endpoint.
+  res.status(401).json({ error: 'Unauthorized: missing or invalid VAPI secret' });
+  return false;
+}
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  // Only accept POST
+  if (req.method === 'OPTIONS') {
+    // CORS pre-flight
+    res.setHeader('Allow', 'POST, OPTIONS');
+    res.status(200).end();
+    return;
+  }
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     res.status(405).json({ error: 'Method Not Allowed' });
     return;
   }
 
-  // Helper to safely parse the JSON body (handles cases where body might be a string).
-  function parseBody(request: NextApiRequest): Record<string, unknown> {
-    if (request.body && typeof request.body === 'object') {
-      return request.body as Record<string, unknown>;
-    }
-    if (typeof request.body === 'string') {
-      try {
-        return JSON.parse(request.body) as Record<string, unknown>;
-      } catch {
-        throw new Error('Invalid JSON payload');
-      }
-    }
-    return {}; // Return empty object if no body or unrecognized format.
+  // Authenticate
+  if (!verifyVapiSecret(req, res)) {
+    return;
   }
 
-  // Parse the request body to get the message data.
-  let body: Record<string, unknown>;
+  // Parse JSON body
+  let body: any;
   try {
-    body = parseBody(req);
+    body = typeof req.body === 'object' ? req.body : JSON.parse(req.body);
   } catch (err) {
-    // If JSON parsing fails, respond with a 400 Bad Request.
-    const msg = err instanceof Error ? err.message : 'Invalid request body';
-    res.status(400).json({ error: msg });
+    res.status(400).json({ error: 'Invalid JSON payload' });
     return;
   }
 
-  // Expect the body to contain a "message" object with the tool call details from Vapi.
   const message = body.message;
-  if (!message || typeof message !== 'object') {
-    res.status(400).json({ error: 'Invalid request: missing message data' });
+  if (!message || !Array.isArray(message.toolCallList) || message.toolCallList.length === 0) {
+    res.status(400).json({ error: 'Invalid request: missing message/toolCallList' });
     return;
   }
 
-  // Extract the list of tool calls from the message.
-  // Vapi can send multiple tool calls in one request (toolCallList array).
-  const toolCalls = Array.isArray((message as any).toolCallList)
-    ? (message as any).toolCallList 
-    : [];
-  if (toolCalls.length === 0) {
-    res.status(400).json({ error: 'No tool calls provided in the request' });
-    return;
-  }
-
-  // Prepare an array to collect results for each tool call.
   const results: { toolCallId: string; result: unknown }[] = [];
 
-  // Process each tool call in the request.
-  for (const toolCall of toolCalls) {
-    // Ensure the toolCall item has the expected structure.
-    if (!toolCall || typeof toolCall !== 'object') continue;
-    const toolCallId: string | undefined = (toolCall as any).id || (toolCall as any).toolCallId;
-    const toolName: string | undefined = (toolCall as any).name;
+  for (const call of message.toolCallList) {
+    const toolCallId = call.id || '';
+    const toolName = call.name || '';
+
     if (!toolCallId || !toolName) {
-      // Skip malformed entries (should not happen under normal conditions).
-      console.warn('Malformed tool call data:', toolCall);
       continue;
     }
 
-    let resultData: unknown;
+    let resultOutput: unknown;
+
     switch (toolName) {
-      case 'inbound_call': {
-        // Handle inbound call tool: generate a greeting and prompt for the caller.
-        const args = (toolCall as any).arguments || {};  // Incoming call details (if any).
-        // (Optional) We could use args (e.g., caller ID or name) to personalize the greeting.
-        // Compose a polite greeting and inquiry as a senior consultant:
-        resultData = "Hello, thank you for calling Aktonz. This is James speaking. How can I assist you today?";
-        // ^ James introduces himself and the company, then invites the caller to explain their needs.
+      case 'inbound_call':
+        // Provide the assistant introduction from James
+        resultOutput = "Hello, thank you for calling Aktonz. This is James speaking. How can I assist you today?";
         break;
-      }
-      default: {
-        // Handle any other tools if integrated in the future (e.g., viewings, leads, properties).
-        // For now, return a generic message for unsupported tool names.
-        resultData = `Sorry, I cannot handle the "${toolName}" request.`;
-        // (In practice, we might throw an error or implement the tool's logic here.)
+
+      default:
+        resultOutput = `Sorry — the tool "${toolName}" is not implemented.`;
         break;
-      }
     }
 
-    // Add the result for this tool call, including the original toolCallId for correlation.
-    results.push({ toolCallId: toolCallId, result: resultData });
+    results.push({ toolCallId, result: resultOutput });
   }
 
-  // Return the results in the format expected by Vapi:
-  // { results: [ { toolCallId: <ID>, result: <Output> }, ... ] }
   res.status(200).json({ results });
 }
