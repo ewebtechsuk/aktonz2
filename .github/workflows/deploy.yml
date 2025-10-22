@@ -1,0 +1,125 @@
+name: Deploy Next.js site
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      APEX27_API_KEY: ${{ secrets.APEX27_API_KEY }}
+      APEX27_BRANCH_ID: ${{ secrets.APEX27_BRANCH_ID }}
+      NEXT_PUBLIC_HOSTNAME: ${{ secrets.NEXT_PUBLIC_HOSTNAME || 'https://aktonz.com' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Detect optional secrets
+        id: detect-secrets
+        shell: bash
+        run: |
+          has_apex_key=false
+          if [ -n "${APEX27_API_KEY:-}" ]; then
+            has_apex_key=true
+          else
+            printf '::notice::APEX27_API_KEY is not configured. Using bundled fixture data instead of live API listings.\n'
+          fi
+
+          if [ -n "${APEX27_BRANCH_ID:-}" ]; then
+            printf 'APEX27_BRANCH_ID provided; listings cache will be branch scoped.\n'
+          fi
+
+          echo "has-apex-key=${has_apex_key}" >> "$GITHUB_OUTPUT"
+      - name: Detect package manager
+        id: detect-package-manager
+        run: |
+          if [ -f "${{ github.workspace }}/yarn.lock" ]; then
+            echo "manager=yarn" >> $GITHUB_OUTPUT
+            echo "command=install" >> $GITHUB_OUTPUT
+            echo "build=yarn build" >> $GITHUB_OUTPUT
+            echo "runner=yarn" >> $GITHUB_OUTPUT
+            echo "cache=yarn" >> $GITHUB_OUTPUT
+            echo "lockfile=yarn.lock" >> $GITHUB_OUTPUT
+            exit 0
+          elif [ -f "${{ github.workspace }}/package.json" ]; then
+            echo "manager=npm" >> $GITHUB_OUTPUT
+            echo "build=npm run build" >> $GITHUB_OUTPUT
+            echo "runner=npx" >> $GITHUB_OUTPUT
+            if [ -f "${{ github.workspace }}/package-lock.json" ]; then
+              echo "command=ci" >> $GITHUB_OUTPUT
+              echo "cache=npm" >> $GITHUB_OUTPUT
+              echo "lockfile=package-lock.json" >> $GITHUB_OUTPUT
+            else
+              echo "::notice::package-lock.json not found; falling back to 'npm install'." >&2
+              echo "command=install" >> $GITHUB_OUTPUT
+              echo "cache=" >> $GITHUB_OUTPUT
+              echo "lockfile=" >> $GITHUB_OUTPUT
+            fi
+            exit 0
+          else
+            echo "Unable to determine package manager"
+            exit 1
+          fi
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: ${{ steps.detect-package-manager.outputs.cache }}
+          cache-dependency-path: ${{ steps.detect-package-manager.outputs.lockfile }}
+      - name: Restore cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .next/cache
+          key: "${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-${{ hashFiles('**/*.[jt]s', '**/*.[jt]sx') }}"
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-
+      - name: Install dependencies
+        run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
+      - name: Generate lettings brochure
+        run: python scripts/create_aktonz_lettings_brochure.py --public
+      - name: Upload lettings brochure artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aktonz-lettings-brochure
+          path: docs/aktonz-lettings-brochure.pdf
+          if-no-files-found: error
+      - name: Cache Apex27 listings
+        if: steps.detect-secrets.outputs.has-apex-key == 'true'
+        run: ${{ steps.detect-package-manager.outputs.manager }} run cache
+      - name: Build static site with Next.js
+        env:
+          NEXT_PUBLIC_HOSTNAME: ${{ env.NEXT_PUBLIC_HOSTNAME }}
+        run: ${{ steps.detect-package-manager.outputs.runner }} next build
+      - name: Verify export directory
+        run: |
+          if [ ! -d "./out" ]; then
+            echo "::error::Next.js static export directory ./out was not generated."
+            exit 1
+          fi
+          touch ./out/.nojekyll
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
