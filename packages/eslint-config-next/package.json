@@ -1,0 +1,6 @@
+{
+  "name": "eslint-config-next",
+  "version": "15.5.2",
+  "main": "index.js",
+  "type": "commonjs"
+}
