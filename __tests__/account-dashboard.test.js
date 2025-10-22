@@ -191,7 +191,6 @@ describe('Account dashboard area management', () => {
     try {
       AccountDashboard = loadAccountDashboard();
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('Failed to load AccountDashboard', error);
     }
   });

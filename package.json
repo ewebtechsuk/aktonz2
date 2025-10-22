@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "lint": "eslint lib/googleMapsLoader.mjs pages/valuation.js __tests__/googleMapsLoader.test.js __tests__/app.test.tsx",
+    "lint": "eslint .",
     "predev": "node scripts/ensure_lettings_brochure.mjs",
     "dev": "next dev",
     "prebuild": "node scripts/ensure_lettings_brochure.mjs",
