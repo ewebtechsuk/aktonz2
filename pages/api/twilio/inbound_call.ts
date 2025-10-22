@@ -3,30 +3,26 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 /**
- * Verifies that the incoming request contains the correct VAPI secret.
- * Checks Authorization Bearer header or x-aktonz-secret custom header.
+ * Verifies the Vapi secret via header or bearer token.
  */
 function verifyVapiSecret(req: NextApiRequest, res: NextApiResponse): boolean {
   const expected = process.env.VAPI_ACCESS_SECRET?.trim();
   if (!expected) {
-    console.error('VAPI_ACCESS_SECRET is not set');
+    console.error('VAPI_ACCESS_SECRET is not configured');
     res.status(500).json({ error: 'Internal server error: missing configuration' });
     return false;
   }
 
-  // Get provided token from Authorization header
   const authHeader = (req.headers['authorization'] ?? '').toString().trim();
-  const bearerToken = authHeader.toLowerCase().startsWith('bearer ')
+  const bearer = authHeader.toLowerCase().startsWith('bearer ')
     ? authHeader.slice(7).trim()
     : '';
 
-  // Also check custom header x-aktonz-secret if used
-  const providedCustom = (req.headers['x-aktonz-secret'] ?? '').toString().trim();
+  const custom = (req.headers['x-aktonz-secret'] ?? '').toString().trim();
 
-  // Compare case-insensitive to avoid mismatches in hex string casing
   if (
-    providedCustom.toLowerCase() === expected.toLowerCase() ||
-    bearerToken.toLowerCase() === expected.toLowerCase()
+    bearer.toLowerCase() === expected.toLowerCase() ||
+    custom.toLowerCase() === expected.toLowerCase()
   ) {
     return true;
   }
@@ -35,29 +31,30 @@ function verifyVapiSecret(req: NextApiRequest, res: NextApiResponse): boolean {
   return false;
 }
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  // Only accept POST
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Set CORS headers so the VAPI dashboard test & Twilio calls can connect
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-aktonz-secret');
+
   if (req.method === 'OPTIONS') {
-    // CORS pre-flight
-    res.setHeader('Allow', 'POST, OPTIONS');
+    // pre-flight check
     res.status(200).end();
     return;
   }
+
   if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
+    res.setHeader('Allow', 'POST, OPTIONS');
     res.status(405).json({ error: 'Method Not Allowed' });
     return;
   }
 
-  // Authenticate
+  // Authentication
   if (!verifyVapiSecret(req, res)) {
     return;
   }
 
-  // Parse JSON body
+  // Parse body
   let body: any;
   try {
     body = typeof req.body === 'object' ? req.body : JSON.parse(req.body);
@@ -78,21 +75,14 @@ export default async function handler(
     const toolCallId = call.id || '';
     const toolName = call.name || '';
 
-    if (!toolCallId || !toolName) {
-      continue;
-    }
+    if (!toolCallId || !toolName) continue;
 
     let resultOutput: unknown;
 
-    switch (toolName) {
-      case 'inbound_call':
-        // Provide the assistant introduction from James
-        resultOutput = "Hello, thank you for calling Aktonz. This is James speaking. How can I assist you today?";
-        break;
-
-      default:
-        resultOutput = `Sorry — the tool "${toolName}" is not implemented.`;
-        break;
+    if (toolName === 'inbound_call') {
+      resultOutput = "Hello, thank you for calling Aktonz. This is James speaking. How can I assist you today?";
+    } else {
+      resultOutput = `Sorry — the tool "${toolName}" is not implemented.`;
     }
 
     results.push({ toolCallId, result: resultOutput });
