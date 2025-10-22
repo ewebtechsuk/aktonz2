@@ -2,29 +2,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-/**
- * Verifies the Vapi secret via header or bearer token.
- */
-function verifyVapiSecret(req: NextApiRequest, res: NextApiResponse): boolean {
-  const expected = process.env.VAPI_ACCESS_SECRET?.trim();
-  if (!expected) {
-    console.error('VAPI_ACCESS_SECRET is not configured');
-    res.status(500).json({ error: 'Internal server error: missing configuration' });
-    return false;
-  }
-
-  const authHeader = (req.headers['authorization'] ?? '').toString().trim();
-  const bearer = authHeader.toLowerCase().startsWith('bearer ')
-    ? authHeader.slice(7).trim()
-    : '';
-
-  if (bearer && bearer === expected) {
-    return true;
-  }
-
-  res.status(401).json({ error: 'Unauthorized: missing or invalid VAPI secret' });
-  return false;
-}
+import { verifyVapiSecret } from '../../../lib/verifyVapiSecret';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Set CORS headers so the VAPI dashboard test & Twilio calls can connect
