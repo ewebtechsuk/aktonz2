@@ -18,12 +18,7 @@ function verifyVapiSecret(req: NextApiRequest, res: NextApiResponse): boolean {
     ? authHeader.slice(7).trim()
     : '';
 
-  const custom = (req.headers['x-aktonz-secret'] ?? '').toString().trim();
-
-  if (
-    bearer.toLowerCase() === expected.toLowerCase() ||
-    custom.toLowerCase() === expected.toLowerCase()
-  ) {
+  if (bearer && bearer === expected) {
     return true;
   }
 
@@ -35,14 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Set CORS headers so the VAPI dashboard test & Twilio calls can connect
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-aktonz-secret');
-
-  // Temporary logging for debug
-  console.log('💡 Incoming request to /api/twilio/inbound_call');
-  console.log('Headers:', {
-    authorization: req.headers['authorization'],
-    xAktonzSecret: req.headers['x-aktonz-secret']
-  });
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     // pre-flight check
