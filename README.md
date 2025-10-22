@@ -28,10 +28,11 @@ python scripts/create_aktonz_lettings_brochure.py --no-public
 
 Because neither output is version-controlled, remember to rerun the command
 whenever you update the brochure copy. The prebuild hook reuses the cached file
-if it is already present, so the `next export` step still benefits from the most
-recent version. The `public/brochures` directory is tracked with a placeholder
-so the build has somewhere to copy the generated PDF—keep that folder in place
-even if you are cleaning up other assets.
+if it is already present, so any static export run with `NEXT_EXPORT=true`
+still benefits from the most recent version. The `public/brochures`
+directory is tracked with a placeholder so the build has somewhere to copy the
+generated PDF—keep that folder in place even if you are cleaning up other
+assets.
 
 During CI, the `Deploy Next.js site to Pages` workflow publishes the freshly
 rendered PDF twice: once within the static site export at
@@ -411,7 +412,20 @@ npm start
 
 For commit-driven deployments (e.g. GitHub Pages) where the build
 environment cannot access the Apex27 API, you can prefetch listings and
-commit them to the repository:
+commit them to the repository. These exports set `NEXT_EXPORT=true`, which
+omits pages that depend on API routes so the static host does not expose
+broken forms. The following sections are excluded when exporting:
+
+* `/contact`
+* `/login`
+* `/register`
+* `/valuation`
+* `/offers/[id]/payment-success`
+* All `/account/*` dashboards
+* All `/admin/*` dashboards
+
+Visitors will need a serverful deployment (for example Vercel, Netlify Edge,
+or a Node.js host running `next start`) to access those areas.
 
 1. Ensure `APEX27_API_KEY` (and optional `APEX27_BRANCH_ID`) are set in
    `.env.local`.

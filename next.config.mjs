@@ -6,7 +6,21 @@ const requestedStaticExport = process.env.NEXT_EXPORT === 'true';
 const ciRequestedStaticExport =
   process.env.GITHUB_ACTIONS === 'true' && process.env.NEXT_EXPORT !== 'false';
 
-const serverRuntimeOnlyRoutes = ['/integrations/3cx/contact-card'];
+// Pages that call Next.js API routes or otherwise expect a server runtime.
+// They are omitted from static exports so commit-driven deployments (e.g.
+// GitHub Pages) do not publish broken forms or dashboards.
+const serverRuntimeOnlyRoutes = [
+  '/integrations/3cx/contact-card',
+  '/contact',
+  '/login',
+  '/register',
+  '/valuation',
+  '/offers/[id]/payment-success',
+];
+
+// Route prefixes whose children rely on API routes for authentication or
+// data. Keep these out of the static export to avoid publishing empty shells.
+const serverRuntimeOnlyPrefixes = ['/admin', '/account'];
 
 const shouldExport = requestedStaticExport || ciRequestedStaticExport;
 
@@ -118,7 +132,6 @@ const nextConfig = {
     ? {
         output: 'export',
         exportPathMap: async (defaultPathMap) => {
-          const blockedPrefixes = ['/admin'];
           const blockedRoutes = new Set(serverRuntimeOnlyRoutes);
 
           const filteredEntries = Object.entries(defaultPathMap).filter(([path]) => {
@@ -130,7 +143,9 @@ const nextConfig = {
               return false;
             }
 
-            return !blockedPrefixes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+            return !serverRuntimeOnlyPrefixes.some((prefix) =>
+              path === prefix || path.startsWith(`${prefix}/`),
+            );
           });
 
           const filteredPathMap = Object.fromEntries(filteredEntries);
