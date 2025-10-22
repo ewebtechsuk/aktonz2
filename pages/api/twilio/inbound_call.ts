@@ -37,6 +37,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-aktonz-secret');
 
+  // Temporary logging for debug
+  console.log('💡 Incoming request to /api/twilio/inbound_call');
+  console.log('Headers:', {
+    authorization: req.headers['authorization'],
+    xAktonzSecret: req.headers['x-aktonz-secret']
+  });
+
   if (req.method === 'OPTIONS') {
     // pre-flight check
     res.status(200).end();
