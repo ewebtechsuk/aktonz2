@@ -31,6 +31,8 @@ jobs:
     env:
       APEX27_API_KEY: ${{ secrets.APEX27_API_KEY }}
       APEX27_BRANCH_ID: ${{ secrets.APEX27_BRANCH_ID }}
+      NEXT_EXPORT: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -76,6 +78,8 @@ jobs:
           node-version: "20"
           cache: ${{ steps.detect-package-manager.outputs.cache }}
           cache-dependency-path: ${{ steps.detect-package-manager.outputs.lockfile }}
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
       - name: Restore cache
         uses: actions/cache@v4
         with:
