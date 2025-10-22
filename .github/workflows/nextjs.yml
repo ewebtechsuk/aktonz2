@@ -57,6 +57,7 @@ jobs:
             echo "manager=yarn" >> $GITHUB_OUTPUT
             echo "command=install" >> $GITHUB_OUTPUT
             echo "build=yarn build" >> $GITHUB_OUTPUT
+            echo "test=yarn test --ci --runInBand" >> $GITHUB_OUTPUT
             echo "runner=yarn" >> $GITHUB_OUTPUT
             echo "cache=yarn" >> $GITHUB_OUTPUT
             echo "lockfile=yarn.lock" >> $GITHUB_OUTPUT
@@ -64,6 +65,7 @@ jobs:
           elif [ -f "${{ github.workspace }}/package.json" ]; then
             echo "manager=npm" >> $GITHUB_OUTPUT
             echo "build=npm run build" >> $GITHUB_OUTPUT
+            echo "test=npm test -- --runInBand" >> $GITHUB_OUTPUT
             echo "runner=npx" >> $GITHUB_OUTPUT
             if [ -f "${{ github.workspace }}/package-lock.json" ]; then
               echo "command=ci" >> $GITHUB_OUTPUT
@@ -98,6 +100,10 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
+      - name: Run unit tests
+        run: ${{ steps.detect-package-manager.outputs.test }}
+        env:
+          CI: true
       - name: Generate lettings brochure
         run: python scripts/create_aktonz_lettings_brochure.py --public
       - name: Upload lettings brochure artifact
@@ -110,7 +116,7 @@ jobs:
         if: steps.detect-secrets.outputs.has-apex-key == 'true'
         run: ${{ steps.detect-package-manager.outputs.manager }} run cache
       - name: Build static site with Next.js
-        run: ${{ steps.detect-package-manager.outputs.runner }} next build
+        run: ${{ steps.detect-package-manager.outputs.build }}
       - name: Verify export directory
         run: |
           if [ ! -d "./out" ]; then
