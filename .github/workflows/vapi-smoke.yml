@@ -30,7 +30,7 @@ jobs:
             echo "✅ Secret injected into workflow context."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Optional: hit test endpoint
+      - name: "Optional: hit test endpoint"
         if: ${{ inputs.enable_endpoint_test == 'true' }}
         env:
           VAPI: ${{ secrets.VAPI }}
