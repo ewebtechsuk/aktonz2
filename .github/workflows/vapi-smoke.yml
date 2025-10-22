@@ -25,6 +25,10 @@ jobs:
             exit 1
           fi
           echo "✅ VAPI secret is present (value masked)."
+          {
+            echo "## VAPI Secret"
+            echo "✅ Secret injected into workflow context."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Optional: hit test endpoint
         if: ${{ inputs.enable_endpoint_test == 'true' }}
@@ -34,3 +38,7 @@ jobs:
         run: |
           curl -sSf -H "Authorization: Bearer $VAPI" "$HEALTHCHECK_URL"
           echo "✅ Health endpoint responded successfully."
+          {
+            echo "## Health Endpoint"
+            echo "✅ ${HEALTHCHECK_URL} responded successfully."
+          } >> "$GITHUB_STEP_SUMMARY"
