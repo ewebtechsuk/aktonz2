@@ -457,6 +457,56 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.integrationState {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.integrationStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(75, 88, 115, 0.16);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.integrationStatusBadge[data-tone='success'] {
+  background: rgba(27, 111, 68, 0.14);
+  color: #1b6f44;
+}
+
+.integrationStatusBadge[data-tone='warning'] {
+  background: rgba(255, 196, 0, 0.2);
+  color: #5a4a00;
+}
+
+.integrationStatusBadge[data-tone='error'] {
+  background: rgba(220, 38, 38, 0.12);
+  color: var(--color-error);
+}
+
+.integrationStatusBadge[data-tone='info'] {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--color-secondary);
+}
+
+.integrationStateMessage {
+  margin: 0;
+  color: var(--color-muted-text);
+  font-size: 0.875rem;
+  max-width: 24rem;
 }
 
 .integrationAlert {
@@ -474,6 +524,16 @@
 .integrationAlertError {
   background: rgba(220, 38, 38, 0.12);
   color: var(--color-error);
+}
+
+.integrationAlertWarning {
+  background: rgba(255, 196, 0, 0.18);
+  color: #5a4a00;
+}
+
+.integrationAlertInfo {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--color-secondary);
 }
 
 .integrationButton {

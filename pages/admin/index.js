@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../components/admin/AdminNavigation';
 import styles from '../../styles/Admin.module.css';
 import { useSession } from '../../components/SessionProvider';
+import { describeMicrosoftConnection } from '../../lib/microsoft-connection-status.js';
 
 const DEFAULT_STATUS_OPTIONS = [
   { value: 'new', label: 'New' },
@@ -16,6 +17,13 @@ const DEFAULT_STATUS_OPTIONS = [
 ];
 
 const CLOSED_VALUATION_STATUSES = ['lost', 'archived'];
+
+const INITIAL_MICROSOFT_STATUS_STATE = {
+  loading: true,
+  loaded: false,
+  data: null,
+  error: null,
+};
 
 function formatDate(value) {
   if (!value) {
@@ -56,6 +64,7 @@ export default function AdminDashboard() {
   const [logoutError, setLogoutError] = useState(null);
   const [integrationStatus, setIntegrationStatus] = useState('idle');
   const [connectRedirecting, setConnectRedirecting] = useState(false);
+  const [microsoftStatus, setMicrosoftStatus] = useState(INITIAL_MICROSOFT_STATUS_STATE);
   const router = useRouter();
   const { user, loading: sessionLoading, clearSession, refresh } = useSession();
   const isAdmin = user?.role === 'admin';
@@ -86,6 +95,110 @@ export default function AdminDashboard() {
         return null;
     }
   }, [integrationStatus]);
+
+  const loadMicrosoftStatus = useCallback(async () => {
+    if (!isAdmin) {
+      setMicrosoftStatus({ loading: false, loaded: false, data: null, error: null });
+      return;
+    }
+
+    setMicrosoftStatus((prev) => ({ ...prev, loading: true, error: null }));
+
+    try {
+      const response = await fetch('/api/microsoft/status', {
+        method: 'GET',
+        headers: { accept: 'application/json' },
+      });
+
+      if (!response.ok) {
+        throw new Error('Unable to load Microsoft Graph status');
+      }
+
+      const payload = await response.json();
+      setMicrosoftStatus({ loading: false, loaded: true, data: payload, error: null });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unable to load Microsoft Graph status';
+      setMicrosoftStatus({ loading: false, loaded: true, data: null, error: message });
+    }
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (!sessionLoading) {
+      void loadMicrosoftStatus();
+    }
+  }, [loadMicrosoftStatus, sessionLoading]);
+
+  useEffect(() => {
+    if (sessionLoading) {
+      return;
+    }
+
+    if (integrationStatus === 'success' || integrationStatus === 'error') {
+      void loadMicrosoftStatus();
+    }
+  }, [integrationStatus, loadMicrosoftStatus, sessionLoading]);
+
+  const baseMicrosoftConnection = useMemo(
+    () => describeMicrosoftConnection(microsoftStatus),
+    [microsoftStatus],
+  );
+
+  const microsoftConnection = useMemo(() => {
+    if (connectRedirecting) {
+      return {
+        status: 'redirecting',
+        badgeLabel: 'Redirecting',
+        badgeTone: 'info',
+        detail: 'Complete the Microsoft consent prompt to finish connecting.',
+        buttonLabel: 'Redirecting…',
+        buttonDisabled: true,
+        suppressQuery: true,
+        banner: {
+          message: 'Opening Microsoft 365 to update the connector…',
+          tone: 'info',
+          suppressQuery: true,
+        },
+      };
+    }
+
+    const banner = baseMicrosoftConnection.bannerMessage
+      ? {
+          message: baseMicrosoftConnection.bannerMessage,
+          tone: baseMicrosoftConnection.tone,
+          suppressQuery: baseMicrosoftConnection.suppressQuery,
+        }
+      : null;
+
+    const buttonDisabled = Boolean(baseMicrosoftConnection.actionDisabled || microsoftStatus.loading);
+    const buttonLabel =
+      microsoftStatus.loading && microsoftStatus.loaded
+        ? 'Refreshing status…'
+        : baseMicrosoftConnection.actionLabel;
+
+    return {
+      status: baseMicrosoftConnection.status,
+      badgeLabel: baseMicrosoftConnection.badgeLabel,
+      badgeTone: baseMicrosoftConnection.tone,
+      detail: baseMicrosoftConnection.detailMessage,
+      buttonLabel,
+      buttonDisabled,
+      suppressQuery: baseMicrosoftConnection.suppressQuery,
+      banner,
+    };
+  }, [baseMicrosoftConnection, connectRedirecting, microsoftStatus.loaded, microsoftStatus.loading]);
+
+  const integrationAlertToneClasses = useMemo(
+    () => ({
+      success: styles.integrationAlertSuccess,
+      error: styles.integrationAlertError,
+      warning: styles.integrationAlertWarning,
+      info: styles.integrationAlertInfo,
+    }),
+    [],
+  );
+
+  const showQueryMessage = Boolean(integrationStatusMessage && !microsoftConnection.suppressQuery);
 
   const loadData = useCallback(async () => {
     if (!isAdmin) {
@@ -289,6 +402,7 @@ export default function AdminDashboard() {
   }, [offers, maintenanceTasks, valuations]);
 
   const handleConnectClick = useCallback(() => {
+    setMicrosoftStatus((prev) => ({ ...prev, error: null }));
     setConnectRedirecting(true);
     window.location.href = '/api/microsoft/connect';
   }, []);
@@ -857,23 +971,44 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className={styles.integrationActions}>
+              <div className={styles.integrationState}>
+                <span
+                  className={styles.integrationStatusBadge}
+                  data-tone={microsoftConnection.badgeTone}
+                >
+                  {microsoftConnection.badgeLabel}
+                </span>
+                {microsoftConnection.detail ? (
+                  <p className={styles.integrationStateMessage}>{microsoftConnection.detail}</p>
+                ) : null}
+              </div>
               <button
                 type="button"
                 onClick={handleConnectClick}
                 className={styles.integrationButton}
-                disabled={connectRedirecting}
+                disabled={microsoftConnection.buttonDisabled}
               >
-                {connectRedirecting ? 'Redirecting…' : 'Connect Microsoft 365'}
+                {microsoftConnection.buttonLabel}
               </button>
             </div>
           </div>
-          {integrationStatusMessage ? (
+          {microsoftConnection.banner ? (
             <p
               role="status"
               className={`${styles.integrationAlert} ${
-                integrationStatus === 'success'
-                  ? styles.integrationAlertSuccess
-                  : styles.integrationAlertError
+                integrationAlertToneClasses[microsoftConnection.banner.tone] || ''
+              }`}
+            >
+              {microsoftConnection.banner.message}
+            </p>
+          ) : null}
+          {showQueryMessage ? (
+            <p
+              role="status"
+              className={`${styles.integrationAlert} ${
+                integrationAlertToneClasses[
+                  integrationStatus === 'success' ? 'success' : 'error'
+                ] || ''
               }`}
             >
               {integrationStatusMessage}
@@ -885,12 +1020,10 @@ export default function AdminDashboard() {
               <li>Grant the requested permissions so Aktonz can send messages via Microsoft Graph.</li>
               <li>Tokens are encrypted and saved to <code>.aktonz-ms-tokens.json</code> on the server.</li>
             </ul>
-            {integrationStatus === 'idle' ? (
-              <p className={styles.integrationStatus}>
-                Need help? Visit the <Link href="/admin/email">email workspace</Link> for a full
-                breakdown.
-              </p>
-            ) : null}
+            <p className={styles.integrationStatus}>
+              Need help? Visit the <Link href="/admin/email">email workspace</Link> for a full
+              breakdown.
+            </p>
           </div>
         </section>
       </div>
