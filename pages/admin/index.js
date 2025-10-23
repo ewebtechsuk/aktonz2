@@ -96,37 +96,65 @@ export default function AdminDashboard() {
     }
   }, [integrationStatus]);
 
-  const loadMicrosoftStatus = useCallback(async () => {
+  const loadMicrosoftStatus = useCallback(() => {
     if (!isAdmin) {
       setMicrosoftStatus({ loading: false, loaded: false, data: null, error: null });
-      return;
+      return null;
     }
 
     setMicrosoftStatus((prev) => ({ ...prev, loading: true, error: null }));
 
-    try {
-      const response = await fetch('/api/microsoft/status', {
-        method: 'GET',
-        headers: { accept: 'application/json' },
-      });
+    const controller = new AbortController();
 
-      if (!response.ok) {
-        throw new Error('Unable to load Microsoft Graph status');
+    (async () => {
+      try {
+        const response = await fetch('/api/microsoft/status', {
+          method: 'GET',
+          headers: { accept: 'application/json' },
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error('Unable to load Microsoft Graph status');
+        }
+
+        const payload = await response.json();
+
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        setMicrosoftStatus({ loading: false, loaded: true, data: payload, error: null });
+      } catch (error) {
+        if (
+          controller.signal.aborted ||
+          (typeof DOMException !== 'undefined' && error instanceof DOMException && error.name === 'AbortError') ||
+          (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError')
+        ) {
+          return;
+        }
+
+        const message =
+          error instanceof Error ? error.message : 'Unable to load Microsoft Graph status';
+        setMicrosoftStatus({ loading: false, loaded: true, data: null, error: message });
       }
+    })();
 
-      const payload = await response.json();
-      setMicrosoftStatus({ loading: false, loaded: true, data: payload, error: null });
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Unable to load Microsoft Graph status';
-      setMicrosoftStatus({ loading: false, loaded: true, data: null, error: message });
-    }
+    return controller;
   }, [isAdmin]);
 
   useEffect(() => {
-    if (!sessionLoading) {
-      void loadMicrosoftStatus();
+    if (sessionLoading) {
+      return;
     }
+
+    const controller = loadMicrosoftStatus();
+
+    return () => {
+      if (controller) {
+        controller.abort();
+      }
+    };
   }, [loadMicrosoftStatus, sessionLoading]);
 
   useEffect(() => {
@@ -134,9 +162,17 @@ export default function AdminDashboard() {
       return;
     }
 
-    if (integrationStatus === 'success' || integrationStatus === 'error') {
-      void loadMicrosoftStatus();
+    if (integrationStatus !== 'success' && integrationStatus !== 'error') {
+      return;
     }
+
+    const controller = loadMicrosoftStatus();
+
+    return () => {
+      if (controller) {
+        controller.abort();
+      }
+    };
   }, [integrationStatus, loadMicrosoftStatus, sessionLoading]);
 
   const baseMicrosoftConnection = useMemo(
