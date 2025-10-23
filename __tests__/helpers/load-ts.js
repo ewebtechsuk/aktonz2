@@ -2,25 +2,21 @@ const path = require('path');
 const Module = require('module');
 const { readFileSync } = require('fs');
 const { pathToFileURL } = require('url');
-const babel = require('@babel/core');
-const baseBabelConfig = {
-  presets: [
-    [
-      '@babel/preset-env',
-      {
-        targets: {
-          node: 'current',
-        },
-      },
-    ],
-    '@babel/preset-typescript',
-    [
-      '@babel/preset-react',
-      {
-        runtime: 'automatic',
-      },
-    ],
-  ],
+const ts = require('typescript');
+
+const BASE_TS_COMPILER_OPTIONS = {
+  allowJs: true,
+  esModuleInterop: true,
+  forceConsistentCasingInFileNames: true,
+  inlineSourceMap: true,
+  inlineSources: true,
+  isolatedModules: true,
+  jsx: ts.JsxEmit.ReactJSX,
+  module: ts.ModuleKind.CommonJS,
+  moduleResolution: ts.ModuleResolutionKind.NodeNext,
+  resolveJsonModule: true,
+  skipLibCheck: true,
+  target: ts.ScriptTarget.ES2022,
 };
 
 const TRANSPILABLE_EXTENSIONS = new Set(['.js', '.mjs', '.jsx', '.ts', '.tsx']);
@@ -63,15 +59,28 @@ function transformSource(filename, source) {
     return source;
   }
 
-  const result = babel.transformSync(source, {
-    ...baseBabelConfig,
-    filename,
-    configFile: false,
-    babelrc: false,
-    sourceMaps: 'inline',
+  const extension = path.extname(filename).toLowerCase();
+  let scriptKind = ts.ScriptKind.Unknown;
+
+  if (extension === '.ts') {
+    scriptKind = ts.ScriptKind.TS;
+  } else if (extension === '.tsx') {
+    scriptKind = ts.ScriptKind.TSX;
+  } else if (extension === '.jsx') {
+    scriptKind = ts.ScriptKind.JSX;
+  } else if (extension === '.js' || extension === '.mjs') {
+    scriptKind = ts.ScriptKind.JS;
+  }
+
+  const { outputText } = ts.transpileModule(source, {
+    compilerOptions: BASE_TS_COMPILER_OPTIONS,
+    fileName: filename,
+    reportDiagnostics: false,
+    transformers: undefined,
+    scriptKind,
   });
 
-  return result && typeof result.code === 'string' ? result.code : source;
+  return typeof outputText === 'string' ? outputText : source;
 }
 
 function compileModule(filename, parentModule, overrides, forceRecompile = false) {
