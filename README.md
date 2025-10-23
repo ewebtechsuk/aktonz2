@@ -63,6 +63,15 @@ npm install
 npm run dev
 ```
 
+### Compiler
+
+The project relies on Next.js' default SWC compiler for builds. No separate
+Babel configuration is required—the previous `babel.config.js` has been removed
+so `next build` automatically runs through SWC. Jest uses an inline `babel-jest`
+configuration for test transforms, and the custom loader at
+`__tests__/helpers/load-ts.js` now transpiles sources with the TypeScript
+compiler to mirror SWC's output when exercising server-only modules.
+
 ### 3CX contact pop-up
 
 Use the compact contact card when configuring 3CX screen-pops so agents can
