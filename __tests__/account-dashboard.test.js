@@ -46,6 +46,12 @@ jest.mock('../styles/Account.module.css', () => ({
   searchIcon: 'searchIcon',
   searchField: 'searchField',
   helperText: 'helperText',
+  searchStatus: 'searchStatus',
+  searchError: 'searchError',
+  searchResults: 'searchResults',
+  searchResultOption: 'searchResultOption',
+  searchResultButton: 'searchResultButton',
+  searchResultLabel: 'searchResultLabel',
   areaChips: 'areaChips',
   areaChip: 'areaChip',
   areaChipActive: 'areaChipActive',
@@ -222,6 +228,21 @@ describe('Account dashboard area management', () => {
           })
         );
       }
+      if (typeof url === 'string' && url.startsWith('/api/account/area-search')) {
+        const { searchParams } = new URL(url, 'http://localhost');
+        const query = searchParams.get('query');
+        if (!query) {
+          return Promise.resolve(createJsonResponse({ results: [] }));
+        }
+        return Promise.resolve(
+          createJsonResponse({
+            results: [
+              { id: 'shoreditch', label: 'Shoreditch, London', lat: 51.5245, lng: -0.0782 },
+              { id: 'clerkenwell', label: 'Clerkenwell, London', lat: 51.5225, lng: -0.1021 },
+            ],
+          })
+        );
+      }
       return Promise.resolve(createJsonResponse({}));
     });
   });
@@ -297,5 +318,77 @@ describe('Account dashboard area management', () => {
     const latestSave = putBodies[putBodies.length - 1];
     expect(latestSave.areas).toHaveLength(1);
     expect(latestSave.areas[0].id).toBe('existing-pin');
+  });
+
+  it('allows selecting a suggested area from the search box and persists it', async () => {
+    if (typeof AccountDashboard !== 'function') {
+      throw new Error('AccountDashboard component was not initialised');
+    }
+
+    await act(async () => {
+      root = createRoot(container);
+      root.render(<AccountDashboard />);
+    });
+
+    await flushPromises();
+
+    const input = container.querySelector('input[aria-label="Search areas, stations or postcodes"]');
+    expect(input).toBeTruthy();
+
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+
+    await act(async () => {
+      nativeInputValueSetter.call(input, 'Shoreditch');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 600));
+    });
+
+    await flushPromises();
+
+    expect(input.value).toBe('Shoreditch');
+
+    expect(
+      fetchCalls.some(([url]) => typeof url === 'string' && url.startsWith('/api/account/area-search'))
+    ).toBe(true);
+
+    let attempts = 0;
+    while (!container.textContent.includes('Shoreditch, London') && attempts < 10) {
+      // allow pending microtasks and renders to settle
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+      await flushPromises();
+      attempts += 1;
+    }
+
+    expect(container.textContent).toContain('Shoreditch, London');
+
+    const suggestionButton = Array.from(container.querySelectorAll('button')).find((btn) =>
+      btn.textContent.includes('Shoreditch, London')
+    );
+    expect(suggestionButton).toBeDefined();
+
+    await act(async () => {
+      suggestionButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    await flushPromises();
+
+    expect(container.querySelector('[role="listbox"]')).toBeNull();
+    expect(container.textContent).toContain('Shoreditch, London');
+
+    await waitForPutCount(1);
+
+    const persisted = putBodies[putBodies.length - 1];
+    expect(persisted.areas).toHaveLength(2);
+    const savedSuggestion = persisted.areas.find((area) => area.label === 'Shoreditch, London');
+    expect(savedSuggestion).toBeTruthy();
+    expect(savedSuggestion.type).toBe('pin');
+    expect(savedSuggestion.coordinates[0].lat).toBeCloseTo(51.5245, 3);
+    expect(savedSuggestion.coordinates[0].lng).toBeCloseTo(-0.0782, 3);
   });
 });
