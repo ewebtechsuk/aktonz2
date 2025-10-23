@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { formatPricePrefix } from '../lib/format.mjs';
+import { formatPricePrefix as formatSalePricePrefix } from '../lib/format.mjs';
 import { formatPropertyPriceLabel } from '../lib/rent.js';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
+import { FiClock, FiRefreshCw, FiTrendingUp } from 'react-icons/fi';
 import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
 import {
   normalizeDeposit,
@@ -9,7 +10,13 @@ import {
   formatAvailabilityDate,
 } from '../lib/deposits.mjs';
 
-export default function PropertyCard({ property }) {
+const saleHighlightIcons = {
+  clock: FiClock,
+  status: FiRefreshCw,
+  stamp: FiTrendingUp,
+};
+
+export default function PropertyCard({ property, saleHighlights = [] }) {
   const rawStatus = property.status ? property.status.replace(/_/g, ' ') : null;
   const normalized = rawStatus ? rawStatus.toLowerCase() : '';
   const isArchived =
@@ -110,7 +117,7 @@ export default function PropertyCard({ property }) {
 
   const pricePrefixLabel =
     !property.rentFrequency && property.pricePrefix
-      ? formatPricePrefix(property.pricePrefix)
+      ? formatSalePricePrefix(property.pricePrefix)
       : '';
 
   const priceLabel = formatPropertyPriceLabel(property);
@@ -210,6 +217,8 @@ export default function PropertyCard({ property }) {
     !isSaleListing &&
     (shouldShowSecurityDeposit || shouldShowHoldingDeposit || shouldShowAvailability);
 
+  const hasSaleHighlights = Array.isArray(saleHighlights) && saleHighlights.length > 0;
+
   return (
     <div className={`property-card${isArchived ? ' archived' : ''}`}>
       <div className="image-wrapper">
@@ -274,6 +283,40 @@ export default function PropertyCard({ property }) {
         )}
       </div>
       <div className="details">
+        {hasSaleHighlights && (
+          <div className="property-card__highlights" role="list">
+            {saleHighlights.map((highlight, index) => {
+              const IconComponent = saleHighlightIcons[highlight?.icon] || null;
+              const key = highlight?.key || `${highlight?.label || 'highlight'}-${index}`;
+              const tooltip = highlight?.tooltip || '';
+              const label = highlight?.label || '';
+              if (!label) {
+                return null;
+              }
+              const accessibleLabel = tooltip
+                ? `${label}. ${tooltip}`
+                : label;
+              return (
+                <span
+                  key={key}
+                  className="property-card__highlight"
+                  role="listitem"
+                  tabIndex={tooltip ? 0 : -1}
+                  data-tooltip={tooltip}
+                  aria-label={accessibleLabel}
+                  title={tooltip || undefined}
+                >
+                  {IconComponent && (
+                    <span className="property-card__highlight-icon" aria-hidden="true">
+                      <IconComponent />
+                    </span>
+                  )}
+                  <span className="property-card__highlight-label">{label}</span>
+                </span>
+              );
+            })}
+          </div>
+        )}
         <h3 className="title">{property.title}</h3>
         {typeLabel && <p className="type">{typeLabel}</p>}
         {locationText && <p className="location">{locationText}</p>}
