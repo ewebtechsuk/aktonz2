@@ -24,6 +24,8 @@ export default function PropertyCard({ property, saleHighlights = [] }) {
     normalized.includes('sale agreed') ||
     normalized.startsWith('let');
 
+  const isRentVariant = variant === 'rent';
+
   const title = property.title || 'Property';
   const sliderKeyPrefix =
     property.id || property.listingId || property.listing_id || title;
@@ -331,7 +333,25 @@ export default function PropertyCard({ property, saleHighlights = [] }) {
             {pricePrefixLabel && ` ${pricePrefixLabel}`}
           </p>
         )}
-        {showRentMeta && (
+        {showRentChips && (
+          <div className="rent-chip-row" role="list">
+            {rentChips.map((chip) => {
+              const Icon = chip.icon;
+              return (
+                <span key={chip.key} className="rent-chip" role="listitem">
+                  <span className="rent-chip__icon" aria-hidden="true">
+                    <Icon />
+                  </span>
+                  <span className="rent-chip__content">
+                    <span className="rent-chip__label">{chip.label}</span>
+                    <span className="rent-chip__value">{chip.value}</span>
+                  </span>
+                </span>
+              );
+            })}
+          </div>
+        )}
+        {!isRentVariant && showRentMeta && (
           <dl className="rent-details">
             {shouldShowSecurityDeposit && (
               <>
