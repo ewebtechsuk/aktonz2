@@ -10,6 +10,7 @@ export default function PropertyList({
   enableSlider = false,
   className = '',
   getSaleHighlights,
+  variant,
 }) {
   const listRef = useRef(null);
 
@@ -88,6 +89,7 @@ export default function PropertyList({
                     typeof getSaleHighlights === 'function' ? getSaleHighlights(cardProps) : undefined
                   }
                 />
+                <PropertyCard property={cardProps} variant={variant} />
               </a>
             );
           }
@@ -99,6 +101,7 @@ export default function PropertyList({
                   typeof getSaleHighlights === 'function' ? getSaleHighlights(cardProps) : undefined
                 }
               />
+              <PropertyCard property={cardProps} variant={variant} />
             </div>
           );
         }
@@ -115,6 +118,7 @@ export default function PropertyList({
                 typeof getSaleHighlights === 'function' ? getSaleHighlights(cardProps) : undefined
               }
             />
+            <PropertyCard property={cardProps} variant={variant} />
           </Link>
         );
       })}
