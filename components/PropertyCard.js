@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react';
-import { formatPricePrefix } from '../lib/format.mjs';
-import { formatPropertyPriceLabel } from '../lib/rent.js';
-import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
+import { formatPricePrefix, formatCurrencyGBP, formatRentFrequency } from '../lib/format.mjs';
+import { formatPropertyPriceLabel, rentToMonthly } from '../lib/rent.js';
+import {
+  FaBed,
+  FaBath,
+  FaCouch,
+  FaCalculator,
+  FaCalendarAlt,
+  FaShieldAlt,
+  FaHandHoldingUsd,
+} from 'react-icons/fa';
 import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
 import {
   normalizeDeposit,
@@ -16,6 +24,8 @@ export default function PropertyCard({ property, variant }) {
     normalized.startsWith('sold') ||
     normalized.includes('sale agreed') ||
     normalized.startsWith('let');
+
+  const isRentVariant = variant === 'rent';
 
   const title = property.title || 'Property';
   const sliderKeyPrefix =
@@ -340,7 +350,25 @@ export default function PropertyCard({ property, variant }) {
             {pricePrefixLabel && ` ${pricePrefixLabel}`}
           </p>
         )}
-        {showRentMeta && (
+        {showRentChips && (
+          <div className="rent-chip-row" role="list">
+            {rentChips.map((chip) => {
+              const Icon = chip.icon;
+              return (
+                <span key={chip.key} className="rent-chip" role="listitem">
+                  <span className="rent-chip__icon" aria-hidden="true">
+                    <Icon />
+                  </span>
+                  <span className="rent-chip__content">
+                    <span className="rent-chip__label">{chip.label}</span>
+                    <span className="rent-chip__value">{chip.value}</span>
+                  </span>
+                </span>
+              );
+            })}
+          </div>
+        )}
+        {!isRentVariant && showRentMeta && (
           <dl className="rent-details">
             {shouldShowSecurityDeposit && (
               <>
