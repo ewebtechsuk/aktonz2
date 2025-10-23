@@ -154,13 +154,60 @@ export default function AccountDashboard() {
   const [loadingAreas, setLoadingAreas] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [saveState, setSaveState] = useState({ saving: false, error: null });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchState, setSearchState] = useState({ loading: false, error: null });
+  const [suggestions, setSuggestions] = useState([]);
 
   const hydratedRef = useRef(false);
   const lastPersistedRef = useRef([]);
+  const latestSearchRequestRef = useRef(0);
+  const helperTextIdRef = useRef(null);
+  const errorMessageIdRef = useRef(null);
+  const suggestionsListIdRef = useRef(null);
+
+  if (!helperTextIdRef.current) {
+    helperTextIdRef.current = `area-search-helper-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  if (!errorMessageIdRef.current) {
+    errorMessageIdRef.current = `area-search-error-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  if (!suggestionsListIdRef.current) {
+    suggestionsListIdRef.current = `area-search-suggestions-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  const helperTextId = helperTextIdRef.current;
+  const errorMessageId = errorMessageIdRef.current;
+  const suggestionsListId = suggestionsListIdRef.current;
 
   const handleAreasChange = useCallback((nextAreas) => {
     setAreas((prev) => assignAreaLabels(Array.isArray(nextAreas) ? nextAreas : [], prev));
   }, []);
+
+  const handleSuggestionSelect = useCallback(
+    (suggestion) => {
+      if (!suggestion) {
+        return;
+      }
+      const lat = Number(suggestion.lat);
+      const lng = Number(suggestion.lng ?? suggestion.lon);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        return;
+      }
+      const label = typeof suggestion.label === 'string' && suggestion.label.trim() ? suggestion.label.trim() : null;
+      const nextArea = {
+        type: 'pin',
+        coordinates: [{ lat, lng }],
+        label,
+      };
+      handleAreasChange([...areas, nextArea]);
+      setSuggestions([]);
+      setSearchTerm('');
+      setSearchState({ loading: false, error: null });
+    },
+    [areas, handleAreasChange]
+  );
 
   const handleRemoveArea = useCallback((id) => {
     setAreas((prev) => assignAreaLabels(prev.filter((area) => area.id !== id), []));
@@ -266,6 +313,57 @@ export default function AccountDashboard() {
       controller.abort();
     };
   }, [areas]);
+
+  useEffect(() => {
+    const trimmed = searchTerm.trim();
+    if (!trimmed) {
+      setSuggestions([]);
+      setSearchState({ loading: false, error: null });
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      const requestId = latestSearchRequestRef.current + 1;
+      latestSearchRequestRef.current = requestId;
+      setSearchState({ loading: true, error: null });
+
+      (async () => {
+        try {
+          const response = await fetch(`/api/account/area-search?query=${encodeURIComponent(trimmed)}`, {
+            signal: controller.signal,
+          });
+          if (latestSearchRequestRef.current !== requestId) {
+            return;
+          }
+          if (!response.ok) {
+            const detail = await response.text();
+            throw new Error(detail || 'Lookup failed');
+          }
+          const payload = await response.json();
+          if (latestSearchRequestRef.current !== requestId) {
+            return;
+          }
+          const results = Array.isArray(payload?.results) ? payload.results : [];
+          setSuggestions(results);
+          setSearchState({ loading: false, error: null });
+        } catch (error) {
+          if (controller.signal.aborted || latestSearchRequestRef.current !== requestId) {
+            return;
+          }
+          console.error('Area search lookup failed', error);
+          const message = error instanceof Error ? error.message : 'Lookup failed';
+          setSuggestions([]);
+          setSearchState({ loading: false, error: message });
+        }
+      })();
+    }, 400);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchTerm]);
 
   const areaSummary = useMemo(() => {
     if (loadingAreas) {
@@ -424,9 +522,57 @@ export default function AccountDashboard() {
                 className={styles.searchField}
                 placeholder="Search areas, stations or postcodes"
                 aria-label="Search areas, stations or postcodes"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded={suggestions.length > 0}
+                aria-controls={suggestions.length ? suggestionsListId : undefined}
+                aria-describedby={
+                  searchState.error
+                    ? `${helperTextId} ${errorMessageId}`
+                    : helperTextId
+                }
+                aria-busy={searchState.loading || undefined}
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
               />
             </label>
-            <p className={styles.helperText}>Add at least three areas so we can cross-match new launches instantly.</p>
+            <p id={helperTextId} className={styles.helperText}>
+              Add at least three areas so we can cross-match new launches instantly.
+            </p>
+            {searchState.loading ? (
+              <p className={styles.searchStatus} role="status">
+                Looking up suggestions…
+              </p>
+            ) : null}
+            {searchState.error ? (
+              <p id={errorMessageId} className={styles.searchError} role="alert">
+                {searchState.error}
+              </p>
+            ) : null}
+            {suggestions.length ? (
+              <ul className={styles.searchResults} role="listbox" id={suggestionsListId} aria-label="Area suggestions">
+                {suggestions.map((suggestion, index) => {
+                  const optionId = `${suggestionsListId}-option-${index}`;
+                  return (
+                    <li
+                      key={suggestion.id || optionId}
+                      id={optionId}
+                      role="option"
+                      aria-selected="false"
+                      className={styles.searchResultOption}
+                    >
+                      <button
+                        type="button"
+                        className={styles.searchResultButton}
+                        onClick={() => handleSuggestionSelect(suggestion)}
+                      >
+                        <span className={styles.searchResultLabel}>{suggestion.label}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
           </div>
 
           <div className={styles.areaChips}>
