@@ -27,63 +27,86 @@ export default function SearchBar() {
 
   return (
     <div className={styles.searchWrapper}>
-      <div className={styles.tabs}>
+      <div className={styles.tabs} role="group" aria-label="Listing mode">
         <button
           type="button"
           className={mode === 'buy' ? styles.activeTab : ''}
           onClick={() => setMode('buy')}
+          aria-pressed={mode === 'buy'}
         >
           Buy
+          <span className="sr-only"> properties</span>
         </button>
         <button
           type="button"
           className={mode === 'rent' ? styles.activeTab : ''}
           onClick={() => setMode('rent')}
+          aria-pressed={mode === 'rent'}
         >
           Rent
+          <span className="sr-only"> properties</span>
         </button>
       </div>
       <div className={styles.searchControls}>
         <form className={styles.searchBar} onSubmit={handleSubmit}>
+          <label className="sr-only" htmlFor="search-query">
+            Search area or postcode
+          </label>
           <input
             type="text"
             name="query"
-
+            id="search-query"
             placeholder="Search area or postcode"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoComplete="street-address"
           />
+          <label className="sr-only" htmlFor="search-min-price">
+            Min price
+          </label>
           <input
             type="number"
             name="minPrice"
+            id="search-min-price"
             placeholder="Min price"
             value={minPrice}
             onChange={(e) => setMinPrice(e.target.value)}
             min="0"
             autoComplete="off"
           />
+          <label className="sr-only" htmlFor="search-max-price">
+            Max price
+          </label>
           <input
             type="number"
             name="maxPrice"
+            id="search-max-price"
             placeholder="Max price"
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value)}
             min="0"
             autoComplete="off"
           />
+          <label className="sr-only" htmlFor="search-bedrooms">
+            Bedrooms
+          </label>
           <input
             type="number"
             name="bedrooms"
+            id="search-bedrooms"
             placeholder="Bedrooms"
             value={bedrooms}
             onChange={(e) => setBedrooms(e.target.value)}
             min="0"
             autoComplete="off"
           />
+          <label className="sr-only" htmlFor="search-property-type">
+            Property type
+          </label>
           <input
             type="text"
             name="propertyType"
+            id="search-property-type"
             placeholder="Property type"
             value={propertyType}
             onChange={(e) => setPropertyType(e.target.value)}
