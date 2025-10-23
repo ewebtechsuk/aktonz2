@@ -9,7 +9,7 @@ import {
   formatAvailabilityDate,
 } from '../lib/deposits.mjs';
 
-export default function PropertyCard({ property }) {
+export default function PropertyCard({ property, variant }) {
   const rawStatus = property.status ? property.status.replace(/_/g, ' ') : null;
   const normalized = rawStatus ? rawStatus.toLowerCase() : '';
   const isArchived =
@@ -210,8 +210,39 @@ export default function PropertyCard({ property }) {
     !isSaleListing &&
     (shouldShowSecurityDeposit || shouldShowHoldingDeposit || shouldShowAvailability);
 
+  const featureData = [];
+  if (property.receptions != null) {
+    featureData.push({ key: 'receptions', icon: FaCouch, value: property.receptions });
+  }
+  if (property.bedrooms != null) {
+    featureData.push({ key: 'bedrooms', icon: FaBed, value: property.bedrooms });
+  }
+  if (property.bathrooms != null) {
+    featureData.push({ key: 'bathrooms', icon: FaBath, value: property.bathrooms });
+  }
+
+  const renderFeatureItems = (className) =>
+    featureData.length > 0 ? (
+      <div className={className}>
+        {featureData.map(({ key, icon: Icon, value }) => (
+          <span key={key} className="feature">
+            <Icon aria-hidden="true" />
+            {value}
+          </span>
+        ))}
+      </div>
+    ) : null;
+
+  const cardClassName = [
+    'property-card',
+    isArchived ? 'archived' : '',
+    variant ? `property-card--${variant}` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
-    <div className={`property-card${isArchived ? ' archived' : ''}`}>
+    <div className={cardClassName}>
       <div className="image-wrapper">
         {hasImages ? (
           <div className={`property-card-gallery${hasMultipleImages ? '' : ' single'}`}>
@@ -263,6 +294,27 @@ export default function PropertyCard({ property }) {
           <div className="image-placeholder">Image coming soon</div>
         )}
 
+        {variant === 'homepage' && (
+          <div className="property-card__overlay" aria-hidden="true">
+            <div className="property-card__overlay-inner">
+              <div className="property-card__overlay-meta">
+                <h3 className="title">{title}</h3>
+                {locationText && <p className="location">{locationText}</p>}
+              </div>
+              <div className="property-card__overlay-footer">
+                {priceLabel && (
+                  <p className="price">
+                    {priceLabel}
+                    {pricePrefixLabel && ` ${pricePrefixLabel}`}
+                  </p>
+                )}
+                <span className="property-card__cta">Book a viewing</span>
+              </div>
+              {renderFeatureItems('property-card__quick-stats features')}
+            </div>
+          </div>
+        )}
+
         {property.featured && (
           <span className="featured-badge">Featured</span>
         )}
@@ -274,7 +326,7 @@ export default function PropertyCard({ property }) {
         )}
       </div>
       <div className="details">
-        <h3 className="title">{property.title}</h3>
+        <h3 className="title">{title}</h3>
         {typeLabel && <p className="type">{typeLabel}</p>}
         {locationText && <p className="location">{locationText}</p>}
         {scrayeReference && (
@@ -310,28 +362,7 @@ export default function PropertyCard({ property }) {
             )}
           </dl>
         )}
-        {(property.receptions != null || property.bedrooms != null || property.bathrooms != null) && (
-          <div className="features">
-            {property.receptions != null && (
-              <span className="feature">
-                <FaCouch aria-hidden="true" />
-                {property.receptions}
-              </span>
-            )}
-            {property.bedrooms != null && (
-              <span className="feature">
-                <FaBed aria-hidden="true" />
-                {property.bedrooms}
-              </span>
-            )}
-            {property.bathrooms != null && (
-              <span className="feature">
-                <FaBath aria-hidden="true" />
-                {property.bathrooms}
-              </span>
-            )}
-          </div>
-        )}
+        {variant === 'homepage' ? null : renderFeatureItems('features')}
       </div>
     </div>
   );

@@ -36,17 +36,20 @@ body {
 
 .property-list--scrollable {
   display: flex;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
   overflow-x: auto;
   scroll-behavior: smooth;
   scrollbar-width: none;
   scroll-snap-type: x mandatory;
+  align-items: stretch;
+  padding-block: var(--spacing-sm);
 }
 
 .property-list--scrollable .property-card-wrapper {
   flex: 0 0 100%;
   scroll-snap-align: start;
   scroll-snap-stop: always;
+  display: flex;
 }
 
 .property-list--scrollable::-webkit-scrollbar {
@@ -190,6 +193,7 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
+  z-index: 3;
 }
 
 .property-card .gallery-control.prev {
@@ -212,6 +216,7 @@ body {
   transform: translateX(-50%);
   display: flex;
   gap: 6px;
+  z-index: 3;
 }
 
 .property-card .gallery-dot {
@@ -255,6 +260,7 @@ body {
   padding: 2px 6px;
   font-size: 0.75rem;
   text-transform: capitalize;
+  z-index: 4;
 }
 
 .property-card .status-badge {
@@ -266,6 +272,7 @@ body {
   padding: 2px 6px;
   font-size: 0.75rem;
   text-transform: capitalize;
+  z-index: 4;
 }
 
 .property-card.archived .image-wrapper img {
@@ -282,6 +289,7 @@ body {
   padding: var(--spacing-sm) var(--spacing-md);
   font-size: 1.25rem;
   text-transform: uppercase;
+  z-index: 4;
 }
 
 .property-card.archived .status-badge {
@@ -380,6 +388,131 @@ body {
   gap: 1rem;
   flex-wrap: wrap;
   font-size: 0.875rem;
+}
+
+.property-card--homepage {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 24px 48px rgba(9, 24, 39, 0.18);
+  position: relative;
+  isolation: isolate;
+}
+
+.property-card--homepage .image-wrapper {
+  aspect-ratio: 3 / 2;
+  max-height: none;
+}
+
+.property-card--homepage .property-card-gallery,
+.property-card--homepage .property-card-gallery img {
+  height: 100%;
+}
+
+.property-card--homepage .details {
+  padding: var(--spacing-lg);
+  gap: var(--spacing-sm);
+}
+
+.property-card--homepage .details .features {
+  display: none;
+}
+
+.property-card__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 18, 30, 0) 15%,
+    rgba(8, 18, 30, 0.55) 55%,
+    rgba(8, 18, 30, 0.85) 100%
+  );
+  display: flex;
+  align-items: flex-end;
+  pointer-events: none;
+  z-index: 2;
+  color: var(--color-background);
+}
+
+.property-card__overlay-inner {
+  width: 100%;
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.property-card__overlay-meta .title {
+  color: var(--color-background);
+  font-size: 1.35rem;
+  margin: 0;
+}
+
+.property-card__overlay-meta .location {
+  margin: var(--spacing-xs) 0 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
+}
+
+.property-card__overlay-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.property-card__overlay-footer .price {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-background);
+}
+
+.property-card__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.45rem 1.35rem;
+  background: var(--color-accent);
+  color: var(--color-primary);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+.property-card__quick-stats {
+  display: flex;
+  gap: 1.1rem;
+  flex-wrap: wrap;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+.property-card__quick-stats .feature {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+}
+
+.property-card__quick-stats .feature svg {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .property-card--homepage:hover .property-card__quick-stats,
+  .property-card--homepage:focus-within .property-card__quick-stats {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .property-card__quick-stats {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .property-list--five-per-row .property-card .features {
