@@ -606,12 +606,12 @@ export default function ToRent({ properties, agents }) {
                   {search ? ` for “${search}”` : ''}.
                 </p>
               </div>
-              <PropertyList properties={available} />
+              <PropertyList properties={available} variant="rent" />
               {archived.length > 0 && (
                 <section className={rentStyles.archivedSection}>
                   <h3>Recently let</h3>
                   <p>These homes have just been matched with tenants through Aktonz.</p>
-                  <PropertyList properties={archived} />
+                  <PropertyList properties={archived} variant="rent" />
                 </section>
               )}
             </div>
