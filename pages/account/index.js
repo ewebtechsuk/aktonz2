@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useId } from 'react';
 
 import AccountLayout from '../../components/account/AccountLayout';
 import NeighbourhoodMap from '../../components/account/NeighbourhoodMap';
@@ -162,25 +162,24 @@ export default function AccountDashboard() {
   const hydratedRef = useRef(false);
   const lastPersistedRef = useRef([]);
   const latestSearchRequestRef = useRef(0);
-  const helperTextIdRef = useRef(null);
-  const errorMessageIdRef = useRef(null);
-  const suggestionsListIdRef = useRef(null);
+  const helperTextReactId = useId();
+  const errorMessageReactId = useId();
+  const suggestionsListReactId = useId();
 
-  if (!helperTextIdRef.current) {
-    helperTextIdRef.current = `area-search-helper-${Math.random().toString(36).slice(2, 10)}`;
-  }
+  const sanitiseReactId = useCallback((value) => value.replace(/[^A-Za-z0-9_-]/g, '-'), []);
 
-  if (!errorMessageIdRef.current) {
-    errorMessageIdRef.current = `area-search-error-${Math.random().toString(36).slice(2, 10)}`;
-  }
-
-  if (!suggestionsListIdRef.current) {
-    suggestionsListIdRef.current = `area-search-suggestions-${Math.random().toString(36).slice(2, 10)}`;
-  }
-
-  const helperTextId = helperTextIdRef.current;
-  const errorMessageId = errorMessageIdRef.current;
-  const suggestionsListId = suggestionsListIdRef.current;
+  const helperTextId = useMemo(
+    () => `area-search-helper-${sanitiseReactId(helperTextReactId)}`,
+    [helperTextReactId, sanitiseReactId],
+  );
+  const errorMessageId = useMemo(
+    () => `area-search-error-${sanitiseReactId(errorMessageReactId)}`,
+    [errorMessageReactId, sanitiseReactId],
+  );
+  const suggestionsListId = useMemo(
+    () => `area-search-suggestions-${sanitiseReactId(suggestionsListReactId)}`,
+    [suggestionsListReactId, sanitiseReactId],
+  );
 
   const handleAreasChange = useCallback((nextAreas) => {
     setAreas((prev) => assignAreaLabels(Array.isArray(nextAreas) ? nextAreas : [], prev));
