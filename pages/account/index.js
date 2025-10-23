@@ -157,6 +157,7 @@ export default function AccountDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchState, setSearchState] = useState({ loading: false, error: null });
   const [suggestions, setSuggestions] = useState([]);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
 
   const hydratedRef = useRef(false);
   const lastPersistedRef = useRef([]);
@@ -203,6 +204,7 @@ export default function AccountDashboard() {
       };
       handleAreasChange([...areas, nextArea]);
       setSuggestions([]);
+      setActiveSuggestionIndex(-1);
       setSearchTerm('');
       setSearchState({ loading: false, error: null });
     },
@@ -364,6 +366,61 @@ export default function AccountDashboard() {
       controller.abort();
     };
   }, [searchTerm]);
+
+  useEffect(() => {
+    setActiveSuggestionIndex((current) => {
+      if (!suggestions.length) {
+        return -1;
+      }
+      if (current < 0) {
+        return current;
+      }
+      if (current >= suggestions.length) {
+        return suggestions.length - 1;
+      }
+      return current;
+    });
+  }, [suggestions]);
+
+  const handleSearchKeyDown = useCallback(
+    (event) => {
+      if (!suggestions.length) {
+        return;
+      }
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setActiveSuggestionIndex((current) => {
+          if (current < suggestions.length - 1) {
+            return current + 1;
+          }
+          return suggestions.length - 1;
+        });
+        return;
+      }
+
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setActiveSuggestionIndex((current) => {
+          if (current <= 0) {
+            return -1;
+          }
+          return current - 1;
+        });
+        return;
+      }
+
+      if (event.key === 'Enter') {
+        const activeSuggestion =
+          activeSuggestionIndex >= 0 ? suggestions[activeSuggestionIndex] : undefined;
+        if (activeSuggestion) {
+          event.preventDefault();
+          handleSuggestionSelect(activeSuggestion);
+        }
+      }
+    },
+    [activeSuggestionIndex, handleSuggestionSelect, suggestions]
+  );
 
   const areaSummary = useMemo(() => {
     if (loadingAreas) {
@@ -532,8 +589,14 @@ export default function AccountDashboard() {
                     : helperTextId
                 }
                 aria-busy={searchState.loading || undefined}
+                aria-activedescendant={
+                  activeSuggestionIndex >= 0
+                    ? `${suggestionsListId}-option-${activeSuggestionIndex}`
+                    : undefined
+                }
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
+                onKeyDown={handleSearchKeyDown}
               />
             </label>
             <p id={helperTextId} className={styles.helperText}>
@@ -553,13 +616,16 @@ export default function AccountDashboard() {
               <ul className={styles.searchResults} role="listbox" id={suggestionsListId} aria-label="Area suggestions">
                 {suggestions.map((suggestion, index) => {
                   const optionId = `${suggestionsListId}-option-${index}`;
+                  const isActive = index === activeSuggestionIndex;
                   return (
                     <li
                       key={suggestion.id || optionId}
                       id={optionId}
                       role="option"
-                      aria-selected="false"
-                      className={styles.searchResultOption}
+                      aria-selected={isActive}
+                      className={`${styles.searchResultOption} ${
+                        isActive ? styles.searchResultOptionActive : ''
+                      }`}
                     >
                       <button
                         type="button"
