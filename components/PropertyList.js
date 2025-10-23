@@ -43,6 +43,7 @@ export default function PropertyList({
     'property-list',
     layout === 'five-per-row' ? 'property-list--five-per-row' : '',
     enableSlider ? 'property-list--scrollable' : '',
+    variant ? `property-list--${variant}` : '',
   ]
     .filter(Boolean)
     .join(' ');
