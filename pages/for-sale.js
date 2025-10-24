@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -72,6 +72,138 @@ function toTimestamp(value) {
   if (!value) return null;
   const parsed = Date.parse(value);
   return Number.isNaN(parsed) ? null : parsed;
+}
+
+const MS_IN_DAY = 24 * 60 * 60 * 1000;
+
+function getListingStartTimestamp(property) {
+  return (
+    toTimestamp(property?.createdAt) ||
+    toTimestamp(property?.dateOfInstruction) ||
+    toTimestamp(property?.dtsMarketed) ||
+    toTimestamp(property?.dtsGoLive) ||
+    toTimestamp(property?._scraye?.listedAt) ||
+    null
+  );
+}
+
+function getStatusUpdatedTimestamp(property) {
+  return (
+    toTimestamp(property?.statusUpdatedAt) ||
+    toTimestamp(property?.updatedAt) ||
+    toTimestamp(property?.dtsUpdated) ||
+    toTimestamp(property?._scraye?.statusUpdatedAt) ||
+    null
+  );
+}
+
+function formatDisplayDate(timestamp) {
+  if (!timestamp) return null;
+  try {
+    return new Intl.DateTimeFormat('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(new Date(timestamp));
+  } catch (error) {
+    return null;
+  }
+}
+
+function computeStampDuty(amount) {
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return null;
+  }
+
+  const bands = [
+    { limit: 250000, rate: 0 },
+    { limit: 925000, rate: 0.05 },
+    { limit: 1500000, rate: 0.1 },
+    { limit: Infinity, rate: 0.12 },
+  ];
+
+  let duty = 0;
+  let previousLimit = 0;
+
+  for (const band of bands) {
+    if (amount <= previousLimit) break;
+    const cappedLimit = Math.min(amount, band.limit);
+    const taxable = Math.max(0, cappedLimit - previousLimit);
+    if (taxable > 0 && band.rate > 0) {
+      duty += taxable * band.rate;
+    }
+    previousLimit = band.limit;
+  }
+
+  return Math.round(duty);
+}
+
+function buildSaleHighlights(property, now = Date.now()) {
+  const highlights = [];
+
+  const listingStart = getListingStartTimestamp(property);
+  if (listingStart) {
+    const daysOnMarket = Math.max(0, Math.floor((now - listingStart) / MS_IN_DAY));
+    const listedDateLabel = formatDisplayDate(listingStart);
+    const label = daysOnMarket <= 7 ? 'New this week' : `${daysOnMarket} days listed`;
+    const recencyText =
+      daysOnMarket === 0
+        ? 'today'
+        : daysOnMarket === 1
+        ? '1 day ago'
+        : `${daysOnMarket} days ago`;
+    const tooltipParts = ['First listed'];
+    if (listedDateLabel) {
+      tooltipParts.push(`on ${listedDateLabel}`);
+    }
+    tooltipParts.push(`(${recencyText}).`);
+    highlights.push({
+      key: 'market-entry',
+      icon: 'clock',
+      label,
+      tooltip: tooltipParts.join(' '),
+    });
+  }
+
+  const statusUpdated = getStatusUpdatedTimestamp(property);
+  if (statusUpdated) {
+    const daysSinceStatus = Math.max(0, Math.floor((now - statusUpdated) / MS_IN_DAY));
+    if (daysSinceStatus <= 21) {
+      const statusLabel = property?.status ? property.status.replace(/_/g, ' ') : 'Status';
+      const updatedDateLabel = formatDisplayDate(statusUpdated);
+      const whenText =
+        daysSinceStatus === 0
+          ? 'today'
+          : daysSinceStatus === 1
+          ? '1 day ago'
+          : `${daysSinceStatus} days ago`;
+      const tooltip = updatedDateLabel
+        ? `${statusLabel} updated on ${updatedDateLabel} (${whenText}).`
+        : `${statusLabel} refreshed ${whenText}.`;
+      highlights.push({
+        key: 'status-update',
+        icon: 'status',
+        label: `Status updated ${daysSinceStatus === 0 ? 'today' : `${daysSinceStatus}d ago`}`,
+        tooltip,
+      });
+    }
+  }
+
+  const priceValue = getPriceValue(property);
+  const stampDuty = computeStampDuty(priceValue);
+  if (stampDuty) {
+    highlights.push({
+      key: 'stamp-duty',
+      icon: 'stamp',
+      label: `Est. SDLT ${formatPriceGBP(stampDuty, { isSale: true })}`,
+      tooltip: `Indicative standard rate stamp duty based on an asking price of ${formatPriceGBP(
+        priceValue,
+        { isSale: true }
+      )}. Confirm exact liability with your adviser.`,
+    });
+  }
+
+  return highlights;
 }
 
 function getRecencyValue(property) {
@@ -281,6 +413,8 @@ export default function ForSale({ properties, agents }) {
   const insights = useMemo(() => computeStats(available), [available]);
   const propertyTypeOptions = useMemo(() => collectPropertyTypes(properties), [properties]);
 
+  const resolveSaleHighlights = useCallback((property) => buildSaleHighlights(property), []);
+
   const activeFilters = useMemo(() => {
     const chips = [];
     if (search) {
@@ -440,12 +574,20 @@ export default function ForSale({ properties, agents }) {
 
           {viewMode === 'list' ? (
             <>
-              <PropertyList properties={available} />
+              <PropertyList
+                properties={available}
+                className={saleStyles.saleList}
+                getSaleHighlights={resolveSaleHighlights}
+              />
               {archived.length > 0 && (
                 <section>
                   <h2>Recently sold</h2>
                   <p>These homes were secured through Aktonz and showcase the strength of our buyer network.</p>
-                  <PropertyList properties={archived} />
+                  <PropertyList
+                    properties={archived}
+                    className={saleStyles.saleList}
+                    getSaleHighlights={resolveSaleHighlights}
+                  />
                 </section>
               )}
             </>

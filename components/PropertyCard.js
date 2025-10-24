@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { formatPricePrefix } from '../lib/format.mjs';
+import { formatPricePrefix as formatSalePricePrefix } from '../lib/format.mjs';
 import { formatPropertyPriceLabel } from '../lib/rent.js';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
+import { FiClock, FiRefreshCw, FiTrendingUp } from 'react-icons/fi';
 import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
 import {
   normalizeDeposit,
@@ -9,13 +10,29 @@ import {
   formatAvailabilityDate,
 } from '../lib/deposits.mjs';
 
-export default function PropertyCard({ property }) {
+const highlightIcons = {
+  clock: FiClock,
+  status: FiRefreshCw,
+  stamp: FiTrendingUp,
+};
+
+export default function PropertyCard({ property, saleHighlights = [], variant: variantProp }) {
   const rawStatus = property.status ? property.status.replace(/_/g, ' ') : null;
   const normalized = rawStatus ? rawStatus.toLowerCase() : '';
   const isArchived =
     normalized.startsWith('sold') ||
     normalized.includes('sale agreed') ||
     normalized.startsWith('let');
+
+  const variant = variantProp || (property?.rentFrequency ? 'rent' : 'sale');
+  const isRentVariant = variant === 'rent';
+  const cardClassName = [
+    'property-card',
+    isArchived ? 'archived' : '',
+    variant ? `property-card--${variant}` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const title = property.title || 'Property';
   const sliderKeyPrefix =
@@ -110,7 +127,7 @@ export default function PropertyCard({ property }) {
 
   const pricePrefixLabel =
     !property.rentFrequency && property.pricePrefix
-      ? formatPricePrefix(property.pricePrefix)
+      ? formatSalePricePrefix(property.pricePrefix)
       : '';
 
   const priceLabel = formatPropertyPriceLabel(property);
@@ -207,11 +224,20 @@ export default function PropertyCard({ property }) {
   const shouldShowHoldingDeposit = Boolean(holdingDepositLabel);
   const shouldShowAvailability = Boolean(availabilityLabel);
   const showRentMeta =
-    !isSaleListing &&
+    isRentVariant &&
     (shouldShowSecurityDeposit || shouldShowHoldingDeposit || shouldShowAvailability);
 
+  const rentChips = [];
+  const showRentChips = isRentVariant && rentChips.length > 0;
+  const saleHighlightList = Array.isArray(saleHighlights) ? saleHighlights : [];
+  const highlightItems = [
+    ...(showRentChips ? rentChips : []),
+    ...(saleHighlightList.length > 0 ? saleHighlightList : []),
+  ];
+  const hasHighlights = highlightItems.length > 0;
+
   return (
-    <div className={`property-card${isArchived ? ' archived' : ''}`}>
+    <div className={cardClassName}>
       <div className="image-wrapper">
         {hasImages ? (
           <div className={`property-card-gallery${hasMultipleImages ? '' : ' single'}`}>
@@ -274,6 +300,40 @@ export default function PropertyCard({ property }) {
         )}
       </div>
       <div className="details">
+        {hasHighlights && (
+          <div className="property-card__highlights" role="list">
+            {highlightItems.map((highlight, index) => {
+              const IconComponent = highlight?.icon ? highlightIcons[highlight.icon] || null : null;
+              const key = highlight?.key || `${highlight?.label || 'highlight'}-${index}`;
+              const tooltip = highlight?.tooltip || '';
+              const label = highlight?.label || '';
+              if (!label) {
+                return null;
+              }
+              const accessibleLabel = tooltip
+                ? `${label}. ${tooltip}`
+                : label;
+              return (
+                <span
+                  key={key}
+                  className="property-card__highlight"
+                  role="listitem"
+                  tabIndex={tooltip ? 0 : -1}
+                  data-tooltip={tooltip}
+                  aria-label={accessibleLabel}
+                  title={tooltip || undefined}
+                >
+                  {IconComponent && (
+                    <span className="property-card__highlight-icon" aria-hidden="true">
+                      <IconComponent />
+                    </span>
+                  )}
+                  <span className="property-card__highlight-label">{label}</span>
+                </span>
+              );
+            })}
+          </div>
+        )}
         <h3 className="title">{property.title}</h3>
         {typeLabel && <p className="type">{typeLabel}</p>}
         {locationText && <p className="location">{locationText}</p>}

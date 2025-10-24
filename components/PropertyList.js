@@ -8,6 +8,8 @@ export default function PropertyList({
   properties = [],
   layout = 'default',
   enableSlider = false,
+  className = '',
+  getSaleHighlights,
 }) {
   const listRef = useRef(null);
 
@@ -42,6 +44,7 @@ export default function PropertyList({
     'property-list',
     layout === 'five-per-row' ? 'property-list--five-per-row' : '',
     enableSlider ? 'property-list--scrollable' : '',
+    className,
   ]
     .filter(Boolean)
     .join(' ');
@@ -79,13 +82,23 @@ export default function PropertyList({
                 rel="noopener noreferrer"
                 className="property-link property-card-wrapper"
               >
-                <PropertyCard property={cardProps} />
+                <PropertyCard
+                  property={cardProps}
+                  saleHighlights={
+                    typeof getSaleHighlights === 'function' ? getSaleHighlights(cardProps) : undefined
+                  }
+                />
               </a>
             );
           }
           return (
             <div key={key} className="property-link property-card-wrapper">
-              <PropertyCard property={cardProps} />
+              <PropertyCard
+                property={cardProps}
+                saleHighlights={
+                  typeof getSaleHighlights === 'function' ? getSaleHighlights(cardProps) : undefined
+                }
+              />
             </div>
           );
         }
@@ -96,7 +109,12 @@ export default function PropertyList({
             key={key}
             className="property-link property-card-wrapper"
           >
-            <PropertyCard property={cardProps} />
+            <PropertyCard
+              property={cardProps}
+              saleHighlights={
+                typeof getSaleHighlights === 'function' ? getSaleHighlights(cardProps) : undefined
+              }
+            />
           </Link>
         );
       })}
