@@ -601,7 +601,8 @@ export default function Property({ property, recommendations }) {
               <MediaGallery images={property.images} media={property.media} />
             </div>
           )}
-            <div className={styles.summary}>
+          <div className={styles.summary}>
+            <div className={styles.summaryGrid}>
               <div className={styles.summaryMain}>
                 <div className={styles.summaryIntro}>
                   {displayType && <span className={styles.typeBadge}>{displayType}</span>}
@@ -638,61 +639,66 @@ export default function Property({ property, recommendations }) {
                     ))}
                   </ul>
                 )}
-                {(pricePrefixLabel || headlinePrice) && (
-                  <div className={styles.priceCard}>
-                    <div className={styles.priceHeader}>
-                      {pricePrefixLabel && (
-                        <span className={styles.pricePrefixBadge}>{pricePrefixLabel}</span>
-                      )}
-                      {headlinePrice && (
-                        <div className={styles.priceHeadline}>
-                          <span className={styles.pricePrimaryValue}>{headlinePrice}</span>
-                          {rentFrequencyLabel && (
-                            <span className={styles.priceFrequency}>{rentFrequencyLabel}</span>
-                          )}
-                        </div>
-                      )}
-                      {secondaryRentLabel && (
-                        <p className={styles.priceSecondary}>{secondaryRentLabel}</p>
-                      )}
-                    </div>
-                    {(shouldShowSecurityDeposit ||
-                      shouldShowHoldingDeposit ||
-                      shouldShowAvailability) && (
-                      <dl className={styles.rentMeta}>
-                        {shouldShowSecurityDeposit && (
-                          <>
-                            <dt>Security deposit</dt>
-                            <dd>{securityDepositLabel}</dd>
-                          </>
-                        )}
-                        {shouldShowHoldingDeposit && (
-                          <>
-                            <dt>Holding deposit</dt>
-                            <dd>{holdingDepositLabel}</dd>
-                          </>
-                        )}
-                        {shouldShowAvailability && (
-                          <>
-                            <dt>Available from</dt>
-                            <dd>{availabilityLabel}</dd>
-                          </>
-                        )}
-                      </dl>
-                    )}
-                    <div className={styles.priceActions}>
-                      <OfferDrawer property={property} />
-                      <ViewingForm property={property} />
-                    </div>
-                  </div>
-                )}
                 {scrayeReference && (
                   <p className={styles.reference}>
                     Scraye reference: <span>{scrayeReference}</span>
                   </p>
                 )}
               </div>
+              {(pricePrefixLabel || headlinePrice) && (
+                <aside className={styles.summarySidebar}>
+                  <div className={styles.summarySidebarInner}>
+                    <div className={styles.priceCard}>
+                      <div className={styles.priceHeader}>
+                        {pricePrefixLabel && (
+                          <span className={styles.pricePrefixBadge}>{pricePrefixLabel}</span>
+                        )}
+                        {headlinePrice && (
+                          <div className={styles.priceHeadline}>
+                            <span className={styles.pricePrimaryValue}>{headlinePrice}</span>
+                            {rentFrequencyLabel && (
+                              <span className={styles.priceFrequency}>{rentFrequencyLabel}</span>
+                            )}
+                          </div>
+                        )}
+                        {secondaryRentLabel && (
+                          <p className={styles.priceSecondary}>{secondaryRentLabel}</p>
+                        )}
+                      </div>
+                      {(shouldShowSecurityDeposit ||
+                        shouldShowHoldingDeposit ||
+                        shouldShowAvailability) && (
+                        <dl className={styles.rentMeta}>
+                          {shouldShowSecurityDeposit && (
+                            <>
+                              <dt>Security deposit</dt>
+                              <dd>{securityDepositLabel}</dd>
+                            </>
+                          )}
+                          {shouldShowHoldingDeposit && (
+                            <>
+                              <dt>Holding deposit</dt>
+                              <dd>{holdingDepositLabel}</dd>
+                            </>
+                          )}
+                          {shouldShowAvailability && (
+                            <>
+                              <dt>Available from</dt>
+                              <dd>{availabilityLabel}</dd>
+                            </>
+                          )}
+                        </dl>
+                      )}
+                      <div className={styles.priceActions}>
+                        <OfferDrawer property={property} />
+                        <ViewingForm property={property} />
+                      </div>
+                    </div>
+                  </div>
+                </aside>
+              )}
             </div>
+          </div>
         </section>
 
       {hasLocation && (
