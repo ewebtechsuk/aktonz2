@@ -137,6 +137,7 @@ export default function Home({ sales, lettings, archiveSales }) {
             properties={sales}
             layout="five-per-row"
             enableSlider
+            variant="homepage"
           />
         </section>
         <section className={styles.listings}>
@@ -145,6 +146,7 @@ export default function Home({ sales, lettings, archiveSales }) {
             properties={lettings}
             layout="five-per-row"
             enableSlider
+            variant="homepage"
           />
         </section>
         {archiveSales.length > 0 && (
