@@ -151,6 +151,48 @@
   gap: var(--spacing-sm);
 }
 
+.saleList {
+  position: relative;
+}
+
+.saleList::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 18px;
+  opacity: 0.04;
+  background: linear-gradient(135deg, rgba(12, 60, 96, 1), rgba(27, 108, 123, 1));
+}
+
+.saleList > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 1024px) {
+  .saleList :global(.property-card) {
+    flex-direction: row;
+  }
+
+  .saleList :global(.property-card .image-wrapper) {
+    flex: 0 0 42%;
+    max-width: 42%;
+    aspect-ratio: auto;
+    height: 100%;
+  }
+
+  .saleList :global(.property-card .property-card-gallery),
+  .saleList :global(.property-card .property-card-gallery img) {
+    height: 100%;
+  }
+
+  .saleList :global(.property-card .details) {
+    flex: 1;
+    padding: calc(var(--spacing-md) * 1.25);
+  }
+}
+
 .ctaSection {
   background: linear-gradient(120deg, rgba(12, 60, 96, 0.92), rgba(27, 108, 123, 0.85));
   color: var(--color-background);
