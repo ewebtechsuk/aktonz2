@@ -2,6 +2,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import { formatPricePrefix } from '../lib/format.mjs';
 import { formatPropertyPriceLabel } from '../lib/rent.js';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
+import { FiClock, FiRefreshCw, FiTrendingUp } from 'react-icons/fi';
 import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
 import {
   normalizeDeposit,
@@ -16,6 +17,16 @@ export default function PropertyCard({ property, variant }) {
     normalized.startsWith('sold') ||
     normalized.includes('sale agreed') ||
     normalized.startsWith('let');
+
+  const variant = variantProp || (property?.rentFrequency ? 'rent' : 'sale');
+  const isRentVariant = variant === 'rent';
+  const cardClassName = [
+    'property-card',
+    isArchived ? 'archived' : '',
+    variant ? `property-card--${variant}` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const title = property.title || 'Property';
   const sliderKeyPrefix =
@@ -110,7 +121,7 @@ export default function PropertyCard({ property, variant }) {
 
   const pricePrefixLabel =
     !property.rentFrequency && property.pricePrefix
-      ? formatPricePrefix(property.pricePrefix)
+      ? formatSalePricePrefix(property.pricePrefix)
       : '';
 
   const priceLabel = formatPropertyPriceLabel(property);
@@ -263,6 +274,15 @@ export default function PropertyCard({ property, variant }) {
     .filter(Boolean)
     .join(' ');
 
+  const rentChips = [];
+  const showRentChips = isRentVariant && rentChips.length > 0;
+  const saleHighlightList = Array.isArray(saleHighlights) ? saleHighlights : [];
+  const highlightItems = [
+    ...(showRentChips ? rentChips : []),
+    ...(saleHighlightList.length > 0 ? saleHighlightList : []),
+  ];
+  const hasHighlights = highlightItems.length > 0;
+
   return (
     <div className={cardClassName}>
       <div className="image-wrapper">
@@ -381,7 +401,25 @@ export default function PropertyCard({ property, variant }) {
             {pricePrefixLabel && ` ${pricePrefixLabel}`}
           </p>
         )}
-        {showRentMeta && (
+        {showRentChips && (
+          <div className="rent-chip-row" role="list">
+            {rentChips.map((chip) => {
+              const Icon = chip.icon;
+              return (
+                <span key={chip.key} className="rent-chip" role="listitem">
+                  <span className="rent-chip__icon" aria-hidden="true">
+                    <Icon />
+                  </span>
+                  <span className="rent-chip__content">
+                    <span className="rent-chip__label">{chip.label}</span>
+                    <span className="rent-chip__value">{chip.value}</span>
+                  </span>
+                </span>
+              );
+            })}
+          </div>
+        )}
+        {!isRentVariant && showRentMeta && (
           <dl className="rent-details">
             {rentMetaEntries.map(({ key, label, value }) => (
               <Fragment key={key}>
