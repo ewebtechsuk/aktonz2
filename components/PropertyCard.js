@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { formatPricePrefix as formatSalePricePrefix } from '../lib/format.mjs';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import { formatPricePrefix } from '../lib/format.mjs';
 import { formatPropertyPriceLabel } from '../lib/rent.js';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
 import { FiClock, FiRefreshCw, FiTrendingUp } from 'react-icons/fi';
@@ -10,13 +10,7 @@ import {
   formatAvailabilityDate,
 } from '../lib/deposits.mjs';
 
-const highlightIcons = {
-  clock: FiClock,
-  status: FiRefreshCw,
-  stamp: FiTrendingUp,
-};
-
-export default function PropertyCard({ property, saleHighlights = [], variant: variantProp }) {
+export default function PropertyCard({ property, variant: cardVariant }) {
   const rawStatus = property.status ? property.status.replace(/_/g, ' ') : null;
   const normalized = rawStatus ? rawStatus.toLowerCase() : '';
   const isArchived =
@@ -220,12 +214,65 @@ export default function PropertyCard({ property, saleHighlights = [], variant: v
     ? 'Please enquire'
     : null;
 
-  const shouldShowSecurityDeposit = Boolean(securityDepositLabel);
-  const shouldShowHoldingDeposit = Boolean(holdingDepositLabel);
-  const shouldShowAvailability = Boolean(availabilityLabel);
-  const showRentMeta =
-    isRentVariant &&
-    (shouldShowSecurityDeposit || shouldShowHoldingDeposit || shouldShowAvailability);
+  const rentMetaEntries = useMemo(() => {
+    if (isSaleListing && !availabilityLabel) {
+      return [];
+    }
+
+    const entries = [];
+    if (!isSaleListing && securityDepositLabel) {
+      entries.push({
+        key: 'security-deposit',
+        label: 'Security deposit',
+        value: securityDepositLabel,
+      });
+    }
+    if (!isSaleListing && holdingDepositLabel) {
+      entries.push({
+        key: 'holding-deposit',
+        label: 'Holding deposit',
+        value: holdingDepositLabel,
+      });
+    }
+    if (!isSaleListing && availabilityLabel) {
+      entries.push({
+        key: 'availability',
+        label: 'Available from',
+        value: availabilityLabel,
+      });
+    }
+
+    return entries;
+  }, [
+    availabilityLabel,
+    holdingDepositLabel,
+    isSaleListing,
+    securityDepositLabel,
+  ]);
+
+  const showRentMeta = rentMetaEntries.length > 0;
+
+  const featureData = useMemo(() => {
+    const items = [];
+    if (property.receptions != null) {
+      items.push({ key: 'receptions', icon: FaCouch, value: property.receptions });
+    }
+    if (property.bedrooms != null) {
+      items.push({ key: 'bedrooms', icon: FaBed, value: property.bedrooms });
+    }
+    if (property.bathrooms != null) {
+      items.push({ key: 'bathrooms', icon: FaBath, value: property.bathrooms });
+    }
+    return items;
+  }, [property.bathrooms, property.bedrooms, property.receptions]);
+
+  const rootClassName = [
+    'property-card',
+    isArchived ? 'archived' : '',
+    cardVariant ? `property-card--${cardVariant}` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const rentChips = [];
   const showRentChips = isRentVariant && rentChips.length > 0;
@@ -237,7 +284,7 @@ export default function PropertyCard({ property, saleHighlights = [], variant: v
   const hasHighlights = highlightItems.length > 0;
 
   return (
-    <div className={cardClassName}>
+    <div className={rootClassName}>
       <div className="image-wrapper">
         {hasImages ? (
           <div className={`property-card-gallery${hasMultipleImages ? '' : ' single'}`}>
@@ -289,6 +336,46 @@ export default function PropertyCard({ property, saleHighlights = [], variant: v
           <div className="image-placeholder">Image coming soon</div>
         )}
 
+        {cardVariant === 'homepage' && (
+          <div className="property-card__overlay" aria-hidden="true">
+            <div className="property-card__overlay-inner">
+              <div className="property-card__overlay-meta">
+                <h3 className="title">{title}</h3>
+                {locationText && <p className="location">{locationText}</p>}
+              </div>
+              <div className="property-card__overlay-footer">
+                {priceLabel && (
+                  <p className="price">
+                    {priceLabel}
+                    {pricePrefixLabel && ` ${pricePrefixLabel}`}
+                  </p>
+                )}
+                <span className="property-card__cta">Book a viewing</span>
+              </div>
+              {showRentMeta && (
+                <ul className="property-card__rent-chips">
+                  {rentMetaEntries.map(({ key, label, value }) => (
+                    <li key={key}>
+                      <span className="label">{label}</span>
+                      <span className="value">{value}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {featureData.length > 0 && (
+                <div className="property-card__quick-stats features">
+                  {featureData.map(({ key, icon: Icon, value }) => (
+                    <span key={key} className="feature">
+                      <Icon aria-hidden="true" />
+                      {value}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {property.featured && (
           <span className="featured-badge">Featured</span>
         )}
@@ -300,41 +387,7 @@ export default function PropertyCard({ property, saleHighlights = [], variant: v
         )}
       </div>
       <div className="details">
-        {hasHighlights && (
-          <div className="property-card__highlights" role="list">
-            {highlightItems.map((highlight, index) => {
-              const IconComponent = highlight?.icon ? highlightIcons[highlight.icon] || null : null;
-              const key = highlight?.key || `${highlight?.label || 'highlight'}-${index}`;
-              const tooltip = highlight?.tooltip || '';
-              const label = highlight?.label || '';
-              if (!label) {
-                return null;
-              }
-              const accessibleLabel = tooltip
-                ? `${label}. ${tooltip}`
-                : label;
-              return (
-                <span
-                  key={key}
-                  className="property-card__highlight"
-                  role="listitem"
-                  tabIndex={tooltip ? 0 : -1}
-                  data-tooltip={tooltip}
-                  aria-label={accessibleLabel}
-                  title={tooltip || undefined}
-                >
-                  {IconComponent && (
-                    <span className="property-card__highlight-icon" aria-hidden="true">
-                      <IconComponent />
-                    </span>
-                  )}
-                  <span className="property-card__highlight-label">{label}</span>
-                </span>
-              );
-            })}
-          </div>
-        )}
-        <h3 className="title">{property.title}</h3>
+        <h3 className="title">{title}</h3>
         {typeLabel && <p className="type">{typeLabel}</p>}
         {locationText && <p className="location">{locationText}</p>}
         {scrayeReference && (
@@ -368,46 +421,22 @@ export default function PropertyCard({ property, saleHighlights = [], variant: v
         )}
         {!isRentVariant && showRentMeta && (
           <dl className="rent-details">
-            {shouldShowSecurityDeposit && (
-              <>
-                <dt>Security deposit</dt>
-                <dd>{securityDepositLabel}</dd>
-              </>
-            )}
-            {shouldShowHoldingDeposit && (
-              <>
-                <dt>Holding deposit</dt>
-                <dd>{holdingDepositLabel}</dd>
-              </>
-            )}
-            {shouldShowAvailability && (
-              <>
-                <dt>Available from</dt>
-                <dd>{availabilityLabel}</dd>
-              </>
-            )}
+            {rentMetaEntries.map(({ key, label, value }) => (
+              <Fragment key={key}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </Fragment>
+            ))}
           </dl>
         )}
-        {(property.receptions != null || property.bedrooms != null || property.bathrooms != null) && (
+        {cardVariant === 'homepage' || featureData.length === 0 ? null : (
           <div className="features">
-            {property.receptions != null && (
-              <span className="feature">
-                <FaCouch aria-hidden="true" />
-                {property.receptions}
+            {featureData.map(({ key, icon: Icon, value }) => (
+              <span key={key} className="feature">
+                <Icon aria-hidden="true" />
+                {value}
               </span>
-            )}
-            {property.bedrooms != null && (
-              <span className="feature">
-                <FaBed aria-hidden="true" />
-                {property.bedrooms}
-              </span>
-            )}
-            {property.bathrooms != null && (
-              <span className="feature">
-                <FaBath aria-hidden="true" />
-                {property.bathrooms}
-              </span>
-            )}
+            ))}
           </div>
         )}
       </div>
