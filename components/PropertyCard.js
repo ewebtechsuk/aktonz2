@@ -289,6 +289,37 @@ export default function PropertyCard({ property, saleHighlights = [], variant: v
           <div className="image-placeholder">Image coming soon</div>
         )}
 
+        {variant === 'homepage' && (
+          <div className="property-card__overlay" aria-hidden="true">
+            <div className="property-card__overlay-inner">
+              <div className="property-card__overlay-meta">
+                <h3 className="title">{title}</h3>
+                {locationText && <p className="location">{locationText}</p>}
+              </div>
+              <div className="property-card__overlay-footer">
+                {priceLabel && (
+                  <p className="price">
+                    {priceLabel}
+                    {pricePrefixLabel && ` ${pricePrefixLabel}`}
+                  </p>
+                )}
+                <span className="property-card__cta">Book a viewing</span>
+              </div>
+              {displayHomepageRentChips && (
+                <ul className="property-card__rent-chips">
+                  {rentMetaEntries.map(({ key, label, value }) => (
+                    <li key={key}>
+                      <span className="label">{label}</span>
+                      <span className="value">{value}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {renderFeatureItems('property-card__quick-stats features')}
+            </div>
+          </div>
+        )}
+
         {property.featured && (
           <span className="featured-badge">Featured</span>
         )}
@@ -368,48 +399,15 @@ export default function PropertyCard({ property, saleHighlights = [], variant: v
         )}
         {!isRentVariant && showRentMeta && (
           <dl className="rent-details">
-            {shouldShowSecurityDeposit && (
-              <>
-                <dt>Security deposit</dt>
-                <dd>{securityDepositLabel}</dd>
-              </>
-            )}
-            {shouldShowHoldingDeposit && (
-              <>
-                <dt>Holding deposit</dt>
-                <dd>{holdingDepositLabel}</dd>
-              </>
-            )}
-            {shouldShowAvailability && (
-              <>
-                <dt>Available from</dt>
-                <dd>{availabilityLabel}</dd>
-              </>
-            )}
+            {rentMetaEntries.map(({ key, label, value }) => (
+              <Fragment key={key}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </Fragment>
+            ))}
           </dl>
         )}
-        {(property.receptions != null || property.bedrooms != null || property.bathrooms != null) && (
-          <div className="features">
-            {property.receptions != null && (
-              <span className="feature">
-                <FaCouch aria-hidden="true" />
-                {property.receptions}
-              </span>
-            )}
-            {property.bedrooms != null && (
-              <span className="feature">
-                <FaBed aria-hidden="true" />
-                {property.bedrooms}
-              </span>
-            )}
-            {property.bathrooms != null && (
-              <span className="feature">
-                <FaBath aria-hidden="true" />
-                {property.bathrooms}
-              </span>
-            )}
-          </div>
-        )}
+        {variant === 'homepage' ? null : renderFeatureItems('features')}
       </div>
     </div>
   );
