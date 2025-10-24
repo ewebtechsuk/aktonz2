@@ -340,7 +340,25 @@ export default function PropertyCard({ property, saleHighlights = [], variant: v
             {pricePrefixLabel && ` ${pricePrefixLabel}`}
           </p>
         )}
-        {showRentMeta && (
+        {showRentChips && (
+          <div className="rent-chip-row" role="list">
+            {rentChips.map((chip) => {
+              const Icon = chip.icon;
+              return (
+                <span key={chip.key} className="rent-chip" role="listitem">
+                  <span className="rent-chip__icon" aria-hidden="true">
+                    <Icon />
+                  </span>
+                  <span className="rent-chip__content">
+                    <span className="rent-chip__label">{chip.label}</span>
+                    <span className="rent-chip__value">{chip.value}</span>
+                  </span>
+                </span>
+              );
+            })}
+          </div>
+        )}
+        {!isRentVariant && showRentMeta && (
           <dl className="rent-details">
             {shouldShowSecurityDeposit && (
               <>
