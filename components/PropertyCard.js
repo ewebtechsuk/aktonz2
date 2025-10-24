@@ -16,13 +16,22 @@ const saleHighlightIcons = {
   stamp: FiTrendingUp,
 };
 
-export default function PropertyCard({ property, saleHighlights = [] }) {
+export default function PropertyCard({ property, saleHighlights = [], variant: variantProp }) {
   const rawStatus = property.status ? property.status.replace(/_/g, ' ') : null;
   const normalized = rawStatus ? rawStatus.toLowerCase() : '';
   const isArchived =
     normalized.startsWith('sold') ||
     normalized.includes('sale agreed') ||
     normalized.startsWith('let');
+
+  const variant = variantProp || (property?.rentFrequency ? 'rent' : 'sale');
+  const cardClassName = [
+    'property-card',
+    isArchived ? 'archived' : '',
+    variant ? `property-card--${variant}` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const title = property.title || 'Property';
   const sliderKeyPrefix =
@@ -220,7 +229,7 @@ export default function PropertyCard({ property, saleHighlights = [] }) {
   const hasSaleHighlights = Array.isArray(saleHighlights) && saleHighlights.length > 0;
 
   return (
-    <div className={`property-card${isArchived ? ' archived' : ''}`}>
+    <div className={cardClassName}>
       <div className="image-wrapper">
         {hasImages ? (
           <div className={`property-card-gallery${hasMultipleImages ? '' : ' single'}`}>
