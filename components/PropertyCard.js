@@ -1,7 +1,8 @@
-import { Fragment, useEffect, useState } from 'react';
-import { formatPricePrefix } from '../lib/format.mjs';
+import { useEffect, useState } from 'react';
+import { formatPricePrefix as formatSalePricePrefix } from '../lib/format.mjs';
 import { formatPropertyPriceLabel } from '../lib/rent.js';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
+import { FiClock, FiRefreshCw, FiTrendingUp } from 'react-icons/fi';
 import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
 import {
   normalizeDeposit,
@@ -9,13 +10,29 @@ import {
   formatAvailabilityDate,
 } from '../lib/deposits.mjs';
 
-export default function PropertyCard({ property, variant }) {
+const highlightIcons = {
+  clock: FiClock,
+  status: FiRefreshCw,
+  stamp: FiTrendingUp,
+};
+
+export default function PropertyCard({ property, saleHighlights = [], variant: variantProp }) {
   const rawStatus = property.status ? property.status.replace(/_/g, ' ') : null;
   const normalized = rawStatus ? rawStatus.toLowerCase() : '';
   const isArchived =
     normalized.startsWith('sold') ||
     normalized.includes('sale agreed') ||
     normalized.startsWith('let');
+
+  const variant = variantProp || (property?.rentFrequency ? 'rent' : 'sale');
+  const isRentVariant = variant === 'rent';
+  const cardClassName = [
+    'property-card',
+    isArchived ? 'archived' : '',
+    variant ? `property-card--${variant}` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const title = property.title || 'Property';
   const sliderKeyPrefix =
@@ -110,7 +127,7 @@ export default function PropertyCard({ property, variant }) {
 
   const pricePrefixLabel =
     !property.rentFrequency && property.pricePrefix
-      ? formatPricePrefix(property.pricePrefix)
+      ? formatSalePricePrefix(property.pricePrefix)
       : '';
 
   const priceLabel = formatPropertyPriceLabel(property);
@@ -203,62 +220,21 @@ export default function PropertyCard({ property, variant }) {
     ? 'Please enquire'
     : null;
 
-  const rentMetaEntries = [];
-  if (!isSaleListing && securityDepositLabel) {
-    rentMetaEntries.push({
-      key: 'security-deposit',
-      label: 'Security deposit',
-      value: securityDepositLabel,
-    });
-  }
-  if (!isSaleListing && holdingDepositLabel) {
-    rentMetaEntries.push({
-      key: 'holding-deposit',
-      label: 'Holding deposit',
-      value: holdingDepositLabel,
-    });
-  }
-  if (!isSaleListing && availabilityLabel) {
-    rentMetaEntries.push({
-      key: 'availability',
-      label: 'Available from',
-      value: availabilityLabel,
-    });
-  }
+  const shouldShowSecurityDeposit = Boolean(securityDepositLabel);
+  const shouldShowHoldingDeposit = Boolean(holdingDepositLabel);
+  const shouldShowAvailability = Boolean(availabilityLabel);
+  const showRentMeta =
+    isRentVariant &&
+    (shouldShowSecurityDeposit || shouldShowHoldingDeposit || shouldShowAvailability);
 
-  const showRentMeta = rentMetaEntries.length > 0;
-  const displayHomepageRentChips = variant === 'homepage' && showRentMeta;
-
-  const featureData = [];
-  if (property.receptions != null) {
-    featureData.push({ key: 'receptions', icon: FaCouch, value: property.receptions });
-  }
-  if (property.bedrooms != null) {
-    featureData.push({ key: 'bedrooms', icon: FaBed, value: property.bedrooms });
-  }
-  if (property.bathrooms != null) {
-    featureData.push({ key: 'bathrooms', icon: FaBath, value: property.bathrooms });
-  }
-
-  const renderFeatureItems = (className) =>
-    featureData.length > 0 ? (
-      <div className={className}>
-        {featureData.map(({ key, icon: Icon, value }) => (
-          <span key={key} className="feature">
-            <Icon aria-hidden="true" />
-            {value}
-          </span>
-        ))}
-      </div>
-    ) : null;
-
-  const cardClassName = [
-    'property-card',
-    isArchived ? 'archived' : '',
-    variant ? `property-card--${variant}` : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const rentChips = [];
+  const showRentChips = isRentVariant && rentChips.length > 0;
+  const saleHighlightList = Array.isArray(saleHighlights) ? saleHighlights : [];
+  const highlightItems = [
+    ...(showRentChips ? rentChips : []),
+    ...(saleHighlightList.length > 0 ? saleHighlightList : []),
+  ];
+  const hasHighlights = highlightItems.length > 0;
 
   return (
     <div className={cardClassName}>
@@ -355,7 +331,41 @@ export default function PropertyCard({ property, variant }) {
         )}
       </div>
       <div className="details">
-        <h3 className="title">{title}</h3>
+        {hasHighlights && (
+          <div className="property-card__highlights" role="list">
+            {highlightItems.map((highlight, index) => {
+              const IconComponent = highlight?.icon ? highlightIcons[highlight.icon] || null : null;
+              const key = highlight?.key || `${highlight?.label || 'highlight'}-${index}`;
+              const tooltip = highlight?.tooltip || '';
+              const label = highlight?.label || '';
+              if (!label) {
+                return null;
+              }
+              const accessibleLabel = tooltip
+                ? `${label}. ${tooltip}`
+                : label;
+              return (
+                <span
+                  key={key}
+                  className="property-card__highlight"
+                  role="listitem"
+                  tabIndex={tooltip ? 0 : -1}
+                  data-tooltip={tooltip}
+                  aria-label={accessibleLabel}
+                  title={tooltip || undefined}
+                >
+                  {IconComponent && (
+                    <span className="property-card__highlight-icon" aria-hidden="true">
+                      <IconComponent />
+                    </span>
+                  )}
+                  <span className="property-card__highlight-label">{label}</span>
+                </span>
+              );
+            })}
+          </div>
+        )}
+        <h3 className="title">{property.title}</h3>
         {typeLabel && <p className="type">{typeLabel}</p>}
         {locationText && <p className="location">{locationText}</p>}
         {scrayeReference && (
@@ -369,7 +379,25 @@ export default function PropertyCard({ property, variant }) {
             {pricePrefixLabel && ` ${pricePrefixLabel}`}
           </p>
         )}
-        {showRentMeta && (
+        {showRentChips && (
+          <div className="rent-chip-row" role="list">
+            {rentChips.map((chip) => {
+              const Icon = chip.icon;
+              return (
+                <span key={chip.key} className="rent-chip" role="listitem">
+                  <span className="rent-chip__icon" aria-hidden="true">
+                    <Icon />
+                  </span>
+                  <span className="rent-chip__content">
+                    <span className="rent-chip__label">{chip.label}</span>
+                    <span className="rent-chip__value">{chip.value}</span>
+                  </span>
+                </span>
+              );
+            })}
+          </div>
+        )}
+        {!isRentVariant && showRentMeta && (
           <dl className="rent-details">
             {rentMetaEntries.map(({ key, label, value }) => (
               <Fragment key={key}>
