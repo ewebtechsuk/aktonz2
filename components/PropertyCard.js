@@ -2,6 +2,18 @@ import { Fragment, useEffect, useState } from 'react';
 import { formatPricePrefix } from '../lib/format.mjs';
 import { formatPropertyPriceLabel } from '../lib/rent.js';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
+import { useEffect, useState } from 'react';
+import { formatPricePrefix, formatCurrencyGBP, formatRentFrequency } from '../lib/format.mjs';
+import { formatPropertyPriceLabel, rentToMonthly } from '../lib/rent.js';
+import {
+  FaBed,
+  FaBath,
+  FaCouch,
+  FaCalculator,
+  FaCalendarAlt,
+  FaShieldAlt,
+  FaHandHoldingUsd,
+} from 'react-icons/fa';
 import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
 import {
   normalizeDeposit,
@@ -16,6 +28,8 @@ export default function PropertyCard({ property, variant }) {
     normalized.startsWith('sold') ||
     normalized.includes('sale agreed') ||
     normalized.startsWith('let');
+
+  const isRentVariant = variant === 'rent';
 
   const title = property.title || 'Property';
   const sliderKeyPrefix =
@@ -260,6 +274,50 @@ export default function PropertyCard({ property, variant }) {
     .filter(Boolean)
     .join(' ');
 
+  const normalizedRentFrequency = formatRentFrequency(property?.rentFrequency);
+  const monthlyRentValue =
+    isRentVariant && normalizedRentFrequency === 'pa'
+      ? rentToMonthly(property?.price ?? property?.priceValue, property?.rentFrequency)
+      : null;
+  const shouldShowMonthlyRent =
+    typeof monthlyRentValue === 'number' && Number.isFinite(monthlyRentValue) && monthlyRentValue > 0;
+  const monthlyRentLabel = shouldShowMonthlyRent
+    ? `${formatCurrencyGBP(monthlyRentValue, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      })} pcm`
+    : null;
+
+  const rentChips = isRentVariant
+    ? [
+        shouldShowMonthlyRent && {
+          key: 'monthly',
+          icon: FaCalculator,
+          label: 'Est. pcm',
+          value: monthlyRentLabel,
+        },
+        shouldShowSecurityDeposit && {
+          key: 'security',
+          icon: FaShieldAlt,
+          label: 'Security deposit',
+          value: securityDepositLabel,
+        },
+        shouldShowHoldingDeposit && {
+          key: 'holding',
+          icon: FaHandHoldingUsd,
+          label: 'Holding deposit',
+          value: holdingDepositLabel,
+        },
+        shouldShowAvailability && {
+          key: 'availability',
+          icon: FaCalendarAlt,
+          label: 'Available',
+          value: availabilityLabel,
+        },
+      ].filter(Boolean)
+    : [];
+  const showRentChips = rentChips.length > 0;
+
   return (
     <div className={cardClassName}>
       <div className="image-wrapper">
@@ -369,7 +427,25 @@ export default function PropertyCard({ property, variant }) {
             {pricePrefixLabel && ` ${pricePrefixLabel}`}
           </p>
         )}
-        {showRentMeta && (
+        {showRentChips && (
+          <div className="rent-chip-row" role="list">
+            {rentChips.map((chip) => {
+              const Icon = chip.icon;
+              return (
+                <span key={chip.key} className="rent-chip" role="listitem">
+                  <span className="rent-chip__icon" aria-hidden="true">
+                    <Icon />
+                  </span>
+                  <span className="rent-chip__content">
+                    <span className="rent-chip__label">{chip.label}</span>
+                    <span className="rent-chip__value">{chip.value}</span>
+                  </span>
+                </span>
+              );
+            })}
+          </div>
+        )}
+        {!isRentVariant && showRentMeta && (
           <dl className="rent-details">
             {rentMetaEntries.map(({ key, label, value }) => (
               <Fragment key={key}>
