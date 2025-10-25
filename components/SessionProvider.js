@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
+import { withBasePath } from '../lib/base-path.js';
+
 const SessionContext = createContext({
   user: null,
   loading: true,
@@ -11,8 +13,11 @@ const SessionContext = createContext({
 });
 
 
+const SESSION_ENDPOINT = '/api/account/me';
+
 async function fetchSession() {
-  const res = await fetch('/api/account/me', { credentials: 'include' });
+  const url = withBasePath(SESSION_ENDPOINT);
+  const res = await fetch(url, { credentials: 'include' });
 
   if (res.status === 401) {
     return { contact: null, email: null };
