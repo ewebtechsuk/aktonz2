@@ -595,7 +595,7 @@ export default function Property({ property, recommendations }) {
         <title>{property.title ? `${property.title} | Aktonz` : 'Property details'}</title>
       </Head>
       <main className={styles.main}>
-        <section className={styles.hero}>
+        <section className={`${styles.contentRail} ${styles.hero}`}>
           {(property.images?.length > 0 || property.media?.length > 0) && (
             <div className={styles.sliderWrapper}>
               <MediaGallery images={property.images} media={property.media} />
@@ -702,7 +702,7 @@ export default function Property({ property, recommendations }) {
         </section>
 
       {hasLocation && (
-        <section className={styles.mapSection}>
+        <section className={`${styles.contentRail} ${styles.mapSection}`}>
           <h2>Location</h2>
           <div className={styles.mapContainer}>
             <PropertyMap
@@ -716,7 +716,7 @@ export default function Property({ property, recommendations }) {
       )}
 
       {features.length > 0 && (
-        <section className={styles.features}>
+        <section className={`${styles.contentRail} ${styles.features}`}>
           <h2>Key features</h2>
           <ul>
             {features.map((f, i) => (
@@ -726,32 +726,34 @@ export default function Property({ property, recommendations }) {
         </section>
       )}
 
-      <PropertySustainabilityPanel property={property} />
+      <div className={`${styles.contentRail} ${styles.modules}`}>
+        <PropertySustainabilityPanel property={property} />
 
-      <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
-      {!property.rentFrequency && property.price && (
-        <section className={styles.calculatorSection}>
-          <h2>Mortgage Calculator</h2>
-          <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
-        </section>
-      )}
+        <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
+        {!property.rentFrequency && property.price && (
+          <section className={styles.calculatorSection}>
+            <h2>Mortgage Calculator</h2>
+            <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+          </section>
+        )}
 
-      {property.rentFrequency && property.price && (
-        <section className={styles.calculatorSection}>
-          <h2>Rent Affordability</h2>
-          <RentAffordability
-            defaultRent={rentToMonthly(property.price, property.rentFrequency)}
-          />
-        </section>
-      )}
+        {property.rentFrequency && property.price && (
+          <section className={styles.calculatorSection}>
+            <h2>Rent Affordability</h2>
+            <RentAffordability
+              defaultRent={rentToMonthly(property.price, property.rentFrequency)}
+            />
+          </section>
+        )}
+      </div>
 
-      <section className={styles.contact}>
+      <section className={`${styles.contentRail} ${styles.contact}`}>
         <p>Interested in this property?</p>
         <a href="tel:+441234567890">Call our team</a>
       </section>
 
       {recommendations && recommendations.length > 0 && (
-        <section className={styles.recommended}>
+        <section className={`${styles.contentRail} ${styles.related}`}>
           <h2>You might also be interested in</h2>
           <PropertyList properties={recommendations} />
         </section>

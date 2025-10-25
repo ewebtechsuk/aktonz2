@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test": "node scripts/run-tests.js",
     "lint": "eslint .",
     "predev": "node scripts/ensure_lettings_brochure.mjs",
     "dev": "next dev",
