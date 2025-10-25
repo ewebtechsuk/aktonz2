@@ -444,6 +444,82 @@
   flex-wrap: wrap;
 }
 
+.valuationVolume {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: 16px;
+  padding: var(--spacing-md);
+  flex: 1 1 260px;
+  min-width: min(280px, 100%);
+  max-width: 360px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.valuationVolumeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+}
+
+.valuationVolumeTitle {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-muted-text);
+}
+
+.valuationVolumeSubtitle {
+  margin: var(--spacing-xs) 0 0;
+  font-size: 0.9rem;
+  color: var(--color-muted-text);
+}
+
+.valuationVolumeToday {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--spacing-xs);
+}
+
+.valuationVolumeTodayCount {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.1;
+}
+
+.valuationVolumeTodayLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted-text);
+}
+
+.valuationSparkline {
+  width: 100%;
+  height: 80px;
+  overflow: visible;
+}
+
+.valuationVolumeMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--color-muted-text);
+}
+
+@media (max-width: 960px) {
+  .valuationVolume {
+    max-width: none;
+  }
+}
+
 .panelHeader h2 {
   margin: 0 0 var(--spacing-xs);
 }
