@@ -29,6 +29,11 @@ import {
   resolvePropertyTypeLabel,
   formatPropertyTypeLabel,
 } from '../../lib/property-type.mjs';
+import {
+  normalizeAgentString,
+  pickFirstAgentString,
+  collectAgentTestimonials,
+} from '../../lib/agent-profile.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
 import {
@@ -69,25 +74,23 @@ const DEFAULT_AGENT_PROFILE = (() => {
     reviewSnippet:
       '“Exceptional communication and proactive updates throughout the letting process.”',
     reviewAttribution: 'Landlord review, March 2024',
+    testimonials: [
+      {
+        quote:
+          '“Exceptional communication and proactive updates throughout the letting process.”',
+        attribution: 'Landlord review, March 2024',
+        role: 'Verified Aktonz landlord',
+      },
+      {
+        quote:
+          '“They paired us with high-quality tenants within days and handled everything professionally.”',
+        attribution: 'Tenant placement feedback, January 2024',
+        role: 'Managed services client',
+      },
+    ],
     photo: primary?.photo || AGENT_PLACEHOLDER_IMAGE,
   };
 })();
-
-function normalizeAgentString(value) {
-  if (value == null) return null;
-  const normalized = String(value).trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function pickFirstAgentString(...values) {
-  for (const value of values) {
-    const normalized = normalizeAgentString(value);
-    if (normalized) {
-      return normalized;
-    }
-  }
-  return null;
-}
 
 function collectAgentCandidates(rawProperty) {
   const candidates = [];
@@ -112,7 +115,7 @@ function collectAgentCandidates(rawProperty) {
   return candidates;
 }
 
-function resolveAgentProfile(rawProperty) {
+  function resolveAgentProfile(rawProperty) {
   const baseProfile = { ...DEFAULT_AGENT_PROFILE };
   if (!rawProperty || typeof rawProperty !== 'object') {
     return baseProfile;
@@ -236,6 +239,37 @@ function resolveAgentProfile(rawProperty) {
       AGENT_PLACEHOLDER_IMAGE
     ) || AGENT_PLACEHOLDER_IMAGE;
 
+    const resolvedTestimonials = collectAgentTestimonials(
+      rawProperty.agentTestimonials,
+      rawProperty.agentTestimonialsList,
+      rawProperty.agentTestimonial,
+      rawProperty.agentReviews,
+      rawProperty.agentQuotes,
+      rawProperty.agent?.testimonials,
+      rawProperty.agent?.reviews,
+      rawProperty.agent?.quotes,
+      rawProperty.marketing?.agent?.testimonials,
+      namedCandidate?.testimonials,
+      namedCandidate?.reviews,
+      namedCandidate?.quotes,
+      mappedAgent?.testimonials,
+      mappedAgent?.reviews,
+      mappedAgent?.quotes
+    );
+
+    if (resolvedTestimonials.length === 0) {
+      resolvedTestimonials.push(
+        ...collectAgentTestimonials({
+          quote: resolvedReviewSnippet,
+          attribution: resolvedReviewAttribution,
+        })
+      );
+    }
+
+    if (resolvedTestimonials.length === 0) {
+      resolvedTestimonials.push(...collectAgentTestimonials(baseProfile.testimonials));
+    }
+
   return {
     id: resolvedAgentId,
     name: resolvedName,
@@ -245,6 +279,10 @@ function resolveAgentProfile(rawProperty) {
     reviewSnippet: resolvedReviewSnippet,
     reviewAttribution: resolvedReviewAttribution,
     photo: resolvedPhoto,
+    testimonials:
+      resolvedTestimonials.length > 0
+        ? resolvedTestimonials
+        : baseProfile.testimonials,
   };
 }
 
@@ -1128,7 +1166,11 @@ export default function Property({ property, recommendations }) {
 
       <section className={`${styles.contentRail} ${styles.modules}`}>
         {agentProfile && (
-          <AgentCard className={styles.agentCard} agent={agentProfile} />
+          <AgentCard
+            className={styles.agentCard}
+            agent={agentProfile}
+            testimonials={agentProfile?.testimonials}
+          />
         )}
         <PropertySustainabilityPanel property={property} />
 
