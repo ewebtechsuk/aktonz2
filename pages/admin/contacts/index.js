@@ -596,7 +596,9 @@ export default function AdminContactsPage() {
   const [agentFilter, setAgentFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
 
-  const loadContacts = useCallback(async () => {
+  const loadContacts = useCallback(async (options = {}) => {
+    const signal =
+      options && typeof options === 'object' && 'signal' in options ? options.signal : undefined;
     if (!isAdmin) {
       setContacts([]);
       setSummary(null);
@@ -610,22 +612,33 @@ export default function AdminContactsPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/admin/contacts');
+      const response = await fetch('/api/admin/contacts', { signal });
       if (!response.ok) {
         throw new Error('Failed to fetch contacts');
       }
 
       const payload = await response.json();
+      if (signal?.aborted) {
+        return;
+      }
       setContacts(Array.isArray(payload.contacts) ? payload.contacts : []);
       setSummary(payload.summary || null);
       setFilters(payload.filters || { type: [], stage: [], pipeline: [], agent: [] });
       setGeneratedAt(payload.generatedAt || null);
       setCurrentPage(1);
     } catch (err) {
+      if (
+        signal?.aborted ||
+        (err && typeof err === 'object' && 'name' in err && err.name === 'AbortError')
+      ) {
+        return;
+      }
       console.error(err);
       setError('Unable to load contacts. Please try again.');
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
     }
   }, [isAdmin]);
 
@@ -635,7 +648,12 @@ export default function AdminContactsPage() {
       return;
     }
 
-    loadContacts();
+    const controller = new AbortController();
+    loadContacts({ signal: controller.signal });
+
+    return () => {
+      controller.abort();
+    };
   }, [isAdmin, loadContacts]);
 
   const availableStageOptions = useMemo(() => [{ value: 'all', label: 'All stages' }, ...filters.stage], [filters.stage]);

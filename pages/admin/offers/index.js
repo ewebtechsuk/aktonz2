@@ -133,7 +133,9 @@ export default function AdminOffersPage() {
   const [updateError, setUpdateError] = useState('');
   const [updateSuccess, setUpdateSuccess] = useState('');
 
-  const loadOffers = useCallback(async () => {
+  const loadOffers = useCallback(async (options = {}) => {
+    const signal =
+      options && typeof options === 'object' && 'signal' in options ? options.signal : undefined;
     if (!isAdmin) {
       return;
     }
@@ -142,20 +144,31 @@ export default function AdminOffersPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/admin/offers');
+      const response = await fetch('/api/admin/offers', { signal });
       if (!response.ok) {
         throw new Error('Failed to fetch offers');
       }
 
       const payload = await response.json();
+      if (signal?.aborted) {
+        return;
+      }
       const entries = Array.isArray(payload.offers) ? payload.offers.slice() : [];
       entries.sort((a, b) => getOfferSortTimestamp(b) - getOfferSortTimestamp(a));
       setOffers(entries);
     } catch (err) {
+      if (
+        signal?.aborted ||
+        (err && typeof err === 'object' && 'name' in err && err.name === 'AbortError')
+      ) {
+        return;
+      }
       console.error(err);
       setError('Unable to load the offers pipeline. Please try again.');
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
     }
   }, [isAdmin]);
 
@@ -166,7 +179,12 @@ export default function AdminOffersPage() {
       return;
     }
 
-    loadOffers();
+    const controller = new AbortController();
+    loadOffers({ signal: controller.signal });
+
+    return () => {
+      controller.abort();
+    };
   }, [isAdmin, loadOffers]);
 
   const sortedOffers = useMemo(() => offers.slice(), [offers]);
