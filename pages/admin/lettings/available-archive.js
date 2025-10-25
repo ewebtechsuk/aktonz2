@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminLettingsArchive.module.css';
+import { formatAdminDate } from '../../../lib/admin/formatters';
 
 const VIEW_OPTIONS = [
   { value: 'available', label: 'Live instructions' },
@@ -20,25 +21,26 @@ function normalizeView(value) {
   return 'available';
 }
 
+const DATE_ONLY = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+};
+
+const DATE_WITH_TIME = {
+  day: '2-digit',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
 function formatDate(value) {
   if (!value) {
     return '—';
   }
 
-  try {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-      return '—';
-    }
-
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(date);
-  } catch (error) {
-    return '—';
-  }
+  const formatted = formatAdminDate(value, DATE_ONLY);
+  return formatted || '—';
 }
 
 function formatDateTime(value) {
@@ -46,21 +48,8 @@ function formatDateTime(value) {
     return '—';
   }
 
-  try {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-      return '—';
-    }
-
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
-  } catch (error) {
-    return '—';
-  }
+  const formatted = formatAdminDate(value, DATE_WITH_TIME);
+  return formatted || '—';
 }
 
 function formatRelativeTime(value) {

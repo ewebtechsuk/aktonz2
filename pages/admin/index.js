@@ -7,7 +7,7 @@ import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../components/admin/AdminNa
 import styles from '../../styles/Admin.module.css';
 import { useSession } from '../../components/SessionProvider';
 import { describeMicrosoftConnection } from '../../lib/microsoft-connection-status.js';
-import { parseTimestamp, resolveTimestamp } from '../../lib/timestamps.js';
+import { formatAdminCurrency, formatAdminDate } from '../../lib/admin/formatters';
 
 const DEFAULT_STATUS_OPTIONS = [
   { value: 'new', label: 'New' },
@@ -26,22 +26,21 @@ const INITIAL_MICROSOFT_STATUS_STATE = {
   error: null,
 };
 
+const DATE_TIME_WITH_HOURS = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
 function formatDate(value) {
   if (!value) {
     return '—';
   }
 
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(value));
-  } catch (error) {
-    return value;
-  }
+  const formatted = formatAdminDate(value, DATE_TIME_WITH_HOURS);
+  return formatted || value;
 }
 
 function formatStatusLabel(status, options) {
@@ -985,7 +984,12 @@ export default function AdminDashboard() {
                       ) : null}
                       {task.costEstimate != null ? (
                         <div className={styles.meta}>
-                          Est. cost £{Number(task.costEstimate).toLocaleString('en-GB')}
+                          {`Est. cost ${
+                            formatAdminCurrency(task.costEstimate, {
+                              currency: 'GBP',
+                              maximumFractionDigits: 0,
+                            }) || '—'
+                          }`}
                         </div>
                       ) : null}
                     </td>
