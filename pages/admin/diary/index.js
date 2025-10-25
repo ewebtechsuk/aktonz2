@@ -526,6 +526,7 @@ function buildDiaryUrl(startDate) {
 
 export default function AdminDiaryWorkspacePage() {
   const router = useRouter();
+  const basePath = router?.basePath ?? '';
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
 
@@ -575,7 +576,7 @@ export default function AdminDiaryWorkspacePage() {
       setError(null);
 
       try {
-        const response = await fetch(withBasePath(buildDiaryUrl(startDate)), { signal });
+        const response = await fetch(`${basePath}${buildDiaryUrl(startDate)}`, { signal });
         if (!response.ok) {
           throw new Error('Failed to load diary events');
         }
@@ -603,7 +604,7 @@ export default function AdminDiaryWorkspacePage() {
         }
       }
     },
-    [applyCalendarData],
+    [applyCalendarData, basePath],
   );
 
   useEffect(() => {
@@ -673,7 +674,7 @@ export default function AdminDiaryWorkspacePage() {
     setToast(null);
 
     try {
-      const response = await fetch(withBasePath(buildDiaryUrl(calendar?.range?.start)), {
+      const response = await fetch(`${basePath}${buildDiaryUrl(calendar?.range?.start)}`, {
         method: 'POST',
         signal: controller.signal,
       });
@@ -701,7 +702,7 @@ export default function AdminDiaryWorkspacePage() {
         importAbortControllerRef.current = null;
       }
     }
-  }, [applyCalendarData, calendar?.range?.start, importing]);
+  }, [applyCalendarData, basePath, calendar?.range?.start, importing]);
 
   const openComposer = useCallback(
     (type = 'Viewing', preset = {}) => {
