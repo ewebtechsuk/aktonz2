@@ -60,23 +60,26 @@ function formatRelativeSeconds(seconds: number | undefined): string | null {
   return `${days} day${days === 1 ? '' : 's'}`;
 }
 
+const DATE_TIME_WITH_HOURS: Intl.DateTimeFormatOptions = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
 function formatDateTime(timestamp: number | undefined): string | null {
   if (!timestamp || Number.isNaN(timestamp)) {
     return null;
   }
 
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(timestamp));
-  } catch (error) {
-    console.warn('Unable to format Microsoft status timestamp', error);
-    return null;
+  const formatted = formatAdminDate(timestamp, DATE_TIME_WITH_HOURS);
+  if (formatted) {
+    return formatted;
   }
+
+  console.warn('Unable to format Microsoft status timestamp', timestamp);
+  return null;
 }
 
 const AdminEmailSettingsPage = () => {

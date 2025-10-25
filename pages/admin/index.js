@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useId } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -7,7 +7,84 @@ import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../components/admin/AdminNa
 import styles from '../../styles/Admin.module.css';
 import { useSession } from '../../components/SessionProvider';
 import { describeMicrosoftConnection } from '../../lib/microsoft-connection-status.js';
-import { parseTimestamp, resolveTimestamp } from '../../lib/timestamps.js';
+import {
+  formatAdminCurrency,
+  formatAdminDate,
+  getAdminTimestamp,
+  resolveLatestAdminTimestamp,
+} from '../../lib/admin/formatters';
+import { withBasePath } from '../../lib/base-path';
+
+function Sparkline({ data, className }) {
+  const gradientId = useId();
+
+  if (!Array.isArray(data) || data.length === 0) {
+    return null;
+  }
+
+  const counts = data.map((entry) => (typeof entry.count === 'number' ? entry.count : 0));
+  const maxValue = Math.max(...counts, 0);
+  const minValue = Math.min(...counts, 0);
+  const range = maxValue - minValue || 1;
+  const coordinates = counts.map((value, index) => {
+    const x = data.length > 1 ? (index / (data.length - 1)) * 100 : 50;
+    const y = ((maxValue - value) / range) * 100;
+    return [x, Number.isFinite(y) ? y : 50];
+  });
+
+  const pathCoordinates =
+    coordinates.length === 1
+      ? [
+          [0, coordinates[0][1]],
+          [100, coordinates[0][1]],
+        ]
+      : coordinates;
+
+  const linePath = pathCoordinates
+    .map(([x, y], index) => `${index === 0 ? 'M' : 'L'} ${x} ${y}`)
+    .join(' ');
+
+  let areaPath = 'M 0 100 ';
+  if (pathCoordinates.length) {
+    areaPath += `L ${pathCoordinates[0][0]} ${pathCoordinates[0][1]} `;
+    for (let i = 1; i < pathCoordinates.length; i += 1) {
+      const [x, y] = pathCoordinates[i];
+      areaPath += `L ${x} ${y} `;
+    }
+  }
+  areaPath += 'L 100 100 Z';
+
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      role="presentation"
+      aria-hidden
+      focusable="false"
+    >
+      <defs>
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="rgba(59, 130, 246, 0.28)" />
+          <stop offset="100%" stopColor="rgba(59, 130, 246, 0.04)" />
+        </linearGradient>
+      </defs>
+      <path d={areaPath} fill={`url(#${gradientId})`} />
+      <path d={linePath} fill="none" stroke="rgba(59, 130, 246, 0.8)" strokeWidth="2" />
+      {coordinates.map(([x, y], index) => (
+        <circle
+          key={data[index]?.date || index}
+          cx={x}
+          cy={y}
+          r={1.4}
+          fill="rgba(59, 130, 246, 0.95)"
+          stroke="rgba(255, 255, 255, 0.9)"
+          strokeWidth="0.6"
+        />
+      ))}
+    </svg>
+  );
+}
 
 const DEFAULT_STATUS_OPTIONS = [
   { value: 'new', label: 'New' },
@@ -26,22 +103,21 @@ const INITIAL_MICROSOFT_STATUS_STATE = {
   error: null,
 };
 
+const DATE_TIME_WITH_HOURS = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
 function formatDate(value) {
   if (!value) {
     return '—';
   }
 
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(value));
-  } catch (error) {
-    return value;
-  }
+  const formatted = formatAdminDate(value, DATE_TIME_WITH_HOURS);
+  return formatted || value;
 }
 
 function formatStatusLabel(status, options) {
@@ -56,6 +132,7 @@ function formatStatusLabel(status, options) {
 export default function AdminDashboard() {
   const [offers, setOffers] = useState([]);
   const [valuations, setValuations] = useState([]);
+  const [valuationDailyCounts, setValuationDailyCounts] = useState([]);
   const [maintenanceTasks, setMaintenanceTasks] = useState([]);
   const [statusOptions, setStatusOptions] = useState(DEFAULT_STATUS_OPTIONS);
   const [loading, setLoading] = useState(true);
@@ -276,6 +353,9 @@ export default function AdminDashboard() {
 
       setOffers(Array.isArray(offersJson.offers) ? offersJson.offers : []);
       setValuations(Array.isArray(valuationsJson.valuations) ? valuationsJson.valuations : []);
+      setValuationDailyCounts(
+        Array.isArray(valuationsJson.dailyCounts) ? valuationsJson.dailyCounts : [],
+      );
       setMaintenanceTasks(Array.isArray(maintenanceJson.tasks) ? maintenanceJson.tasks : []);
 
       const resolvedStatusOptions = Array.isArray(valuationsJson.statusOptions)
@@ -323,6 +403,7 @@ export default function AdminDashboard() {
     if (!isAdmin) {
       setOffers([]);
       setValuations([]);
+      setValuationDailyCounts([]);
       setMaintenanceTasks([]);
       setLoading(false);
       return;
@@ -389,8 +470,53 @@ export default function AdminDashboard() {
   const valuationsThisWeek = useMemo(() => {
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
-    return valuations.filter((valuation) => parseTimestamp(valuation.createdAt) >= weekAgo).length;
+    return valuations.filter((valuation) => {
+      const createdAt = getAdminTimestamp(valuation.createdAt);
+      return createdAt != null && createdAt >= weekAgo;
+    }).length;
   }, [valuations]);
+
+  const valuationVolumeSummary = useMemo(() => {
+    if (!valuationDailyCounts.length) {
+      return null;
+    }
+
+    let total = 0;
+    let maxCount = 0;
+    for (const entry of valuationDailyCounts) {
+      const count = Number(entry?.count) || 0;
+      total += count;
+      if (count > maxCount) {
+        maxCount = count;
+      }
+    }
+
+    const average = total / valuationDailyCounts.length;
+    const todayCount = Number(valuationDailyCounts[valuationDailyCounts.length - 1]?.count ?? 0);
+    const startDate = valuationDailyCounts[0]?.date ? new Date(valuationDailyCounts[0].date) : null;
+    const endDate = valuationDailyCounts[valuationDailyCounts.length - 1]?.date
+      ? new Date(valuationDailyCounts[valuationDailyCounts.length - 1].date)
+      : null;
+    const dateFormatter = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' });
+    const averageFormatter = new Intl.NumberFormat(undefined, {
+      minimumFractionDigits: average < 1 ? 1 : 0,
+      maximumFractionDigits: average < 1 ? 1 : 0,
+    });
+    const integerFormatter = new Intl.NumberFormat(undefined, {
+      maximumFractionDigits: 0,
+    });
+
+    return {
+      average,
+      averageLabel: averageFormatter.format(average),
+      todayCount,
+      todayLabel: integerFormatter.format(todayCount),
+      maxCount,
+      maxLabel: integerFormatter.format(maxCount),
+      startLabel: startDate ? dateFormatter.format(startDate) : null,
+      endLabel: endDate ? dateFormatter.format(endDate) : null,
+    };
+  }, [valuationDailyCounts]);
 
   const salesOffers = useMemo(
     () => offers.filter((offer) => offer.type === 'sale'),
@@ -426,26 +552,17 @@ export default function AdminDashboard() {
   );
 
   const lastActivityLabel = useMemo(() => {
-    const timestamps = [
+    const latestTimestamp = resolveLatestAdminTimestamp(
       ...valuations.map((valuation) => valuation.updatedAt || valuation.createdAt),
       ...offers.map((offer) => offer.updatedAt || offer.date),
       ...maintenanceTasks.map((task) => task.updatedAt || task.dueAt || task.createdAt),
-    ]
-      .map((value) => {
-        if (!value) {
-          return null;
-        }
+    );
 
-        const timestamp = new Date(value).getTime();
-        return Number.isNaN(timestamp) ? null : timestamp;
-      })
-      .filter((value) => typeof value === 'number');
-
-    if (!timestamps.length) {
+    if (latestTimestamp == null) {
       return null;
     }
 
-    return formatDate(new Date(Math.max(...timestamps)));
+    return formatDate(latestTimestamp);
   }, [offers, maintenanceTasks, valuations]);
 
   const handleConnectClick = useCallback(() => {
@@ -683,6 +800,33 @@ export default function AdminDashboard() {
               <dd>{valuations.length}</dd>
             </div>
           </dl>
+          {valuationVolumeSummary ? (
+            <div className={styles.valuationVolume}>
+              <div className={styles.valuationVolumeHeader}>
+                <div>
+                  <p className={styles.valuationVolumeTitle}>Request volume</p>
+                  <p className={styles.valuationVolumeSubtitle}>
+                    Avg {valuationVolumeSummary.averageLabel} per day · Peak {valuationVolumeSummary.maxLabel}
+                  </p>
+                </div>
+                <div className={styles.valuationVolumeToday}>
+                  <span className={styles.valuationVolumeTodayCount}>
+                    {valuationVolumeSummary.todayLabel}
+                  </span>
+                  <span className={styles.valuationVolumeTodayLabel}>today</span>
+                </div>
+              </div>
+              <Sparkline data={valuationDailyCounts} className={styles.valuationSparkline} />
+              <div className={styles.valuationVolumeMeta} aria-hidden="true">
+                <span>{valuationVolumeSummary.startLabel}</span>
+                <span>{valuationVolumeSummary.endLabel}</span>
+              </div>
+              <p className="sr-only">
+                Valuation request volume over the last {valuationDailyCounts.length} days. Peak day had{' '}
+                {valuationVolumeSummary.maxLabel} requests.
+              </p>
+            </div>
+          ) : null}
           <button
             type="button"
             className={styles.refreshButton}
@@ -986,7 +1130,12 @@ export default function AdminDashboard() {
                       ) : null}
                       {task.costEstimate != null ? (
                         <div className={styles.meta}>
-                          Est. cost £{Number(task.costEstimate).toLocaleString('en-GB')}
+                          {`Est. cost ${
+                            formatAdminCurrency(task.costEstimate, {
+                              currency: 'GBP',
+                              maximumFractionDigits: 0,
+                            }) || '—'
+                          }`}
                         </div>
                       ) : null}
                     </td>
