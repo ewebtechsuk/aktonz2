@@ -1,142 +1,75 @@
-export const ADMIN_LOCALE = 'en-GB';
+const DEFAULT_ADMIN_LOCALE = 'en-GB';
 
-export type DateInput = Date | string | number | null | undefined;
-export type NumericInput = number | string | null | undefined;
-
-function isValidDate(date: Date): boolean {
-  return Number.isFinite(date.getTime());
-}
-
-function normalizeDate(value: DateInput): Date | null {
-  if (value instanceof Date) {
-    return isValidDate(value) ? value : null;
-  }
-
-  if (typeof value === 'number') {
-    if (!Number.isFinite(value)) {
-      return null;
-    }
-    const date = new Date(value);
-    return isValidDate(date) ? date : null;
-  }
-
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    if (!trimmed) {
-      return null;
-    }
-    const date = new Date(trimmed);
-    return isValidDate(date) ? date : null;
-  }
-
-  return null;
-}
-
-function formatWithFormatter(formatter: Intl.DateTimeFormat, value: DateInput): string {
-  const date = normalizeDate(value);
-  return date ? formatter.format(date) : '';
-}
-
-export function parseAdminDate(value: DateInput): Date | null {
-  return normalizeDate(value);
-}
-
-export function getAdminTimestamp(value: DateInput): number | null {
-  const date = normalizeDate(value);
-  return date ? date.getTime() : null;
-}
-
-export function resolveLatestAdminTimestamp(...values: DateInput[]): number | null {
-  let latest: number | null = null;
-
-  values.forEach((value) => {
-    const timestamp = getAdminTimestamp(value);
-    if (timestamp != null && (latest == null || timestamp > latest)) {
-      latest = timestamp;
-    }
-  });
-
-  return latest;
-}
-
-export function createAdminDateFormatter(
-  options?: Intl.DateTimeFormatOptions,
-): (value: DateInput) => string {
-  const formatter = new Intl.DateTimeFormat(ADMIN_LOCALE, options);
-  return (value: DateInput) => formatWithFormatter(formatter, value);
-}
-
-const DEFAULT_DATE_OPTIONS: Intl.DateTimeFormatOptions = Object.freeze({
+export const DATE_ONLY: Intl.DateTimeFormatOptions = {
   day: '2-digit',
   month: 'short',
   year: 'numeric',
-});
+};
+
+export const DATE_TIME_WITH_HOURS: Intl.DateTimeFormatOptions = {
+  ...DATE_ONLY,
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
+export const DATE_TIME_WITH_SECONDS: Intl.DateTimeFormatOptions = {
+  ...DATE_TIME_WITH_HOURS,
+  second: '2-digit',
+};
+
+function parseDateInput(value: unknown): Date | null {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  const timestamp =
+    typeof value === 'number' || typeof value === 'string' ? new Date(value) : new Date(value as any);
+
+  if (Number.isNaN(timestamp.getTime())) {
+    return null;
+  }
+
+  return timestamp;
+}
 
 export function formatAdminDate(
-  value: DateInput,
-  options: Intl.DateTimeFormatOptions = DEFAULT_DATE_OPTIONS,
-): string {
-  const formatter = new Intl.DateTimeFormat(ADMIN_LOCALE, options);
-  return formatWithFormatter(formatter, value);
-}
-
-function normalizeNumber(value: NumericInput): number | null {
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : null;
+  value: unknown,
+  options: Intl.DateTimeFormatOptions = DATE_TIME_WITH_HOURS,
+  locale: string = DEFAULT_ADMIN_LOCALE,
+): string | null {
+  const parsed = parseDateInput(value);
+  if (!parsed) {
+    return null;
   }
 
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    if (!trimmed) {
-      return null;
+  try {
+    return new Intl.DateTimeFormat(locale, options).format(parsed);
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('Unable to format admin date value', error);
     }
-    const numeric = Number(trimmed);
-    return Number.isFinite(numeric) ? numeric : null;
+    return null;
   }
-
-  return null;
 }
 
-export interface AdminCurrencyFormatOptions {
-  currency?: string;
-  minimumFractionDigits?: number;
-  maximumFractionDigits?: number;
-}
-
-export function formatAdminCurrency(
-  value: NumericInput,
-  { currency = 'GBP', minimumFractionDigits, maximumFractionDigits }: AdminCurrencyFormatOptions = {},
+export function formatAdminDateOrDash(
+  value: unknown,
+  options: Intl.DateTimeFormatOptions = DATE_TIME_WITH_HOURS,
+  fallback: string = '—',
+  locale: string = DEFAULT_ADMIN_LOCALE,
 ): string {
-  const numeric = normalizeNumber(value);
-  if (numeric == null) {
-    return '';
-  }
-
-  const options: Intl.NumberFormatOptions = {
-    style: 'currency',
-    currency,
-    currencyDisplay: 'symbol',
-  };
-
-  if (typeof minimumFractionDigits === 'number') {
-    options.minimumFractionDigits = minimumFractionDigits;
-  }
-
-  if (typeof maximumFractionDigits === 'number') {
-    options.maximumFractionDigits = maximumFractionDigits;
-  }
-
-  return new Intl.NumberFormat(ADMIN_LOCALE, options).format(numeric);
+  return formatAdminDate(value, options, locale) ?? fallback;
 }
 
-export function formatAdminNumber(
-  value: NumericInput,
-  options: Intl.NumberFormatOptions = {},
-): string {
-  const numeric = normalizeNumber(value);
-  if (numeric == null) {
-    return '';
+export function getAdminDateSortValue(value: unknown): number {
+  const parsed = parseDateInput(value);
+  if (!parsed) {
+    return 0;
   }
 
-  return new Intl.NumberFormat(ADMIN_LOCALE, options).format(numeric);
+  return parsed.getTime();
 }
