@@ -7,7 +7,12 @@ import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../components/admin/AdminNa
 import styles from '../../styles/Admin.module.css';
 import { useSession } from '../../components/SessionProvider';
 import { describeMicrosoftConnection } from '../../lib/microsoft-connection-status.js';
-import { parseTimestamp, resolveTimestamp } from '../../lib/timestamps.js';
+import {
+  formatAdminCurrency,
+  formatAdminDate,
+  getAdminTimestamp,
+  resolveLatestAdminTimestamp,
+} from '../../lib/admin/formatters';
 
 const DEFAULT_STATUS_OPTIONS = [
   { value: 'new', label: 'New' },
@@ -26,22 +31,21 @@ const INITIAL_MICROSOFT_STATUS_STATE = {
   error: null,
 };
 
+const DATE_TIME_WITH_HOURS = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
 function formatDate(value) {
   if (!value) {
     return '—';
   }
 
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(value));
-  } catch (error) {
-    return value;
-  }
+  const formatted = formatAdminDate(value, DATE_TIME_WITH_HOURS);
+  return formatted || value;
 }
 
 function formatStatusLabel(status, options) {
@@ -389,7 +393,10 @@ export default function AdminDashboard() {
   const valuationsThisWeek = useMemo(() => {
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
-    return valuations.filter((valuation) => parseTimestamp(valuation.createdAt) >= weekAgo).length;
+    return valuations.filter((valuation) => {
+      const createdAt = getAdminTimestamp(valuation.createdAt);
+      return createdAt != null && createdAt >= weekAgo;
+    }).length;
   }, [valuations]);
 
   const salesOffers = useMemo(
@@ -426,26 +433,17 @@ export default function AdminDashboard() {
   );
 
   const lastActivityLabel = useMemo(() => {
-    const timestamps = [
+    const latestTimestamp = resolveLatestAdminTimestamp(
       ...valuations.map((valuation) => valuation.updatedAt || valuation.createdAt),
       ...offers.map((offer) => offer.updatedAt || offer.date),
       ...maintenanceTasks.map((task) => task.updatedAt || task.dueAt || task.createdAt),
-    ]
-      .map((value) => {
-        if (!value) {
-          return null;
-        }
+    );
 
-        const timestamp = new Date(value).getTime();
-        return Number.isNaN(timestamp) ? null : timestamp;
-      })
-      .filter((value) => typeof value === 'number');
-
-    if (!timestamps.length) {
+    if (latestTimestamp == null) {
       return null;
     }
 
-    return formatDate(new Date(Math.max(...timestamps)));
+    return formatDate(latestTimestamp);
   }, [offers, maintenanceTasks, valuations]);
 
   const handleConnectClick = useCallback(() => {
@@ -986,7 +984,12 @@ export default function AdminDashboard() {
                       ) : null}
                       {task.costEstimate != null ? (
                         <div className={styles.meta}>
-                          Est. cost £{Number(task.costEstimate).toLocaleString('en-GB')}
+                          {`Est. cost ${
+                            formatAdminCurrency(task.costEstimate, {
+                              currency: 'GBP',
+                              maximumFractionDigits: 0,
+                            }) || '—'
+                          }`}
                         </div>
                       ) : null}
                     </td>

@@ -6,7 +6,11 @@ import { useRouter } from 'next/router';
 import { useSession } from '../../../components/SessionProvider';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import styles from '../../../styles/AdminValuations.module.css';
-import { parseTimestamp } from '../../../lib/timestamps.js';
+import {
+  formatAdminDate,
+  getAdminTimestamp,
+  parseAdminDate,
+} from '../../../lib/admin/formatters';
 
 const DEFAULT_STATUS_OPTIONS = [
   { value: 'new', label: 'New' },
@@ -16,22 +20,21 @@ const DEFAULT_STATUS_OPTIONS = [
   { value: 'archived', label: 'Archived' },
 ];
 
+const DATE_TIME_WITH_HOURS = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
 function formatDate(value) {
   if (!value) {
     return '—';
   }
 
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(value));
-  } catch (error) {
-    return value;
-  }
+  const formatted = formatAdminDate(value, DATE_TIME_WITH_HOURS);
+  return formatted || value;
 }
 
 function getPresentationLabel(entry) {
@@ -174,8 +177,8 @@ function toDateTimeLocalInputValue(value) {
     return '';
   }
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
+  const date = parseAdminDate(value);
+  if (!date) {
     return '';
   }
 
@@ -233,7 +236,11 @@ export default function AdminValuationsPage() {
         return;
       }
       const entries = Array.isArray(payload.valuations) ? payload.valuations.slice() : [];
-      entries.sort((a, b) => parseTimestamp(b?.createdAt) - parseTimestamp(a?.createdAt));
+      entries.sort((a, b) => {
+        const aTimestamp = getAdminTimestamp(a?.createdAt) || 0;
+        const bTimestamp = getAdminTimestamp(b?.createdAt) || 0;
+        return bTimestamp - aTimestamp;
+      });
       setValuations(entries);
 
       const sections = Array.isArray(payload.gallery?.sections) ? payload.gallery.sections : [];
@@ -528,8 +535,8 @@ export default function AdminValuationsPage() {
       const nextAppointmentValue = formState.appointmentAt;
       if (nextAppointmentValue !== currentAppointmentValue) {
         if (nextAppointmentValue) {
-          const parsed = new Date(nextAppointmentValue);
-          if (Number.isNaN(parsed.getTime())) {
+          const parsed = parseAdminDate(nextAppointmentValue);
+          if (!parsed) {
             setFormError('Enter a valid appointment date and time.');
             return;
           }

@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import { useSession } from '../../../components/SessionProvider';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import styles from '../../../styles/AdminContactDetails.module.css';
+import { formatAdminCurrency, formatAdminDate } from '../../../lib/admin/formatters';
 
 const STAGE_TONE_CLASS = {
   positive: styles.stagePositive,
@@ -78,22 +79,21 @@ function normalizeRouteParam(value) {
   return typeof value === 'string' ? value : null;
 }
 
+const DATE_TIME_WITH_HOURS = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
 function formatDateTime(value) {
   if (!value) {
     return '—';
   }
 
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(value));
-  } catch (error) {
-    return value;
-  }
+  const formatted = formatAdminDate(value, DATE_TIME_WITH_HOURS);
+  return formatted || value;
 }
 
 function formatRelativeTime(timestamp) {
@@ -159,15 +159,12 @@ function formatCurrency(value) {
     return null;
   }
 
-  try {
-    return new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: 'GBP',
-      maximumFractionDigits: 0,
-    }).format(value);
-  } catch (error) {
-    return `£${Math.round(value).toLocaleString('en-GB')}`;
-  }
+  const formatted = formatAdminCurrency(value, {
+    currency: 'GBP',
+    maximumFractionDigits: 0,
+  });
+
+  return formatted || null;
 }
 
 function formatBudget(budget = {}) {
