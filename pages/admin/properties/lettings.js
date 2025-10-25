@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 
@@ -79,6 +79,8 @@ export default function AdminLettingsPropertyPage() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchPerformed, setSearchPerformed] = useState(false);
 
+  const searchAbortControllerRef = useRef(null);
+
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [submitSuccess, setSubmitSuccess] = useState(null);
@@ -89,7 +91,7 @@ export default function AdminLettingsPropertyPage() {
       return;
     }
 
-    let cancelled = false;
+    const controller = new AbortController();
 
     const fetchMetadata = async () => {
       setMetadata((prev) => ({ ...prev, loading: true, error: null }));
@@ -98,6 +100,7 @@ export default function AdminLettingsPropertyPage() {
         const response = await fetch('/api/admin/properties/lettings', {
           method: 'GET',
           headers: { accept: 'application/json' },
+          signal: controller.signal,
         });
 
         if (!response.ok) {
@@ -105,8 +108,7 @@ export default function AdminLettingsPropertyPage() {
         }
 
         const payload = await response.json();
-
-        if (cancelled) {
+        if (controller.signal.aborted) {
           return;
         }
 
@@ -129,20 +131,24 @@ export default function AdminLettingsPropertyPage() {
           },
         });
       } catch (error) {
-        if (!cancelled) {
-          setMetadata((prev) => ({
-            ...prev,
-            loading: false,
-            error: error instanceof Error ? error.message : 'Unable to load lettings metadata',
-          }));
+        if (
+          controller.signal.aborted ||
+          (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError')
+        ) {
+          return;
         }
+        setMetadata((prev) => ({
+          ...prev,
+          loading: false,
+          error: error instanceof Error ? error.message : 'Unable to load lettings metadata',
+        }));
       }
     };
 
     void fetchMetadata();
 
     return () => {
-      cancelled = true;
+      controller.abort();
     };
   }, [isAdmin]);
 
@@ -164,13 +170,23 @@ export default function AdminLettingsPropertyPage() {
   const handleSearch = useCallback(
     async (event) => {
       event.preventDefault();
+
+      if (searchAbortControllerRef.current) {
+        searchAbortControllerRef.current.abort();
+        searchAbortControllerRef.current = null;
+      }
+
       const trimmed = searchTerm.trim();
       if (!trimmed) {
         setSearchResults([]);
         setSearchError('Enter a keyword to search existing lettings.');
         setSearchPerformed(false);
+        setSearching(false);
         return;
       }
+
+      const controller = new AbortController();
+      searchAbortControllerRef.current = controller;
 
       setSearchError(null);
       setSearching(true);
@@ -181,6 +197,7 @@ export default function AdminLettingsPropertyPage() {
         const response = await fetch(`/api/admin/properties/lettings?${params.toString()}`, {
           method: 'GET',
           headers: { accept: 'application/json' },
+          signal: controller.signal,
         });
 
         if (!response.ok) {
@@ -188,18 +205,40 @@ export default function AdminLettingsPropertyPage() {
         }
 
         const payload = await response.json();
+        if (controller.signal.aborted) {
+          return;
+        }
         setSearchResults(Array.isArray(payload?.results) ? payload.results : []);
         setSearchError(null);
         setSearchPerformed(true);
       } catch (error) {
+        if (
+          controller.signal.aborted ||
+          (error && typeof error === 'object' && 'name' in error && error.name === 'AbortError')
+        ) {
+          return;
+        }
         setSearchResults([]);
         setSearchPerformed(false);
         setSearchError(error instanceof Error ? error.message : 'Unable to search lettings right now.');
       } finally {
-        setSearching(false);
+        if (searchAbortControllerRef.current === controller) {
+          setSearching(false);
+          searchAbortControllerRef.current = null;
+        }
       }
     },
     [searchTerm],
+  );
+
+  useEffect(
+    () => () => {
+      if (searchAbortControllerRef.current) {
+        searchAbortControllerRef.current.abort();
+        searchAbortControllerRef.current = null;
+      }
+    },
+    [],
   );
 
   const handleSubmit = useCallback(
