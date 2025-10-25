@@ -4,20 +4,37 @@
   padding: var(--spacing-md);
 }
 
+.main h1,
+.main h2 {
+  overflow-wrap: anywhere;
+}
+
+.sectionContainer {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
 .hero {
-  display: flex;
-  gap: var(--spacing-lg);
   margin-bottom: var(--spacing-xl);
-  align-items: flex-start;
+}
+
+.heroGrid {
+  display: grid;
+  gap: var(--spacing-xl);
+  width: 100%;
+  grid-template-columns: 1fr;
 }
 
 .sliderWrapper {
-  width: 60%;
+  width: 100%;
+  min-width: 0;
 }
 
 .summary {
   flex: 1;
   min-width: 0;
+  --summary-gap: var(--spacing-sm);
 }
 
 .summaryGrid {
@@ -58,11 +75,18 @@
   }
 }
 
+@media (min-width: 960px) {
+  .heroGrid {
+    grid-template-columns: minmax(0, 58%) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
 .summaryIntro {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--summary-gap);
   color: var(--color-muted-text);
   font-size: 0.95rem;
 }
@@ -78,6 +102,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
 }
 
 .locationLabel {
@@ -104,6 +129,7 @@
   margin: 0;
   font-size: clamp(2rem, 2.6vw, 2.75rem);
   line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 
 .favoriteButton {
@@ -113,7 +139,7 @@
 .summaryDescription {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--summary-gap);
   color: var(--color-muted-text);
   font-size: 1.05rem;
   line-height: 1.7;
@@ -126,10 +152,11 @@
 .statsList {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-sm);
+  gap: var(--summary-gap);
   list-style: none;
   margin: 0;
   padding: 0;
+  overflow-wrap: anywhere;
 }
 
 .statItem {
@@ -224,6 +251,7 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  overflow-wrap: anywhere;
 }
 
 .priceHeadline {
@@ -388,13 +416,11 @@
 
 @media (max-width: 768px) {
   .hero {
-    flex-direction: column;
-    gap: var(--spacing-md);
     margin-bottom: var(--spacing-lg);
   }
 
-  .sliderWrapper {
-    width: 100%;
+  .heroGrid {
+    gap: var(--spacing-lg);
   }
 
   .summary {
