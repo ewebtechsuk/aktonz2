@@ -6,6 +6,11 @@ import { useRouter } from 'next/router';
 import { useSession } from '../../../components/SessionProvider';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import styles from '../../../styles/AdminContactDetails.module.css';
+import {
+  DATE_TIME_WITH_HOURS as DATE_TIME_WITH_HOURS_FORMAT,
+  formatAdminCurrency,
+  formatAdminDateOrDash,
+} from '../../../lib/admin/formatters';
 
 const STAGE_TONE_CLASS = {
   positive: styles.stagePositive,
@@ -79,21 +84,7 @@ function normalizeRouteParam(value) {
 }
 
 function formatDateTime(value) {
-  if (!value) {
-    return '—';
-  }
-
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(value));
-  } catch (error) {
-    return value;
-  }
+  return formatAdminDateOrDash(value, DATE_TIME_WITH_HOURS_FORMAT);
 }
 
 function formatRelativeTime(timestamp) {
@@ -154,29 +145,26 @@ function formatDueLabel(dueTimestamp) {
   return `${overdueDays} days overdue`;
 }
 
-function formatCurrency(value) {
-  if (!Number.isFinite(value)) {
-    return null;
-  }
-
-  try {
-    return new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: 'GBP',
-      maximumFractionDigits: 0,
-    }).format(value);
-  } catch (error) {
-    return `£${Math.round(value).toLocaleString('en-GB')}`;
-  }
-}
-
 function formatBudget(budget = {}) {
   const lines = [];
-  if (Number.isFinite(budget.saleMax)) {
-    lines.push(`Purchase up to ${formatCurrency(budget.saleMax)}`);
+  const saleAmount = formatAdminCurrency(budget.saleMax, budget.saleCurrency || budget.currency || 'GBP', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+  if (saleAmount) {
+    lines.push(`Purchase up to ${saleAmount}`);
   }
-  if (Number.isFinite(budget.rentMax)) {
-    lines.push(`Rent up to ${formatCurrency(budget.rentMax)} pcm`);
+
+  const rentAmount = formatAdminCurrency(budget.rentMax, budget.rentCurrency || budget.currency || 'GBP', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+  if (rentAmount) {
+    const frequencyRaw =
+      typeof budget.rentFrequency === 'string' && budget.rentFrequency.trim()
+        ? budget.rentFrequency.trim().toLowerCase()
+        : 'pcm';
+    lines.push(`Rent up to ${rentAmount} ${frequencyRaw}`);
   }
   return lines;
 }
@@ -397,6 +385,7 @@ function normaliseManagementOptions(options) {
 
 export default function AdminContactDetailsPage() {
   const router = useRouter();
+  const basePath = router?.basePath ?? '';
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
 
@@ -435,7 +424,7 @@ export default function AdminContactDetailsPage() {
       setError('');
 
       try {
-        const response = await fetch(`/api/admin/contacts/${encodeURIComponent(contactId)}`, {
+        const response = await fetch(`${basePath}/api/admin/contacts/${encodeURIComponent(contactId)}`, {
           signal: controller.signal,
         });
 
@@ -478,7 +467,7 @@ export default function AdminContactDetailsPage() {
     loadContact();
 
     return () => controller.abort();
-  }, [router.isReady, sessionLoading, isAdmin, contactId]);
+  }, [basePath, router.isReady, sessionLoading, isAdmin, contactId]);
 
   const pageTitle = contact
     ? `${contact.name} • Admin contacts`
@@ -559,69 +548,66 @@ export default function AdminContactDetailsPage() {
     setFormStatus(INITIAL_STATUS_STATE);
   }, [contact]);
 
-  const handleManagementSubmit = useCallback(
-    async (event) => {
-      event.preventDefault();
+  const handleManagementSubmit = useCallback(async (event) => {
+    event.preventDefault();
 
-      if (!contactId) {
-        return;
-      }
+    if (!contactId) {
+      return;
+    }
 
-      setSaving(true);
-      setFormStatus(INITIAL_STATUS_STATE);
+    setSaving(true);
+    setFormStatus(INITIAL_STATUS_STATE);
 
+    try {
+      const payload = buildManagementPayloadFromState(formState);
+      const response = await fetch(`${basePath}/api/admin/contacts/${encodeURIComponent(contactId)}`, {
+        method: 'PATCH',
+        headers: {
+          'content-type': 'application/json',
+          accept: 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      let result = null;
       try {
-        const payload = buildManagementPayloadFromState(formState);
-        const response = await fetch(`/api/admin/contacts/${encodeURIComponent(contactId)}`, {
-          method: 'PATCH',
-          headers: {
-            'content-type': 'application/json',
-            accept: 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-
-        let result = null;
-        try {
-          result = await response.json();
-        } catch (parseError) {
-          result = null;
-        }
-
-        if (!response.ok) {
-          const message = result?.error || 'Unable to update contact right now. Please try again.';
-          const details = Array.isArray(result?.details)
-            ? result.details.filter(Boolean).map((item) => String(item))
-            : [];
-          const error = new Error(message);
-          error.details = details;
-          throw error;
-        }
-
-        if (!result?.contact) {
-          throw new Error('Contact not found in response.');
-        }
-
-        setContact(result.contact);
-        setOptions(normaliseManagementOptions(result.options));
-        setFormState(buildManagementFormState(result.contact));
-        setFormStatus({ type: 'success', message: 'Contact updated successfully.', details: [] });
-      } catch (submitError) {
-        console.error('Failed to update contact', submitError);
-        const message =
-          submitError instanceof Error && submitError.message
-            ? submitError.message
-            : 'Unable to update contact right now. Please try again.';
-        const details = Array.isArray(submitError?.details)
-          ? submitError.details.filter(Boolean).map((item) => String(item))
-          : [];
-        setFormStatus({ type: 'error', message, details });
-      } finally {
-        setSaving(false);
+        result = await response.json();
+      } catch (parseError) {
+        result = null;
       }
-    },
-    [contactId, formState],
-  );
+
+      if (!response.ok) {
+        const message = result?.error || 'Unable to update contact right now. Please try again.';
+        const details = Array.isArray(result?.details)
+          ? result.details.filter(Boolean).map((item) => String(item))
+          : [];
+        const error = new Error(message);
+        error.details = details;
+        throw error;
+      }
+
+      if (!result?.contact) {
+        throw new Error('Contact not found in response.');
+      }
+
+      setContact(result.contact);
+      setOptions(normaliseManagementOptions(result.options));
+      setFormState(buildManagementFormState(result.contact));
+      setFormStatus({ type: 'success', message: 'Contact updated successfully.', details: [] });
+    } catch (submitError) {
+      console.error('Failed to update contact', submitError);
+      const message =
+        submitError instanceof Error && submitError.message
+          ? submitError.message
+          : 'Unable to update contact right now. Please try again.';
+      const details = Array.isArray(submitError?.details)
+        ? submitError.details.filter(Boolean).map((item) => String(item))
+        : [];
+      setFormStatus({ type: 'error', message, details });
+    } finally {
+      setSaving(false);
+    }
+  }, [basePath, contactId, formState]);
 
   const mainDetails = contact
     ? [
