@@ -7,6 +7,7 @@ import NeighborhoodInfo from '../../components/NeighborhoodInfo';
 import FavoriteButton from '../../components/FavoriteButton';
 import PropertySustainabilityPanel from '../../components/PropertySustainabilityPanel';
 import AgentCard from '../../components/AgentCard';
+import SectionNav from '../../components/SectionNav';
 
 import MortgageCalculator from '../../components/MortgageCalculator';
 import RentAffordability from '../../components/RentAffordability';
@@ -1101,42 +1102,22 @@ export default function Property({ property, recommendations }) {
           </div>
         </section>
 
-      {hasLocation && (
-        <section className={`${styles.contentRail} ${styles.mapSection}`}>
-          <h2>Location</h2>
-          <div className={styles.mapContainer}>
-            <PropertyMap
-              mapId="property-details-map"
-              center={[property.latitude, property.longitude]}
-              zoom={16}
-              properties={mapProperties}
-            />
-          </div>
-        </section>
-      )}
+        <SectionNav sections={navSections} />
 
-      {features.length > 0 && (
-        <section className={`${styles.contentRail} ${styles.features}`}>
-          <h2>Key features</h2>
-          <ul>
-            {features.map((f, i) => (
-              <li key={i}>{f}</li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section className={`${styles.contentRail} ${styles.modules}`}>
-        {agentProfile && (
-          <AgentCard className={styles.agentCard} agent={agentProfile} />
-        )}
-        <PropertySustainabilityPanel property={property} />
-
-        <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
-        {!property.rentFrequency && property.price && (
-          <section className={styles.calculatorSection}>
-            <h2>Mortgage Calculator</h2>
-            <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+        {hasLocation && (
+          <section
+            id="property-location"
+            className={`${styles.contentRail} ${styles.mapSection} ${styles.sectionAnchor}`}
+          >
+            <h2>Location</h2>
+            <div className={styles.mapContainer}>
+              <PropertyMap
+                mapId="property-details-map"
+                center={[property.latitude, property.longitude]}
+                zoom={16}
+                properties={mapProperties}
+              />
+            </div>
           </section>
         )}
 
@@ -1153,34 +1134,37 @@ export default function Property({ property, recommendations }) {
             </ul>
           </section>
         )}
-      </section>
 
         <div className={`${styles.contentRail} ${styles.modules}`}>
+          {agentProfile && (
+            <AgentCard className={styles.agentCard} agent={agentProfile} />
+          )}
           <PropertySustainabilityPanel property={property} />
-
           <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
-          {showMortgageCalculator && (
-            <section
-              id="property-calculators"
-              className={`${styles.calculatorSection} ${styles.sectionAnchor}`}
-            >
-              <h2>Mortgage Calculator</h2>
-              <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
-            </section>
-          )}
-
-          {showRentCalculator && (
-            <section
-              id={showMortgageCalculator ? undefined : 'property-calculators'}
-              className={`${styles.calculatorSection} ${styles.sectionAnchor}`}
-            >
-              <h2>Rent Affordability</h2>
-              <RentAffordability
-                defaultRent={rentToMonthly(property.price, property.rentFrequency)}
-              />
-            </section>
-          )}
         </div>
+
+        {(showMortgageCalculator || showRentCalculator) && (
+          <section
+            id="property-calculators"
+            className={`${styles.contentRail} ${styles.modules} ${styles.sectionAnchor}`}
+          >
+            {showMortgageCalculator && (
+              <section className={styles.calculatorSection}>
+                <h2>Mortgage Calculator</h2>
+                <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+              </section>
+            )}
+
+            {showRentCalculator && (
+              <section className={styles.calculatorSection}>
+                <h2>Rent Affordability</h2>
+                <RentAffordability
+                  defaultRent={rentToMonthly(property.price, property.rentFrequency)}
+                />
+              </section>
+            )}
+          </section>
+        )}
 
         <section className={`${styles.contentRail} ${styles.contact}`}>
           <p>Interested in this property?</p>
