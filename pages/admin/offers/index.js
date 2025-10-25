@@ -116,6 +116,7 @@ const STATUS_OPTIONS = getOfferStatusOptions();
 
 export default function AdminOffersPage() {
   const router = useRouter();
+  const basePath = router?.basePath ?? '';
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
   const pageTitle = 'Aktonz Admin — Offers workspace';
@@ -150,7 +151,7 @@ export default function AdminOffersPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/admin/offers', { signal });
+      const response = await fetch(`${basePath}/api/admin/offers`, { signal });
       if (!response.ok) {
         throw new Error('Failed to fetch offers');
       }
@@ -180,7 +181,7 @@ export default function AdminOffersPage() {
         setLoading(false);
       }
     }
-  }, [isAdmin]);
+  }, [basePath, isAdmin]);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -331,7 +332,7 @@ export default function AdminOffersPage() {
           additionalConditions: statusForm.additionalConditions || '',
         };
 
-        const response = await fetch(`/api/admin/offers/${selectedOffer.id}`, {
+        const response = await fetch(`${basePath}/api/admin/offers/${selectedOffer.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -387,7 +388,7 @@ export default function AdminOffersPage() {
         setUpdating(false);
       }
     },
-    [selectedOffer, statusForm],
+    [basePath, selectedOffer, statusForm],
   );
 
   if (sessionLoading) {

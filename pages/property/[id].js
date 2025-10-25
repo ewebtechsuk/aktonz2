@@ -415,6 +415,173 @@ function deriveCouncilTaxBand(rawProperty) {
   return null;
 }
 
+function normalizeTenureValue(value) {
+  if (value == null) {
+    return null;
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const normalized = trimmed.toLowerCase();
+    const collapsed = normalized.replace(/[\s_-]+/g, '');
+
+    if (['fh', 'freehold', 'freeholder'].includes(collapsed)) {
+      return 'Freehold';
+    }
+
+    if (['lh', 'leasehold', 'leaseholder', 'lease'].includes(collapsed)) {
+      return 'Leasehold';
+    }
+
+    if (collapsed.includes('shareoffreehold') || collapsed.includes('sharefreehold')) {
+      return 'Share of freehold';
+    }
+
+    if (normalized.includes('commonhold')) {
+      return 'Commonhold';
+    }
+
+    if (normalized.includes('feuhold')) {
+      return 'Feuhold';
+    }
+
+    return trimmed
+      .split(/[\s_]+/)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(' ');
+  }
+
+  return null;
+}
+
+function deriveTenure(rawProperty) {
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return null;
+  }
+
+  const candidates = [
+    rawProperty.tenure,
+    rawProperty.tenureType,
+    rawProperty.tenure_type,
+    rawProperty.tenureStatus,
+    rawProperty.tenureLabel,
+    rawProperty.sales?.tenure,
+    rawProperty.sales?.tenureType,
+    rawProperty.details?.tenure,
+    rawProperty.details?.tenureType,
+    rawProperty._scraye?.tenure,
+    rawProperty._scraye?.tenureType,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) {
+      for (const entry of candidate) {
+        const normalizedEntry = normalizeTenureValue(entry);
+        if (normalizedEntry) {
+          return normalizedEntry;
+        }
+      }
+      continue;
+    }
+
+    if (candidate && typeof candidate === 'object') {
+      const nested = [
+        candidate.value,
+        candidate.type,
+        candidate.label,
+        candidate.name,
+        candidate.description,
+      ];
+      for (const nestedCandidate of nested) {
+        const normalizedNested = normalizeTenureValue(nestedCandidate);
+        if (normalizedNested) {
+          return normalizedNested;
+        }
+      }
+    }
+
+    const normalized = normalizeTenureValue(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return null;
+}
+
+function formatTenureHighlight(value) {
+  if (value == null) {
+    return null;
+  }
+
+  const normalized = normalizeTenureValue(value) ?? (typeof value === 'string' ? value.trim() : '');
+  if (!normalized) {
+    return null;
+  }
+
+  const lower = normalized.toLowerCase();
+  if (lower.includes('tenure')) {
+    return normalized;
+  }
+
+  return `${normalized} tenure`;
+}
+
+function formatEpcHighlight(value) {
+  if (value == null) {
+    return null;
+  }
+
+  const normalized = String(value).trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const lower = normalized.toLowerCase();
+  if (lower.startsWith('epc')) {
+    return normalized;
+  }
+
+  if (/^[A-G]$/i.test(normalized)) {
+    return `EPC ${normalized.toUpperCase()}`;
+  }
+
+  return `EPC ${normalized}`;
+}
+
+function formatCouncilTaxHighlight(value) {
+  if (value == null) {
+    return null;
+  }
+
+  const normalized = String(value).trim();
+  if (!normalized) {
+    return null;
+  }
+
+  if (/^[A-H]$/i.test(normalized)) {
+    return `Council tax band ${normalized.toUpperCase()}`;
+  }
+
+  const bandMatch = /band\s*([A-H])\b/i.exec(normalized);
+  if (bandMatch) {
+    const suffix = normalized.slice(bandMatch.index + bandMatch[0].length).trim();
+    const label = `Council tax band ${bandMatch[1].toUpperCase()}`;
+    return suffix ? `${label} ${suffix}` : label;
+  }
+
+  const lower = normalized.toLowerCase();
+  if (lower.startsWith('council tax')) {
+    return normalized;
+  }
+
+  return `Council tax ${normalized}`;
+}
+
 function normalizeBooleanFlag(value) {
   if (value === true || value === false) {
     return value;
@@ -642,6 +809,26 @@ export default function Property({ property, recommendations }) {
 
     return stats;
   }, [property?.bathrooms, property?.bedrooms, property?.receptions]);
+  const complianceHighlights = useMemo(() => {
+    const highlights = [];
+
+    const epcLabel = formatEpcHighlight(property?.epcScore);
+    if (epcLabel) {
+      highlights.push({ key: 'epc', label: epcLabel });
+    }
+
+    const councilTaxLabel = formatCouncilTaxHighlight(property?.councilTaxBand);
+    if (councilTaxLabel) {
+      highlights.push({ key: 'councilTax', label: councilTaxLabel });
+    }
+
+    const tenureLabel = formatTenureHighlight(property?.tenure);
+    if (tenureLabel) {
+      highlights.push({ key: 'tenure', label: tenureLabel });
+    }
+
+    return highlights;
+  }, [property?.councilTaxBand, property?.epcScore, property?.tenure]);
   const headlinePrice = formattedPrimaryPrice || priceLabel || '';
   const numericPriceValue = useMemo(() => {
     if (property?.priceValue != null && Number.isFinite(Number(property.priceValue))) {
@@ -790,6 +977,33 @@ export default function Property({ property, recommendations }) {
       ? formatPricePrefix(property.pricePrefix)
       : '';
 
+  const showMortgageCalculator = Boolean(!property.rentFrequency && property.price);
+  const showRentCalculator = Boolean(property.rentFrequency && property.price);
+  const hasRecommendations = Array.isArray(recommendations) && recommendations.length > 0;
+
+  const navSections = useMemo(() => {
+    const sectionsList = [];
+    if (hasLocation) {
+      sectionsList.push({ id: 'property-location', label: 'Location' });
+    }
+    if (features.length > 0) {
+      sectionsList.push({ id: 'property-features', label: 'Key features' });
+    }
+    if (showMortgageCalculator || showRentCalculator) {
+      sectionsList.push({ id: 'property-calculators', label: 'Calculators' });
+    }
+    if (hasRecommendations) {
+      sectionsList.push({ id: 'property-recommendations', label: 'Recommendations' });
+    }
+    return sectionsList;
+  }, [
+    features.length,
+    hasLocation,
+    hasRecommendations,
+    showMortgageCalculator,
+    showRentCalculator,
+  ]);
+
   return (
     <>
       <Head>
@@ -819,6 +1033,13 @@ export default function Property({ property, recommendations }) {
                             <strong>{stat.value}</strong> {stat.label}
                           </span>
                         </li>
+                      ))}
+                    </ul>
+                  )}
+                  {complianceHighlights.length > 0 && (
+                    <ul className={styles.complianceHighlights}>
+                      {complianceHighlights.map((highlight) => (
+                        <li key={highlight.key}>{highlight.label}</li>
                       ))}
                     </ul>
                   )}
@@ -919,27 +1140,62 @@ export default function Property({ property, recommendations }) {
           </section>
         )}
 
-        {property.rentFrequency && property.price && (
-          <section className={styles.calculatorSection}>
-            <h2>Rent Affordability</h2>
-            <RentAffordability
-              defaultRent={rentToMonthly(property.price, property.rentFrequency)}
-            />
+        {features.length > 0 && (
+          <section
+            id="property-features"
+            className={`${styles.contentRail} ${styles.features} ${styles.sectionAnchor}`}
+          >
+            <h2>Key features</h2>
+            <ul>
+              {features.map((f, i) => (
+                <li key={i}>{f}</li>
+              ))}
+            </ul>
           </section>
         )}
       </section>
 
-      <section className={`${styles.contentRail} ${styles.contact}`}>
-        <p>Interested in this property?</p>
-        <a href="tel:+441234567890">Call our team</a>
-      </section>
+        <div className={`${styles.contentRail} ${styles.modules}`}>
+          <PropertySustainabilityPanel property={property} />
 
-      {recommendations && recommendations.length > 0 && (
-        <section className={`${styles.contentRail} ${styles.related}`}>
-          <h2>You might also be interested in</h2>
-          <PropertyList properties={recommendations} />
+          <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
+          {showMortgageCalculator && (
+            <section
+              id="property-calculators"
+              className={`${styles.calculatorSection} ${styles.sectionAnchor}`}
+            >
+              <h2>Mortgage Calculator</h2>
+              <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+            </section>
+          )}
+
+          {showRentCalculator && (
+            <section
+              id={showMortgageCalculator ? undefined : 'property-calculators'}
+              className={`${styles.calculatorSection} ${styles.sectionAnchor}`}
+            >
+              <h2>Rent Affordability</h2>
+              <RentAffordability
+                defaultRent={rentToMonthly(property.price, property.rentFrequency)}
+              />
+            </section>
+          )}
+        </div>
+
+        <section className={`${styles.contentRail} ${styles.contact}`}>
+          <p>Interested in this property?</p>
+          <a href="tel:+441234567890">Call our team</a>
         </section>
-      )}
+
+        {hasRecommendations && (
+          <section
+            id="property-recommendations"
+            className={`${styles.contentRail} ${styles.related} ${styles.sectionAnchor}`}
+          >
+            <h2>You might also be interested in</h2>
+            <PropertyList properties={recommendations} />
+          </section>
+        )}
       </main>
     </>
   );
@@ -1046,6 +1302,10 @@ export async function getStaticProps({ params }) {
       rawProperty.rentFrequency
     );
 
+    const derivedEpcScore = deriveEpcScore(rawProperty);
+    const derivedCouncilTaxBand = deriveCouncilTaxBand(rawProperty);
+    const derivedTenure = deriveTenure(rawProperty);
+
     formatted = {
       id: resolvePropertyIdentifier(rawProperty) ?? String(params.id),
       title:
@@ -1068,7 +1328,7 @@ export async function getStaticProps({ params }) {
       images: imgList,
       agentProfile: resolveAgentProfile(rawProperty),
       media: extractMedia(rawProperty),
-      tenure: rawProperty.tenure ?? null,
+      tenure: derivedTenure,
       features: (() => {
         const rawFeatures =
           rawProperty.mainFeatures ||
@@ -1104,8 +1364,8 @@ export async function getStaticProps({ params }) {
       holdingDeposit,
       availableAt: normalizedAvailability,
       scrayeReference: deriveScrayeReference(rawProperty),
-      epcScore: deriveEpcScore(rawProperty),
-      councilTaxBand: deriveCouncilTaxBand(rawProperty),
+      epcScore: derivedEpcScore,
+      councilTaxBand: derivedCouncilTaxBand,
       includedUtilities: deriveIncludedUtilities(rawProperty),
     };
   }

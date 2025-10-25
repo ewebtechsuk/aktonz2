@@ -17,6 +17,71 @@
   margin-bottom: var(--spacing-xl);
 }
 
+.sectionNav {
+  position: sticky;
+  top: calc(50px + var(--spacing-md) * 2);
+  z-index: 750;
+  margin-bottom: var(--spacing-xl);
+}
+
+.sectionNavInner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 999px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.sectionNavList {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.sectionNavList::-webkit-scrollbar {
+  display: none;
+}
+
+.sectionNavItem {
+  flex-shrink: 0;
+}
+
+.sectionNavLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.25rem;
+  border-radius: 999px;
+  color: var(--color-muted-text);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sectionNavLink:hover,
+.sectionNavLink:focus-visible {
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+}
+
+.sectionNavLinkActive {
+  background: var(--color-secondary);
+  color: var(--color-primary);
+  box-shadow: 0 12px 32px rgba(255, 229, 0, 0.35);
+}
+
+.sectionAnchor {
+  scroll-margin-top: calc(50px + var(--spacing-md) * 2 + 72px);
+}
+
 .heroGrid {
   display: grid;
   gap: var(--spacing-xl);
@@ -158,6 +223,28 @@
   margin: 0;
   padding: 0;
   overflow-wrap: anywhere;
+}
+
+.complianceHighlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--summary-gap);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.complianceHighlights li {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .statItem {
