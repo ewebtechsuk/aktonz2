@@ -304,6 +304,90 @@ body {
   flex-grow: 1;
 }
 
+.property-card__highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.property-card__highlight {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(12, 60, 96, 0.12);
+  color: #0c3c60;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: default;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.property-card__highlight:focus-visible {
+  outline: 2px solid rgba(27, 108, 123, 0.45);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(27, 108, 123, 0.1);
+}
+
+.property-card__highlight:hover {
+  background: rgba(12, 60, 96, 0.18);
+  color: #08273f;
+}
+
+.property-card__highlight-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.property-card__highlight:not([data-tooltip=''])::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  transform: translateX(-50%);
+  background: rgba(4, 27, 57, 0.95);
+  color: #ffffff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1.3;
+  box-shadow: 0 10px 24px rgba(4, 27, 57, 0.18);
+  white-space: normal;
+  max-width: 220px;
+  width: max-content;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 2;
+}
+
+.property-card__highlight:not([data-tooltip=''])::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 2px);
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(4, 27, 57, 0.95);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 2;
+}
+
+.property-card__highlight:not([data-tooltip='']):hover::after,
+.property-card__highlight:not([data-tooltip='']):hover::before,
+.property-card__highlight:not([data-tooltip='']):focus-visible::after,
+.property-card__highlight:not([data-tooltip='']):focus-visible::before {
+  opacity: 1;
+}
+
 .property-list--five-per-row .property-card .details {
   padding: var(--spacing-sm);
   gap: 0.35rem;

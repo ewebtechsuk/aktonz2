@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { formatPropertyPriceLabel } from '../lib/rent.js';
+import styles from '../styles/PropertyMap.module.css';
 
 export default function PropertyMap({
   properties = [],
@@ -9,6 +10,7 @@ export default function PropertyMap({
   mapId = 'property-map',
 }) {
   const router = useRouter();
+  const [interactive, setInteractive] = useState(false);
   const centerKey = Array.isArray(center) ? center.join(',') : '';
   const propertiesKey = JSON.stringify(
     properties.map((p) => ({
@@ -25,6 +27,7 @@ export default function PropertyMap({
   );
 
   useEffect(() => {
+    if (!interactive) return;
     if (typeof window === 'undefined') return;
 
     let map;
@@ -93,7 +96,42 @@ export default function PropertyMap({
     return () => {
       if (map) map.remove();
     };
-  }, [propertiesKey, centerKey, zoom, router.basePath, mapId]);
+  }, [interactive, propertiesKey, centerKey, zoom, router.basePath, mapId]);
 
-  return <div id={mapId} style={{ height: 'var(--map-height)', width: '100%' }} />;
+  const enableInteraction = useCallback(() => {
+    setInteractive(true);
+  }, []);
+
+  const handleOverlayKeyDown = useCallback(
+    (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        setInteractive(true);
+      }
+    },
+    []
+  );
+
+  return (
+    <div className={styles.mapWrapper}>
+      <div
+        id={mapId}
+        className={`${styles.map} ${!interactive ? styles.mapDisabled : ''}`}
+        aria-hidden={!interactive}
+      />
+      {!interactive && (
+        <button
+          type="button"
+          role="button"
+          className={styles.overlayButton}
+          onClick={enableInteraction}
+          onKeyDown={handleOverlayKeyDown}
+          aria-label="Enable interactive map"
+        >
+          <span className={styles.overlayLabel}>Enable interactive map</span>
+          <span className={styles.overlayTooltip}>Click to explore the map</span>
+        </button>
+      )}
+    </div>
+  );
 }

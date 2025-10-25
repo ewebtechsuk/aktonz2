@@ -2,6 +2,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import { formatCurrencyGBP, formatPricePrefix } from '../lib/format.mjs';
 import { formatPropertyPriceLabel } from '../lib/rent.js';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
+import { FiClock, FiRefreshCw, FiTrendingUp } from 'react-icons/fi';
 import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
 import {
   normalizeDeposit,
@@ -93,6 +94,16 @@ export default function PropertyCard({ property: propertyProp, variant: variantP
     normalized.startsWith('sold') ||
     normalized.includes('sale agreed') ||
     normalized.startsWith('let');
+
+  const variant = variantProp || (property?.rentFrequency ? 'rent' : 'sale');
+  const isRentVariant = variant === 'rent';
+  const cardClassName = [
+    'property-card',
+    isArchived ? 'archived' : '',
+    variant ? `property-card--${variant}` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const title = property.title || 'Property';
   const sliderKeyPrefix =
@@ -191,7 +202,7 @@ export default function PropertyCard({ property: propertyProp, variant: variantP
 
   const pricePrefixLabel =
     !property.rentFrequency && property.pricePrefix
-      ? formatPricePrefix(property.pricePrefix)
+      ? formatSalePricePrefix(property.pricePrefix)
       : '';
 
   const saleHighlights = useMemo(() => {
@@ -414,6 +425,15 @@ export default function PropertyCard({ property: propertyProp, variant: variantP
   ]
     .filter(Boolean)
     .join(' ');
+
+  const rentChips = [];
+  const showRentChips = isRentVariant && rentChips.length > 0;
+  const saleHighlightList = Array.isArray(saleHighlights) ? saleHighlights : [];
+  const highlightItems = [
+    ...(showRentChips ? rentChips : []),
+    ...(saleHighlightList.length > 0 ? saleHighlightList : []),
+  ];
+  const hasHighlights = highlightItems.length > 0;
 
   return (
     <div className={rootClassName}>
