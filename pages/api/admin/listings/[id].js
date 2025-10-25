@@ -10,6 +10,26 @@ import { listOffersForAdmin } from '../../../../lib/offers-admin.mjs';
 import { listMaintenanceTasksForAdmin } from '../../../../lib/maintenance-admin.mjs';
 import { normalizePropertyIdentifierForComparison } from '../../../../lib/property-id.mjs';
 
+async function safeListOffers(listingId) {
+  try {
+    const offers = await listOffersForAdmin();
+    return Array.isArray(offers) ? offers : [];
+  } catch (error) {
+    console.error('Failed to load admin offers for listing', listingId, error);
+    return [];
+  }
+}
+
+async function safeListMaintenanceTasks(listingId) {
+  try {
+    const tasks = await listMaintenanceTasksForAdmin();
+    return Array.isArray(tasks) ? tasks : [];
+  } catch (error) {
+    console.error('Failed to load admin maintenance tasks for listing', listingId, error);
+    return [];
+  }
+}
+
 function requireAdmin(req, res) {
   const session = readSession(req);
   const admin = getAdminFromSession(session);
@@ -73,9 +93,9 @@ export default async function handler(req, res) {
       registerId(listing?.raw?.sourceId);
       registerId(listing?.raw?.fullReference);
 
-      const [offersResult, maintenanceResult] = await Promise.allSettled([
-        listOffersForAdmin(),
-        listMaintenanceTasksForAdmin(),
+      const [offers, maintenance] = await Promise.all([
+        safeListOffers(listingId),
+        safeListMaintenanceTasks(listingId),
       ]);
 
       if (offersResult.status === 'rejected') {
