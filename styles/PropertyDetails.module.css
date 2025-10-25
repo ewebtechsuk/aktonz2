@@ -396,6 +396,16 @@
   max-width: 100%;
 }
 
+.modules .features,
+.modules .calculatorSection {
+  margin-bottom: 0;
+}
+
+.calculatorGroup {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
 .agentCard {
   display: grid;
   grid-template-columns: minmax(0, 128px) minmax(0, 1fr);
