@@ -1,20 +1,21 @@
 import { importDiaryEvents, deriveWorkingWeek } from '../../../lib/apex27-diary.mjs';
 import { getAdminFromSession } from '../../../lib/admin-users.mjs';
 import { readSession } from '../../../lib/session.js';
+import { createAdminDateFormatter } from '../../../lib/admin/formatters';
 
-const DATE_LABEL_FORMATTER = new Intl.DateTimeFormat('en-GB', {
+const formatDateLabelValue = createAdminDateFormatter({
   weekday: 'short',
   day: '2-digit',
   month: 'short',
 });
 
-const RANGE_LABEL_FORMATTER = new Intl.DateTimeFormat('en-GB', {
+const formatRangeDay = createAdminDateFormatter({
   day: '2-digit',
   month: 'short',
   year: 'numeric',
 });
 
-const TIME_RANGE_FORMATTER = new Intl.DateTimeFormat('en-GB', {
+const formatTimeLabel = createAdminDateFormatter({
   hour: '2-digit',
   minute: '2-digit',
   hour12: false,
@@ -49,7 +50,7 @@ function parseDateOnly(value) {
 }
 
 function formatDateLabel(date) {
-  return DATE_LABEL_FORMATTER.format(date);
+  return formatDateLabelValue(date) || '';
 }
 
 function formatRangeLabel(start, end) {
@@ -57,8 +58,12 @@ function formatRangeLabel(start, end) {
     return null;
   }
 
-  const startLabel = RANGE_LABEL_FORMATTER.format(start);
-  const endLabel = RANGE_LABEL_FORMATTER.format(end);
+  const startLabel = formatRangeDay(start);
+  const endLabel = formatRangeDay(end);
+  if (!startLabel || !endLabel) {
+    return null;
+  }
+
   return `Week of ${startLabel} – ${endLabel}`;
 }
 
@@ -102,12 +107,17 @@ function formatTimeRange(start, end) {
     return null;
   }
 
-  const startLabel = TIME_RANGE_FORMATTER.format(start);
+  const startLabel = formatTimeLabel(start);
   if (!end) {
-    return startLabel;
+    return startLabel || null;
   }
 
-  return `${startLabel} – ${TIME_RANGE_FORMATTER.format(end)}`;
+  const endLabel = formatTimeLabel(end);
+  if (!startLabel || !endLabel) {
+    return startLabel || endLabel || null;
+  }
+
+  return `${startLabel} – ${endLabel}`;
 }
 
 function formatEvent(event) {

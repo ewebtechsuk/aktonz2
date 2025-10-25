@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import { useSession } from '../../../components/SessionProvider';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import styles from '../../../styles/AdminValuations.module.css';
+import { formatAdminDate } from '../../../lib/admin/formatters';
 
 const DEFAULT_STATUS_OPTIONS = [
   { value: 'new', label: 'New' },
@@ -15,22 +16,21 @@ const DEFAULT_STATUS_OPTIONS = [
   { value: 'archived', label: 'Archived' },
 ];
 
+const DATE_TIME_WITH_HOURS = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
 function formatDate(value) {
   if (!value) {
     return '—';
   }
 
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(value));
-  } catch (error) {
-    return value;
-  }
+  const formatted = formatAdminDate(value, DATE_TIME_WITH_HOURS);
+  return formatted || value;
 }
 
 function getPresentationLabel(entry) {

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { useMemo } from 'react';
 
 import styles from '../../styles/AdminContactCard.module.css';
+import { formatAdminDate } from '../../lib/admin/formatters';
 
 type AnyRecord = Record<string, unknown>;
 
@@ -295,6 +296,13 @@ function resolveContactProfile(dossier: ContactDossier | null | undefined): Cont
   };
 }
 
+const CONTACT_DATE_TIME = {
+  day: '2-digit',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
 function formatDate(value: unknown): string | null {
   if (!value) {
     return null;
@@ -305,16 +313,8 @@ function formatDate(value: unknown): string | null {
     return null;
   }
 
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
-  } catch (err) {
-    return date.toLocaleString();
-  }
+  const formatted = formatAdminDate(date, CONTACT_DATE_TIME);
+  return formatted || date.toLocaleString();
 }
 
 function renderStatePanel(title: string, description: string | null, tone: 'loading' | 'info' | 'error') {
