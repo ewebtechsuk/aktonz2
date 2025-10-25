@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { formatPricePrefix } from '../lib/format.mjs';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import { formatCurrencyGBP, formatPricePrefix } from '../lib/format.mjs';
 import { formatPropertyPriceLabel } from '../lib/rent.js';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
 import { formatPropertyTypeLabel } from '../lib/property-type.mjs';
@@ -9,7 +9,84 @@ import {
   formatAvailabilityDate,
 } from '../lib/deposits.mjs';
 
-export default function PropertyCard({ property }) {
+function formatSalePricePrefix(prefix) {
+  if (prefix == null) {
+    return null;
+  }
+
+  const formatted = formatPricePrefix(prefix);
+  if (formatted && typeof formatted === 'string') {
+    return formatted;
+  }
+
+  const normalized = String(prefix).trim();
+  if (!normalized) {
+    return null;
+  }
+
+  return normalized
+    .toLowerCase()
+    .split(/[_\s]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function formatTenureLabel(value) {
+  if (!value) {
+    return null;
+  }
+
+  const normalized = String(value).trim();
+  if (!normalized) {
+    return null;
+  }
+
+  return normalized
+    .toLowerCase()
+    .split(/[_\s]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function formatLeaseLength({ leaseYearsRemaining, leaseDuration }) {
+  const candidate = leaseYearsRemaining ?? leaseDuration;
+  if (candidate == null) {
+    return null;
+  }
+
+  const numeric = Number(candidate);
+  if (Number.isFinite(numeric) && numeric > 0) {
+    const rounded = Math.round(numeric);
+    const label = `${rounded} year${rounded === 1 ? '' : 's'}`;
+    return label;
+  }
+
+  const normalized = String(candidate).trim();
+  return normalized || null;
+}
+
+function formatAnnualAmount(amount) {
+  if (amount == null) {
+    return null;
+  }
+
+  const numeric = Number(amount);
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return null;
+  }
+
+  const hasPennies = Math.abs(numeric % 1) > 0;
+  const formatted = formatCurrencyGBP(numeric, {
+    minimumFractionDigits: hasPennies ? 2 : 0,
+    maximumFractionDigits: hasPennies ? 2 : 0,
+  });
+
+  return formatted;
+}
+
+export default function PropertyCard({ property: propertyProp, variant: variantProp } = {}) {
+  const property = propertyProp ?? {};
+  const cardVariant = variantProp ?? null;
   const rawStatus = property.status ? property.status.replace(/_/g, ' ') : null;
   const normalized = rawStatus ? rawStatus.toLowerCase() : '';
   const isArchived =
@@ -108,16 +185,88 @@ export default function PropertyCard({ property }) {
     property.typeLabel ??
     formatPropertyTypeLabel(property.propertyType ?? property.type ?? null);
 
+  const isSaleListing = property?.transactionType
+    ? String(property.transactionType).toLowerCase() === 'sale'
+    : !property?.rentFrequency;
+
   const pricePrefixLabel =
     !property.rentFrequency && property.pricePrefix
       ? formatPricePrefix(property.pricePrefix)
       : '';
 
-  const priceLabel = formatPropertyPriceLabel(property);
+  const saleHighlights = useMemo(() => {
+    if (!isSaleListing) {
+      return [];
+    }
 
-  const isSaleListing = property?.transactionType
-    ? String(property.transactionType).toLowerCase() === 'sale'
-    : !property?.rentFrequency;
+    const highlights = [];
+
+    const tenureLabel = formatTenureLabel(property?.tenure);
+    if (tenureLabel) {
+      highlights.push({
+        key: 'tenure',
+        label: 'Tenure',
+        value: tenureLabel,
+      });
+    }
+
+    const leaseLabel = formatLeaseLength({
+      leaseYearsRemaining: property?.leaseYearsRemaining,
+      leaseDuration: property?.leaseDuration,
+    });
+    if (leaseLabel) {
+      highlights.push({
+        key: 'lease-length',
+        label: 'Lease remaining',
+        value: leaseLabel,
+      });
+    }
+
+    const serviceCharge = formatAnnualAmount(property?.serviceChargeAmount);
+    if (serviceCharge) {
+      const description = property?.serviceChargeDescription;
+      const suffix = description ? ` ${description}` : ' pa';
+      highlights.push({
+        key: 'service-charge',
+        label: 'Service charge',
+        value: `${serviceCharge}${suffix}`.trim(),
+      });
+    }
+
+    const groundRent = formatAnnualAmount(property?.groundRentAmount);
+    if (groundRent) {
+      const description = property?.groundRentDescription;
+      const suffix = description ? ` ${description}` : ' pa';
+      highlights.push({
+        key: 'ground-rent',
+        label: 'Ground rent',
+        value: `${groundRent}${suffix}`.trim(),
+      });
+    }
+
+    const prefix = formatSalePricePrefix(property?.pricePrefix);
+    if (prefix) {
+      highlights.push({
+        key: 'price-prefix',
+        label: 'Price qualifier',
+        value: prefix,
+      });
+    }
+
+    return highlights;
+  }, [
+    isSaleListing,
+    property?.groundRentAmount,
+    property?.groundRentDescription,
+    property?.leaseDuration,
+    property?.leaseYearsRemaining,
+    property?.pricePrefix,
+    property?.serviceChargeAmount,
+    property?.serviceChargeDescription,
+    property?.tenure,
+  ]);
+
+  const priceLabel = formatPropertyPriceLabel(property);
 
   const scrayeReference = (() => {
     if (property?.scrayeReference) {
@@ -203,15 +352,71 @@ export default function PropertyCard({ property }) {
     ? 'Please enquire'
     : null;
 
-  const shouldShowSecurityDeposit = Boolean(securityDepositLabel);
-  const shouldShowHoldingDeposit = Boolean(holdingDepositLabel);
-  const shouldShowAvailability = Boolean(availabilityLabel);
-  const showRentMeta =
-    !isSaleListing &&
-    (shouldShowSecurityDeposit || shouldShowHoldingDeposit || shouldShowAvailability);
+  const rentMetaEntries = useMemo(() => {
+    if (isSaleListing && !availabilityLabel) {
+      return [];
+    }
+
+    const entries = [];
+    if (!isSaleListing && securityDepositLabel) {
+      entries.push({
+        key: 'security-deposit',
+        label: 'Security deposit',
+        value: securityDepositLabel,
+      });
+    }
+    if (!isSaleListing && holdingDepositLabel) {
+      entries.push({
+        key: 'holding-deposit',
+        label: 'Holding deposit',
+        value: holdingDepositLabel,
+      });
+    }
+    if (!isSaleListing && availabilityLabel) {
+      entries.push({
+        key: 'availability',
+        label: 'Available from',
+        value: availabilityLabel,
+      });
+    }
+
+    return entries;
+  }, [
+    availabilityLabel,
+    holdingDepositLabel,
+    isSaleListing,
+    securityDepositLabel,
+  ]);
+
+  const showRentMeta = rentMetaEntries.length > 0;
+  const showSaleHighlights = saleHighlights.length > 0;
+  const overlayMetaEntries = isSaleListing ? saleHighlights : rentMetaEntries;
+  const showOverlayMeta = overlayMetaEntries.length > 0;
+
+  const featureData = useMemo(() => {
+    const items = [];
+    if (property.receptions != null) {
+      items.push({ key: 'receptions', icon: FaCouch, value: property.receptions });
+    }
+    if (property.bedrooms != null) {
+      items.push({ key: 'bedrooms', icon: FaBed, value: property.bedrooms });
+    }
+    if (property.bathrooms != null) {
+      items.push({ key: 'bathrooms', icon: FaBath, value: property.bathrooms });
+    }
+    return items;
+  }, [property.bathrooms, property.bedrooms, property.receptions]);
+
+  const rootClassName = [
+    'property-card',
+    isArchived ? 'archived' : '',
+    cardVariant ? `property-card--${cardVariant}` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
-    <div className={`property-card${isArchived ? ' archived' : ''}`}>
+    <div className={rootClassName}>
       <div className="image-wrapper">
         {hasImages ? (
           <div className={`property-card-gallery${hasMultipleImages ? '' : ' single'}`}>
@@ -263,6 +468,46 @@ export default function PropertyCard({ property }) {
           <div className="image-placeholder">Image coming soon</div>
         )}
 
+        {cardVariant === 'homepage' && (
+          <div className="property-card__overlay" aria-hidden="true">
+            <div className="property-card__overlay-inner">
+              <div className="property-card__overlay-meta">
+                <h3 className="title">{title}</h3>
+                {locationText && <p className="location">{locationText}</p>}
+              </div>
+              <div className="property-card__overlay-footer">
+                {priceLabel && (
+                  <p className="price">
+                    {priceLabel}
+                    {pricePrefixLabel && ` ${pricePrefixLabel}`}
+                  </p>
+                )}
+                <span className="property-card__cta">Book a viewing</span>
+              </div>
+              {showOverlayMeta && (
+                <ul className="property-card__rent-chips">
+                  {overlayMetaEntries.map(({ key, label, value }) => (
+                    <li key={key}>
+                      <span className="label">{label}</span>
+                      <span className="value">{value}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {featureData.length > 0 && (
+                <div className="property-card__quick-stats features">
+                  {featureData.map(({ key, icon: Icon, value }) => (
+                    <span key={key} className="feature">
+                      <Icon aria-hidden="true" />
+                      {value}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {property.featured && (
           <span className="featured-badge">Featured</span>
         )}
@@ -274,7 +519,7 @@ export default function PropertyCard({ property }) {
         )}
       </div>
       <div className="details">
-        <h3 className="title">{property.title}</h3>
+        <h3 className="title">{title}</h3>
         {typeLabel && <p className="type">{typeLabel}</p>}
         {locationText && <p className="location">{locationText}</p>}
         {scrayeReference && (
@@ -288,48 +533,35 @@ export default function PropertyCard({ property }) {
             {pricePrefixLabel && ` ${pricePrefixLabel}`}
           </p>
         )}
-        {showRentMeta && (
+        {isSaleListing ? (
+          showSaleHighlights ? (
+            <dl className="sale-details">
+              {saleHighlights.map(({ key, label, value }) => (
+                <Fragment key={key}>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </Fragment>
+              ))}
+            </dl>
+          ) : null
+        ) : showRentMeta ? (
           <dl className="rent-details">
-            {shouldShowSecurityDeposit && (
-              <>
-                <dt>Security deposit</dt>
-                <dd>{securityDepositLabel}</dd>
-              </>
-            )}
-            {shouldShowHoldingDeposit && (
-              <>
-                <dt>Holding deposit</dt>
-                <dd>{holdingDepositLabel}</dd>
-              </>
-            )}
-            {shouldShowAvailability && (
-              <>
-                <dt>Available from</dt>
-                <dd>{availabilityLabel}</dd>
-              </>
-            )}
+            {rentMetaEntries.map(({ key, label, value }) => (
+              <Fragment key={key}>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </Fragment>
+            ))}
           </dl>
-        )}
-        {(property.receptions != null || property.bedrooms != null || property.bathrooms != null) && (
+        ) : null}
+        {cardVariant === 'homepage' || featureData.length === 0 ? null : (
           <div className="features">
-            {property.receptions != null && (
-              <span className="feature">
-                <FaCouch aria-hidden="true" />
-                {property.receptions}
+            {featureData.map(({ key, icon: Icon, value }) => (
+              <span key={key} className="feature">
+                <Icon aria-hidden="true" />
+                {value}
               </span>
-            )}
-            {property.bedrooms != null && (
-              <span className="feature">
-                <FaBed aria-hidden="true" />
-                {property.bedrooms}
-              </span>
-            )}
-            {property.bathrooms != null && (
-              <span className="feature">
-                <FaBath aria-hidden="true" />
-                {property.bathrooms}
-              </span>
-            )}
+            ))}
           </div>
         )}
       </div>
