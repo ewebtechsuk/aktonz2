@@ -288,6 +288,20 @@ function buildUpdatePayload(values) {
   };
 }
 
+const DATE_TIME_WITH_HOURS = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
+const DATE_ONLY = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+};
+
 function formatDateTime(value) {
   const formatted = formatAdminDate(value, DATE_TIME_WITH_HOURS);
   return formatted || '—';
