@@ -609,94 +609,77 @@ export default function Property({ property, recommendations }) {
                   {locationLabel && (
                     <span className={styles.locationLabel}>{locationLabel}</span>
                   )}
-                </div>
-                <div className={styles.titleRow}>
-                  <h1>{property.title}</h1>
-                  {property.id && (
-                    <FavoriteButton
-                      propertyId={property.id}
-                      iconOnly
-                      className={styles.favoriteButton}
-                    />
+                  {summaryStats.length > 0 && (
+                    <ul className={styles.statsList}>
+                      {summaryStats.map((stat) => (
+                        <li key={stat.key} className={styles.statItem}>
+                          <stat.icon aria-hidden="true" />
+                          <span>
+                            <strong>{stat.value}</strong> {stat.label}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {scrayeReference && (
+                    <p className={styles.reference}>
+                      Scraye reference: <span>{scrayeReference}</span>
+                    </p>
                   )}
                 </div>
-                {descriptionParagraphs.length > 0 && (
-                  <div className={styles.summaryDescription}>
-                    {descriptionParagraphs.map((paragraph, index) => (
-                      <p key={index}>{paragraph}</p>
-                    ))}
-                  </div>
-                )}
-                {summaryStats.length > 0 && (
-                  <ul className={styles.statsList}>
-                    {summaryStats.map((stat) => (
-                      <li key={stat.key} className={styles.statItem}>
-                        <stat.icon aria-hidden="true" />
-                        <span>
-                          <strong>{stat.value}</strong> {stat.label}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {scrayeReference && (
-                  <p className={styles.reference}>
-                    Scraye reference: <span>{scrayeReference}</span>
-                  </p>
-                )}
-              </div>
-              {(pricePrefixLabel || headlinePrice) && (
-                <aside className={styles.summarySidebar}>
-                  <div className={styles.summarySidebarInner}>
-                    <div className={styles.priceCard}>
-                      <div className={styles.priceHeader}>
-                        {pricePrefixLabel && (
-                          <span className={styles.pricePrefixBadge}>{pricePrefixLabel}</span>
-                        )}
-                        {headlinePrice && (
-                          <div className={styles.priceHeadline}>
-                            <span className={styles.pricePrimaryValue}>{headlinePrice}</span>
-                            {rentFrequencyLabel && (
-                              <span className={styles.priceFrequency}>{rentFrequencyLabel}</span>
+                {(pricePrefixLabel || headlinePrice) && (
+                  <aside className={styles.summarySidebar}>
+                    <div className={styles.summarySidebarInner}>
+                      <div className={styles.priceCard}>
+                        <div className={styles.priceHeader}>
+                          {pricePrefixLabel && (
+                            <span className={styles.pricePrefixBadge}>{pricePrefixLabel}</span>
+                          )}
+                          {headlinePrice && (
+                            <div className={styles.priceHeadline}>
+                              <span className={styles.pricePrimaryValue}>{headlinePrice}</span>
+                              {rentFrequencyLabel && (
+                                <span className={styles.priceFrequency}>{rentFrequencyLabel}</span>
+                              )}
+                            </div>
+                          )}
+                          {secondaryRentLabel && (
+                            <p className={styles.priceSecondary}>{secondaryRentLabel}</p>
+                          )}
+                        </div>
+                        {(shouldShowSecurityDeposit ||
+                          shouldShowHoldingDeposit ||
+                          shouldShowAvailability) && (
+                          <dl className={styles.rentMeta}>
+                            {shouldShowSecurityDeposit && (
+                              <>
+                                <dt>Security deposit</dt>
+                                <dd>{securityDepositLabel}</dd>
+                              </>
                             )}
-                          </div>
+                            {shouldShowHoldingDeposit && (
+                              <>
+                                <dt>Holding deposit</dt>
+                                <dd>{holdingDepositLabel}</dd>
+                              </>
+                            )}
+                            {shouldShowAvailability && (
+                              <>
+                                <dt>Available from</dt>
+                                <dd>{availabilityLabel}</dd>
+                              </>
+                            )}
+                          </dl>
                         )}
-                        {secondaryRentLabel && (
-                          <p className={styles.priceSecondary}>{secondaryRentLabel}</p>
-                        )}
-                      </div>
-                      {(shouldShowSecurityDeposit ||
-                        shouldShowHoldingDeposit ||
-                        shouldShowAvailability) && (
-                        <dl className={styles.rentMeta}>
-                          {shouldShowSecurityDeposit && (
-                            <>
-                              <dt>Security deposit</dt>
-                              <dd>{securityDepositLabel}</dd>
-                            </>
-                          )}
-                          {shouldShowHoldingDeposit && (
-                            <>
-                              <dt>Holding deposit</dt>
-                              <dd>{holdingDepositLabel}</dd>
-                            </>
-                          )}
-                          {shouldShowAvailability && (
-                            <>
-                              <dt>Available from</dt>
-                              <dd>{availabilityLabel}</dd>
-                            </>
-                          )}
-                        </dl>
-                      )}
-                      <div className={styles.priceActions}>
-                        <OfferDrawer property={property} />
-                        <ViewingForm property={property} />
+                        <div className={styles.priceActions}>
+                          <OfferDrawer property={property} />
+                          <ViewingForm property={property} />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </aside>
-              )}
+                  </aside>
+                )}
+              </div>
             </div>
           </div>
         </section>
