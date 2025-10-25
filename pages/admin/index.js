@@ -7,6 +7,7 @@ import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../components/admin/AdminNa
 import styles from '../../styles/Admin.module.css';
 import { useSession } from '../../components/SessionProvider';
 import { describeMicrosoftConnection } from '../../lib/microsoft-connection-status.js';
+import { parseTimestamp, resolveTimestamp } from '../../lib/timestamps.js';
 
 const DEFAULT_STATUS_OPTIONS = [
   { value: 'new', label: 'New' },
@@ -266,8 +267,17 @@ export default function AdminDashboard() {
       const valuationsJson = await valuationsRes.json();
       const maintenanceJson = await maintenanceRes.json();
 
-      setOffers(Array.isArray(offersJson.offers) ? offersJson.offers : []);
-      setValuations(Array.isArray(valuationsJson.valuations) ? valuationsJson.valuations : []);
+      const offersList = Array.isArray(offersJson.offers) ? offersJson.offers.slice() : [];
+      offersList.sort(
+        (a, b) => resolveTimestamp(b?.updatedAt, b?.date) - resolveTimestamp(a?.updatedAt, a?.date),
+      );
+      setOffers(offersList);
+
+      const valuationsList = Array.isArray(valuationsJson.valuations)
+        ? valuationsJson.valuations.slice()
+        : [];
+      valuationsList.sort((a, b) => parseTimestamp(b?.createdAt) - parseTimestamp(a?.createdAt));
+      setValuations(valuationsList);
       setMaintenanceTasks(Array.isArray(maintenanceJson.tasks) ? maintenanceJson.tasks : []);
 
       const resolvedStatusOptions = Array.isArray(valuationsJson.statusOptions)
@@ -367,18 +377,7 @@ export default function AdminDashboard() {
   const valuationsThisWeek = useMemo(() => {
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
-    return valuations.filter((valuation) => {
-      if (!valuation.createdAt) {
-        return false;
-      }
-
-      const createdAt = new Date(valuation.createdAt).getTime();
-      if (Number.isNaN(createdAt)) {
-        return false;
-      }
-
-      return createdAt >= weekAgo;
-    }).length;
+    return valuations.filter((valuation) => parseTimestamp(valuation.createdAt) >= weekAgo).length;
   }, [valuations]);
 
   const salesOffers = useMemo(
