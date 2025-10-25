@@ -11,6 +11,7 @@ import {
   getAdminTimestamp,
   parseAdminDate,
 } from '../../../lib/admin/formatters';
+import { withBasePath } from '../../../lib/base-path';
 
 const DEFAULT_STATUS_OPTIONS = [
   { value: 'new', label: 'New' },
@@ -225,7 +226,7 @@ export default function AdminValuationsPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/admin/valuations', { signal });
+      const response = await fetch(withBasePath('/api/admin/valuations'), { signal });
       if (!response.ok) {
         throw new Error('Failed to fetch valuations');
       }
@@ -583,7 +584,7 @@ export default function AdminValuationsPage() {
       setSuccessMessage('');
 
       try {
-        const response = await fetch('/api/admin/valuations', {
+        const response = await fetch(withBasePath('/api/admin/valuations'), {
           method: 'PATCH',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify(payload),

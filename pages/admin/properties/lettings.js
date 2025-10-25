@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import { useSession } from '../../../components/SessionProvider';
 import adminStyles from '../../../styles/Admin.module.css';
 import styles from '../../../styles/AdminLettingsProperty.module.css';
 import { formatAdminCurrency } from '../../../lib/admin/formatters';
+import { withBasePath } from '../../../lib/base-path';
 
 const INITIAL_FORM_STATE = {
   reference: '',
@@ -59,6 +61,7 @@ export default function AdminLettingsPropertyPage() {
   const pageTitle = 'Aktonz Admin — Add lettings property';
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
+  const router = useRouter();
 
   const [metadata, setMetadata] = useState({
     loading: true,
@@ -98,7 +101,7 @@ export default function AdminLettingsPropertyPage() {
       setMetadata((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
-        const response = await fetch('/api/admin/properties/lettings', {
+        const response = await fetch(withBasePath('/api/admin/properties/lettings'), {
           method: 'GET',
           headers: { accept: 'application/json' },
           signal: controller.signal,
@@ -195,11 +198,14 @@ export default function AdminLettingsPropertyPage() {
 
       try {
         const params = new URLSearchParams({ search: trimmed });
-        const response = await fetch(`/api/admin/properties/lettings?${params.toString()}`, {
-          method: 'GET',
-          headers: { accept: 'application/json' },
-          signal: controller.signal,
-        });
+        const response = await fetch(
+          withBasePath(`/api/admin/properties/lettings?${params.toString()}`),
+          {
+            method: 'GET',
+            headers: { accept: 'application/json' },
+            signal: controller.signal,
+          },
+        );
 
         if (!response.ok) {
           throw new Error('Search request failed');
@@ -282,7 +288,7 @@ export default function AdminLettingsPropertyPage() {
       };
 
       try {
-        const response = await fetch('/api/admin/properties/lettings', {
+        const response = await fetch(withBasePath('/api/admin/properties/lettings'), {
           method: 'POST',
           headers: { 'content-type': 'application/json', accept: 'application/json' },
           body: JSON.stringify(payload),

@@ -17,6 +17,9 @@ import {
   parseAdminDate,
   resolveLatestAdminTimestamp,
 } from '../../../lib/admin/formatters';
+import { withBasePath } from '../../../lib/base-path';
+
+const resolveTimestamp = resolveLatestAdminTimestamp;
 
 const DATE_TIME_WITH_HOURS = {
   day: '2-digit',
@@ -148,7 +151,7 @@ export default function AdminOffersPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/admin/offers', { signal });
+      const response = await fetch(withBasePath('/api/admin/offers'), { signal });
       if (!response.ok) {
         throw new Error('Failed to fetch offers');
       }
@@ -159,8 +162,8 @@ export default function AdminOffersPage() {
       }
       const entries = Array.isArray(payload.offers) ? payload.offers.slice() : [];
       entries.sort((a, b) => {
-        const aTimestamp = resolveLatestAdminTimestamp(a?.updatedAt, a?.date) || 0;
-        const bTimestamp = resolveLatestAdminTimestamp(b?.updatedAt, b?.date) || 0;
+        const aTimestamp = resolveTimestamp(a?.updatedAt, a?.date) || 0;
+        const bTimestamp = resolveTimestamp(b?.updatedAt, b?.date) || 0;
         return bTimestamp - aTimestamp;
       });
       setOffers(entries);
@@ -329,15 +332,18 @@ export default function AdminOffersPage() {
           additionalConditions: statusForm.additionalConditions || '',
         };
 
-        const response = await fetch(`/api/admin/offers/${selectedOffer.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            status: statusForm.status || selectedOffer.status || undefined,
-            note: statusForm.note,
-            compliance: compliancePayload,
-          }),
-        });
+        const response = await fetch(
+          withBasePath(`/api/admin/offers/${selectedOffer.id}`),
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              status: statusForm.status || selectedOffer.status || undefined,
+              note: statusForm.note,
+              compliance: compliancePayload,
+            }),
+          },
+        );
 
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) {
@@ -367,8 +373,8 @@ export default function AdminOffersPage() {
           });
 
           next.sort((a, b) => {
-            const aTimestamp = resolveLatestAdminTimestamp(a?.updatedAt, a?.date) || 0;
-            const bTimestamp = resolveLatestAdminTimestamp(b?.updatedAt, b?.date) || 0;
+            const aTimestamp = resolveTimestamp(a?.updatedAt, a?.date) || 0;
+            const bTimestamp = resolveTimestamp(b?.updatedAt, b?.date) || 0;
             return bTimestamp - aTimestamp;
           });
           return next;

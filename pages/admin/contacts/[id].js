@@ -7,6 +7,7 @@ import { useSession } from '../../../components/SessionProvider';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import styles from '../../../styles/AdminContactDetails.module.css';
 import { formatAdminCurrency, formatAdminDate } from '../../../lib/admin/formatters';
+import { withBasePath } from '../../../lib/base-path';
 
 const STAGE_TONE_CLASS = {
   positive: styles.stagePositive,
@@ -432,9 +433,12 @@ export default function AdminContactDetailsPage() {
       setError('');
 
       try {
-        const response = await fetch(`/api/admin/contacts/${encodeURIComponent(contactId)}`, {
-          signal: controller.signal,
-        });
+        const response = await fetch(
+          withBasePath(`/api/admin/contacts/${encodeURIComponent(contactId)}`),
+          {
+            signal: controller.signal,
+          },
+        );
 
         if (response.status === 404) {
           setContact(null);
@@ -569,14 +573,17 @@ export default function AdminContactDetailsPage() {
 
       try {
         const payload = buildManagementPayloadFromState(formState);
-        const response = await fetch(`/api/admin/contacts/${encodeURIComponent(contactId)}`, {
-          method: 'PATCH',
-          headers: {
-            'content-type': 'application/json',
-            accept: 'application/json',
+        const response = await fetch(
+          withBasePath(`/api/admin/contacts/${encodeURIComponent(contactId)}`),
+          {
+            method: 'PATCH',
+            headers: {
+              'content-type': 'application/json',
+              accept: 'application/json',
+            },
+            body: JSON.stringify(payload),
           },
-          body: JSON.stringify(payload),
-        });
+        );
 
         let result = null;
         try {

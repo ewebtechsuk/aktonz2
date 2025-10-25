@@ -11,6 +11,7 @@ import {
   formatAdminDate,
   formatAdminNumber,
 } from '../../../lib/admin/formatters';
+import { withBasePath } from '../../../lib/base-path';
 
 const STAGE_BADGE_CLASS = {
   hot: styles.badgeHot,
@@ -29,6 +30,20 @@ const DATE_TIME_WITH_HOURS = {
   hour: '2-digit',
   minute: '2-digit',
 };
+
+const TABLE_COLUMNS = [
+  { key: 'contact', label: 'Contact' },
+  { key: 'stage', label: 'Stage' },
+  { key: 'source', label: 'Source' },
+  { key: 'lastActivity', label: 'Last activity' },
+  { key: 'nextStep', label: 'Next step' },
+  { key: 'focus', label: 'Focus & requirements' },
+  { key: 'contactDetails', label: 'Contact details' },
+  { key: 'owner', label: 'Owner' },
+  { key: 'actions', label: 'Actions', headerClassName: styles.actionsHeader },
+];
+
+const SKELETON_ROW_COUNT = 5;
 
 function buildPaginationItems(totalPages, currentPage) {
   if (totalPages <= 7) {
@@ -112,6 +127,59 @@ function Pagination({ currentPage, totalPages, onPageChange, disabled }) {
         ›
       </button>
     </nav>
+  );
+}
+
+function ContactsSkeletonRow() {
+  return (
+    <tr className={styles.skeletonRow}>
+      <td className={styles.skeletonCell}>
+        <div className={styles.skeletonGroup}>
+          <span className={`${styles.skeletonLine} ${styles.skeletonLineLarge}`} style={{ width: '70%' }} />
+          <span className={styles.skeletonLine} style={{ width: '50%' }} />
+          <span className={styles.skeletonLine} style={{ width: '40%' }} />
+        </div>
+      </td>
+      <td className={styles.skeletonCell}>
+        <span className={`${styles.skeletonLine} ${styles.skeletonPill}`} style={{ width: '60%' }} />
+      </td>
+      <td className={styles.skeletonCell}>
+        <div className={styles.skeletonGroup}>
+          <span className={styles.skeletonLine} style={{ width: '80%' }} />
+          <span className={styles.skeletonLine} style={{ width: '60%' }} />
+        </div>
+      </td>
+      <td className={styles.skeletonCell}>
+        <div className={styles.skeletonGroup}>
+          <span className={styles.skeletonLine} style={{ width: '75%' }} />
+          <span className={styles.skeletonLine} style={{ width: '55%' }} />
+        </div>
+      </td>
+      <td className={styles.skeletonCell}>
+        <div className={styles.skeletonGroup}>
+          <span className={styles.skeletonLine} style={{ width: '70%' }} />
+          <span className={styles.skeletonLine} style={{ width: '40%' }} />
+        </div>
+      </td>
+      <td className={styles.skeletonCell}>
+        <div className={styles.skeletonGroup}>
+          <span className={styles.skeletonLine} style={{ width: '90%' }} />
+          <span className={styles.skeletonLine} style={{ width: '85%' }} />
+        </div>
+      </td>
+      <td className={styles.skeletonCell}>
+        <div className={styles.skeletonGroup}>
+          <span className={styles.skeletonLine} style={{ width: '65%' }} />
+          <span className={styles.skeletonLine} style={{ width: '45%' }} />
+        </div>
+      </td>
+      <td className={styles.skeletonCell}>
+        <span className={styles.skeletonLine} style={{ width: '55%' }} />
+      </td>
+      <td className={`${styles.skeletonCell} ${styles.skeletonActions}`}>
+        <span className={styles.skeletonAction} />
+      </td>
+    </tr>
   );
 }
 
@@ -562,6 +630,7 @@ function formatGeneratedAt(value) {
 }
 
 export default function AdminContactsPage() {
+  const router = useRouter();
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
   const pageTitle = 'Contacts • Aktonz Admin';
@@ -596,7 +665,7 @@ export default function AdminContactsPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/admin/contacts', { signal });
+      const response = await fetch(withBasePath('/api/admin/contacts'), { signal });
       if (!response.ok) {
         throw new Error('Failed to fetch contacts');
       }
@@ -875,7 +944,11 @@ export default function AdminContactsPage() {
             </div>
           </section>
 
-          <section className={styles.tableCard} aria-labelledby="contacts-table">
+          <section
+            className={styles.tableCard}
+            aria-labelledby="contacts-table"
+            aria-busy={loading}
+          >
             <div className={styles.tableHeader}>
               <div>
                 <h2 id="contacts-table">All contacts</h2>
@@ -894,7 +967,29 @@ export default function AdminContactsPage() {
               </div>
             </div>
             {loading ? (
-              <div className={`${styles.loadingState} ${styles.emptyState}`}>Loading contacts…</div>
+              <>
+                <div className={`${styles.loadingState} ${styles.emptyState}`} role="status">
+                  Loading contacts…
+                </div>
+                <div className={`${styles.tableWrapper} ${styles.tableWrapperSkeleton}`} aria-hidden="true">
+                  <table className={`${styles.table} ${styles.tableSkeleton}`}>
+                    <thead>
+                      <tr>
+                        {TABLE_COLUMNS.map(({ key, label, headerClassName }) => (
+                          <th key={key} scope="col" className={headerClassName}>
+                            {label}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Array.from({ length: SKELETON_ROW_COUNT }).map((_, index) => (
+                        <ContactsSkeletonRow key={index} />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             ) : error ? (
               <div className={styles.errorState}>{error}</div>
             ) : totalFiltered === 0 ? (
@@ -904,17 +999,11 @@ export default function AdminContactsPage() {
                 <table className={styles.table}>
                   <thead>
                     <tr>
-                      <th scope="col">Contact</th>
-                      <th scope="col">Stage</th>
-                      <th scope="col">Source</th>
-                      <th scope="col">Last activity</th>
-                      <th scope="col">Next step</th>
-                      <th scope="col">Focus &amp; requirements</th>
-                      <th scope="col">Contact details</th>
-                      <th scope="col">Owner</th>
-                      <th scope="col" className={styles.actionsHeader}>
-                        Actions
-                      </th>
+                      {TABLE_COLUMNS.map(({ key, label, headerClassName }) => (
+                        <th key={key} scope="col" className={headerClassName}>
+                          {label}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>

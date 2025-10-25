@@ -6,6 +6,7 @@ import ViewingForm from '../../components/ViewingForm';
 import NeighborhoodInfo from '../../components/NeighborhoodInfo';
 import FavoriteButton from '../../components/FavoriteButton';
 import PropertySustainabilityPanel from '../../components/PropertySustainabilityPanel';
+import AgentCard from '../../components/AgentCard';
 
 import MortgageCalculator from '../../components/MortgageCalculator';
 import RentAffordability from '../../components/RentAffordability';
@@ -47,6 +48,205 @@ import {
   formatAvailabilityDate,
   resolveAvailabilityDate,
 } from '../../lib/deposits.mjs';
+import agentsData from '../../data/agents.json';
+
+const AGENT_ENTRIES = Array.isArray(agentsData) ? agentsData : [];
+const AGENT_MAP = new Map(
+  AGENT_ENTRIES.filter((agent) => agent && agent.id != null).map((agent) => [
+    String(agent.id),
+    agent,
+  ])
+);
+const AGENT_PLACEHOLDER_IMAGE = '/images/agent-placeholder.svg';
+const DEFAULT_AGENT_PROFILE = (() => {
+  const primary = AGENT_ENTRIES.find((entry) => entry && entry.name) || null;
+  return {
+    id: primary?.id ? String(primary.id) : 'aktonz-default',
+    name: primary?.name || 'Aktonz advisor',
+    title: 'Your Aktonz property expert',
+    jobTitle: primary?.jobTitle || 'Local lettings specialist',
+    responseSla: 'Replies within 15 minutes during business hours.',
+    reviewSnippet:
+      '“Exceptional communication and proactive updates throughout the letting process.”',
+    reviewAttribution: 'Landlord review, March 2024',
+    photo: primary?.photo || AGENT_PLACEHOLDER_IMAGE,
+  };
+})();
+
+function normalizeAgentString(value) {
+  if (value == null) return null;
+  const normalized = String(value).trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function pickFirstAgentString(...values) {
+  for (const value of values) {
+    const normalized = normalizeAgentString(value);
+    if (normalized) {
+      return normalized;
+    }
+  }
+  return null;
+}
+
+function collectAgentCandidates(rawProperty) {
+  const candidates = [];
+  const pushCandidate = (candidate) => {
+    if (candidate && typeof candidate === 'object') {
+      candidates.push(candidate);
+    }
+  };
+
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return candidates;
+  }
+
+  pushCandidate(rawProperty.agent);
+  pushCandidate(rawProperty.negotiator);
+  pushCandidate(rawProperty.user);
+  pushCandidate(rawProperty.assignedAgent);
+  pushCandidate(rawProperty.owner);
+  pushCandidate(rawProperty.primaryContact);
+  pushCandidate(rawProperty.marketing?.agent);
+
+  return candidates;
+}
+
+function resolveAgentProfile(rawProperty) {
+  const baseProfile = { ...DEFAULT_AGENT_PROFILE };
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return baseProfile;
+  }
+
+  const candidateObjects = collectAgentCandidates(rawProperty);
+  const idCandidates = [
+    rawProperty.agentId,
+    rawProperty.assignedAgentId,
+    rawProperty.negotiatorId,
+    rawProperty.userId,
+    rawProperty.agent?.id,
+    rawProperty.negotiator?.id,
+    rawProperty.user?.id,
+    rawProperty.assignedAgent?.id,
+    rawProperty.owner?.id,
+    rawProperty.marketing?.agent?.id,
+  ]
+    .map((value) => normalizeAgentString(value))
+    .filter(Boolean);
+
+  const resolvedAgentId =
+    idCandidates.find((candidate) => AGENT_MAP.has(candidate)) ||
+    idCandidates[0] ||
+    baseProfile.id;
+
+  const mappedAgent = AGENT_MAP.get(resolvedAgentId) || null;
+  const namedCandidate =
+    candidateObjects.find((candidate) =>
+      Boolean(
+        pickFirstAgentString(
+          candidate.name,
+          candidate.fullName,
+          candidate.displayName,
+          candidate.title
+        )
+      )
+    ) || null;
+
+  const resolvedName =
+    pickFirstAgentString(
+      rawProperty.agentName,
+      rawProperty.assignedAgentName,
+      rawProperty.agent?.name,
+      rawProperty.agent?.fullName,
+      rawProperty.agent?.displayName,
+      namedCandidate?.name,
+      namedCandidate?.fullName,
+      namedCandidate?.displayName,
+      mappedAgent?.name
+    ) || baseProfile.name;
+
+  const resolvedTitle =
+    pickFirstAgentString(
+      rawProperty.agentTitle,
+      rawProperty.agentHeading,
+      rawProperty.marketing?.agent?.title,
+      namedCandidate?.title,
+      namedCandidate?.tagline,
+      mappedAgent?.title
+    ) || baseProfile.title;
+
+  const resolvedJobTitle =
+    pickFirstAgentString(
+      rawProperty.agentJobTitle,
+      rawProperty.agent?.jobTitle,
+      rawProperty.agent?.role,
+      namedCandidate?.jobTitle,
+      namedCandidate?.role,
+      namedCandidate?.position,
+      mappedAgent?.jobTitle,
+      mappedAgent?.role
+    ) || baseProfile.jobTitle;
+
+  const resolvedResponseSla =
+    pickFirstAgentString(
+      rawProperty.agentResponseSla,
+      rawProperty.agentResponseSLA,
+      rawProperty.agent?.responseSla,
+      rawProperty.agent?.responseSLA,
+      namedCandidate?.responseSla,
+      namedCandidate?.responseSLA,
+      mappedAgent?.responseSla
+    ) || baseProfile.responseSla;
+
+  const resolvedReviewSnippet =
+    pickFirstAgentString(
+      rawProperty.agentReviewSnippet,
+      rawProperty.agentReviewQuote,
+      rawProperty.agent?.reviewSnippet,
+      rawProperty.agent?.reviewQuote,
+      namedCandidate?.reviewSnippet,
+      namedCandidate?.reviewQuote,
+      mappedAgent?.reviewSnippet
+    ) || baseProfile.reviewSnippet;
+
+  const resolvedReviewAttribution =
+    pickFirstAgentString(
+      rawProperty.agentReviewAttribution,
+      rawProperty.agentReviewSource,
+      rawProperty.agent?.reviewAttribution,
+      rawProperty.agent?.reviewSource,
+      namedCandidate?.reviewAttribution,
+      namedCandidate?.reviewSource,
+      mappedAgent?.reviewAttribution
+    ) || baseProfile.reviewAttribution;
+
+  const resolvedPhoto =
+    pickFirstAgentString(
+      rawProperty.agent?.photo,
+      rawProperty.agent?.image,
+      rawProperty.agent?.avatar,
+      rawProperty.agent?.avatarUrl,
+      namedCandidate?.photo,
+      namedCandidate?.image,
+      namedCandidate?.avatar,
+      namedCandidate?.avatarUrl,
+      namedCandidate?.profilePhoto,
+      mappedAgent?.photo,
+      baseProfile.photo,
+      AGENT_PLACEHOLDER_IMAGE
+    ) || AGENT_PLACEHOLDER_IMAGE;
+
+  return {
+    id: resolvedAgentId,
+    name: resolvedName,
+    title: resolvedTitle,
+    jobTitle: resolvedJobTitle,
+    responseSla: resolvedResponseSla,
+    reviewSnippet: resolvedReviewSnippet,
+    reviewAttribution: resolvedReviewAttribution,
+    photo: resolvedPhoto,
+  };
+}
 
 function normalizeScrayeReference(value) {
   if (value == null) {
@@ -215,6 +415,173 @@ function deriveCouncilTaxBand(rawProperty) {
   return null;
 }
 
+function normalizeTenureValue(value) {
+  if (value == null) {
+    return null;
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const normalized = trimmed.toLowerCase();
+    const collapsed = normalized.replace(/[\s_-]+/g, '');
+
+    if (['fh', 'freehold', 'freeholder'].includes(collapsed)) {
+      return 'Freehold';
+    }
+
+    if (['lh', 'leasehold', 'leaseholder', 'lease'].includes(collapsed)) {
+      return 'Leasehold';
+    }
+
+    if (collapsed.includes('shareoffreehold') || collapsed.includes('sharefreehold')) {
+      return 'Share of freehold';
+    }
+
+    if (normalized.includes('commonhold')) {
+      return 'Commonhold';
+    }
+
+    if (normalized.includes('feuhold')) {
+      return 'Feuhold';
+    }
+
+    return trimmed
+      .split(/[\s_]+/)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(' ');
+  }
+
+  return null;
+}
+
+function deriveTenure(rawProperty) {
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return null;
+  }
+
+  const candidates = [
+    rawProperty.tenure,
+    rawProperty.tenureType,
+    rawProperty.tenure_type,
+    rawProperty.tenureStatus,
+    rawProperty.tenureLabel,
+    rawProperty.sales?.tenure,
+    rawProperty.sales?.tenureType,
+    rawProperty.details?.tenure,
+    rawProperty.details?.tenureType,
+    rawProperty._scraye?.tenure,
+    rawProperty._scraye?.tenureType,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) {
+      for (const entry of candidate) {
+        const normalizedEntry = normalizeTenureValue(entry);
+        if (normalizedEntry) {
+          return normalizedEntry;
+        }
+      }
+      continue;
+    }
+
+    if (candidate && typeof candidate === 'object') {
+      const nested = [
+        candidate.value,
+        candidate.type,
+        candidate.label,
+        candidate.name,
+        candidate.description,
+      ];
+      for (const nestedCandidate of nested) {
+        const normalizedNested = normalizeTenureValue(nestedCandidate);
+        if (normalizedNested) {
+          return normalizedNested;
+        }
+      }
+    }
+
+    const normalized = normalizeTenureValue(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return null;
+}
+
+function formatTenureHighlight(value) {
+  if (value == null) {
+    return null;
+  }
+
+  const normalized = normalizeTenureValue(value) ?? (typeof value === 'string' ? value.trim() : '');
+  if (!normalized) {
+    return null;
+  }
+
+  const lower = normalized.toLowerCase();
+  if (lower.includes('tenure')) {
+    return normalized;
+  }
+
+  return `${normalized} tenure`;
+}
+
+function formatEpcHighlight(value) {
+  if (value == null) {
+    return null;
+  }
+
+  const normalized = String(value).trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const lower = normalized.toLowerCase();
+  if (lower.startsWith('epc')) {
+    return normalized;
+  }
+
+  if (/^[A-G]$/i.test(normalized)) {
+    return `EPC ${normalized.toUpperCase()}`;
+  }
+
+  return `EPC ${normalized}`;
+}
+
+function formatCouncilTaxHighlight(value) {
+  if (value == null) {
+    return null;
+  }
+
+  const normalized = String(value).trim();
+  if (!normalized) {
+    return null;
+  }
+
+  if (/^[A-H]$/i.test(normalized)) {
+    return `Council tax band ${normalized.toUpperCase()}`;
+  }
+
+  const bandMatch = /band\s*([A-H])\b/i.exec(normalized);
+  if (bandMatch) {
+    const suffix = normalized.slice(bandMatch.index + bandMatch[0].length).trim();
+    const label = `Council tax band ${bandMatch[1].toUpperCase()}`;
+    return suffix ? `${label} ${suffix}` : label;
+  }
+
+  const lower = normalized.toLowerCase();
+  if (lower.startsWith('council tax')) {
+    return normalized;
+  }
+
+  return `Council tax ${normalized}`;
+}
+
 function normalizeBooleanFlag(value) {
   if (value === true || value === false) {
     return value;
@@ -357,6 +724,7 @@ async function loadPrebuildPropertyIds(limit = null) {
 
 export default function Property({ property, recommendations }) {
   const hasLocation = property?.latitude != null && property?.longitude != null;
+  const agentProfile = property?.agentProfile;
   const priceLabel = formatPropertyPriceLabel(property);
   const rentFrequencyLabel = useMemo(() => {
     if (!property?.rentFrequency) {
@@ -441,6 +809,26 @@ export default function Property({ property, recommendations }) {
 
     return stats;
   }, [property?.bathrooms, property?.bedrooms, property?.receptions]);
+  const complianceHighlights = useMemo(() => {
+    const highlights = [];
+
+    const epcLabel = formatEpcHighlight(property?.epcScore);
+    if (epcLabel) {
+      highlights.push({ key: 'epc', label: epcLabel });
+    }
+
+    const councilTaxLabel = formatCouncilTaxHighlight(property?.councilTaxBand);
+    if (councilTaxLabel) {
+      highlights.push({ key: 'councilTax', label: councilTaxLabel });
+    }
+
+    const tenureLabel = formatTenureHighlight(property?.tenure);
+    if (tenureLabel) {
+      highlights.push({ key: 'tenure', label: tenureLabel });
+    }
+
+    return highlights;
+  }, [property?.councilTaxBand, property?.epcScore, property?.tenure]);
   const headlinePrice = formattedPrimaryPrice || priceLabel || '';
   const numericPriceValue = useMemo(() => {
     if (property?.priceValue != null && Number.isFinite(Number(property.priceValue))) {
@@ -589,6 +977,33 @@ export default function Property({ property, recommendations }) {
       ? formatPricePrefix(property.pricePrefix)
       : '';
 
+  const showMortgageCalculator = Boolean(!property.rentFrequency && property.price);
+  const showRentCalculator = Boolean(property.rentFrequency && property.price);
+  const hasRecommendations = Array.isArray(recommendations) && recommendations.length > 0;
+
+  const navSections = useMemo(() => {
+    const sectionsList = [];
+    if (hasLocation) {
+      sectionsList.push({ id: 'property-location', label: 'Location' });
+    }
+    if (features.length > 0) {
+      sectionsList.push({ id: 'property-features', label: 'Key features' });
+    }
+    if (showMortgageCalculator || showRentCalculator) {
+      sectionsList.push({ id: 'property-calculators', label: 'Calculators' });
+    }
+    if (hasRecommendations) {
+      sectionsList.push({ id: 'property-recommendations', label: 'Recommendations' });
+    }
+    return sectionsList;
+  }, [
+    features.length,
+    hasLocation,
+    hasRecommendations,
+    showMortgageCalculator,
+    showRentCalculator,
+  ]);
+
   return (
     <>
       <Head>
@@ -601,8 +1016,8 @@ export default function Property({ property, recommendations }) {
               <MediaGallery images={property.images} media={property.media} />
             </div>
           )}
-          <div className={styles.summary}>
-            <div className={styles.summaryGrid}>
+          <div className={styles.heroGrid}>
+            <div className={styles.summary}>
               <div className={styles.summaryMain}>
                 <div className={styles.summaryIntro}>
                   {displayType && <span className={styles.typeBadge}>{displayType}</span>}
@@ -621,66 +1036,68 @@ export default function Property({ property, recommendations }) {
                       ))}
                     </ul>
                   )}
-                  {scrayeReference && (
-                    <p className={styles.reference}>
-                      Scraye reference: <span>{scrayeReference}</span>
-                    </p>
+                  {complianceHighlights.length > 0 && (
+                    <ul className={styles.complianceHighlights}>
+                      {complianceHighlights.map((highlight) => (
+                        <li key={highlight.key}>{highlight.label}</li>
+                      ))}
+                    </ul>
                   )}
                 </div>
-                {(pricePrefixLabel || headlinePrice) && (
-                  <aside className={styles.summarySidebar}>
-                    <div className={styles.summarySidebarInner}>
-                      <div className={styles.priceCard}>
-                        <div className={styles.priceHeader}>
-                          {pricePrefixLabel && (
-                            <span className={styles.pricePrefixBadge}>{pricePrefixLabel}</span>
-                          )}
-                          {headlinePrice && (
-                            <div className={styles.priceHeadline}>
-                              <span className={styles.pricePrimaryValue}>{headlinePrice}</span>
-                              {rentFrequencyLabel && (
-                                <span className={styles.priceFrequency}>{rentFrequencyLabel}</span>
-                              )}
-                            </div>
-                          )}
-                          {secondaryRentLabel && (
-                            <p className={styles.priceSecondary}>{secondaryRentLabel}</p>
-                          )}
-                        </div>
-                        {(shouldShowSecurityDeposit ||
-                          shouldShowHoldingDeposit ||
-                          shouldShowAvailability) && (
-                          <dl className={styles.rentMeta}>
-                            {shouldShowSecurityDeposit && (
-                              <>
-                                <dt>Security deposit</dt>
-                                <dd>{securityDepositLabel}</dd>
-                              </>
-                            )}
-                            {shouldShowHoldingDeposit && (
-                              <>
-                                <dt>Holding deposit</dt>
-                                <dd>{holdingDepositLabel}</dd>
-                              </>
-                            )}
-                            {shouldShowAvailability && (
-                              <>
-                                <dt>Available from</dt>
-                                <dd>{availabilityLabel}</dd>
-                              </>
-                            )}
-                          </dl>
-                        )}
-                        <div className={styles.priceActions}>
-                          <OfferDrawer property={property} />
-                          <ViewingForm property={property} />
-                        </div>
-                      </div>
-                    </div>
-                  </aside>
-                )}
               </div>
             </div>
+            {(pricePrefixLabel || headlinePrice) && (
+              <aside className={styles.summarySidebar}>
+                <div className={styles.summarySidebarInner}>
+                  <div className={styles.priceCard}>
+                    <div className={styles.priceHeader}>
+                      {pricePrefixLabel && (
+                        <span className={styles.pricePrefixBadge}>{pricePrefixLabel}</span>
+                      )}
+                      {headlinePrice && (
+                        <div className={styles.priceHeadline}>
+                          <span className={styles.pricePrimaryValue}>{headlinePrice}</span>
+                          {rentFrequencyLabel && (
+                            <span className={styles.priceFrequency}>{rentFrequencyLabel}</span>
+                          )}
+                        </div>
+                      )}
+                      {secondaryRentLabel && (
+                        <p className={styles.priceSecondary}>{secondaryRentLabel}</p>
+                      )}
+                    </div>
+                    {(shouldShowSecurityDeposit ||
+                      shouldShowHoldingDeposit ||
+                      shouldShowAvailability) && (
+                      <dl className={styles.rentMeta}>
+                        {shouldShowSecurityDeposit && (
+                          <>
+                            <dt>Security deposit</dt>
+                            <dd>{securityDepositLabel}</dd>
+                          </>
+                        )}
+                        {shouldShowHoldingDeposit && (
+                          <>
+                            <dt>Holding deposit</dt>
+                            <dd>{holdingDepositLabel}</dd>
+                          </>
+                        )}
+                        {shouldShowAvailability && (
+                          <>
+                            <dt>Available from</dt>
+                            <dd>{availabilityLabel}</dd>
+                          </>
+                        )}
+                      </dl>
+                    )}
+                    <div className={styles.priceActions}>
+                      <OfferDrawer property={property} />
+                      <ViewingForm property={property} />
+                    </div>
+                  </div>
+                </div>
+              </aside>
+            )}
           </div>
         </section>
 
@@ -709,7 +1126,10 @@ export default function Property({ property, recommendations }) {
         </section>
       )}
 
-      <div className={`${styles.contentRail} ${styles.modules}`}>
+      <section className={`${styles.contentRail} ${styles.modules}`}>
+        {agentProfile && (
+          <AgentCard className={styles.agentCard} agent={agentProfile} />
+        )}
         <PropertySustainabilityPanel property={property} />
 
         <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
@@ -720,27 +1140,62 @@ export default function Property({ property, recommendations }) {
           </section>
         )}
 
-        {property.rentFrequency && property.price && (
-          <section className={styles.calculatorSection}>
-            <h2>Rent Affordability</h2>
-            <RentAffordability
-              defaultRent={rentToMonthly(property.price, property.rentFrequency)}
-            />
+        {features.length > 0 && (
+          <section
+            id="property-features"
+            className={`${styles.contentRail} ${styles.features} ${styles.sectionAnchor}`}
+          >
+            <h2>Key features</h2>
+            <ul>
+              {features.map((f, i) => (
+                <li key={i}>{f}</li>
+              ))}
+            </ul>
           </section>
         )}
-      </div>
-
-      <section className={`${styles.contentRail} ${styles.contact}`}>
-        <p>Interested in this property?</p>
-        <a href="tel:+441234567890">Call our team</a>
       </section>
 
-      {recommendations && recommendations.length > 0 && (
-        <section className={`${styles.contentRail} ${styles.related}`}>
-          <h2>You might also be interested in</h2>
-          <PropertyList properties={recommendations} />
+        <div className={`${styles.contentRail} ${styles.modules}`}>
+          <PropertySustainabilityPanel property={property} />
+
+          <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
+          {showMortgageCalculator && (
+            <section
+              id="property-calculators"
+              className={`${styles.calculatorSection} ${styles.sectionAnchor}`}
+            >
+              <h2>Mortgage Calculator</h2>
+              <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+            </section>
+          )}
+
+          {showRentCalculator && (
+            <section
+              id={showMortgageCalculator ? undefined : 'property-calculators'}
+              className={`${styles.calculatorSection} ${styles.sectionAnchor}`}
+            >
+              <h2>Rent Affordability</h2>
+              <RentAffordability
+                defaultRent={rentToMonthly(property.price, property.rentFrequency)}
+              />
+            </section>
+          )}
+        </div>
+
+        <section className={`${styles.contentRail} ${styles.contact}`}>
+          <p>Interested in this property?</p>
+          <a href="tel:+441234567890">Call our team</a>
         </section>
-      )}
+
+        {hasRecommendations && (
+          <section
+            id="property-recommendations"
+            className={`${styles.contentRail} ${styles.related} ${styles.sectionAnchor}`}
+          >
+            <h2>You might also be interested in</h2>
+            <PropertyList properties={recommendations} />
+          </section>
+        )}
       </main>
     </>
   );
@@ -847,6 +1302,10 @@ export async function getStaticProps({ params }) {
       rawProperty.rentFrequency
     );
 
+    const derivedEpcScore = deriveEpcScore(rawProperty);
+    const derivedCouncilTaxBand = deriveCouncilTaxBand(rawProperty);
+    const derivedTenure = deriveTenure(rawProperty);
+
     formatted = {
       id: resolvePropertyIdentifier(rawProperty) ?? String(params.id),
       title:
@@ -867,8 +1326,9 @@ export async function getStaticProps({ params }) {
       rentFrequency: rawProperty.rentFrequency ?? null,
       image: imgList[0] || null,
       images: imgList,
+      agentProfile: resolveAgentProfile(rawProperty),
       media: extractMedia(rawProperty),
-      tenure: rawProperty.tenure ?? null,
+      tenure: derivedTenure,
       features: (() => {
         const rawFeatures =
           rawProperty.mainFeatures ||
@@ -904,8 +1364,8 @@ export async function getStaticProps({ params }) {
       holdingDeposit,
       availableAt: normalizedAvailability,
       scrayeReference: deriveScrayeReference(rawProperty),
-      epcScore: deriveEpcScore(rawProperty),
-      councilTaxBand: deriveCouncilTaxBand(rawProperty),
+      epcScore: derivedEpcScore,
+      councilTaxBand: derivedCouncilTaxBand,
       includedUtilities: deriveIncludedUtilities(rawProperty),
     };
   }

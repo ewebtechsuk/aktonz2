@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminDiary.module.css';
 import { createAdminDateFormatter } from '../../../lib/admin/formatters';
+import { withBasePath } from '../../../lib/base-path';
 
 const BADGE_LABEL = 'Diary workspace';
 const PAGE_HEADING = 'Shared diary & scheduling';
@@ -523,6 +525,7 @@ function buildDiaryUrl(startDate) {
 }
 
 export default function AdminDiaryWorkspacePage() {
+  const router = useRouter();
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
 
@@ -537,6 +540,8 @@ export default function AdminDiaryWorkspacePage() {
   const [composerType, setComposerType] = useState('Viewing');
   const [composerValues, setComposerValues] = useState(DEFAULT_COMPOSER_VALUES);
   const [composerError, setComposerError] = useState(null);
+
+  const importAbortControllerRef = useRef(null);
 
   const calendarForDisplay = calendar ?? FALLBACK_CALENDAR;
   const calendarTotals = calendar?.totals ?? FALLBACK_CALENDAR.totals;
@@ -562,21 +567,40 @@ export default function AdminDiaryWorkspacePage() {
   }, []);
 
   const loadDiary = useCallback(
-    async (startDate) => {
+    async (startDate, options = {}) => {
+      const signal =
+        options && typeof options === 'object' && 'signal' in options ? options.signal : undefined;
+
       setLoading(true);
       setError(null);
+
       try {
-        const response = await fetch(buildDiaryUrl(startDate));
+        const response = await fetch(withBasePath(buildDiaryUrl(startDate)), { signal });
         if (!response.ok) {
           throw new Error('Failed to load diary events');
         }
+
         const json = await response.json();
+
+        if (signal?.aborted) {
+          return;
+        }
+
         applyCalendarData(json);
       } catch (err) {
+        if (
+          signal?.aborted ||
+          (err && typeof err === 'object' && 'name' in err && err.name === 'AbortError')
+        ) {
+          return;
+        }
+
         console.error(err);
         setError('Unable to load the diary workspace. Please try again.');
       } finally {
-        setLoading(false);
+        if (!signal?.aborted) {
+          setLoading(false);
+        }
       }
     },
     [applyCalendarData],
@@ -593,7 +617,12 @@ export default function AdminDiaryWorkspacePage() {
       return;
     }
 
-    loadDiary();
+    const controller = new AbortController();
+    loadDiary(undefined, { signal: controller.signal });
+
+    return () => {
+      controller.abort();
+    };
   }, [sessionLoading, isAdmin, loadDiary]);
 
   useEffect(() => {
@@ -632,27 +661,45 @@ export default function AdminDiaryWorkspacePage() {
   }, [calendar, loadDiary]);
 
   const handleImport = useCallback(async () => {
-    if (importing) {
-      return;
+    if (importAbortControllerRef.current) {
+      importAbortControllerRef.current.abort();
+      importAbortControllerRef.current = null;
     }
+
+    const controller = new AbortController();
+    importAbortControllerRef.current = controller;
 
     setImporting(true);
     setToast(null);
+
     try {
-      const response = await fetch(buildDiaryUrl(calendar?.range?.start), {
+      const response = await fetch(withBasePath(buildDiaryUrl(calendar?.range?.start)), {
         method: 'POST',
+        signal: controller.signal,
       });
       if (!response.ok) {
         throw new Error('Failed to import diary events');
       }
       const json = await response.json();
+      if (controller.signal.aborted) {
+        return;
+      }
       applyCalendarData(json);
       setToast({ type: 'success', message: 'Imported the latest Apex27 diary events.' });
     } catch (err) {
+      if (
+        controller.signal.aborted ||
+        (err && typeof err === 'object' && 'name' in err && err.name === 'AbortError')
+      ) {
+        return;
+      }
       console.error(err);
       setToast({ type: 'error', message: 'Unable to import diary events. Please try again.' });
     } finally {
-      setImporting(false);
+      if (importAbortControllerRef.current === controller) {
+        setImporting(false);
+        importAbortControllerRef.current = null;
+      }
     }
   }, [applyCalendarData, calendar?.range?.start, importing]);
 

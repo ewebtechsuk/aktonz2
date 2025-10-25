@@ -20,6 +20,60 @@ function requireAdmin(req, res) {
   return admin;
 }
 
+function formatDateKey(value) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+function buildDailyCounts(valuations, days = 14) {
+  if (!Array.isArray(valuations) || days <= 0) {
+    return [];
+  }
+
+  const countsByDay = new Map();
+  for (const valuation of valuations) {
+    const key = formatDateKey(valuation?.createdAt);
+    if (!key) {
+      continue;
+    }
+
+    countsByDay.set(key, (countsByDay.get(key) ?? 0) + 1);
+  }
+
+  const now = new Date();
+  const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const dayMs = 24 * 60 * 60 * 1000;
+  const formatter = new Intl.DateTimeFormat('en-GB', { month: 'short', day: 'numeric' });
+
+  const timeline = [];
+  for (let index = days - 1; index >= 0; index -= 1) {
+    const dayUtc = todayUtc - index * dayMs;
+    const date = new Date(dayUtc);
+    const key = formatDateKey(date.toISOString());
+    const count = countsByDay.get(key) ?? 0;
+
+    timeline.push({
+      date: new Date(dayUtc).toISOString(),
+      count,
+      label: formatter.format(date),
+    });
+  }
+
+  return timeline;
+}
+
 export default async function handler(req, res) {
   if (!requireAdmin(req, res)) {
     return;
@@ -40,6 +94,7 @@ export default async function handler(req, res) {
         valuations,
         statuses: VALUATION_STATUSES,
         statusOptions: getValuationStatusOptions(),
+        dailyCounts: buildDailyCounts(valuations),
         gallery: {
           sections: galleryOverview.sections,
           available: galleryOverview.available,
