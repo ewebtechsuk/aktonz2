@@ -15,6 +15,7 @@ import { useRouter } from 'next/router';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminSettings.module.css';
+import { withBasePath } from '../../../lib/base-path';
 
 const DEFAULT_BRANCHES = ['City of London', 'East London', 'South London'];
 const DEFAULT_TIMEZONES = ['Europe/London', 'Europe/Dublin', 'Europe/Paris'];
@@ -65,6 +66,7 @@ const AdminSettingsPage = () => {
   const { user, loading: sessionLoading, clearSession, refresh } = useSession() as SessionContext;
   const router = useRouter();
   const isAdmin = Boolean(user?.role === 'admin');
+  const logoutUrl = useMemo(() => withBasePath('/api/logout'), []);
 
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
@@ -82,7 +84,7 @@ const AdminSettingsPage = () => {
     setLogoutLoading(true);
 
     try {
-      const response = await fetch('/api/logout', {
+      const response = await fetch(logoutUrl, {
         method: 'POST',
         credentials: 'include',
       });
@@ -107,7 +109,7 @@ const AdminSettingsPage = () => {
     } finally {
       setLogoutLoading(false);
     }
-  }, [clearSession, refresh, router]);
+  }, [clearSession, logoutUrl, refresh, router]);
 
   const secondaryItems = useMemo(
     () => [

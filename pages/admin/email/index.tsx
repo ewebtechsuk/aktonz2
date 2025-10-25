@@ -7,6 +7,7 @@ import adminStyles from '../../../styles/Admin.module.css';
 import styles from '../../../styles/AdminEmailSettings.module.css';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import { useSession } from '../../../components/SessionProvider';
+import { withBasePath } from '../../../lib/base-path';
 
 type MicrosoftStatus = {
   connected: boolean;
@@ -87,6 +88,10 @@ const AdminEmailSettingsPage = () => {
   };
   const router = useRouter();
   const isAdmin = Boolean(user?.role === 'admin');
+  const microsoftStatusUrl = useMemo(() => withBasePath('/api/microsoft/status'), []);
+  const logoutUrl = useMemo(() => withBasePath('/api/logout'), []);
+  const connectUrl = useMemo(() => withBasePath('/api/microsoft/connect'), []);
+  const disconnectUrl = useMemo(() => withBasePath('/api/microsoft/disconnect'), []);
 
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
@@ -104,7 +109,10 @@ const AdminEmailSettingsPage = () => {
     setStatusState((prev) => ({ ...prev, loading: true, error: null }));
 
     try {
-      const response = await fetch('/api/microsoft/status', { method: 'GET', headers: { accept: 'application/json' } });
+      const response = await fetch(microsoftStatusUrl, {
+        method: 'GET',
+        headers: { accept: 'application/json' },
+      });
 
       if (!response.ok) {
         throw new Error('Unable to load Microsoft Graph status');
@@ -116,7 +124,7 @@ const AdminEmailSettingsPage = () => {
       const message = error instanceof Error ? error.message : 'Unable to load Microsoft Graph status';
       setStatusState({ loading: false, loaded: true, data: null, error: message });
     }
-  }, [isAdmin]);
+  }, [isAdmin, microsoftStatusUrl]);
 
   useEffect(() => {
     if (!sessionLoading && isAdmin) {
@@ -129,7 +137,7 @@ const AdminEmailSettingsPage = () => {
     setLogoutLoading(true);
 
     try {
-      const response = await fetch('/api/logout', {
+      const response = await fetch(logoutUrl, {
         method: 'POST',
         credentials: 'include',
       });
@@ -154,19 +162,19 @@ const AdminEmailSettingsPage = () => {
     } finally {
       setLogoutLoading(false);
     }
-  }, [clearSession, refresh, router]);
+  }, [clearSession, logoutUrl, refresh, router]);
 
   const handleConnect = useCallback(() => {
     setConnectRedirecting(true);
-    window.location.href = '/api/microsoft/connect';
-  }, []);
+    window.location.href = connectUrl;
+  }, [connectUrl]);
 
   const handleDisconnect = useCallback(async () => {
     setStatusState((prev) => ({ ...prev, error: null }));
     setDisconnecting(true);
 
     try {
-      const response = await fetch('/api/microsoft/disconnect', {
+      const response = await fetch(disconnectUrl, {
         method: 'POST',
         headers: { 'content-type': 'application/json', accept: 'application/json' },
       });
@@ -183,7 +191,7 @@ const AdminEmailSettingsPage = () => {
     } finally {
       setDisconnecting(false);
     }
-  }, [loadStatus]);
+  }, [disconnectUrl, loadStatus]);
 
   const microsoftConnected = Boolean(statusState.data?.connected);
 

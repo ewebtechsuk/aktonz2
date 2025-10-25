@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -7,6 +7,7 @@ import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/Admi
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminListingDetails.module.css';
 import { formatOfferStatusLabel } from '../../../lib/offer-statuses.js';
+import { withBasePath } from '../../../lib/base-path';
 import {
   FaAlignLeft,
   FaBalanceScale,
@@ -776,6 +777,7 @@ export default function AdminListingDetailsPage() {
   const [saveSuccess, setSaveSuccess] = useState('');
   const [validationErrors, setValidationErrors] = useState([]);
   const [activeTab, setActiveTab] = useState('main-details');
+  const fetchControllerRef = useRef(null);
 
   const listingId = useMemo(() => {
     if (!router.isReady) {
@@ -790,12 +792,24 @@ export default function AdminListingDetailsPage() {
       return;
     }
 
+    if (fetchControllerRef.current) {
+      fetchControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    fetchControllerRef.current = controller;
+
     setLoading(true);
     setError('');
 
     try {
-      const basePath = router?.basePath ?? '';
-      const response = await fetch(`${basePath}/api/admin/listings/${encodeURIComponent(listingId)}`);
+      const response = await fetch(
+        withBasePath(`/api/admin/listings/${encodeURIComponent(listingId)}`),
+        {
+          credentials: 'include',
+          signal: controller.signal,
+        },
+      );
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error('Listing not found');
@@ -803,15 +817,25 @@ export default function AdminListingDetailsPage() {
         throw new Error('Failed to fetch listing');
       }
       const payload = await response.json();
-      setListing(payload.listing || null);
+      if (!controller.signal.aborted) {
+        setListing(payload.listing || null);
+      }
     } catch (err) {
+      if (controller.signal.aborted) {
+        return;
+      }
       console.error(err);
       setError(err.message || 'Unable to load listing');
       setListing(null);
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
+      if (fetchControllerRef.current === controller) {
+        fetchControllerRef.current = null;
+      }
     }
-  }, [listingId, router.basePath]);
+  }, [listingId]);
 
   useEffect(() => {
     if (!isAdmin || !listingId) {
@@ -823,6 +847,16 @@ export default function AdminListingDetailsPage() {
 
     fetchListing();
   }, [fetchListing, isAdmin, listingId, sessionLoading]);
+
+  useEffect(
+    () => () => {
+      if (fetchControllerRef.current) {
+        fetchControllerRef.current.abort();
+        fetchControllerRef.current = null;
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!listing) {
@@ -1366,11 +1400,11 @@ export default function AdminListingDetailsPage() {
 
       try {
         const payload = buildUpdatePayload(formValues);
-        const basePath = router?.basePath ?? '';
-        const response = await fetch(`${basePath}/api/admin/listings/${encodeURIComponent(listingId)}`, {
+        const response = await fetch(withBasePath(`/api/admin/listings/${encodeURIComponent(listingId)}`), {
           method: 'PATCH',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify(payload),
+          credentials: 'include',
         });
 
         if (!response.ok) {
@@ -1392,7 +1426,7 @@ export default function AdminListingDetailsPage() {
         setSaving(false);
       }
     },
-    [formValues, listingId, router.basePath],
+    [formValues, listingId],
   );
 
   const handleReset = useCallback(() => {
