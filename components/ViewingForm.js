@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import PropertyActionDrawer from './PropertyActionDrawer';
 import styles from '../styles/ViewingForm.module.css';
 
-export default function ViewingForm({ property }) {
+export default function ViewingForm({ property, selectedSlot = null, onClose }) {
   const router = useRouter();
   const basePath = (router?.basePath ?? '').replace(/\/$/, '');
 
@@ -33,7 +33,24 @@ export default function ViewingForm({ property }) {
     setSent(false);
     setError('');
     setSubmitting(false);
+    onClose?.();
   };
+
+  useEffect(() => {
+    if (!selectedSlot) {
+      return;
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      date: selectedSlot.date ?? '',
+      time: selectedSlot.time ?? '',
+    }));
+    setSent(false);
+    setError('');
+    setSubmitting(false);
+    setOpen(true);
+  }, [selectedSlot?.triggerKey]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
