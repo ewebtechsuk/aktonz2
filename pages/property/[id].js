@@ -6,7 +6,7 @@ import ViewingForm from '../../components/ViewingForm';
 import NeighborhoodInfo from '../../components/NeighborhoodInfo';
 import FavoriteButton from '../../components/FavoriteButton';
 import PropertySustainabilityPanel from '../../components/PropertySustainabilityPanel';
-import SectionNav from '../../components/SectionNav';
+import AgentCard from '../../components/AgentCard';
 
 import MortgageCalculator from '../../components/MortgageCalculator';
 import RentAffordability from '../../components/RentAffordability';
@@ -48,6 +48,205 @@ import {
   formatAvailabilityDate,
   resolveAvailabilityDate,
 } from '../../lib/deposits.mjs';
+import agentsData from '../../data/agents.json';
+
+const AGENT_ENTRIES = Array.isArray(agentsData) ? agentsData : [];
+const AGENT_MAP = new Map(
+  AGENT_ENTRIES.filter((agent) => agent && agent.id != null).map((agent) => [
+    String(agent.id),
+    agent,
+  ])
+);
+const AGENT_PLACEHOLDER_IMAGE = '/images/agent-placeholder.svg';
+const DEFAULT_AGENT_PROFILE = (() => {
+  const primary = AGENT_ENTRIES.find((entry) => entry && entry.name) || null;
+  return {
+    id: primary?.id ? String(primary.id) : 'aktonz-default',
+    name: primary?.name || 'Aktonz advisor',
+    title: 'Your Aktonz property expert',
+    jobTitle: primary?.jobTitle || 'Local lettings specialist',
+    responseSla: 'Replies within 15 minutes during business hours.',
+    reviewSnippet:
+      '“Exceptional communication and proactive updates throughout the letting process.”',
+    reviewAttribution: 'Landlord review, March 2024',
+    photo: primary?.photo || AGENT_PLACEHOLDER_IMAGE,
+  };
+})();
+
+function normalizeAgentString(value) {
+  if (value == null) return null;
+  const normalized = String(value).trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function pickFirstAgentString(...values) {
+  for (const value of values) {
+    const normalized = normalizeAgentString(value);
+    if (normalized) {
+      return normalized;
+    }
+  }
+  return null;
+}
+
+function collectAgentCandidates(rawProperty) {
+  const candidates = [];
+  const pushCandidate = (candidate) => {
+    if (candidate && typeof candidate === 'object') {
+      candidates.push(candidate);
+    }
+  };
+
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return candidates;
+  }
+
+  pushCandidate(rawProperty.agent);
+  pushCandidate(rawProperty.negotiator);
+  pushCandidate(rawProperty.user);
+  pushCandidate(rawProperty.assignedAgent);
+  pushCandidate(rawProperty.owner);
+  pushCandidate(rawProperty.primaryContact);
+  pushCandidate(rawProperty.marketing?.agent);
+
+  return candidates;
+}
+
+function resolveAgentProfile(rawProperty) {
+  const baseProfile = { ...DEFAULT_AGENT_PROFILE };
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return baseProfile;
+  }
+
+  const candidateObjects = collectAgentCandidates(rawProperty);
+  const idCandidates = [
+    rawProperty.agentId,
+    rawProperty.assignedAgentId,
+    rawProperty.negotiatorId,
+    rawProperty.userId,
+    rawProperty.agent?.id,
+    rawProperty.negotiator?.id,
+    rawProperty.user?.id,
+    rawProperty.assignedAgent?.id,
+    rawProperty.owner?.id,
+    rawProperty.marketing?.agent?.id,
+  ]
+    .map((value) => normalizeAgentString(value))
+    .filter(Boolean);
+
+  const resolvedAgentId =
+    idCandidates.find((candidate) => AGENT_MAP.has(candidate)) ||
+    idCandidates[0] ||
+    baseProfile.id;
+
+  const mappedAgent = AGENT_MAP.get(resolvedAgentId) || null;
+  const namedCandidate =
+    candidateObjects.find((candidate) =>
+      Boolean(
+        pickFirstAgentString(
+          candidate.name,
+          candidate.fullName,
+          candidate.displayName,
+          candidate.title
+        )
+      )
+    ) || null;
+
+  const resolvedName =
+    pickFirstAgentString(
+      rawProperty.agentName,
+      rawProperty.assignedAgentName,
+      rawProperty.agent?.name,
+      rawProperty.agent?.fullName,
+      rawProperty.agent?.displayName,
+      namedCandidate?.name,
+      namedCandidate?.fullName,
+      namedCandidate?.displayName,
+      mappedAgent?.name
+    ) || baseProfile.name;
+
+  const resolvedTitle =
+    pickFirstAgentString(
+      rawProperty.agentTitle,
+      rawProperty.agentHeading,
+      rawProperty.marketing?.agent?.title,
+      namedCandidate?.title,
+      namedCandidate?.tagline,
+      mappedAgent?.title
+    ) || baseProfile.title;
+
+  const resolvedJobTitle =
+    pickFirstAgentString(
+      rawProperty.agentJobTitle,
+      rawProperty.agent?.jobTitle,
+      rawProperty.agent?.role,
+      namedCandidate?.jobTitle,
+      namedCandidate?.role,
+      namedCandidate?.position,
+      mappedAgent?.jobTitle,
+      mappedAgent?.role
+    ) || baseProfile.jobTitle;
+
+  const resolvedResponseSla =
+    pickFirstAgentString(
+      rawProperty.agentResponseSla,
+      rawProperty.agentResponseSLA,
+      rawProperty.agent?.responseSla,
+      rawProperty.agent?.responseSLA,
+      namedCandidate?.responseSla,
+      namedCandidate?.responseSLA,
+      mappedAgent?.responseSla
+    ) || baseProfile.responseSla;
+
+  const resolvedReviewSnippet =
+    pickFirstAgentString(
+      rawProperty.agentReviewSnippet,
+      rawProperty.agentReviewQuote,
+      rawProperty.agent?.reviewSnippet,
+      rawProperty.agent?.reviewQuote,
+      namedCandidate?.reviewSnippet,
+      namedCandidate?.reviewQuote,
+      mappedAgent?.reviewSnippet
+    ) || baseProfile.reviewSnippet;
+
+  const resolvedReviewAttribution =
+    pickFirstAgentString(
+      rawProperty.agentReviewAttribution,
+      rawProperty.agentReviewSource,
+      rawProperty.agent?.reviewAttribution,
+      rawProperty.agent?.reviewSource,
+      namedCandidate?.reviewAttribution,
+      namedCandidate?.reviewSource,
+      mappedAgent?.reviewAttribution
+    ) || baseProfile.reviewAttribution;
+
+  const resolvedPhoto =
+    pickFirstAgentString(
+      rawProperty.agent?.photo,
+      rawProperty.agent?.image,
+      rawProperty.agent?.avatar,
+      rawProperty.agent?.avatarUrl,
+      namedCandidate?.photo,
+      namedCandidate?.image,
+      namedCandidate?.avatar,
+      namedCandidate?.avatarUrl,
+      namedCandidate?.profilePhoto,
+      mappedAgent?.photo,
+      baseProfile.photo,
+      AGENT_PLACEHOLDER_IMAGE
+    ) || AGENT_PLACEHOLDER_IMAGE;
+
+  return {
+    id: resolvedAgentId,
+    name: resolvedName,
+    title: resolvedTitle,
+    jobTitle: resolvedJobTitle,
+    responseSla: resolvedResponseSla,
+    reviewSnippet: resolvedReviewSnippet,
+    reviewAttribution: resolvedReviewAttribution,
+    photo: resolvedPhoto,
+  };
+}
 
 function normalizeScrayeReference(value) {
   if (value == null) {
@@ -525,6 +724,7 @@ async function loadPrebuildPropertyIds(limit = null) {
 
 export default function Property({ property, recommendations }) {
   const hasLocation = property?.latitude != null && property?.longitude != null;
+  const agentProfile = property?.agentProfile;
   const priceLabel = formatPropertyPriceLabel(property);
   const rentFrequencyLabel = useMemo(() => {
     if (!property?.rentFrequency) {
@@ -901,22 +1101,42 @@ export default function Property({ property, recommendations }) {
           </div>
         </section>
 
-        {navSections.length > 0 && <SectionNav sections={navSections} />}
+      {hasLocation && (
+        <section className={`${styles.contentRail} ${styles.mapSection}`}>
+          <h2>Location</h2>
+          <div className={styles.mapContainer}>
+            <PropertyMap
+              mapId="property-details-map"
+              center={[property.latitude, property.longitude]}
+              zoom={16}
+              properties={mapProperties}
+            />
+          </div>
+        </section>
+      )}
 
-        {hasLocation && (
-          <section
-            id="property-location"
-            className={`${styles.contentRail} ${styles.mapSection} ${styles.sectionAnchor}`}
-          >
-            <h2>Location</h2>
-            <div className={styles.mapContainer}>
-              <PropertyMap
-                mapId="property-details-map"
-                center={[property.latitude, property.longitude]}
-                zoom={16}
-                properties={mapProperties}
-              />
-            </div>
+      {features.length > 0 && (
+        <section className={`${styles.contentRail} ${styles.features}`}>
+          <h2>Key features</h2>
+          <ul>
+            {features.map((f, i) => (
+              <li key={i}>{f}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section className={`${styles.contentRail} ${styles.modules}`}>
+        {agentProfile && (
+          <AgentCard className={styles.agentCard} agent={agentProfile} />
+        )}
+        <PropertySustainabilityPanel property={property} />
+
+        <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
+        {!property.rentFrequency && property.price && (
+          <section className={styles.calculatorSection}>
+            <h2>Mortgage Calculator</h2>
+            <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
           </section>
         )}
 
@@ -933,6 +1153,7 @@ export default function Property({ property, recommendations }) {
             </ul>
           </section>
         )}
+      </section>
 
         <div className={`${styles.contentRail} ${styles.modules}`}>
           <PropertySustainabilityPanel property={property} />
@@ -1105,6 +1326,7 @@ export async function getStaticProps({ params }) {
       rentFrequency: rawProperty.rentFrequency ?? null,
       image: imgList[0] || null,
       images: imgList,
+      agentProfile: resolveAgentProfile(rawProperty),
       media: extractMedia(rawProperty),
       tenure: derivedTenure,
       features: (() => {
