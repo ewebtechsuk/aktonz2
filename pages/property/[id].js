@@ -6,6 +6,7 @@ import ViewingForm from '../../components/ViewingForm';
 import NeighborhoodInfo from '../../components/NeighborhoodInfo';
 import FavoriteButton from '../../components/FavoriteButton';
 import PropertySustainabilityPanel from '../../components/PropertySustainabilityPanel';
+import SectionNav from '../../components/SectionNav';
 
 import MortgageCalculator from '../../components/MortgageCalculator';
 import RentAffordability from '../../components/RentAffordability';
@@ -589,6 +590,33 @@ export default function Property({ property, recommendations }) {
       ? formatPricePrefix(property.pricePrefix)
       : '';
 
+  const showMortgageCalculator = Boolean(!property.rentFrequency && property.price);
+  const showRentCalculator = Boolean(property.rentFrequency && property.price);
+  const hasRecommendations = Array.isArray(recommendations) && recommendations.length > 0;
+
+  const navSections = useMemo(() => {
+    const sectionsList = [];
+    if (hasLocation) {
+      sectionsList.push({ id: 'property-location', label: 'Location' });
+    }
+    if (features.length > 0) {
+      sectionsList.push({ id: 'property-features', label: 'Key features' });
+    }
+    if (showMortgageCalculator || showRentCalculator) {
+      sectionsList.push({ id: 'property-calculators', label: 'Calculators' });
+    }
+    if (hasRecommendations) {
+      sectionsList.push({ id: 'property-recommendations', label: 'Recommendations' });
+    }
+    return sectionsList;
+  }, [
+    features.length,
+    hasLocation,
+    hasRecommendations,
+    showMortgageCalculator,
+    showRentCalculator,
+  ]);
+
   return (
     <>
       <Head>
@@ -679,63 +707,80 @@ export default function Property({ property, recommendations }) {
           </div>
         </section>
 
-      {hasLocation && (
-        <section className={`${styles.contentRail} ${styles.mapSection}`}>
-          <h2>Location</h2>
-          <div className={styles.mapContainer}>
-            <PropertyMap
-              mapId="property-details-map"
-              center={[property.latitude, property.longitude]}
-              zoom={16}
-              properties={mapProperties}
-            />
-          </div>
-        </section>
-      )}
+        {navSections.length > 0 && <SectionNav sections={navSections} />}
 
-      {features.length > 0 && (
-        <section className={`${styles.contentRail} ${styles.features}`}>
-          <h2>Key features</h2>
-          <ul>
-            {features.map((f, i) => (
-              <li key={i}>{f}</li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <div className={`${styles.contentRail} ${styles.modules}`}>
-        <PropertySustainabilityPanel property={property} />
-
-        <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
-        {!property.rentFrequency && property.price && (
-          <section className={styles.calculatorSection}>
-            <h2>Mortgage Calculator</h2>
-            <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+        {hasLocation && (
+          <section
+            id="property-location"
+            className={`${styles.contentRail} ${styles.mapSection} ${styles.sectionAnchor}`}
+          >
+            <h2>Location</h2>
+            <div className={styles.mapContainer}>
+              <PropertyMap
+                mapId="property-details-map"
+                center={[property.latitude, property.longitude]}
+                zoom={16}
+                properties={mapProperties}
+              />
+            </div>
           </section>
         )}
 
-        {property.rentFrequency && property.price && (
-          <section className={styles.calculatorSection}>
-            <h2>Rent Affordability</h2>
-            <RentAffordability
-              defaultRent={rentToMonthly(property.price, property.rentFrequency)}
-            />
+        {features.length > 0 && (
+          <section
+            id="property-features"
+            className={`${styles.contentRail} ${styles.features} ${styles.sectionAnchor}`}
+          >
+            <h2>Key features</h2>
+            <ul>
+              {features.map((f, i) => (
+                <li key={i}>{f}</li>
+              ))}
+            </ul>
           </section>
         )}
-      </div>
 
-      <section className={`${styles.contentRail} ${styles.contact}`}>
-        <p>Interested in this property?</p>
-        <a href="tel:+441234567890">Call our team</a>
-      </section>
+        <div className={`${styles.contentRail} ${styles.modules}`}>
+          <PropertySustainabilityPanel property={property} />
 
-      {recommendations && recommendations.length > 0 && (
-        <section className={`${styles.contentRail} ${styles.related}`}>
-          <h2>You might also be interested in</h2>
-          <PropertyList properties={recommendations} />
+          <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
+          {showMortgageCalculator && (
+            <section
+              id="property-calculators"
+              className={`${styles.calculatorSection} ${styles.sectionAnchor}`}
+            >
+              <h2>Mortgage Calculator</h2>
+              <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+            </section>
+          )}
+
+          {showRentCalculator && (
+            <section
+              id={showMortgageCalculator ? undefined : 'property-calculators'}
+              className={`${styles.calculatorSection} ${styles.sectionAnchor}`}
+            >
+              <h2>Rent Affordability</h2>
+              <RentAffordability
+                defaultRent={rentToMonthly(property.price, property.rentFrequency)}
+              />
+            </section>
+          )}
+        </div>
+
+        <section className={`${styles.contentRail} ${styles.contact}`}>
+          <p>Interested in this property?</p>
+          <a href="tel:+441234567890">Call our team</a>
         </section>
-      )}
+
+        {hasRecommendations && (
+          <section
+            id="property-recommendations"
+            className={`${styles.contentRail} ${styles.related} ${styles.sectionAnchor}`}
+          >
+            <h2>You might also be interested in</h2>
+            <PropertyList properties={recommendations} />
+          </section>
+        )}
       </main>
     </>
   );
