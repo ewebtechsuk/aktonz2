@@ -8,6 +8,7 @@ import NeighborhoodInfo from '../../components/NeighborhoodInfo';
 import FavoriteButton from '../../components/FavoriteButton';
 import PropertySustainabilityPanel from '../../components/PropertySustainabilityPanel';
 import AgentCard from '../../components/AgentCard';
+import MediaHighlights from '../../components/MediaHighlights';
 
 import MortgageCalculator from '../../components/MortgageCalculator';
 import RentAffordability from '../../components/RentAffordability';
@@ -31,8 +32,25 @@ import {
   resolvePropertyTypeLabel,
   formatPropertyTypeLabel,
 } from '../../lib/property-type.mjs';
+import { groupPropertyFeatures } from '../../lib/property-features.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
-import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
+import {
+  FaBed,
+  FaBath,
+  FaCouch,
+  FaTrain,
+  FaSchool,
+  FaWalking,
+  FaMapMarkerAlt,
+} from 'react-icons/fa';
+import {
+  FiDroplet,
+  FiHome,
+  FiLayers,
+  FiShield,
+  FiStar,
+  FiSun,
+} from 'react-icons/fi';
 import {
   formatPriceGBP,
   formatPricePrefix,
@@ -213,6 +231,305 @@ const DEFAULT_AGENT_PROFILE = (() => {
   };
 })();
 
+const LOCATION_INSIGHT_ICON_MAP = {
+  transport: FaTrain,
+  schools: FaSchool,
+  walkability: FaWalking,
+};
+
+const MAJOR_CITY_REFERENCES = [
+  {
+    key: 'london',
+    name: 'London',
+    lat: 51.509865,
+    lon: -0.118092,
+    aliases: ['london', 'city of london'],
+    metropolitan: true,
+  },
+  {
+    key: 'birmingham',
+    name: 'Birmingham',
+    lat: 52.486244,
+    lon: -1.890401,
+    aliases: ['birmingham'],
+    metropolitan: true,
+  },
+  {
+    key: 'manchester',
+    name: 'Manchester',
+    lat: 53.480759,
+    lon: -2.242631,
+    aliases: ['manchester', 'greater manchester'],
+    metropolitan: true,
+  },
+  {
+    key: 'leeds',
+    name: 'Leeds',
+    lat: 53.800755,
+    lon: -1.549077,
+    aliases: ['leeds'],
+    metropolitan: true,
+  },
+  {
+    key: 'bristol',
+    name: 'Bristol',
+    lat: 51.454514,
+    lon: -2.58791,
+    aliases: ['bristol'],
+    metropolitan: false,
+  },
+  {
+    key: 'edinburgh',
+    name: 'Edinburgh',
+    lat: 55.953251,
+    lon: -3.188267,
+    aliases: ['edinburgh'],
+    metropolitan: false,
+  },
+  {
+    key: 'glasgow',
+    name: 'Glasgow',
+    lat: 55.864237,
+    lon: -4.251806,
+    aliases: ['glasgow'],
+    metropolitan: true,
+  },
+  {
+    key: 'liverpool',
+    name: 'Liverpool',
+    lat: 53.408371,
+    lon: -2.991573,
+    aliases: ['liverpool'],
+    metropolitan: false,
+  },
+];
+
+function parseCoordinate(value) {
+  if (value == null) return null;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+function haversineDistanceKm(lat1, lon1, lat2, lon2) {
+  const toRadians = (value) => (value * Math.PI) / 180;
+  const earthRadiusKm = 6371;
+
+  const dLat = toRadians(lat2 - lat1);
+  const dLon = toRadians(lon2 - lon1);
+  const startLat = toRadians(lat1);
+  const endLat = toRadians(lat2);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(startLat) * Math.cos(endLat);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadiusKm * c;
+}
+
+function resolveCityReference(normalizedCity) {
+  if (!normalizedCity) {
+    return null;
+  }
+
+  const lower = normalizedCity.toLowerCase();
+  return (
+    MAJOR_CITY_REFERENCES.find((entry) =>
+      entry.aliases.some((alias) => alias.toLowerCase() === lower)
+    ) || null
+  );
+}
+
+function resolveNearestCity({ lat, lon, normalizedCity }) {
+  const matchedCity = resolveCityReference(normalizedCity);
+  if (lat == null || lon == null) {
+    if (matchedCity) {
+      return { city: matchedCity, distanceKm: 0, matched: true };
+    }
+    return null;
+  }
+
+  let closest = null;
+  for (const city of MAJOR_CITY_REFERENCES) {
+    const distanceKm = haversineDistanceKm(lat, lon, city.lat, city.lon);
+    if (!closest || distanceKm < closest.distanceKm) {
+      closest = { city, distanceKm, matched: false };
+    }
+  }
+
+  if (!matchedCity) {
+    return closest;
+  }
+
+  const matchedDistanceKm = haversineDistanceKm(
+    lat,
+    lon,
+    matchedCity.lat,
+    matchedCity.lon
+  );
+
+  if (!closest || matchedDistanceKm < closest.distanceKm) {
+    return { city: matchedCity, distanceKm: matchedDistanceKm, matched: true };
+  }
+
+  return closest;
+}
+
+function resolveTransportInsight({ distanceKm, isUrban, isDenseUrban }) {
+  if (distanceKm != null) {
+    if (distanceKm <= 5) {
+      return {
+        grade: 'Excellent',
+        description: 'Fast tube and rail connections within minutes.',
+      };
+    }
+    if (distanceKm <= 15) {
+      return {
+        grade: 'Great',
+        description: 'Frequent rail and bus services into the city centre.',
+      };
+    }
+    if (distanceKm <= 35) {
+      return {
+        grade: 'Good',
+        description: 'Regional transport links reachable with a short drive.',
+      };
+    }
+    return {
+      grade: 'Car-friendly',
+      description: 'Driving offers the most convenient travel for this area.',
+    };
+  }
+
+  if (isDenseUrban) {
+    return {
+      grade: 'Excellent',
+      description: 'Extensive transport network at your doorstep.',
+    };
+  }
+
+  if (isUrban) {
+    return {
+      grade: 'Great',
+      description: 'Well-connected public transport covering daily routes.',
+    };
+  }
+
+  return {
+    grade: 'Car-friendly',
+    description: 'Driving offers the most convenient travel for this area.',
+  };
+}
+
+function resolveSchoolsInsight({ isUrban, isDenseUrban, isFamilySized }) {
+  if (isDenseUrban) {
+    return {
+      grade: 'Top rated',
+      description: 'Choice of highly rated schools within a mile.',
+    };
+  }
+
+  if (isUrban) {
+    return {
+      grade: 'Diverse options',
+      description: 'Multiple primary and secondary schools close by.',
+    };
+  }
+
+  if (isFamilySized) {
+    return {
+      grade: 'Family-friendly',
+      description: 'Well-regarded schools reachable in under 15 minutes.',
+    };
+  }
+
+  return {
+    grade: 'Local network',
+    description: 'Community schools served by nearby towns and villages.',
+  };
+}
+
+function resolveWalkabilityInsight({ distanceKm, isUrban, isDenseUrban }) {
+  if (isDenseUrban) {
+    return {
+      grade: 'Highly walkable',
+      description: 'Daily errands doable on foot with amenities moments away.',
+    };
+  }
+
+  if (isUrban) {
+    return {
+      grade: 'Neighbourhood living',
+      description: 'Cafés, gyms and essentials within a short stroll or cycle.',
+    };
+  }
+
+  if (distanceKm != null && distanceKm <= 35) {
+    return {
+      grade: 'Village convenience',
+      description: 'Local high streets reachable by bike or a relaxed walk.',
+    };
+  }
+
+  return {
+    grade: 'Leafy escape',
+    description: 'Quiet lanes and open spaces ideal for weekend walks.',
+  };
+}
+
+function computeLocationInsights(rawProperty) {
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return [];
+  }
+
+  const lat =
+    parseCoordinate(rawProperty.latitude) ??
+    parseCoordinate(rawProperty.lat) ??
+    parseCoordinate(rawProperty.latd);
+  const lon =
+    parseCoordinate(rawProperty.longitude) ??
+    parseCoordinate(rawProperty.lon) ??
+    parseCoordinate(rawProperty.lng) ??
+    parseCoordinate(rawProperty.long);
+
+  const cityCandidates = [
+    rawProperty.city,
+    rawProperty.town,
+    rawProperty.locality,
+    rawProperty.area,
+    rawProperty.address?.city,
+    rawProperty.address?.town,
+    rawProperty.address?.village,
+    rawProperty._scraye?.placeName,
+  ];
+
+  const resolvedCityName = cityCandidates.find(
+    (value) => typeof value === 'string' && value.trim()
+  );
+  const normalizedCity = resolvedCityName?.trim().toLowerCase() ?? null;
+
+  const nearestCity = resolveNearestCity({ lat, lon, normalizedCity });
+  const distanceKm = nearestCity?.distanceKm ?? null;
+  const isUrban = Boolean(nearestCity?.matched) || (distanceKm != null && distanceKm <= 25);
+  const isDenseUrban =
+    (nearestCity?.matched && Boolean(nearestCity?.city?.metropolitan)) ||
+    (distanceKm != null && distanceKm <= 8);
+
+  const bedrooms = parseCoordinate(
+    rawProperty.bedrooms ?? rawProperty.beds ?? rawProperty.bedroomsCount
+  );
+  const isFamilySized = Number.isFinite(bedrooms) ? bedrooms >= 3 : false;
+
+  const transport = resolveTransportInsight({ distanceKm, isUrban, isDenseUrban });
+  const schools = resolveSchoolsInsight({ isUrban, isDenseUrban, isFamilySized });
+  const walkability = resolveWalkabilityInsight({ distanceKm, isUrban, isDenseUrban });
+
+  return [
+    { key: 'transport', title: 'Transport', ...transport },
+    { key: 'schools', title: 'Schools', ...schools },
+    { key: 'walkability', title: 'Walkability', ...walkability },
+  ];
+}
+
 function normalizeAgentString(value) {
   if (value == null) return null;
   const normalized = String(value).trim();
@@ -250,6 +567,287 @@ function collectAgentCandidates(rawProperty) {
   pushCandidate(rawProperty.marketing?.agent);
 
   return candidates;
+}
+
+function isLikelyAssetUrl(value) {
+  if (typeof value !== 'string') {
+    return false;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return false;
+  }
+  if (/^https?:\/\//i.test(trimmed)) {
+    return true;
+  }
+  return trimmed.startsWith('/');
+}
+
+function extractSupplementaryLinks(source, keywords) {
+  if (!source || typeof source !== 'object') {
+    return [];
+  }
+
+  const normalizedKeywords = Array.isArray(keywords)
+    ? keywords
+        .map((keyword) =>
+          typeof keyword === 'string' ? keyword.toLowerCase().trim() : null
+        )
+        .filter(Boolean)
+    : [];
+
+  if (normalizedKeywords.length === 0) {
+    return [];
+  }
+
+  const matchesKeyword = (value) => {
+    if (!value) {
+      return false;
+    }
+    const text = String(value).toLowerCase();
+    return normalizedKeywords.some((keyword) => text.includes(keyword));
+  };
+
+  const results = new Map();
+  const seen = new Set();
+
+  const addResult = (url, label = null) => {
+    if (!isLikelyAssetUrl(url)) {
+      return;
+    }
+    const trimmed = url.trim();
+    if (!trimmed) {
+      return;
+    }
+    const normalizedLabel = label && typeof label === 'string' ? label.trim() : null;
+    const existing = results.get(trimmed);
+    if (existing) {
+      if (!existing.label && normalizedLabel) {
+        existing.label = normalizedLabel;
+      }
+      return;
+    }
+    results.set(trimmed, {
+      url: trimmed,
+      label: normalizedLabel || null,
+    });
+  };
+
+  const traverse = (value, key = '', depth = 0) => {
+    if (value == null) {
+      return;
+    }
+
+    if (depth > 5) {
+      return;
+    }
+
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!isLikelyAssetUrl(trimmed)) {
+        return;
+      }
+      if (matchesKeyword(trimmed) || matchesKeyword(key)) {
+        addResult(trimmed, matchesKeyword(trimmed) ? trimmed : key);
+      }
+      return;
+    }
+
+    if (typeof value !== 'object') {
+      return;
+    }
+
+    if (seen.has(value)) {
+      return;
+    }
+    seen.add(value);
+
+    if (Array.isArray(value)) {
+      value.forEach((entry) => traverse(entry, key, depth + 1));
+      return;
+    }
+
+    const labelFields = [
+      'label',
+      'name',
+      'title',
+      'description',
+      'tag',
+      'type',
+      'category',
+      'filename',
+      'fileName',
+      'displayName',
+      'heading',
+      'text',
+    ];
+    let matchedLabel = null;
+    for (const field of labelFields) {
+      const candidate = value[field];
+      if (typeof candidate === 'string' && matchesKeyword(candidate)) {
+        matchedLabel = candidate.trim();
+        break;
+      }
+    }
+
+    const urlFields = [
+      'url',
+      'href',
+      'link',
+      'value',
+      'downloadUrl',
+      'fileUrl',
+      'assetUrl',
+      'path',
+      'src',
+      'file',
+    ];
+    for (const field of urlFields) {
+      const candidate = value[field];
+      if (typeof candidate !== 'string') {
+        continue;
+      }
+      const trimmed = candidate.trim();
+      if (!isLikelyAssetUrl(trimmed)) {
+        continue;
+      }
+      if (
+        matchedLabel ||
+        matchesKeyword(field) ||
+        matchesKeyword(key) ||
+        matchesKeyword(trimmed)
+      ) {
+        addResult(trimmed, matchedLabel || field || key);
+      }
+    }
+
+    for (const [childKey, childValue] of Object.entries(value)) {
+      traverse(childValue, childKey, depth + 1);
+    }
+  };
+
+  const prioritizedKeys = [
+    'floorplan',
+    'floorPlan',
+    'floorplans',
+    'floorPlans',
+    'floorplanUrl',
+    'floorPlanUrl',
+    'floorplanUrls',
+    'floorPlanUrls',
+    'brochure',
+    'brochures',
+    'brochureUrl',
+    'brochureUrls',
+    'documents',
+    'files',
+    'attachments',
+    'downloads',
+    'resources',
+    'metadata',
+    'links',
+    'gallery',
+    'images',
+    'media',
+    'sale',
+    'lettings',
+    'marketing',
+    '_scraye',
+  ];
+
+  prioritizedKeys.forEach((key) => {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      traverse(source[key], key, 0);
+    }
+  });
+
+  traverse(source, '', 0);
+
+  return Array.from(results.values());
+}
+
+function deriveTourEntries(mediaUrls, metadataEntries) {
+  const results = [];
+  const seen = new Set();
+
+  const metadata = Array.isArray(metadataEntries) ? metadataEntries : [];
+  const metadataByUrl = new Map();
+
+  metadata.forEach((entry) => {
+    if (!entry || typeof entry !== 'object') {
+      return;
+    }
+    const rawValue = entry.value;
+    if (typeof rawValue !== 'string') {
+      return;
+    }
+    const url = rawValue.trim();
+    if (!isLikelyAssetUrl(url)) {
+      return;
+    }
+
+    const descriptorFields = [entry.label, entry.name, entry.title, entry.description];
+    const descriptor = descriptorFields.find(
+      (field) => typeof field === 'string' && field.trim()
+    );
+    const descriptorLower = descriptor ? descriptor.toLowerCase() : '';
+    const typeLower = typeof entry.type === 'string' ? entry.type.toLowerCase() : '';
+    const urlLower = url.toLowerCase();
+
+    const isTour =
+      descriptorLower.includes('tour') ||
+      descriptorLower.includes('video') ||
+      typeLower.includes('tour') ||
+      typeLower.includes('video') ||
+      /matterport|youtube|youtu\.be|vimeo|virtual|walkthrough|360/.test(urlLower) ||
+      /\.(mp4|webm|ogg)$/i.test(urlLower);
+
+    if (!isTour) {
+      return;
+    }
+
+    let subtype = null;
+    if (typeLower.includes('video') || descriptorLower.includes('video')) {
+      subtype = 'video';
+    } else if (
+      typeLower.includes('virtual') ||
+      typeLower.includes('360') ||
+      descriptorLower.includes('virtual') ||
+      descriptorLower.includes('360') ||
+      urlLower.includes('matterport') ||
+      urlLower.includes('360')
+    ) {
+      subtype = 'virtual';
+    }
+
+    metadataByUrl.set(url, {
+      label: descriptor || null,
+      subtype,
+    });
+  });
+
+  const append = (candidateUrl) => {
+    if (typeof candidateUrl !== 'string') {
+      return;
+    }
+    const url = candidateUrl.trim();
+    if (!isLikelyAssetUrl(url) || seen.has(url)) {
+      return;
+    }
+    seen.add(url);
+    const metadataInfo = metadataByUrl.get(url) || {};
+    results.push({
+      url,
+      label: metadataInfo.label || null,
+      subtype: metadataInfo.subtype || null,
+    });
+  };
+
+  const mediaList = Array.isArray(mediaUrls) ? mediaUrls : [];
+  mediaList.forEach((url) => append(url));
+  metadataByUrl.forEach((_, url) => append(url));
+
+  return results;
 }
 
 function resolveAgentProfile(rawProperty) {
@@ -863,7 +1461,46 @@ async function loadPrebuildPropertyIds(limit = null) {
 }
 
 export default function Property({ property, recommendations }) {
+  const [isSummaryExpanded, setSummaryExpanded] = useState(false);
+  useEffect(() => {
+    setSummaryExpanded(false);
+  }, [property?.id]);
   const hasLocation = property?.latitude != null && property?.longitude != null;
+  const locationInsights = useMemo(() => {
+    if (!Array.isArray(property?.locationInsights)) {
+      return [];
+    }
+
+    return property.locationInsights
+      .map((insight) => {
+        if (!insight || typeof insight !== 'object') {
+          return null;
+        }
+
+        const key = typeof insight.key === 'string' ? insight.key : null;
+        const title = typeof insight.title === 'string' ? insight.title.trim() : '';
+        if (!key || !title) {
+          return null;
+        }
+
+        const grade =
+          typeof insight.grade === 'string' && insight.grade.trim()
+            ? insight.grade.trim()
+            : null;
+        const description =
+          typeof insight.description === 'string' && insight.description.trim()
+            ? insight.description.trim()
+            : null;
+
+        return {
+          key,
+          title,
+          grade,
+          description,
+        };
+      })
+      .filter(Boolean);
+  }, [property?.locationInsights]);
   const agentProfile = property?.agentProfile;
   const viewingSlots = Array.isArray(property?.viewingSlots)
     ? property.viewingSlots
@@ -950,6 +1587,12 @@ export default function Property({ property, recommendations }) {
       .map((paragraph) => paragraph.trim())
       .filter(Boolean);
   }, [property?.description]);
+  const shouldShowSummaryToggle =
+    descriptionParagraphs.length > 1 || (property?.description?.length ?? 0) > 320;
+  const summaryDescriptionId = useMemo(
+    () => `summary-description-${property?.id ?? 'default'}`,
+    [property?.id]
+  );
   const summaryStats = useMemo(() => {
     const stats = [];
 
@@ -1002,6 +1645,14 @@ export default function Property({ property, recommendations }) {
 
     return highlights;
   }, [property?.councilTaxBand, property?.epcScore, property?.tenure]);
+  const floorplanLinks = Array.isArray(property?.floorplans) ? property.floorplans : [];
+  const brochureLinks = Array.isArray(property?.brochures) ? property.brochures : [];
+  const tourEntries = useMemo(
+    () => deriveTourEntries(property?.media, property?.metadata),
+    [property?.media, property?.metadata]
+  );
+  const hasMediaHighlights =
+    floorplanLinks.length > 0 || brochureLinks.length > 0 || tourEntries.length > 0;
   const headlinePrice = formattedPrimaryPrice || priceLabel || '';
   const numericPriceValue = useMemo(() => {
     if (property?.priceValue != null && Number.isFinite(Number(property.priceValue))) {
@@ -1127,7 +1778,10 @@ export default function Property({ property, recommendations }) {
       </>
     );
   }
-  const features = Array.isArray(property.features) ? property.features : [];
+  const groupedFeatures = useMemo(
+    () => groupPropertyFeatures(property?.features ?? []),
+    [property?.features]
+  );
   const displayType =
     property.typeLabel ??
     property.propertyTypeLabel ??
@@ -1159,7 +1813,7 @@ export default function Property({ property, recommendations }) {
     if (hasLocation) {
       sectionsList.push({ id: 'property-location', label: 'Location' });
     }
-    if (features.length > 0) {
+    if (groupedFeatures.length > 0) {
       sectionsList.push({ id: 'property-features', label: 'Key features' });
     }
     if (showMortgageCalculator || showRentCalculator) {
@@ -1170,7 +1824,7 @@ export default function Property({ property, recommendations }) {
     }
     return sectionsList;
   }, [
-    features.length,
+    groupedFeatures.length,
     hasLocation,
     hasRecommendations,
     showMortgageCalculator,
@@ -1217,6 +1871,33 @@ export default function Property({ property, recommendations }) {
                     </ul>
                   )}
                 </div>
+                {descriptionParagraphs.length > 0 && (
+                  <div
+                    className={`${styles.summaryDescription} ${
+                      isSummaryExpanded ? styles.summaryDescriptionExpanded : ''
+                    }`}
+                  >
+                    <div
+                      className={styles.summaryDescriptionText}
+                      id={summaryDescriptionId}
+                    >
+                      {descriptionParagraphs.map((paragraph, index) => (
+                        <p key={index}>{paragraph}</p>
+                      ))}
+                    </div>
+                    {shouldShowSummaryToggle && (
+                      <button
+                        type="button"
+                        className={styles.summaryDescriptionToggle}
+                        onClick={() => setSummaryExpanded((previous) => !previous)}
+                        aria-expanded={isSummaryExpanded}
+                        aria-controls={summaryDescriptionId}
+                      >
+                        {isSummaryExpanded ? 'Read less' : 'Read more'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             {(pricePrefixLabel || headlinePrice) && (
@@ -1286,25 +1967,70 @@ export default function Property({ property, recommendations }) {
           </div>
         </section>
 
+        {hasMediaHighlights && (
+          <MediaHighlights
+            floorplans={floorplanLinks}
+            brochures={brochureLinks}
+            tours={tourEntries}
+          />
+        )}
+
       {hasLocation && (
         <section className={`${styles.contentRail} ${styles.mapSection}`}>
           <h2>Location</h2>
-          <div className={styles.mapContainer}>
-            <PropertyMap
-              mapId="property-details-map"
-              center={[property.latitude, property.longitude]}
-              zoom={16}
-              properties={mapProperties}
-            />
+          <div className={styles.mapSectionContent}>
+            <div className={styles.mapContainer}>
+              <PropertyMap
+                mapId="property-details-map"
+                center={[property.latitude, property.longitude]}
+                zoom={16}
+                properties={mapProperties}
+              />
+            </div>
+            {locationInsights.length > 0 && (
+              <ul className={styles.locationInsights}>
+                {locationInsights.map((insight) => {
+                  const Icon =
+                    LOCATION_INSIGHT_ICON_MAP[insight.key] ?? FaMapMarkerAlt;
+                  return (
+                    <li
+                      key={insight.key}
+                      className={styles.locationInsightPill}
+                    >
+                      <Icon aria-hidden="true" />
+                      <div className={styles.locationInsightCopy}>
+                        <span className={styles.locationInsightTitle}>
+                          {insight.title}
+                        </span>
+                        {(insight.grade || insight.description) && (
+                          <div className={styles.locationInsightDetails}>
+                            {insight.grade && (
+                              <span className={styles.locationInsightGrade}>
+                                {insight.grade}
+                              </span>
+                            )}
+                            {insight.description && (
+                              <span className={styles.locationInsightDescription}>
+                                {insight.description}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </section>
       )}
 
-      {features.length > 0 && (
+      {groupedFeatures.length > 0 && (
         <section className={`${styles.contentRail} ${styles.features}`}>
           <h2>Key features</h2>
           <ul>
-            {features.map((f, i) => (
+            {groupedFeatures.map((f, i) => (
               <li key={i}>{f}</li>
             ))}
           </ul>
@@ -1315,24 +2041,19 @@ export default function Property({ property, recommendations }) {
         {agentProfile && (
           <AgentCard className={styles.agentCard} agent={agentProfile} />
         )}
+
         <PropertySustainabilityPanel property={property} />
 
         <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
-        {!property.rentFrequency && property.price && (
-          <section className={styles.calculatorSection}>
-            <h2>Mortgage Calculator</h2>
-            <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
-          </section>
-        )}
 
-        {features.length > 0 && (
+        {groupedFeatures.length > 0 && (
           <section
             id="property-features"
-            className={`${styles.contentRail} ${styles.features} ${styles.sectionAnchor}`}
+            className={`${styles.features} ${styles.sectionAnchor}`}
           >
             <h2>Key features</h2>
             <ul>
-              {features.map((f, i) => (
+              {groupedFeatures.map((f, i) => (
                 <li key={i}>{f}</li>
               ))}
             </ul>
@@ -1340,32 +2061,28 @@ export default function Property({ property, recommendations }) {
         )}
       </section>
 
-        <div className={`${styles.contentRail} ${styles.modules}`}>
-          <PropertySustainabilityPanel property={property} />
+        {(showMortgageCalculator || showRentCalculator) && (
+          <section
+            id="property-calculators"
+            className={`${styles.contentRail} ${styles.modules} ${styles.sectionAnchor}`}
+          >
+            {showMortgageCalculator && (
+              <section className={styles.calculatorSection}>
+                <h2>Mortgage Calculator</h2>
+                <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+              </section>
+            )}
 
-          <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
-          {showMortgageCalculator && (
-            <section
-              id="property-calculators"
-              className={`${styles.calculatorSection} ${styles.sectionAnchor}`}
-            >
-              <h2>Mortgage Calculator</h2>
-              <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
-            </section>
-          )}
-
-          {showRentCalculator && (
-            <section
-              id={showMortgageCalculator ? undefined : 'property-calculators'}
-              className={`${styles.calculatorSection} ${styles.sectionAnchor}`}
-            >
-              <h2>Rent Affordability</h2>
-              <RentAffordability
-                defaultRent={rentToMonthly(property.price, property.rentFrequency)}
-              />
-            </section>
-          )}
-        </div>
+            {showRentCalculator && (
+              <section className={styles.calculatorSection}>
+                <h2>Rent Affordability</h2>
+                <RentAffordability
+                  defaultRent={rentToMonthly(property.price, property.rentFrequency)}
+                />
+              </section>
+            )}
+          </section>
+        )}
 
         <section className={`${styles.contentRail} ${styles.contact}`}>
           <p>Interested in this property?</p>
@@ -1513,6 +2230,18 @@ export async function getStaticProps({ params }) {
       images: imgList,
       agentProfile: resolveAgentProfile(rawProperty),
       media: extractMedia(rawProperty),
+      floorplans: extractSupplementaryLinks(rawProperty, [
+        'floorplan',
+        'floor plan',
+        'floor_plan',
+      ]),
+      brochures: extractSupplementaryLinks(rawProperty, [
+        'brochure',
+        'particulars',
+        'specification',
+        'spec sheet',
+      ]),
+      metadata: Array.isArray(rawProperty.metadata) ? rawProperty.metadata : [],
       tenure: derivedTenure,
       features: (() => {
         const rawFeatures =
@@ -1552,6 +2281,7 @@ export async function getStaticProps({ params }) {
       epcScore: derivedEpcScore,
       councilTaxBand: derivedCouncilTaxBand,
       includedUtilities: deriveIncludedUtilities(rawProperty),
+      locationInsights: computeLocationInsights(rawProperty),
     };
 
     if (formatted.id) {
