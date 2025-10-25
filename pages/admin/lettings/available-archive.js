@@ -6,6 +6,8 @@ import { useRouter } from 'next/router';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminLettingsArchive.module.css';
+import { formatAdminDate } from '../../../lib/admin/formatters';
+import { withBasePath } from '../../../lib/base-path';
 
 const VIEW_OPTIONS = [
   { value: 'available', label: 'Live instructions' },
@@ -20,25 +22,26 @@ function normalizeView(value) {
   return 'available';
 }
 
+const DATE_ONLY = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+};
+
+const DATE_WITH_TIME = {
+  day: '2-digit',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
 function formatDate(value) {
   if (!value) {
     return '—';
   }
 
-  try {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-      return '—';
-    }
-
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(date);
-  } catch (error) {
-    return '—';
-  }
+  const formatted = formatAdminDate(value, DATE_ONLY);
+  return formatted || '—';
 }
 
 function formatDateTime(value) {
@@ -46,21 +49,8 @@ function formatDateTime(value) {
     return '—';
   }
 
-  try {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-      return '—';
-    }
-
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
-  } catch (error) {
-    return '—';
-  }
+  const formatted = formatAdminDate(value, DATE_WITH_TIME);
+  return formatted || '—';
 }
 
 function formatRelativeTime(value) {
@@ -179,9 +169,8 @@ export default function AdminLettingsArchivePage() {
         }
       });
 
-      const basePath = router?.basePath ?? '';
       const query = params.toString();
-      const url = `${basePath}/api/admin/listings${query ? `?${query}` : ''}`;
+      const url = withBasePath(`/api/admin/listings${query ? `?${query}` : ''}`);
       const response = await fetch(url, { signal });
       if (!response.ok) {
         throw new Error('Failed to fetch lettings archive');
@@ -207,7 +196,7 @@ export default function AdminLettingsArchivePage() {
         setLoading(false);
       }
     }
-  }, [router.basePath]);
+  }, []);
 
   useEffect(() => {
     if (!isAdmin || !initialized) {
