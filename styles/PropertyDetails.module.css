@@ -225,6 +225,28 @@
   overflow-wrap: anywhere;
 }
 
+.complianceHighlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--summary-gap);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.complianceHighlights li {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
 .statItem {
   display: inline-flex;
   align-items: center;
