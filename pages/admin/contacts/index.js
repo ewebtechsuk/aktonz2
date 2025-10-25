@@ -6,6 +6,11 @@ import { useRouter } from 'next/router';
 import { useSession } from '../../../components/SessionProvider';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import styles from '../../../styles/AdminContacts.module.css';
+import {
+  formatAdminCurrency,
+  formatAdminDate,
+  formatAdminNumber,
+} from '../../../lib/admin/formatters';
 
 const STAGE_BADGE_CLASS = {
   hot: styles.badgeHot,
@@ -17,13 +22,13 @@ const STAGE_BADGE_CLASS = {
 
 const PAGE_SIZE = 25;
 
-function formatNumber(value) {
-  try {
-    return Number(value).toLocaleString('en-GB');
-  } catch (error) {
-    return String(value);
-  }
-}
+const DATE_TIME_WITH_HOURS = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
 
 function buildPaginationItems(totalPages, currentPage) {
   if (totalPages <= 7) {
@@ -434,17 +439,8 @@ function formatDateTime(value) {
     return '—';
   }
 
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(value));
-  } catch (error) {
-    return value;
-  }
+  const formatted = formatAdminDate(value, DATE_TIME_WITH_HOURS);
+  return formatted || value;
 }
 
 function formatRelativeTime(timestamp) {
@@ -508,15 +504,12 @@ function formatCurrency(value) {
     return null;
   }
 
-  try {
-    return new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: 'GBP',
-      maximumFractionDigits: 0,
-    }).format(value);
-  } catch (error) {
-    return `£${Math.round(value).toLocaleString('en-GB')}`;
-  }
+  const formatted = formatAdminCurrency(value, {
+    currency: 'GBP',
+    maximumFractionDigits: 0,
+  });
+
+  return formatted || null;
 }
 
 function formatBudget(budget) {
@@ -564,17 +557,8 @@ function formatGeneratedAt(value) {
     return null;
   }
 
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(value));
-  } catch (error) {
-    return value;
-  }
+  const formatted = formatAdminDate(value, DATE_TIME_WITH_HOURS);
+  return formatted || value;
 }
 
 export default function AdminContactsPage() {
@@ -728,14 +712,14 @@ export default function AdminContactsPage() {
   const pageEnd = totalFiltered === 0 ? 0 : Math.min(totalFiltered, currentPage * PAGE_SIZE);
   const contactsLabel =
     totalFiltered === contacts.length
-      ? `${formatNumber(totalFiltered)} contact${totalFiltered === 1 ? '' : 's'}`
-      : `${formatNumber(totalFiltered)} contact${totalFiltered === 1 ? '' : 's'} filtered from ${formatNumber(
+      ? `${formatAdminNumber(totalFiltered)} contact${totalFiltered === 1 ? '' : 's'}`
+      : `${formatAdminNumber(totalFiltered)} contact${totalFiltered === 1 ? '' : 's'} filtered from ${formatAdminNumber(
           contacts.length,
         )}`;
   const pageSummaryLabel =
     totalFiltered === 0
       ? 'No contacts to display.'
-      : `Showing ${formatNumber(pageStart)}–${formatNumber(pageEnd)} of ${contactsLabel}.`;
+      : `Showing ${formatAdminNumber(pageStart)}–${formatAdminNumber(pageEnd)} of ${contactsLabel}.`;
 
   const resetFilters = useCallback(() => {
     setSearch('');

@@ -10,24 +10,37 @@ import {
   formatOfferStatusLabel,
   getOfferStatusOptions,
 } from '../../../lib/offer-statuses.js';
-import { resolveTimestamp } from '../../../lib/timestamps.js';
+import {
+  formatAdminCurrency,
+  formatAdminDate,
+  getAdminTimestamp,
+  parseAdminDate,
+  resolveLatestAdminTimestamp,
+} from '../../../lib/admin/formatters';
+
+const resolveTimestamp = resolveLatestAdminTimestamp;
+
+const DATE_TIME_WITH_HOURS = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
+const DATE_ONLY = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+};
 
 function formatDate(value) {
   if (!value) {
     return '—';
   }
 
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(value));
-  } catch (error) {
-    return value;
-  }
+  const formatted = formatAdminDate(value, DATE_TIME_WITH_HOURS);
+  return formatted || value;
 }
 
 function formatDateOnly(value) {
@@ -35,23 +48,16 @@ function formatDateOnly(value) {
     return '—';
   }
 
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(new Date(value));
-  } catch (error) {
-    return value;
-  }
+  const formatted = formatAdminDate(value, DATE_ONLY);
+  return formatted || value;
 }
 
 function toInputDate(value) {
   if (!value) {
     return '';
   }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
+  const date = parseAdminDate(value);
+  if (!date) {
     return '';
   }
   return date.toISOString().slice(0, 10);
@@ -154,7 +160,11 @@ export default function AdminOffersPage() {
         return;
       }
       const entries = Array.isArray(payload.offers) ? payload.offers.slice() : [];
-      entries.sort((a, b) => getOfferSortTimestamp(b) - getOfferSortTimestamp(a));
+      entries.sort((a, b) => {
+        const aTimestamp = resolveTimestamp(a?.updatedAt, a?.date) || 0;
+        const bTimestamp = resolveTimestamp(b?.updatedAt, b?.date) || 0;
+        return bTimestamp - aTimestamp;
+      });
       setOffers(entries);
     } catch (err) {
       if (
@@ -240,9 +250,11 @@ export default function AdminOffersPage() {
       ? selectedOffer.statusHistory.slice()
       : [];
 
-    history.sort(
-      (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
-    );
+    history.sort((a, b) => {
+      const aTimestamp = getAdminTimestamp(a?.createdAt) || 0;
+      const bTimestamp = getAdminTimestamp(b?.createdAt) || 0;
+      return bTimestamp - aTimestamp;
+    });
 
     return history;
   }, [selectedOffer]);
@@ -356,7 +368,11 @@ export default function AdminOffersPage() {
             return merged;
           });
 
-          next.sort((a, b) => getOfferSortTimestamp(b) - getOfferSortTimestamp(a));
+          next.sort((a, b) => {
+            const aTimestamp = resolveTimestamp(a?.updatedAt, a?.date) || 0;
+            const bTimestamp = resolveTimestamp(b?.updatedAt, b?.date) || 0;
+            return bTimestamp - aTimestamp;
+          });
           return next;
         });
 
@@ -616,11 +632,10 @@ export default function AdminOffersPage() {
                       <div>
                         <dt>Holding deposit</dt>
                         <dd>
-                          {new Intl.NumberFormat('en-GB', {
-                            style: 'currency',
+                          {formatAdminCurrency(selectedOffer.depositAmount, {
                             currency: 'GBP',
                             minimumFractionDigits: 0,
-                          }).format(Number(selectedOffer.depositAmount))}
+                          }) || '—'}
                         </dd>
                       </div>
                     ) : null}

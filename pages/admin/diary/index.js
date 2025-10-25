@@ -5,6 +5,7 @@ import Link from 'next/link';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminDiary.module.css';
+import { createAdminDateFormatter } from '../../../lib/admin/formatters';
 
 const BADGE_LABEL = 'Diary workspace';
 const PAGE_HEADING = 'Shared diary & scheduling';
@@ -13,13 +14,13 @@ const PAGE_TAGLINE =
 
 const VIEW_MODES = ['week', 'day', 'agenda'];
 
-const TIME_FORMATTER = new Intl.DateTimeFormat('en-GB', {
+const formatDiaryTime = createAdminDateFormatter({
   hour: '2-digit',
   minute: '2-digit',
   hour12: false,
 });
 
-const DAY_FORMATTER = new Intl.DateTimeFormat('en-GB', {
+const formatDiaryDay = createAdminDateFormatter({
   weekday: 'short',
   day: '2-digit',
   month: 'short',
@@ -84,7 +85,7 @@ function formatTimeRangeLabel(startIso, endIso) {
     return null;
   }
 
-  const startLabel = TIME_FORMATTER.format(start);
+  const startLabel = formatDiaryTime(start);
   if (!endIso) {
     return startLabel;
   }
@@ -94,7 +95,7 @@ function formatTimeRangeLabel(startIso, endIso) {
     return startLabel;
   }
 
-  return `${startLabel} – ${TIME_FORMATTER.format(end)}`;
+  return `${startLabel} – ${formatDiaryTime(end)}`;
 }
 
 function getStatusLabel(status) {
@@ -829,7 +830,7 @@ export default function AdminDiaryWorkspacePage() {
       });
 
       setSelectedDate(newEvent.dayKey);
-      setToast({ type: 'success', message: `${composerType} event scheduled for ${DAY_FORMATTER.format(new Date(startIso))}.` });
+      setToast({ type: 'success', message: `${composerType} event scheduled for ${formatDiaryDay(startIso)}.` });
       setComposerOpen(false);
       setComposerValues(DEFAULT_COMPOSER_VALUES);
     },
@@ -872,7 +873,7 @@ export default function AdminDiaryWorkspacePage() {
     }
     const start = resolvedFocusEvent.start ? new Date(resolvedFocusEvent.start) : null;
     if (start) {
-      return DAY_FORMATTER.format(start);
+      return formatDiaryDay(start);
     }
     return agendaDayLookup.get(resolvedFocusEvent.dayKey) ?? resolvedFocusEvent.dayKey;
   }, [agendaDayLookup, resolvedFocusEvent]);
@@ -921,7 +922,8 @@ export default function AdminDiaryWorkspacePage() {
         return null;
       }
 
-      const dayLabel = agendaDayLookup.get(event.dayKey) ?? (event.start ? DAY_FORMATTER.format(new Date(event.start)) : null);
+      const dayLabel =
+        agendaDayLookup.get(event.dayKey) ?? (event.start ? formatDiaryDay(event.start) : null);
       const attendeesSummary = formatAttendeeSummary(event.attendees);
       const statusClass = event.statusKey ? styles[`status${event.statusKey}`] ?? '' : '';
 
