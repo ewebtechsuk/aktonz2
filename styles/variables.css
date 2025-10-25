@@ -32,6 +32,9 @@
   --spacing-lg: 2rem;
   --spacing-xl: 4rem;
 
+  --section-gap: clamp(var(--spacing-lg), 6vw, var(--spacing-xl));
+  --section-heading-gap: clamp(var(--spacing-sm), 3vw, var(--spacing-md));
+
   --map-height: 500px;
   --size-avatar: 200px;
 }
