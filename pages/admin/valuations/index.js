@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import { useSession } from '../../../components/SessionProvider';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import styles from '../../../styles/AdminValuations.module.css';
+import { parseTimestamp } from '../../../lib/timestamps.js';
 
 const DEFAULT_STATUS_OPTIONS = [
   { value: 'new', label: 'New' },
@@ -226,9 +227,7 @@ export default function AdminValuationsPage() {
 
       const payload = await response.json();
       const entries = Array.isArray(payload.valuations) ? payload.valuations.slice() : [];
-      entries.sort(
-        (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(),
-      );
+      entries.sort((a, b) => parseTimestamp(b?.createdAt) - parseTimestamp(a?.createdAt));
       setValuations(entries);
 
       const sections = Array.isArray(payload.gallery?.sections) ? payload.gallery.sections : [];
