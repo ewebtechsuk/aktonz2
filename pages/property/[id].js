@@ -7,6 +7,7 @@ import NeighborhoodInfo from '../../components/NeighborhoodInfo';
 import FavoriteButton from '../../components/FavoriteButton';
 import PropertySustainabilityPanel from '../../components/PropertySustainabilityPanel';
 import AgentCard from '../../components/AgentCard';
+import SectionNav from '../../components/SectionNav';
 
 import MortgageCalculator from '../../components/MortgageCalculator';
 import RentAffordability from '../../components/RentAffordability';
@@ -1805,6 +1806,29 @@ export default function Property({ property, recommendations }) {
           </section>
         )}
       </section>
+
+        {(showMortgageCalculator || showRentCalculator) && (
+          <section
+            id="property-calculators"
+            className={`${styles.contentRail} ${styles.modules} ${styles.sectionAnchor}`}
+          >
+            {showMortgageCalculator && (
+              <section className={styles.calculatorSection}>
+                <h2>Mortgage Calculator</h2>
+                <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+              </section>
+            )}
+
+            {showRentCalculator && (
+              <section className={styles.calculatorSection}>
+                <h2>Rent Affordability</h2>
+                <RentAffordability
+                  defaultRent={rentToMonthly(property.price, property.rentFrequency)}
+                />
+              </section>
+            )}
+          </section>
+        )}
 
         <section className={`${styles.contentRail} ${styles.contact}`}>
           <p>Interested in this property?</p>
