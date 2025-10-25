@@ -10,6 +10,26 @@ import { listOffersForAdmin } from '../../../../lib/offers-admin.mjs';
 import { listMaintenanceTasksForAdmin } from '../../../../lib/maintenance-admin.mjs';
 import { normalizePropertyIdentifierForComparison } from '../../../../lib/property-id.mjs';
 
+async function safeListOffers(listingId) {
+  try {
+    const offers = await listOffersForAdmin();
+    return Array.isArray(offers) ? offers : [];
+  } catch (error) {
+    console.error('Failed to load admin offers for listing', listingId, error);
+    return [];
+  }
+}
+
+async function safeListMaintenanceTasks(listingId) {
+  try {
+    const tasks = await listMaintenanceTasksForAdmin();
+    return Array.isArray(tasks) ? tasks : [];
+  } catch (error) {
+    console.error('Failed to load admin maintenance tasks for listing', listingId, error);
+    return [];
+  }
+}
+
 function requireAdmin(req, res) {
   const session = readSession(req);
   const admin = getAdminFromSession(session);
@@ -54,7 +74,18 @@ export default async function handler(req, res) {
         return;
       }
 
-      const serialized = serializeListing(listing);
+      let serialized;
+      try {
+        serialized = serializeListing(listing);
+      } catch (error) {
+        console.error('Failed to serialize admin listing', listingId, error);
+      }
+
+      const baseListing = serialized && typeof serialized === 'object' ? { ...serialized } : { ...listing };
+      if (!baseListing.id) {
+        baseListing.id = listing?.id || listingId;
+      }
+
       const comparisonIds = new Set();
 
       const registerId = (value) => {
@@ -65,17 +96,19 @@ export default async function handler(req, res) {
       };
 
       registerId(listingId);
-      registerId(serialized.id);
-      registerId(serialized.reference);
+      registerId(baseListing?.id);
+      registerId(baseListing?.reference);
+      registerId(listing?.id);
+      registerId(listing?.reference);
       registerId(listing?.raw?.id);
       registerId(listing?.raw?.externalId);
       registerId(listing?.raw?.externalReference);
       registerId(listing?.raw?.sourceId);
       registerId(listing?.raw?.fullReference);
 
-      const [offersResult, maintenanceResult] = await Promise.allSettled([
-        listOffersForAdmin(),
-        listMaintenanceTasksForAdmin(),
+      const [offersList, maintenanceList] = await Promise.all([
+        safeListOffers(listingId),
+        safeListMaintenanceTasks(listingId),
       ]);
 
       if (offersResult.status === 'rejected') {
@@ -108,7 +141,7 @@ export default async function handler(req, res) {
         return false;
       };
 
-      const linkedOffers = offers.filter((offer) =>
+      const linkedOffers = offersList.filter((offer) =>
         matchesListing([
           offer.property?.id,
           offer.property?.reference,
@@ -118,7 +151,7 @@ export default async function handler(req, res) {
         ]),
       );
 
-      const linkedMaintenance = maintenance.filter((task) =>
+      const linkedMaintenance = maintenanceList.filter((task) =>
         matchesListing([
           task.property?.id,
           task.property?.reference,
@@ -128,7 +161,7 @@ export default async function handler(req, res) {
 
       res.status(200).json({
         listing: {
-          ...serialized,
+          ...baseListing,
           offers: linkedOffers,
           maintenanceTasks: linkedMaintenance,
         },
