@@ -497,6 +497,18 @@
   margin-bottom: var(--section-gap);
 }
 
+.mapSectionContent {
+  display: grid;
+  gap: var(--spacing-lg);
+  align-items: stretch;
+}
+
+@media (min-width: 900px) {
+  .mapSectionContent {
+    grid-template-columns: minmax(0, 2.25fr) minmax(220px, 1fr);
+  }
+}
+
 .mapSection h2,
 .features h2,
 .sustainabilityPanel h2,
@@ -511,6 +523,72 @@
   border-radius: 8px;
   overflow: hidden;
   max-width: 100%;
+}
+
+.locationInsights {
+  display: grid;
+  gap: var(--spacing-sm);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 720px) {
+  .locationInsights {
+    grid-template-columns: 1fr;
+  }
+}
+
+.locationInsightPill {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: 0.85rem 1rem;
+  border-radius: 999px;
+  background: var(--color-surface-alt);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  color: var(--color-text);
+}
+
+.locationInsightPill svg {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  color: var(--color-secondary);
+  margin-top: 0.1rem;
+}
+
+.locationInsightCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.locationInsightTitle {
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.locationInsightDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+  color: var(--color-muted-text);
+  line-height: 1.45;
+}
+
+.locationInsightGrade {
+  font-weight: 700;
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.locationInsightDescription {
+  display: block;
 }
 
 .calculatorSection {
