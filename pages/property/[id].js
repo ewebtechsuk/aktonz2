@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import PropertyList from '../../components/PropertyList';
 import MediaGallery from '../../components/MediaGallery';
 import OfferDrawer from '../../components/OfferDrawer';
@@ -31,7 +31,23 @@ import {
   formatPropertyTypeLabel,
 } from '../../lib/property-type.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
-import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
+import {
+  FaBed,
+  FaBath,
+  FaCouch,
+  FaTrain,
+  FaSchool,
+  FaWalking,
+  FaMapMarkerAlt,
+} from 'react-icons/fa';
+import {
+  FiDroplet,
+  FiHome,
+  FiLayers,
+  FiShield,
+  FiStar,
+  FiSun,
+} from 'react-icons/fi';
 import {
   formatPriceGBP,
   formatPricePrefix,
@@ -73,6 +89,305 @@ const DEFAULT_AGENT_PROFILE = (() => {
     photo: primary?.photo || AGENT_PLACEHOLDER_IMAGE,
   };
 })();
+
+const LOCATION_INSIGHT_ICON_MAP = {
+  transport: FaTrain,
+  schools: FaSchool,
+  walkability: FaWalking,
+};
+
+const MAJOR_CITY_REFERENCES = [
+  {
+    key: 'london',
+    name: 'London',
+    lat: 51.509865,
+    lon: -0.118092,
+    aliases: ['london', 'city of london'],
+    metropolitan: true,
+  },
+  {
+    key: 'birmingham',
+    name: 'Birmingham',
+    lat: 52.486244,
+    lon: -1.890401,
+    aliases: ['birmingham'],
+    metropolitan: true,
+  },
+  {
+    key: 'manchester',
+    name: 'Manchester',
+    lat: 53.480759,
+    lon: -2.242631,
+    aliases: ['manchester', 'greater manchester'],
+    metropolitan: true,
+  },
+  {
+    key: 'leeds',
+    name: 'Leeds',
+    lat: 53.800755,
+    lon: -1.549077,
+    aliases: ['leeds'],
+    metropolitan: true,
+  },
+  {
+    key: 'bristol',
+    name: 'Bristol',
+    lat: 51.454514,
+    lon: -2.58791,
+    aliases: ['bristol'],
+    metropolitan: false,
+  },
+  {
+    key: 'edinburgh',
+    name: 'Edinburgh',
+    lat: 55.953251,
+    lon: -3.188267,
+    aliases: ['edinburgh'],
+    metropolitan: false,
+  },
+  {
+    key: 'glasgow',
+    name: 'Glasgow',
+    lat: 55.864237,
+    lon: -4.251806,
+    aliases: ['glasgow'],
+    metropolitan: true,
+  },
+  {
+    key: 'liverpool',
+    name: 'Liverpool',
+    lat: 53.408371,
+    lon: -2.991573,
+    aliases: ['liverpool'],
+    metropolitan: false,
+  },
+];
+
+function parseCoordinate(value) {
+  if (value == null) return null;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+function haversineDistanceKm(lat1, lon1, lat2, lon2) {
+  const toRadians = (value) => (value * Math.PI) / 180;
+  const earthRadiusKm = 6371;
+
+  const dLat = toRadians(lat2 - lat1);
+  const dLon = toRadians(lon2 - lon1);
+  const startLat = toRadians(lat1);
+  const endLat = toRadians(lat2);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(startLat) * Math.cos(endLat);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadiusKm * c;
+}
+
+function resolveCityReference(normalizedCity) {
+  if (!normalizedCity) {
+    return null;
+  }
+
+  const lower = normalizedCity.toLowerCase();
+  return (
+    MAJOR_CITY_REFERENCES.find((entry) =>
+      entry.aliases.some((alias) => alias.toLowerCase() === lower)
+    ) || null
+  );
+}
+
+function resolveNearestCity({ lat, lon, normalizedCity }) {
+  const matchedCity = resolveCityReference(normalizedCity);
+  if (lat == null || lon == null) {
+    if (matchedCity) {
+      return { city: matchedCity, distanceKm: 0, matched: true };
+    }
+    return null;
+  }
+
+  let closest = null;
+  for (const city of MAJOR_CITY_REFERENCES) {
+    const distanceKm = haversineDistanceKm(lat, lon, city.lat, city.lon);
+    if (!closest || distanceKm < closest.distanceKm) {
+      closest = { city, distanceKm, matched: false };
+    }
+  }
+
+  if (!matchedCity) {
+    return closest;
+  }
+
+  const matchedDistanceKm = haversineDistanceKm(
+    lat,
+    lon,
+    matchedCity.lat,
+    matchedCity.lon
+  );
+
+  if (!closest || matchedDistanceKm < closest.distanceKm) {
+    return { city: matchedCity, distanceKm: matchedDistanceKm, matched: true };
+  }
+
+  return closest;
+}
+
+function resolveTransportInsight({ distanceKm, isUrban, isDenseUrban }) {
+  if (distanceKm != null) {
+    if (distanceKm <= 5) {
+      return {
+        grade: 'Excellent',
+        description: 'Fast tube and rail connections within minutes.',
+      };
+    }
+    if (distanceKm <= 15) {
+      return {
+        grade: 'Great',
+        description: 'Frequent rail and bus services into the city centre.',
+      };
+    }
+    if (distanceKm <= 35) {
+      return {
+        grade: 'Good',
+        description: 'Regional transport links reachable with a short drive.',
+      };
+    }
+    return {
+      grade: 'Car-friendly',
+      description: 'Driving offers the most convenient travel for this area.',
+    };
+  }
+
+  if (isDenseUrban) {
+    return {
+      grade: 'Excellent',
+      description: 'Extensive transport network at your doorstep.',
+    };
+  }
+
+  if (isUrban) {
+    return {
+      grade: 'Great',
+      description: 'Well-connected public transport covering daily routes.',
+    };
+  }
+
+  return {
+    grade: 'Car-friendly',
+    description: 'Driving offers the most convenient travel for this area.',
+  };
+}
+
+function resolveSchoolsInsight({ isUrban, isDenseUrban, isFamilySized }) {
+  if (isDenseUrban) {
+    return {
+      grade: 'Top rated',
+      description: 'Choice of highly rated schools within a mile.',
+    };
+  }
+
+  if (isUrban) {
+    return {
+      grade: 'Diverse options',
+      description: 'Multiple primary and secondary schools close by.',
+    };
+  }
+
+  if (isFamilySized) {
+    return {
+      grade: 'Family-friendly',
+      description: 'Well-regarded schools reachable in under 15 minutes.',
+    };
+  }
+
+  return {
+    grade: 'Local network',
+    description: 'Community schools served by nearby towns and villages.',
+  };
+}
+
+function resolveWalkabilityInsight({ distanceKm, isUrban, isDenseUrban }) {
+  if (isDenseUrban) {
+    return {
+      grade: 'Highly walkable',
+      description: 'Daily errands doable on foot with amenities moments away.',
+    };
+  }
+
+  if (isUrban) {
+    return {
+      grade: 'Neighbourhood living',
+      description: 'Cafés, gyms and essentials within a short stroll or cycle.',
+    };
+  }
+
+  if (distanceKm != null && distanceKm <= 35) {
+    return {
+      grade: 'Village convenience',
+      description: 'Local high streets reachable by bike or a relaxed walk.',
+    };
+  }
+
+  return {
+    grade: 'Leafy escape',
+    description: 'Quiet lanes and open spaces ideal for weekend walks.',
+  };
+}
+
+function computeLocationInsights(rawProperty) {
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return [];
+  }
+
+  const lat =
+    parseCoordinate(rawProperty.latitude) ??
+    parseCoordinate(rawProperty.lat) ??
+    parseCoordinate(rawProperty.latd);
+  const lon =
+    parseCoordinate(rawProperty.longitude) ??
+    parseCoordinate(rawProperty.lon) ??
+    parseCoordinate(rawProperty.lng) ??
+    parseCoordinate(rawProperty.long);
+
+  const cityCandidates = [
+    rawProperty.city,
+    rawProperty.town,
+    rawProperty.locality,
+    rawProperty.area,
+    rawProperty.address?.city,
+    rawProperty.address?.town,
+    rawProperty.address?.village,
+    rawProperty._scraye?.placeName,
+  ];
+
+  const resolvedCityName = cityCandidates.find(
+    (value) => typeof value === 'string' && value.trim()
+  );
+  const normalizedCity = resolvedCityName?.trim().toLowerCase() ?? null;
+
+  const nearestCity = resolveNearestCity({ lat, lon, normalizedCity });
+  const distanceKm = nearestCity?.distanceKm ?? null;
+  const isUrban = Boolean(nearestCity?.matched) || (distanceKm != null && distanceKm <= 25);
+  const isDenseUrban =
+    (nearestCity?.matched && Boolean(nearestCity?.city?.metropolitan)) ||
+    (distanceKm != null && distanceKm <= 8);
+
+  const bedrooms = parseCoordinate(
+    rawProperty.bedrooms ?? rawProperty.beds ?? rawProperty.bedroomsCount
+  );
+  const isFamilySized = Number.isFinite(bedrooms) ? bedrooms >= 3 : false;
+
+  const transport = resolveTransportInsight({ distanceKm, isUrban, isDenseUrban });
+  const schools = resolveSchoolsInsight({ isUrban, isDenseUrban, isFamilySized });
+  const walkability = resolveWalkabilityInsight({ distanceKm, isUrban, isDenseUrban });
+
+  return [
+    { key: 'transport', title: 'Transport', ...transport },
+    { key: 'schools', title: 'Schools', ...schools },
+    { key: 'walkability', title: 'Walkability', ...walkability },
+  ];
+}
 
 function normalizeAgentString(value) {
   if (value == null) return null;
@@ -1005,7 +1320,46 @@ async function loadPrebuildPropertyIds(limit = null) {
 }
 
 export default function Property({ property, recommendations }) {
+  const [isSummaryExpanded, setSummaryExpanded] = useState(false);
+  useEffect(() => {
+    setSummaryExpanded(false);
+  }, [property?.id]);
   const hasLocation = property?.latitude != null && property?.longitude != null;
+  const locationInsights = useMemo(() => {
+    if (!Array.isArray(property?.locationInsights)) {
+      return [];
+    }
+
+    return property.locationInsights
+      .map((insight) => {
+        if (!insight || typeof insight !== 'object') {
+          return null;
+        }
+
+        const key = typeof insight.key === 'string' ? insight.key : null;
+        const title = typeof insight.title === 'string' ? insight.title.trim() : '';
+        if (!key || !title) {
+          return null;
+        }
+
+        const grade =
+          typeof insight.grade === 'string' && insight.grade.trim()
+            ? insight.grade.trim()
+            : null;
+        const description =
+          typeof insight.description === 'string' && insight.description.trim()
+            ? insight.description.trim()
+            : null;
+
+        return {
+          key,
+          title,
+          grade,
+          description,
+        };
+      })
+      .filter(Boolean);
+  }, [property?.locationInsights]);
   const agentProfile = property?.agentProfile;
   const priceLabel = formatPropertyPriceLabel(property);
   const rentFrequencyLabel = useMemo(() => {
@@ -1059,6 +1413,12 @@ export default function Property({ property, recommendations }) {
       .map((paragraph) => paragraph.trim())
       .filter(Boolean);
   }, [property?.description]);
+  const shouldShowSummaryToggle =
+    descriptionParagraphs.length > 1 || (property?.description?.length ?? 0) > 320;
+  const summaryDescriptionId = useMemo(
+    () => `summary-description-${property?.id ?? 'default'}`,
+    [property?.id]
+  );
   const summaryStats = useMemo(() => {
     const stats = [];
 
@@ -1245,6 +1605,10 @@ export default function Property({ property, recommendations }) {
     );
   }
   const features = Array.isArray(property.features) ? property.features : [];
+  const groupedFeatures = useMemo(
+    () => groupPropertyFeatures(features),
+    [features]
+  );
   const displayType =
     property.typeLabel ??
     property.propertyTypeLabel ??
@@ -1276,7 +1640,7 @@ export default function Property({ property, recommendations }) {
     if (hasLocation) {
       sectionsList.push({ id: 'property-location', label: 'Location' });
     }
-    if (features.length > 0) {
+    if (groupedFeatures.length > 0) {
       sectionsList.push({ id: 'property-features', label: 'Key features' });
     }
     if (showMortgageCalculator || showRentCalculator) {
@@ -1287,7 +1651,7 @@ export default function Property({ property, recommendations }) {
     }
     return sectionsList;
   }, [
-    features.length,
+    groupedFeatures.length,
     hasLocation,
     hasRecommendations,
     showMortgageCalculator,
@@ -1334,6 +1698,33 @@ export default function Property({ property, recommendations }) {
                     </ul>
                   )}
                 </div>
+                {descriptionParagraphs.length > 0 && (
+                  <div
+                    className={`${styles.summaryDescription} ${
+                      isSummaryExpanded ? styles.summaryDescriptionExpanded : ''
+                    }`}
+                  >
+                    <div
+                      className={styles.summaryDescriptionText}
+                      id={summaryDescriptionId}
+                    >
+                      {descriptionParagraphs.map((paragraph, index) => (
+                        <p key={index}>{paragraph}</p>
+                      ))}
+                    </div>
+                    {shouldShowSummaryToggle && (
+                      <button
+                        type="button"
+                        className={styles.summaryDescriptionToggle}
+                        onClick={() => setSummaryExpanded((previous) => !previous)}
+                        aria-expanded={isSummaryExpanded}
+                        aria-controls={summaryDescriptionId}
+                      >
+                        {isSummaryExpanded ? 'Read less' : 'Read more'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             {(pricePrefixLabel || headlinePrice) && (
@@ -1402,25 +1793,51 @@ export default function Property({ property, recommendations }) {
       {hasLocation && (
         <section className={`${styles.contentRail} ${styles.mapSection}`}>
           <h2>Location</h2>
-          <div className={styles.mapContainer}>
-            <PropertyMap
-              mapId="property-details-map"
-              center={[property.latitude, property.longitude]}
-              zoom={16}
-              properties={mapProperties}
-            />
+          <div className={styles.mapSectionContent}>
+            <div className={styles.mapContainer}>
+              <PropertyMap
+                mapId="property-details-map"
+                center={[property.latitude, property.longitude]}
+                zoom={16}
+                properties={mapProperties}
+              />
+            </div>
+            {locationInsights.length > 0 && (
+              <ul className={styles.locationInsights}>
+                {locationInsights.map((insight) => {
+                  const Icon =
+                    LOCATION_INSIGHT_ICON_MAP[insight.key] ?? FaMapMarkerAlt;
+                  return (
+                    <li
+                      key={insight.key}
+                      className={styles.locationInsightPill}
+                    >
+                      <Icon aria-hidden="true" />
+                      <div className={styles.locationInsightCopy}>
+                        <span className={styles.locationInsightTitle}>
+                          {insight.title}
+                        </span>
+                        {(insight.grade || insight.description) && (
+                          <div className={styles.locationInsightDetails}>
+                            {insight.grade && (
+                              <span className={styles.locationInsightGrade}>
+                                {insight.grade}
+                              </span>
+                            )}
+                            {insight.description && (
+                              <span className={styles.locationInsightDescription}>
+                                {insight.description}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
-        </section>
-      )}
-
-      {features.length > 0 && (
-        <section className={`${styles.contentRail} ${styles.features}`}>
-          <h2>Key features</h2>
-          <ul>
-            {features.map((f, i) => (
-              <li key={i}>{f}</li>
-            ))}
-          </ul>
         </section>
       )}
 
@@ -1428,57 +1845,95 @@ export default function Property({ property, recommendations }) {
         {agentProfile && (
           <AgentCard className={styles.agentCard} agent={agentProfile} />
         )}
+
         <PropertySustainabilityPanel property={property} />
 
         <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
-        {!property.rentFrequency && property.price && (
-          <section className={styles.calculatorSection}>
-            <h2>Mortgage Calculator</h2>
-            <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+
+        {groupedFeatures.length > 0 && (
+          <section
+            id="property-features"
+            className={`${styles.features} ${styles.sectionAnchor}`}
+          >
+            <h2>Key features</h2>
+            <div className={styles.featuresGrid}>
+              {groupedFeatures.map((group) => {
+                const Icon = group.icon;
+                return (
+                  <article key={group.id} className={styles.featureGroup}>
+                    <div className={styles.featureGroupHeader}>
+                      {Icon ? (
+                        <span className={styles.featureGroupIcon}>
+                          <Icon aria-hidden="true" />
+                        </span>
+                      ) : null}
+                      <h3>{group.label}</h3>
+                    </div>
+                    <ul className={styles.featureItems}>
+                      {group.items.map((feature, index) => (
+                        <li key={index}>{feature}</li>
+                      ))}
+                    </ul>
+                  </article>
+                );
+              })}
+            </div>
           </section>
         )}
 
-        {features.length > 0 && (
+        {(showMortgageCalculator || showRentCalculator) && (
           <section
-            id="property-features"
-            className={`${styles.contentRail} ${styles.features} ${styles.sectionAnchor}`}
+            id="property-calculators"
+            className={styles.sectionAnchor}
           >
-            <h2>Key features</h2>
-            <ul>
-              {features.map((f, i) => (
-                <li key={i}>{f}</li>
-              ))}
-            </ul>
+            <div className={styles.calculatorGroup}>
+              {showMortgageCalculator && (
+                <div className={styles.calculatorSection}>
+                  <h2>Mortgage Calculator</h2>
+                  <MortgageCalculator
+                    defaultPrice={parsePriceNumber(property.price)}
+                  />
+                </div>
+              )}
+
+              {showRentCalculator && (
+                <div className={styles.calculatorSection}>
+                  <h2>Rent Affordability</h2>
+                  <RentAffordability
+                    defaultRent={rentToMonthly(
+                      property.price,
+                      property.rentFrequency
+                    )}
+                  />
+                </div>
+              )}
+            </div>
           </section>
         )}
       </section>
 
-        <div className={`${styles.contentRail} ${styles.modules}`}>
-          <PropertySustainabilityPanel property={property} />
+        {(showMortgageCalculator || showRentCalculator) && (
+          <section
+            id="property-calculators"
+            className={`${styles.contentRail} ${styles.modules} ${styles.sectionAnchor}`}
+          >
+            {showMortgageCalculator && (
+              <section className={styles.calculatorSection}>
+                <h2>Mortgage Calculator</h2>
+                <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+              </section>
+            )}
 
-          <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
-          {showMortgageCalculator && (
-            <section
-              id="property-calculators"
-              className={`${styles.calculatorSection} ${styles.sectionAnchor}`}
-            >
-              <h2>Mortgage Calculator</h2>
-              <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
-            </section>
-          )}
-
-          {showRentCalculator && (
-            <section
-              id={showMortgageCalculator ? undefined : 'property-calculators'}
-              className={`${styles.calculatorSection} ${styles.sectionAnchor}`}
-            >
-              <h2>Rent Affordability</h2>
-              <RentAffordability
-                defaultRent={rentToMonthly(property.price, property.rentFrequency)}
-              />
-            </section>
-          )}
-        </div>
+            {showRentCalculator && (
+              <section className={styles.calculatorSection}>
+                <h2>Rent Affordability</h2>
+                <RentAffordability
+                  defaultRent={rentToMonthly(property.price, property.rentFrequency)}
+                />
+              </section>
+            )}
+          </section>
+        )}
 
         <section className={`${styles.contentRail} ${styles.contact}`}>
           <p>Interested in this property?</p>
@@ -1677,6 +2132,7 @@ export async function getStaticProps({ params }) {
       epcScore: derivedEpcScore,
       councilTaxBand: derivedCouncilTaxBand,
       includedUtilities: deriveIncludedUtilities(rawProperty),
+      locationInsights: computeLocationInsights(rawProperty),
     };
   }
 
