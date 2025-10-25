@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import { useSession } from '../../../components/SessionProvider';
@@ -522,6 +523,8 @@ function buildDiaryUrl(startDate) {
 }
 
 export default function AdminDiaryWorkspacePage() {
+  const router = useRouter();
+  const basePath = router?.basePath ?? '';
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
 
@@ -561,24 +564,43 @@ export default function AdminDiaryWorkspacePage() {
   }, []);
 
   const loadDiary = useCallback(
-    async (startDate) => {
+    async (startDate, options = {}) => {
+      const signal =
+        options && typeof options === 'object' && 'signal' in options ? options.signal : undefined;
+
       setLoading(true);
       setError(null);
+
       try {
-        const response = await fetch(buildDiaryUrl(startDate));
+        const response = await fetch(`${basePath}${buildDiaryUrl(startDate)}`, { signal });
         if (!response.ok) {
           throw new Error('Failed to load diary events');
         }
+
         const json = await response.json();
+
+        if (signal?.aborted) {
+          return;
+        }
+
         applyCalendarData(json);
       } catch (err) {
+        if (
+          signal?.aborted ||
+          (err && typeof err === 'object' && 'name' in err && err.name === 'AbortError')
+        ) {
+          return;
+        }
+
         console.error(err);
         setError('Unable to load the diary workspace. Please try again.');
       } finally {
-        setLoading(false);
+        if (!signal?.aborted) {
+          setLoading(false);
+        }
       }
     },
-    [applyCalendarData],
+    [applyCalendarData, basePath],
   );
 
   useEffect(() => {
@@ -592,7 +614,12 @@ export default function AdminDiaryWorkspacePage() {
       return;
     }
 
-    loadDiary();
+    const controller = new AbortController();
+    loadDiary(undefined, { signal: controller.signal });
+
+    return () => {
+      controller.abort();
+    };
   }, [sessionLoading, isAdmin, loadDiary]);
 
   useEffect(() => {
@@ -638,7 +665,7 @@ export default function AdminDiaryWorkspacePage() {
     setImporting(true);
     setToast(null);
     try {
-      const response = await fetch(buildDiaryUrl(calendar?.range?.start), {
+      const response = await fetch(`${basePath}${buildDiaryUrl(calendar?.range?.start)}`, {
         method: 'POST',
       });
       if (!response.ok) {
@@ -653,7 +680,7 @@ export default function AdminDiaryWorkspacePage() {
     } finally {
       setImporting(false);
     }
-  }, [applyCalendarData, calendar?.range?.start, importing]);
+  }, [applyCalendarData, basePath, calendar?.range?.start, importing]);
 
   const openComposer = useCallback(
     (type = 'Viewing', preset = {}) => {
