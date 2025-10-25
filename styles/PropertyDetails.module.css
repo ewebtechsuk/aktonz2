@@ -1,18 +1,16 @@
 .main {
   max-width: 1200px;
   margin: 0 auto;
-  padding: var(--spacing-md);
+  padding: var(--spacing-md) 0;
 }
 
-.main h1,
-.main h2 {
-  overflow-wrap: anywhere;
-}
-
-.sectionContainer {
+.contentRail {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+  padding-left: var(--spacing-md);
+  padding-right: var(--spacing-md);
+  box-sizing: border-box;
 }
 
 .hero {
@@ -24,6 +22,7 @@
   gap: var(--spacing-xl);
   width: 100%;
   grid-template-columns: 1fr;
+  align-items: start;
 }
 
 .sliderWrapper {
@@ -35,12 +34,6 @@
   flex: 1;
   min-width: 0;
   --summary-gap: var(--spacing-sm);
-}
-
-.summaryGrid {
-  display: grid;
-  gap: var(--spacing-lg);
-  align-items: start;
 }
 
 .summaryMain {
@@ -69,16 +62,23 @@
   width: 100%;
 }
 
-@media (min-width: 768px) {
-  .summaryGrid {
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+@media (min-width: 960px) {
+  .heroGrid {
+    grid-template-columns: minmax(0, 58%) minmax(280px, 340px);
   }
 }
 
+.heroGrid .summary {
+  grid-column: 1;
+}
+
+.heroGrid .summarySidebar {
+  grid-column: 1;
+}
+
 @media (min-width: 960px) {
-  .heroGrid {
-    grid-template-columns: minmax(0, 58%) minmax(0, 1fr);
-    align-items: start;
+  .heroGrid .summarySidebar {
+    grid-column: 2;
   }
 }
 
@@ -143,6 +143,7 @@
   color: var(--color-muted-text);
   font-size: 1.05rem;
   line-height: 1.7;
+  overflow-wrap: anywhere;
 }
 
 .summaryDescription p {
@@ -293,34 +294,57 @@
 
 .features,
 .description,
-.recommended,
 .contact {
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: var(--section-gap);
+}
+
+.modules {
+  display: grid;
+  gap: var(--section-gap);
+  margin-bottom: var(--section-gap);
+}
+
+.modules > * {
+  width: 100%;
+  max-width: 100%;
+}
+
+.related {
+  margin-bottom: var(--section-gap);
 }
 
 .mapSection {
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: var(--section-gap);
 }
 
-.mapSection h2 {
-  margin-bottom: var(--spacing-md);
+.mapSection h2,
+.features h2,
+.sustainabilityPanel h2,
+.calculatorSection h2,
+.neighborhood h2,
+.related h2 {
+  margin: 0 0 var(--section-heading-gap);
 }
 
 .mapContainer {
   border: 1px solid var(--color-border-light);
   border-radius: 8px;
   overflow: hidden;
+  max-width: 100%;
 }
 
 .calculatorSection {
-  margin-bottom: var(--spacing-lg);
+  margin: 0;
 }
 
 .neighborhood {
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background-color: #f9f9f9;
-  border: 1px solid #eee;
+  margin: 0;
+  padding: var(--spacing-lg);
+  background-color: var(--color-surface-alt);
+  border: 1px solid var(--color-border-light);
+  border-radius: 12px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .features ul {
@@ -331,6 +355,9 @@
   text-align: center;
   padding: var(--spacing-md);
   background-color: var(--color-surface-alt);
+  border-radius: 12px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .contact a {
@@ -343,16 +370,13 @@
 }
 
 .sustainabilityPanel {
-  margin-bottom: var(--spacing-lg);
+  margin: 0;
   padding: var(--spacing-lg);
   background-color: var(--color-surface-alt);
   border: 1px solid var(--color-border-light);
   border-radius: 12px;
-}
-
-.sustainabilityPanel h2 {
-  margin-top: 0;
-  margin-bottom: var(--spacing-md);
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .sustainabilityGrid {
@@ -457,10 +481,15 @@
     font-size: 0.95rem;
   }
 
+  .modules {
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+  }
+
   .features,
   .description,
-  .recommended,
-  .contact {
+  .contact,
+  .related {
     margin-bottom: var(--spacing-lg);
   }
 
