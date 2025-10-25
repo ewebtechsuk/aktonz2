@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import PropertyList from '../../components/PropertyList';
 import MediaGallery from '../../components/MediaGallery';
 import OfferDrawer from '../../components/OfferDrawer';
@@ -923,6 +923,10 @@ async function loadPrebuildPropertyIds(limit = null) {
 }
 
 export default function Property({ property, recommendations }) {
+  const [isSummaryExpanded, setSummaryExpanded] = useState(false);
+  useEffect(() => {
+    setSummaryExpanded(false);
+  }, [property?.id]);
   const hasLocation = property?.latitude != null && property?.longitude != null;
   const agentProfile = property?.agentProfile;
   const priceLabel = formatPropertyPriceLabel(property);
@@ -977,6 +981,12 @@ export default function Property({ property, recommendations }) {
       .map((paragraph) => paragraph.trim())
       .filter(Boolean);
   }, [property?.description]);
+  const shouldShowSummaryToggle =
+    descriptionParagraphs.length > 1 || (property?.description?.length ?? 0) > 320;
+  const summaryDescriptionId = useMemo(
+    () => `summary-description-${property?.id ?? 'default'}`,
+    [property?.id]
+  );
   const summaryStats = useMemo(() => {
     const stats = [];
 
@@ -1248,6 +1258,33 @@ export default function Property({ property, recommendations }) {
                     </ul>
                   )}
                 </div>
+                {descriptionParagraphs.length > 0 && (
+                  <div
+                    className={`${styles.summaryDescription} ${
+                      isSummaryExpanded ? styles.summaryDescriptionExpanded : ''
+                    }`}
+                  >
+                    <div
+                      className={styles.summaryDescriptionText}
+                      id={summaryDescriptionId}
+                    >
+                      {descriptionParagraphs.map((paragraph, index) => (
+                        <p key={index}>{paragraph}</p>
+                      ))}
+                    </div>
+                    {shouldShowSummaryToggle && (
+                      <button
+                        type="button"
+                        className={styles.summaryDescriptionToggle}
+                        onClick={() => setSummaryExpanded((previous) => !previous)}
+                        aria-expanded={isSummaryExpanded}
+                        aria-controls={summaryDescriptionId}
+                      >
+                        {isSummaryExpanded ? 'Read less' : 'Read more'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             {(pricePrefixLabel || headlinePrice) && (
@@ -1319,52 +1356,19 @@ export default function Property({ property, recommendations }) {
         </section>
       )}
 
-      {groupedFeatures.length > 0 && (
-        <section className={`${styles.contentRail} ${styles.features}`}>
-          <h2>Key features</h2>
-          <div className={styles.featuresGrid}>
-            {groupedFeatures.map((group) => {
-              const Icon = group.icon;
-              return (
-                <article key={group.id} className={styles.featureGroup}>
-                  <div className={styles.featureGroupHeader}>
-                    {Icon ? (
-                      <span className={styles.featureGroupIcon}>
-                        <Icon aria-hidden="true" />
-                      </span>
-                    ) : null}
-                    <h3>{group.label}</h3>
-                  </div>
-                  <ul className={styles.featureItems}>
-                    {group.items.map((feature, index) => (
-                      <li key={index}>{feature}</li>
-                    ))}
-                  </ul>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
       <section className={`${styles.contentRail} ${styles.modules}`}>
         {agentProfile && (
           <AgentCard className={styles.agentCard} agent={agentProfile} />
         )}
+
         <PropertySustainabilityPanel property={property} />
 
         <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
-        {!property.rentFrequency && property.price && (
-          <section className={styles.calculatorSection}>
-            <h2>Mortgage Calculator</h2>
-            <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
-          </section>
-        )}
 
         {groupedFeatures.length > 0 && (
           <section
             id="property-features"
-            className={`${styles.contentRail} ${styles.features} ${styles.sectionAnchor}`}
+            className={`${styles.features} ${styles.sectionAnchor}`}
           >
             <h2>Key features</h2>
             <div className={styles.featuresGrid}>
@@ -1391,34 +1395,37 @@ export default function Property({ property, recommendations }) {
             </div>
           </section>
         )}
+
+        {(showMortgageCalculator || showRentCalculator) && (
+          <section
+            id="property-calculators"
+            className={styles.sectionAnchor}
+          >
+            <div className={styles.calculatorGroup}>
+              {showMortgageCalculator && (
+                <div className={styles.calculatorSection}>
+                  <h2>Mortgage Calculator</h2>
+                  <MortgageCalculator
+                    defaultPrice={parsePriceNumber(property.price)}
+                  />
+                </div>
+              )}
+
+              {showRentCalculator && (
+                <div className={styles.calculatorSection}>
+                  <h2>Rent Affordability</h2>
+                  <RentAffordability
+                    defaultRent={rentToMonthly(
+                      property.price,
+                      property.rentFrequency
+                    )}
+                  />
+                </div>
+              )}
+            </div>
+          </section>
+        )}
       </section>
-
-        <div className={`${styles.contentRail} ${styles.modules}`}>
-          <PropertySustainabilityPanel property={property} />
-
-          <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
-          {showMortgageCalculator && (
-            <section
-              id="property-calculators"
-              className={`${styles.calculatorSection} ${styles.sectionAnchor}`}
-            >
-              <h2>Mortgage Calculator</h2>
-              <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
-            </section>
-          )}
-
-          {showRentCalculator && (
-            <section
-              id={showMortgageCalculator ? undefined : 'property-calculators'}
-              className={`${styles.calculatorSection} ${styles.sectionAnchor}`}
-            >
-              <h2>Rent Affordability</h2>
-              <RentAffordability
-                defaultRent={rentToMonthly(property.price, property.rentFrequency)}
-              />
-            </section>
-          )}
-        </div>
 
         <section className={`${styles.contentRail} ${styles.contact}`}>
           <p>Interested in this property?</p>

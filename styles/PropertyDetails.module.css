@@ -111,6 +111,73 @@
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
 }
 
+.summaryDescription {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border-light);
+  color: var(--color-muted-text);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.summaryDescriptionText {
+  position: relative;
+  display: grid;
+  gap: var(--spacing-sm);
+  max-height: 9.5rem;
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+
+.summaryDescriptionText::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3rem;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0),
+    var(--color-background)
+  );
+  pointer-events: none;
+}
+
+.summaryDescription p {
+  margin: 0;
+}
+
+.summaryDescriptionToggle {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0;
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.summaryDescriptionToggle:hover,
+.summaryDescriptionToggle:focus-visible {
+  text-decoration: underline;
+}
+
+.summaryDescriptionExpanded .summaryDescriptionText {
+  max-height: 2000px;
+}
+
+.summaryDescriptionExpanded .summaryDescriptionText::after {
+  opacity: 0;
+  visibility: hidden;
+}
+
 .summarySidebar {
   position: sticky;
   top: calc(var(--spacing-lg) * 1.5);
@@ -394,6 +461,16 @@
 .modules > * {
   width: 100%;
   max-width: 100%;
+}
+
+.modules .features,
+.modules .calculatorSection {
+  margin-bottom: 0;
+}
+
+.calculatorGroup {
+  display: grid;
+  gap: var(--spacing-lg);
 }
 
 .agentCard {
