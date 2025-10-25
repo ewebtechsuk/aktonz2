@@ -83,6 +83,14 @@ function normalizeRouteParam(value) {
   return typeof value === 'string' ? value : null;
 }
 
+const DATE_TIME_WITH_HOURS = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
 function formatDateTime(value) {
   return formatAdminDateOrDash(value, DATE_TIME_WITH_HOURS_FORMAT);
 }

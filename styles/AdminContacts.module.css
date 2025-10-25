@@ -291,10 +291,93 @@
   overflow-x: auto;
 }
 
+.tableWrapperSkeleton {
+  pointer-events: none;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
   min-width: 960px;
+}
+
+.tableSkeleton tbody td {
+  border-bottom: none;
+}
+
+.skeletonRow td {
+  padding: var(--spacing-md) var(--spacing-sm);
+}
+
+.skeletonCell {
+  height: 100%;
+}
+
+.skeletonGroup {
+  display: grid;
+  gap: calc(var(--spacing-xs) / 1.5);
+}
+
+.skeletonLine {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--color-surface-alt);
+  overflow: hidden;
+}
+
+.skeletonLineLarge {
+  height: 18px;
+}
+
+.skeletonPill {
+  height: 24px;
+}
+
+.skeletonActions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.skeletonAction {
+  display: inline-block;
+  width: 40px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--color-surface-alt);
+  position: relative;
+  overflow: hidden;
+}
+
+.skeletonLine::after,
+.skeletonAction::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: translateX(-100%);
+  animation: skeletonShimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  50% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .table thead th {
