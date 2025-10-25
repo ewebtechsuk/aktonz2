@@ -119,17 +119,19 @@ function formatHeroRent(amount, frequency, currency) {
   const normalisedFrequency = normalizeRentFrequency(frequency);
   const rentCurrency = currency && String(currency).trim() ? String(currency).trim().toUpperCase() : 'GBP';
 
-  let formattedAmount;
-  try {
-    const formatter = new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: rentCurrency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    });
-    formattedAmount = formatter.format(numeric);
-  } catch (error) {
-    formattedAmount = `£${numeric.toLocaleString('en-GB')}`;
+  let formattedAmount = formatAdminCurrency(numeric, {
+    currency: rentCurrency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+
+  if (!formattedAmount) {
+    const fallback = formatAdminNumber(numeric, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    formattedAmount = fallback
+      ? rentCurrency === 'GBP'
+        ? `£${fallback}`
+        : `${rentCurrency} ${fallback}`
+      : String(numeric);
   }
 
   const frequencyLabel = RENT_FREQUENCY_OPTIONS.find((option) => option.value === normalisedFrequency)?.label;
@@ -146,17 +148,23 @@ function formatCurrencyValue(amount, currency = 'GBP') {
     return '';
   }
 
-  try {
-    const formatter = new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: currency && String(currency).trim() ? String(currency).trim().toUpperCase() : 'GBP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
-    return formatter.format(numeric);
-  } catch (error) {
-    return `£${numeric.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+  const targetCurrency = currency && String(currency).trim() ? String(currency).trim().toUpperCase() : 'GBP';
+  const formatted = formatAdminCurrency(numeric, {
+    currency: targetCurrency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+
+  if (formatted) {
+    return formatted;
   }
+
+  const fallback = formatAdminNumber(numeric, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  if (!fallback) {
+    return '';
+  }
+
+  return targetCurrency === 'GBP' ? `£${fallback}` : `${targetCurrency} ${fallback}`;
 }
 
 function cloneFormValues(values) {
@@ -294,27 +302,27 @@ function buildUpdatePayload(values) {
   };
 }
 
+const DATE_TIME_WITH_HOURS = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
+const DATE_ONLY = {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+};
+
 function formatDateTime(value) {
   if (!value) {
     return '—';
   }
 
-  try {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-      return '—';
-    }
-
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
-  } catch (error) {
-    return '—';
-  }
+  const formatted = formatAdminDate(value, DATE_TIME_WITH_HOURS);
+  return formatted || '—';
 }
 
   function formatDateDisplay(value) {
@@ -322,20 +330,8 @@ function formatDateTime(value) {
       return '—';
     }
 
-    try {
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) {
-        return '—';
-      }
-
-      return new Intl.DateTimeFormat('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      }).format(date);
-    } catch (error) {
-      return '—';
-    }
+    const formatted = formatAdminDate(value, DATE_ONLY);
+    return formatted || '—';
   }
 
   function formatFlattenedKey(path) {
@@ -387,7 +383,7 @@ function formatDateTime(value) {
     }
 
     if (type === 'number') {
-      return Number.isFinite(value) ? value.toLocaleString('en-GB') : String(value);
+      return Number.isFinite(value) ? formatAdminNumber(value) : String(value);
     }
 
     if (type === 'string') {
