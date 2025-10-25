@@ -1,12 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import PropertyList from '../../components/PropertyList';
 import MediaGallery from '../../components/MediaGallery';
 import OfferDrawer from '../../components/OfferDrawer';
 import ViewingForm from '../../components/ViewingForm';
+import ViewingTimeline from '../../components/ViewingTimeline';
 import NeighborhoodInfo from '../../components/NeighborhoodInfo';
 import FavoriteButton from '../../components/FavoriteButton';
 import PropertySustainabilityPanel from '../../components/PropertySustainabilityPanel';
 import AgentCard from '../../components/AgentCard';
+import MediaHighlights from '../../components/MediaHighlights';
 
 import MortgageCalculator from '../../components/MortgageCalculator';
 import RentAffordability from '../../components/RentAffordability';
@@ -21,6 +23,7 @@ import {
   resolveSecurityDepositSource,
   resolveHoldingDepositSource,
 } from '../../lib/apex27.mjs';
+import { listDiaryEvents } from '../../lib/apex27-diary.mjs';
 import {
   resolvePropertyIdentifier,
   propertyMatchesIdentifier,
@@ -29,17 +32,29 @@ import {
   resolvePropertyTypeLabel,
   formatPropertyTypeLabel,
 } from '../../lib/property-type.mjs';
+import {
+  normalizeAgentString,
+  pickFirstAgentString,
+  collectAgentTestimonials,
+} from '../../lib/agent-profile.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
 import {
-  FaBath,
   FaBed,
-  FaBalanceScale,
+  FaBath,
   FaCouch,
-  FaFileContract,
-  FaLeaf,
-  FaRulerCombined,
-  FaSeedling,
+  FaTrain,
+  FaSchool,
+  FaWalking,
+  FaMapMarkerAlt,
 } from 'react-icons/fa';
+import {
+  FiDroplet,
+  FiHome,
+  FiLayers,
+  FiShield,
+  FiStar,
+  FiSun,
+} from 'react-icons/fi';
 import {
   formatPriceGBP,
   formatPricePrefix,
@@ -57,7 +72,152 @@ import {
   formatAvailabilityDate,
   resolveAvailabilityDate,
 } from '../../lib/deposits.mjs';
+import {
+  deriveTourEntries,
+  groupPropertyFeatures,
+  LOCATION_INSIGHT_ICON_MAP,
+  extractSupplementaryLinks,
+  computeLocationInsights,
+} from '../../lib/property-content.mjs';
 import agentsData from '../../data/agents.json';
+
+const VIEWING_TIMELINE_TIMEZONE = 'Europe/London';
+
+function parseDate(value) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed;
+}
+
+function formatDateInputValue(date) {
+  if (!(date instanceof Date)) {
+    return '';
+  }
+
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: VIEWING_TIMELINE_TIMEZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(date);
+  } catch {
+    return '';
+  }
+}
+
+function formatTimeInputValue(date) {
+  if (!(date instanceof Date)) {
+    return '';
+  }
+
+  try {
+    return new Intl.DateTimeFormat('en-GB', {
+      timeZone: VIEWING_TIMELINE_TIMEZONE,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(date);
+  } catch {
+    return '';
+  }
+}
+
+function viewingEventMatchesProperty(event, propertyId) {
+  if (!event || !propertyId) {
+    return false;
+  }
+
+  const normalizedPropertyId = String(propertyId).trim().toLowerCase();
+  if (!normalizedPropertyId) {
+    return false;
+  }
+
+  const eventPropertyId = event?.property?.id
+    ? String(event.property.id).trim().toLowerCase()
+    : null;
+  if (eventPropertyId && eventPropertyId === normalizedPropertyId) {
+    return true;
+  }
+
+  const eventHref = event?.property?.href
+    ? String(event.property.href).trim().toLowerCase()
+    : '';
+  if (eventHref && eventHref.includes(normalizedPropertyId)) {
+    return true;
+  }
+
+  return false;
+}
+
+function normalizeViewingSlot(event) {
+  if (!event || !event.start) {
+    return null;
+  }
+
+  const startDate = parseDate(event.start);
+  if (!startDate) {
+    return null;
+  }
+
+  const endDate = parseDate(event.end) || new Date(startDate.getTime() + 30 * 60000);
+  const startIso = startDate.toISOString();
+  const endIso = endDate.toISOString();
+  const durationMinutes = Math.max(
+    15,
+    Math.round((endDate.getTime() - startDate.getTime()) / 60000)
+  );
+
+  return {
+    id: event.id,
+    start: startIso,
+    end: endIso,
+    dayKey: event.dayKey || (startIso ? startIso.slice(0, 10) : null),
+    location: event.location || null,
+    negotiator: event.negotiator || null,
+    status: event.status || null,
+    slotKey: `${event.id}-${startIso}`,
+    dateValue: formatDateInputValue(startDate),
+    timeValue: formatTimeInputValue(startDate),
+    durationMinutes,
+  };
+}
+
+async function resolveUpcomingViewingSlots(propertyId) {
+  if (!propertyId) {
+    return [];
+  }
+
+  try {
+    const nowIso = new Date().toISOString();
+    const { events } = await listDiaryEvents({ from: nowIso });
+    const relevant = events
+      .filter((event) =>
+        event?.type ? String(event.type).toLowerCase() === 'viewing' : false
+      )
+      .filter((event) => viewingEventMatchesProperty(event, propertyId))
+      .map(normalizeViewingSlot)
+      .filter(Boolean);
+
+    relevant.sort((a, b) => {
+      const aTime = a.start ? new Date(a.start).getTime() : 0;
+      const bTime = b.start ? new Date(b.start).getTime() : 0;
+      return aTime - bTime;
+    });
+
+    return relevant;
+  } catch (error) {
+    console.warn('Unable to load upcoming viewing slots', error);
+    return [];
+  }
+}
 
 const AGENT_ENTRIES = Array.isArray(agentsData) ? agentsData : [];
 const AGENT_MAP = new Map(
@@ -78,33 +238,23 @@ const DEFAULT_AGENT_PROFILE = (() => {
     reviewSnippet:
       '“Exceptional communication and proactive updates throughout the letting process.”',
     reviewAttribution: 'Landlord review, March 2024',
+    testimonials: [
+      {
+        quote:
+          '“Exceptional communication and proactive updates throughout the letting process.”',
+        attribution: 'Landlord review, March 2024',
+        role: 'Verified Aktonz landlord',
+      },
+      {
+        quote:
+          '“They paired us with high-quality tenants within days and handled everything professionally.”',
+        attribution: 'Tenant placement feedback, January 2024',
+        role: 'Managed services client',
+      },
+    ],
     photo: primary?.photo || AGENT_PLACEHOLDER_IMAGE,
   };
 })();
-
-const DESCRIPTION_HIGHLIGHT_ICONS = {
-  epc: FaLeaf,
-  councilTax: FaBalanceScale,
-  tenure: FaFileContract,
-  floorArea: FaRulerCombined,
-  plotSize: FaSeedling,
-};
-
-function normalizeAgentString(value) {
-  if (value == null) return null;
-  const normalized = String(value).trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function pickFirstAgentString(...values) {
-  for (const value of values) {
-    const normalized = normalizeAgentString(value);
-    if (normalized) {
-      return normalized;
-    }
-  }
-  return null;
-}
 
 function collectAgentCandidates(rawProperty) {
   const candidates = [];
@@ -129,7 +279,7 @@ function collectAgentCandidates(rawProperty) {
   return candidates;
 }
 
-function resolveAgentProfile(rawProperty) {
+  function resolveAgentProfile(rawProperty) {
   const baseProfile = { ...DEFAULT_AGENT_PROFILE };
   if (!rawProperty || typeof rawProperty !== 'object') {
     return baseProfile;
@@ -253,6 +403,37 @@ function resolveAgentProfile(rawProperty) {
       AGENT_PLACEHOLDER_IMAGE
     ) || AGENT_PLACEHOLDER_IMAGE;
 
+    const resolvedTestimonials = collectAgentTestimonials(
+      rawProperty.agentTestimonials,
+      rawProperty.agentTestimonialsList,
+      rawProperty.agentTestimonial,
+      rawProperty.agentReviews,
+      rawProperty.agentQuotes,
+      rawProperty.agent?.testimonials,
+      rawProperty.agent?.reviews,
+      rawProperty.agent?.quotes,
+      rawProperty.marketing?.agent?.testimonials,
+      namedCandidate?.testimonials,
+      namedCandidate?.reviews,
+      namedCandidate?.quotes,
+      mappedAgent?.testimonials,
+      mappedAgent?.reviews,
+      mappedAgent?.quotes
+    );
+
+    if (resolvedTestimonials.length === 0) {
+      resolvedTestimonials.push(
+        ...collectAgentTestimonials({
+          quote: resolvedReviewSnippet,
+          attribution: resolvedReviewAttribution,
+        })
+      );
+    }
+
+    if (resolvedTestimonials.length === 0) {
+      resolvedTestimonials.push(...collectAgentTestimonials(baseProfile.testimonials));
+    }
+
   return {
     id: resolvedAgentId,
     name: resolvedName,
@@ -262,6 +443,10 @@ function resolveAgentProfile(rawProperty) {
     reviewSnippet: resolvedReviewSnippet,
     reviewAttribution: resolvedReviewAttribution,
     photo: resolvedPhoto,
+    testimonials:
+      resolvedTestimonials.length > 0
+        ? resolvedTestimonials
+        : baseProfile.testimonials,
   };
 }
 
@@ -1033,8 +1218,80 @@ async function loadPrebuildPropertyIds(limit = null) {
 }
 
 export default function Property({ property, recommendations }) {
+  const [isSummaryExpanded, setSummaryExpanded] = useState(false);
+  useEffect(() => {
+    setSummaryExpanded(false);
+  }, [property?.id]);
   const hasLocation = property?.latitude != null && property?.longitude != null;
+  const locationInsights = useMemo(() => {
+    if (!Array.isArray(property?.locationInsights)) {
+      return [];
+    }
+
+    return property.locationInsights
+      .map((insight) => {
+        if (!insight || typeof insight !== 'object') {
+          return null;
+        }
+
+        const key = typeof insight.key === 'string' ? insight.key : null;
+        const title = typeof insight.title === 'string' ? insight.title.trim() : '';
+        if (!key || !title) {
+          return null;
+        }
+
+        const grade =
+          typeof insight.grade === 'string' && insight.grade.trim()
+            ? insight.grade.trim()
+            : null;
+        const description =
+          typeof insight.description === 'string' && insight.description.trim()
+            ? insight.description.trim()
+            : null;
+
+        return {
+          key,
+          title,
+          grade,
+          description,
+        };
+      })
+      .filter(Boolean);
+  }, [property?.locationInsights]);
   const agentProfile = property?.agentProfile;
+  const viewingSlots = Array.isArray(property?.viewingSlots)
+    ? property.viewingSlots
+    : [];
+  const [selectedViewingSlot, setSelectedViewingSlot] = useState(null);
+  useEffect(() => {
+    setSelectedViewingSlot(null);
+  }, [property?.id]);
+  const handleViewingSlotSelect = useCallback((slot) => {
+    if (!slot) {
+      return;
+    }
+
+    const slotKey = slot.slotKey || slot.key || `${slot.id || slot.start}`;
+    setSelectedViewingSlot({
+      slotKey,
+      triggerKey: `slot-${Date.now()}`,
+      date: slot.dateValue ?? '',
+      time: slot.timeValue ?? '',
+      label: slot.fullRangeLabel || slot.rangeLabel || '',
+    });
+  }, []);
+  const handleViewingSlotRequest = useCallback(() => {
+    setSelectedViewingSlot({
+      slotKey: 'custom',
+      triggerKey: `custom-${Date.now()}`,
+      date: '',
+      time: '',
+      label: '',
+    });
+  }, []);
+  const handleViewingFormClose = useCallback(() => {
+    setSelectedViewingSlot(null);
+  }, []);
   const priceLabel = formatPropertyPriceLabel(property);
   const rentFrequencyLabel = useMemo(() => {
     if (!property?.rentFrequency) {
@@ -1087,6 +1344,12 @@ export default function Property({ property, recommendations }) {
       .map((paragraph) => paragraph.trim())
       .filter(Boolean);
   }, [property?.description]);
+  const shouldShowSummaryToggle =
+    descriptionParagraphs.length > 1 || (property?.description?.length ?? 0) > 320;
+  const summaryDescriptionId = useMemo(
+    () => `summary-description-${property?.id ?? 'default'}`,
+    [property?.id]
+  );
   const summaryStats = useMemo(() => {
     const stats = [];
 
@@ -1139,51 +1402,14 @@ export default function Property({ property, recommendations }) {
 
     return highlights;
   }, [property?.councilTaxBand, property?.epcScore, property?.tenure]);
-  const descriptionHighlights = useMemo(() => {
-    const mapped = [];
-    const seenKeys = new Set();
-
-    for (const highlight of complianceHighlights) {
-      if (!highlight || !highlight.key || !highlight.label) {
-        continue;
-      }
-      if (seenKeys.has(highlight.key)) {
-        continue;
-      }
-      seenKeys.add(highlight.key);
-      mapped.push({
-        key: highlight.key,
-        label: highlight.label,
-        icon: DESCRIPTION_HIGHLIGHT_ICONS[highlight.key] || FaLeaf,
-      });
-    }
-
-    const floorAreaLabel =
-      typeof property?.floorArea === 'string'
-        ? property.floorArea.trim()
-        : property?.floorArea;
-    if (floorAreaLabel) {
-      mapped.push({
-        key: 'floorArea',
-        label: floorAreaLabel,
-        icon: DESCRIPTION_HIGHLIGHT_ICONS.floorArea,
-      });
-    }
-
-    const plotSizeLabel =
-      typeof property?.plotSize === 'string'
-        ? property.plotSize.trim()
-        : property?.plotSize;
-    if (plotSizeLabel) {
-      mapped.push({
-        key: 'plotSize',
-        label: plotSizeLabel,
-        icon: DESCRIPTION_HIGHLIGHT_ICONS.plotSize,
-      });
-    }
-
-    return mapped;
-  }, [complianceHighlights, property?.floorArea, property?.plotSize]);
+  const floorplanLinks = Array.isArray(property?.floorplans) ? property.floorplans : [];
+  const brochureLinks = Array.isArray(property?.brochures) ? property.brochures : [];
+  const tourEntries = useMemo(
+    () => deriveTourEntries(property?.media, property?.metadata),
+    [property?.media, property?.metadata]
+  );
+  const hasMediaHighlights =
+    floorplanLinks.length > 0 || brochureLinks.length > 0 || tourEntries.length > 0;
   const headlinePrice = formattedPrimaryPrice || priceLabel || '';
   const numericPriceValue = useMemo(() => {
     if (property?.priceValue != null && Number.isFinite(Number(property.priceValue))) {
@@ -1309,7 +1535,10 @@ export default function Property({ property, recommendations }) {
       </>
     );
   }
-  const features = Array.isArray(property.features) ? property.features : [];
+  const groupedFeatures = useMemo(
+    () => groupPropertyFeatures(property?.features ?? []),
+    [property?.features]
+  );
   const displayType =
     property.typeLabel ??
     property.propertyTypeLabel ??
@@ -1341,7 +1570,7 @@ export default function Property({ property, recommendations }) {
     if (hasLocation) {
       sectionsList.push({ id: 'property-location', label: 'Location' });
     }
-    if (features.length > 0) {
+    if (groupedFeatures.length > 0) {
       sectionsList.push({ id: 'property-features', label: 'Key features' });
     }
     if (showMortgageCalculator || showRentCalculator) {
@@ -1352,7 +1581,7 @@ export default function Property({ property, recommendations }) {
     }
     return sectionsList;
   }, [
-    features.length,
+    groupedFeatures.length,
     hasLocation,
     hasRecommendations,
     showMortgageCalculator,
@@ -1399,6 +1628,33 @@ export default function Property({ property, recommendations }) {
                     </ul>
                   )}
                 </div>
+                {descriptionParagraphs.length > 0 && (
+                  <div
+                    className={`${styles.summaryDescription} ${
+                      isSummaryExpanded ? styles.summaryDescriptionExpanded : ''
+                    }`}
+                  >
+                    <div
+                      className={styles.summaryDescriptionText}
+                      id={summaryDescriptionId}
+                    >
+                      {descriptionParagraphs.map((paragraph, index) => (
+                        <p key={index}>{paragraph}</p>
+                      ))}
+                    </div>
+                    {shouldShowSummaryToggle && (
+                      <button
+                        type="button"
+                        className={styles.summaryDescriptionToggle}
+                        onClick={() => setSummaryExpanded((previous) => !previous)}
+                        aria-expanded={isSummaryExpanded}
+                        aria-controls={summaryDescriptionId}
+                      >
+                        {isSummaryExpanded ? 'Read less' : 'Read more'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             {(pricePrefixLabel || headlinePrice) && (
@@ -1447,55 +1703,91 @@ export default function Property({ property, recommendations }) {
                     )}
                     <div className={styles.priceActions}>
                       <OfferDrawer property={property} />
-                      <ViewingForm property={property} />
+                      <ViewingForm
+                        property={property}
+                        selectedSlot={selectedViewingSlot}
+                        onClose={handleViewingFormClose}
+                      />
                     </div>
                   </div>
+                  {viewingSlots.length > 0 && (
+                    <ViewingTimeline
+                      slots={viewingSlots}
+                      onSelectSlot={handleViewingSlotSelect}
+                      onOpenForm={handleViewingSlotRequest}
+                      selectedSlotKey={selectedViewingSlot?.slotKey ?? null}
+                    />
+                  )}
                 </div>
               </aside>
             )}
           </div>
         </section>
 
-      {descriptionParagraphs.length > 0 && (
-        <section className={`${styles.contentRail} ${styles.description}`}>
-          <h2>Description</h2>
-          {descriptionHighlights.length > 0 && (
-            <ul className={styles.descriptionHighlights}>
-              {descriptionHighlights.map((highlight) => (
-                <li key={highlight.key} className={styles.descriptionHighlightItem}>
-                  <span className={styles.descriptionHighlightIcon} aria-hidden="true">
-                    <highlight.icon />
-                  </span>
-                  <span>{highlight.label}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          {descriptionParagraphs.map((paragraph, index) => (
-            <p key={index}>{paragraph}</p>
-          ))}
-        </section>
-      )}
+        {hasMediaHighlights && (
+          <MediaHighlights
+            floorplans={floorplanLinks}
+            brochures={brochureLinks}
+            tours={tourEntries}
+          />
+        )}
 
       {hasLocation && (
         <section className={`${styles.contentRail} ${styles.mapSection}`}>
           <h2>Location</h2>
-          <div className={styles.mapContainer}>
-            <PropertyMap
-              mapId="property-details-map"
-              center={[property.latitude, property.longitude]}
-              zoom={16}
-              properties={mapProperties}
-            />
+          <div className={styles.mapSectionContent}>
+            <div className={styles.mapContainer}>
+              <PropertyMap
+                mapId="property-details-map"
+                center={[property.latitude, property.longitude]}
+                zoom={16}
+                properties={mapProperties}
+              />
+            </div>
+            {locationInsights.length > 0 && (
+              <ul className={styles.locationInsights}>
+                {locationInsights.map((insight) => {
+                  const Icon =
+                    LOCATION_INSIGHT_ICON_MAP[insight.key] ?? FaMapMarkerAlt;
+                  return (
+                    <li
+                      key={insight.key}
+                      className={styles.locationInsightPill}
+                    >
+                      <Icon aria-hidden="true" />
+                      <div className={styles.locationInsightCopy}>
+                        <span className={styles.locationInsightTitle}>
+                          {insight.title}
+                        </span>
+                        {(insight.grade || insight.description) && (
+                          <div className={styles.locationInsightDetails}>
+                            {insight.grade && (
+                              <span className={styles.locationInsightGrade}>
+                                {insight.grade}
+                              </span>
+                            )}
+                            {insight.description && (
+                              <span className={styles.locationInsightDescription}>
+                                {insight.description}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </section>
       )}
 
-      {features.length > 0 && (
+      {groupedFeatures.length > 0 && (
         <section className={`${styles.contentRail} ${styles.features}`}>
           <h2>Key features</h2>
           <ul>
-            {features.map((f, i) => (
+            {groupedFeatures.map((f, i) => (
               <li key={i}>{f}</li>
             ))}
           </ul>
@@ -1504,26 +1796,25 @@ export default function Property({ property, recommendations }) {
 
       <section className={`${styles.contentRail} ${styles.modules}`}>
         {agentProfile && (
-          <AgentCard className={styles.agentCard} agent={agentProfile} />
+          <AgentCard
+            className={styles.agentCard}
+            agent={agentProfile}
+            testimonials={agentProfile?.testimonials}
+          />
         )}
+
         <PropertySustainabilityPanel property={property} />
 
         <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
-        {!property.rentFrequency && property.price && (
-          <section className={styles.calculatorSection}>
-            <h2>Mortgage Calculator</h2>
-            <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
-          </section>
-        )}
 
-        {features.length > 0 && (
+        {groupedFeatures.length > 0 && (
           <section
             id="property-features"
-            className={`${styles.contentRail} ${styles.features} ${styles.sectionAnchor}`}
+            className={`${styles.features} ${styles.sectionAnchor}`}
           >
             <h2>Key features</h2>
             <ul>
-              {features.map((f, i) => (
+              {groupedFeatures.map((f, i) => (
                 <li key={i}>{f}</li>
               ))}
             </ul>
@@ -1531,32 +1822,28 @@ export default function Property({ property, recommendations }) {
         )}
       </section>
 
-        <div className={`${styles.contentRail} ${styles.modules}`}>
-          <PropertySustainabilityPanel property={property} />
+        {(showMortgageCalculator || showRentCalculator) && (
+          <section
+            id="property-calculators"
+            className={`${styles.contentRail} ${styles.modules} ${styles.sectionAnchor}`}
+          >
+            {showMortgageCalculator && (
+              <section className={styles.calculatorSection}>
+                <h2>Mortgage Calculator</h2>
+                <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+              </section>
+            )}
 
-          <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
-          {showMortgageCalculator && (
-            <section
-              id="property-calculators"
-              className={`${styles.calculatorSection} ${styles.sectionAnchor}`}
-            >
-              <h2>Mortgage Calculator</h2>
-              <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
-            </section>
-          )}
-
-          {showRentCalculator && (
-            <section
-              id={showMortgageCalculator ? undefined : 'property-calculators'}
-              className={`${styles.calculatorSection} ${styles.sectionAnchor}`}
-            >
-              <h2>Rent Affordability</h2>
-              <RentAffordability
-                defaultRent={rentToMonthly(property.price, property.rentFrequency)}
-              />
-            </section>
-          )}
-        </div>
+            {showRentCalculator && (
+              <section className={styles.calculatorSection}>
+                <h2>Rent Affordability</h2>
+                <RentAffordability
+                  defaultRent={rentToMonthly(property.price, property.rentFrequency)}
+                />
+              </section>
+            )}
+          </section>
+        )}
 
         <section className={`${styles.contentRail} ${styles.contact}`}>
           <p>Interested in this property?</p>
@@ -1704,6 +1991,18 @@ export async function getStaticProps({ params }) {
       images: imgList,
       agentProfile: resolveAgentProfile(rawProperty),
       media: extractMedia(rawProperty),
+      floorplans: extractSupplementaryLinks(rawProperty, [
+        'floorplan',
+        'floor plan',
+        'floor_plan',
+      ]),
+      brochures: extractSupplementaryLinks(rawProperty, [
+        'brochure',
+        'particulars',
+        'specification',
+        'spec sheet',
+      ]),
+      metadata: Array.isArray(rawProperty.metadata) ? rawProperty.metadata : [],
       tenure: derivedTenure,
       floorArea: deriveFloorArea(rawProperty),
       plotSize: derivePlotSize(rawProperty),
@@ -1745,7 +2044,14 @@ export async function getStaticProps({ params }) {
       epcScore: derivedEpcScore,
       councilTaxBand: derivedCouncilTaxBand,
       includedUtilities: deriveIncludedUtilities(rawProperty),
+      locationInsights: computeLocationInsights(rawProperty),
     };
+
+    if (formatted.id) {
+      formatted.viewingSlots = await resolveUpcomingViewingSlots(formatted.id);
+    } else {
+      formatted.viewingSlots = [];
+    }
   }
 
   const allRent = await fetchPropertiesByTypeCachedFirst('rent');
