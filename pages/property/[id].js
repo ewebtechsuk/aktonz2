@@ -30,7 +30,25 @@ import {
   formatPropertyTypeLabel,
 } from '../../lib/property-type.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
-import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
+import {
+  FaBath,
+  FaBed,
+  FaBoxOpen,
+  FaBoxes,
+  FaChargingStation,
+  FaCheckCircle,
+  FaCouch,
+  FaDumbbell,
+  FaFire,
+  FaLeaf,
+  FaParking,
+  FaPaw,
+  FaShieldAlt,
+  FaSnowflake,
+  FaSwimmingPool,
+  FaUmbrellaBeach,
+  FaWifi,
+} from 'react-icons/fa';
 import {
   formatPriceGBP,
   formatPricePrefix,
@@ -72,6 +90,135 @@ const DEFAULT_AGENT_PROFILE = (() => {
     photo: primary?.photo || AGENT_PLACEHOLDER_IMAGE,
   };
 })();
+
+const HERO_FEATURE_ICON_MAP = [
+  {
+    id: 'furnished',
+    keywords: ['furnished'],
+    icon: FaCouch,
+    title: 'Furniture included',
+  },
+  {
+    id: 'unfurnished',
+    keywords: ['unfurnished'],
+    icon: FaBoxOpen,
+    title: 'Bring your own furniture',
+  },
+  {
+    id: 'balcony',
+    keywords: ['balcony', 'terrace', 'roof terrace'],
+    icon: FaUmbrellaBeach,
+    title: 'Private outdoor space',
+  },
+  {
+    id: 'garden',
+    keywords: ['garden'],
+    icon: FaLeaf,
+    title: 'Garden or green space access',
+  },
+  {
+    id: 'parking',
+    keywords: ['parking', 'garage', 'driveway', 'carport'],
+    icon: FaParking,
+    title: 'Parking or garage available',
+  },
+  {
+    id: 'pets',
+    keywords: ['pet', 'dog', 'cat'],
+    icon: FaPaw,
+    title: 'Pets considered',
+  },
+  {
+    id: 'gym',
+    keywords: ['gym', 'fitness'],
+    icon: FaDumbbell,
+    title: 'On-site fitness facilities',
+  },
+  {
+    id: 'pool',
+    keywords: ['pool', 'swimming'],
+    icon: FaSwimmingPool,
+    title: 'Pool access',
+  },
+  {
+    id: 'air-conditioning',
+    keywords: ['air conditioning', 'air-conditioning', 'aircon'],
+    icon: FaSnowflake,
+    title: 'Climate control',
+  },
+  {
+    id: 'internet',
+    keywords: ['wifi', 'wi-fi', 'broadband', 'internet'],
+    icon: FaWifi,
+    title: 'High-speed internet ready',
+  },
+  {
+    id: 'security',
+    keywords: ['security', 'concierge', 'porter'],
+    icon: FaShieldAlt,
+    title: 'Concierge or security services',
+  },
+  {
+    id: 'ev-charging',
+    keywords: ['ev', 'electric vehicle', 'charging'],
+    icon: FaChargingStation,
+    title: 'EV charging available',
+  },
+  {
+    id: 'storage',
+    keywords: ['storage', 'wardrobe', 'closet'],
+    icon: FaBoxes,
+    title: 'Built-in storage',
+  },
+  {
+    id: 'fireplace',
+    keywords: ['fireplace', 'wood burner', 'log burner'],
+    icon: FaFire,
+    title: 'Feature fireplace',
+  },
+];
+
+function resolveHeroFeatureEntry(featureText) {
+  if (featureText == null) {
+    return null;
+  }
+
+  const trimmed = String(featureText).trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const normalizedBase = trimmed.toLowerCase().replace(/\s+/g, ' ').trim();
+  if (!normalizedBase) {
+    return null;
+  }
+
+  const mapping = HERO_FEATURE_ICON_MAP.find((entry) =>
+    entry.keywords.some((keyword) => normalizedBase.includes(keyword))
+  );
+
+  const dedupeKey = normalizedBase.replace(/[^a-z0-9]+/g, '-') || 'feature';
+
+  if (mapping) {
+    return {
+      key: `hero-feature-${mapping.id}-${dedupeKey}`,
+      icon: mapping.icon,
+      label: trimmed,
+      title: mapping.title ?? trimmed,
+      dedupeKey: normalizedBase,
+      isMapped: true,
+    };
+  }
+
+  return {
+    key: `hero-feature-${dedupeKey}`,
+    icon: FaCheckCircle,
+    label: trimmed,
+    title: trimmed,
+    dedupeKey: normalizedBase,
+    isMapped: false,
+  };
+}
 
 function normalizeAgentString(value) {
   if (value == null) return null;
@@ -777,6 +924,35 @@ export default function Property({ property, recommendations }) {
       .map((paragraph) => paragraph.trim())
       .filter(Boolean);
   }, [property?.description]);
+  const heroFeatureEntries = useMemo(() => {
+    if (!Array.isArray(property?.features) || property.features.length === 0) {
+      return [];
+    }
+
+    const prioritized = [];
+    const remainder = [];
+    const seen = new Set();
+
+    for (const featureText of property.features) {
+      const descriptor = resolveHeroFeatureEntry(featureText);
+      if (!descriptor) {
+        continue;
+      }
+
+      if (seen.has(descriptor.dedupeKey)) {
+        continue;
+      }
+      seen.add(descriptor.dedupeKey);
+
+      if (descriptor.isMapped) {
+        prioritized.push(descriptor);
+      } else {
+        remainder.push(descriptor);
+      }
+    }
+
+    return [...prioritized, ...remainder].slice(0, 6);
+  }, [property?.features]);
   const summaryStats = useMemo(() => {
     const stats = [];
 
@@ -1044,6 +1220,23 @@ export default function Property({ property, recommendations }) {
                     </ul>
                   )}
                 </div>
+                {descriptionParagraphs.length > 0 && (
+                  <div className={styles.summaryDescription}>
+                    {descriptionParagraphs.slice(0, 2).map((paragraph, index) => (
+                      <p key={`summary-paragraph-${index}`}>{paragraph}</p>
+                    ))}
+                  </div>
+                )}
+                {heroFeatureEntries.length > 0 && (
+                  <ul className={styles.heroFeatures}>
+                    {heroFeatureEntries.map((feature) => (
+                      <li key={feature.key} title={feature.title}>
+                        <feature.icon aria-hidden="true" />
+                        <span>{feature.label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
             {(pricePrefixLabel || headlinePrice) && (
