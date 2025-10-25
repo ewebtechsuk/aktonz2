@@ -236,7 +236,9 @@ export default function AdminDashboard() {
 
   const showQueryMessage = Boolean(integrationStatusMessage && !microsoftConnection.suppressQuery);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (options = {}) => {
+    const signal =
+      options && typeof options === 'object' && 'signal' in options ? options.signal : undefined;
     if (!isAdmin) {
       setLoading(false);
       return;
@@ -247,9 +249,9 @@ export default function AdminDashboard() {
 
     try {
       const [offersRes, valuationsRes, maintenanceRes] = await Promise.all([
-        fetch('/api/admin/offers'),
-        fetch('/api/admin/valuations'),
-        fetch('/api/admin/maintenance'),
+        fetch('/api/admin/offers', { signal }),
+        fetch('/api/admin/valuations', { signal }),
+        fetch('/api/admin/maintenance', { signal }),
       ]);
 
       if (!offersRes.ok) {
@@ -265,6 +267,10 @@ export default function AdminDashboard() {
       const offersJson = await offersRes.json();
       const valuationsJson = await valuationsRes.json();
       const maintenanceJson = await maintenanceRes.json();
+
+      if (signal?.aborted) {
+        return;
+      }
 
       setOffers(Array.isArray(offersJson.offers) ? offersJson.offers : []);
       setValuations(Array.isArray(valuationsJson.valuations) ? valuationsJson.valuations : []);
@@ -296,10 +302,18 @@ export default function AdminDashboard() {
         setStatusOptions(resolvedStatusOptions);
       }
     } catch (err) {
+      if (
+        signal?.aborted ||
+        (err && typeof err === 'object' && 'name' in err && err.name === 'AbortError')
+      ) {
+        return;
+      }
       console.error(err);
       setError('Unable to load the operations dashboard. Please try again.');
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
     }
   }, [isAdmin]);
 
@@ -308,10 +322,16 @@ export default function AdminDashboard() {
       setOffers([]);
       setValuations([]);
       setMaintenanceTasks([]);
+      setLoading(false);
       return;
     }
 
-    loadData();
+    const controller = new AbortController();
+    loadData({ signal: controller.signal });
+
+    return () => {
+      controller.abort();
+    };
   }, [isAdmin, loadData]);
 
   const handleStatusChange = useCallback(

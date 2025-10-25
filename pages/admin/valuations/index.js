@@ -208,7 +208,9 @@ export default function AdminValuationsPage() {
     presentationMessage: '',
   });
 
-  const loadValuations = useCallback(async () => {
+  const loadValuations = useCallback(async (options = {}) => {
+    const signal =
+      options && typeof options === 'object' && 'signal' in options ? options.signal : undefined;
     if (!isAdmin) {
       return;
     }
@@ -217,12 +219,15 @@ export default function AdminValuationsPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/admin/valuations');
+      const response = await fetch('/api/admin/valuations', { signal });
       if (!response.ok) {
         throw new Error('Failed to fetch valuations');
       }
 
       const payload = await response.json();
+      if (signal?.aborted) {
+        return;
+      }
       const entries = Array.isArray(payload.valuations) ? payload.valuations.slice() : [];
       entries.sort(
         (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(),
@@ -241,10 +246,18 @@ export default function AdminValuationsPage() {
         setStatusOptions(DEFAULT_STATUS_OPTIONS);
       }
     } catch (err) {
+      if (
+        signal?.aborted ||
+        (err && typeof err === 'object' && 'name' in err && err.name === 'AbortError')
+      ) {
+        return;
+      }
       console.error(err);
       setError('Unable to load valuation requests. Please try again.');
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
     }
   }, [isAdmin]);
 
@@ -257,7 +270,12 @@ export default function AdminValuationsPage() {
       return;
     }
 
-    loadValuations();
+    const controller = new AbortController();
+    loadValuations({ signal: controller.signal });
+
+    return () => {
+      controller.abort();
+    };
   }, [isAdmin, loadValuations]);
 
   useEffect(() => {

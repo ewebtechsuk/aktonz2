@@ -159,7 +159,9 @@ export default function AdminLettingsArchivePage() {
     setSearchDraft(filters.search);
   }, [filters.search]);
 
-  const fetchListings = useCallback(async (activeFilters) => {
+  const fetchListings = useCallback(async (activeFilters, options = {}) => {
+    const signal =
+      options && typeof options === 'object' && 'signal' in options ? options.signal : undefined;
     setLoading(true);
     setError('');
 
@@ -180,19 +182,30 @@ export default function AdminLettingsArchivePage() {
       const basePath = router?.basePath ?? '';
       const query = params.toString();
       const url = `${basePath}/api/admin/listings${query ? `?${query}` : ''}`;
-      const response = await fetch(url);
+      const response = await fetch(url, { signal });
       if (!response.ok) {
         throw new Error('Failed to fetch lettings archive');
       }
       const payload = await response.json();
+      if (signal?.aborted) {
+        return;
+      }
       setListings(Array.isArray(payload.listings) ? payload.listings : []);
       setSummary(payload.summary || null);
     } catch (err) {
+      if (
+        signal?.aborted ||
+        (err && typeof err === 'object' && 'name' in err && err.name === 'AbortError')
+      ) {
+        return;
+      }
       console.error(err);
       setError('Unable to load the lettings archive. Please try again.');
       setListings([]);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
     }
   }, [router.basePath]);
 
@@ -204,7 +217,12 @@ export default function AdminLettingsArchivePage() {
       return;
     }
 
-    fetchListings(filters);
+    const controller = new AbortController();
+    fetchListings(filters, { signal: controller.signal });
+
+    return () => {
+      controller.abort();
+    };
   }, [fetchListings, filters, initialized, isAdmin, sessionLoading]);
 
   const applyFilters = useCallback(
