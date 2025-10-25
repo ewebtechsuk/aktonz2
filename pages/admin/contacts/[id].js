@@ -7,6 +7,7 @@ import { useSession } from '../../../components/SessionProvider';
 import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/AdminNavigation';
 import styles from '../../../styles/AdminContactDetails.module.css';
 import { formatAdminCurrency, formatAdminDate } from '../../../lib/admin/formatters';
+import { withBasePath } from '../../../lib/base-path';
 
 const STAGE_TONE_CLASS = {
   positive: styles.stagePositive,
@@ -394,7 +395,6 @@ function normaliseManagementOptions(options) {
 
 export default function AdminContactDetailsPage() {
   const router = useRouter();
-  const basePath = router?.basePath ?? '';
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
 
@@ -433,9 +433,12 @@ export default function AdminContactDetailsPage() {
       setError('');
 
       try {
-        const response = await fetch(`${basePath}/api/admin/contacts/${encodeURIComponent(contactId)}`, {
-          signal: controller.signal,
-        });
+        const response = await fetch(
+          withBasePath(`/api/admin/contacts/${encodeURIComponent(contactId)}`),
+          {
+            signal: controller.signal,
+          },
+        );
 
         if (response.status === 404) {
           setContact(null);
@@ -476,7 +479,7 @@ export default function AdminContactDetailsPage() {
     loadContact();
 
     return () => controller.abort();
-  }, [basePath, router.isReady, sessionLoading, isAdmin, contactId]);
+  }, [router.isReady, sessionLoading, isAdmin, contactId]);
 
   const pageTitle = contact
     ? `${contact.name} • Admin contacts`
@@ -570,14 +573,17 @@ export default function AdminContactDetailsPage() {
 
       try {
         const payload = buildManagementPayloadFromState(formState);
-        const response = await fetch(`${basePath}/api/admin/contacts/${encodeURIComponent(contactId)}`, {
-          method: 'PATCH',
-          headers: {
-            'content-type': 'application/json',
-            accept: 'application/json',
+        const response = await fetch(
+          withBasePath(`/api/admin/contacts/${encodeURIComponent(contactId)}`),
+          {
+            method: 'PATCH',
+            headers: {
+              'content-type': 'application/json',
+              accept: 'application/json',
+            },
+            body: JSON.stringify(payload),
           },
-          body: JSON.stringify(payload),
-        });
+        );
 
         let result = null;
         try {
@@ -618,7 +624,7 @@ export default function AdminContactDetailsPage() {
         setSaving(false);
       }
     },
-    [basePath, contactId, formState],
+    [contactId, formState],
   );
 
   const mainDetails = contact

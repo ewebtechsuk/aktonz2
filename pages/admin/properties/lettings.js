@@ -8,6 +8,7 @@ import { useSession } from '../../../components/SessionProvider';
 import adminStyles from '../../../styles/Admin.module.css';
 import styles from '../../../styles/AdminLettingsProperty.module.css';
 import { formatAdminCurrency } from '../../../lib/admin/formatters';
+import { withBasePath } from '../../../lib/base-path';
 
 const INITIAL_FORM_STATE = {
   reference: '',
@@ -61,7 +62,6 @@ export default function AdminLettingsPropertyPage() {
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
   const router = useRouter();
-  const basePath = router?.basePath ?? '';
 
   const [metadata, setMetadata] = useState({
     loading: true,
@@ -101,7 +101,7 @@ export default function AdminLettingsPropertyPage() {
       setMetadata((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
-        const response = await fetch(`${basePath}/api/admin/properties/lettings`, {
+        const response = await fetch(withBasePath('/api/admin/properties/lettings'), {
           method: 'GET',
           headers: { accept: 'application/json' },
           signal: controller.signal,
@@ -154,7 +154,7 @@ export default function AdminLettingsPropertyPage() {
     return () => {
       controller.abort();
     };
-  }, [basePath, isAdmin]);
+  }, [isAdmin]);
 
   useEffect(() => {
     setFormState((prev) => ({
@@ -198,11 +198,14 @@ export default function AdminLettingsPropertyPage() {
 
       try {
         const params = new URLSearchParams({ search: trimmed });
-        const response = await fetch(`${basePath}/api/admin/properties/lettings?${params.toString()}`, {
-          method: 'GET',
-          headers: { accept: 'application/json' },
-          signal: controller.signal,
-        });
+        const response = await fetch(
+          withBasePath(`/api/admin/properties/lettings?${params.toString()}`),
+          {
+            method: 'GET',
+            headers: { accept: 'application/json' },
+            signal: controller.signal,
+          },
+        );
 
         if (!response.ok) {
           throw new Error('Search request failed');
@@ -232,7 +235,7 @@ export default function AdminLettingsPropertyPage() {
         }
       }
     },
-    [basePath, searchTerm],
+    [searchTerm],
   );
 
   useEffect(
@@ -285,7 +288,7 @@ export default function AdminLettingsPropertyPage() {
       };
 
       try {
-        const response = await fetch(`${basePath}/api/admin/properties/lettings`, {
+        const response = await fetch(withBasePath('/api/admin/properties/lettings'), {
           method: 'POST',
           headers: { 'content-type': 'application/json', accept: 'application/json' },
           body: JSON.stringify(payload),
@@ -317,7 +320,7 @@ export default function AdminLettingsPropertyPage() {
         setSubmitting(false);
       }
     },
-    [basePath, formState, metadata.defaults.branchId, metadata.defaults.depositType, metadata.defaults.rentFrequency, metadata.defaults.status],
+    [formState, metadata.defaults.branchId, metadata.defaults.depositType, metadata.defaults.rentFrequency, metadata.defaults.status],
   );
 
   const statusOptions = useMemo(() => metadata.options.statuses, [metadata.options.statuses]);
