@@ -11,6 +11,7 @@ import {
   getAdminTimestamp,
   parseAdminDate,
 } from '../../../lib/admin/formatters';
+import { withBasePath } from '../../../lib/base-path';
 
 const DEFAULT_STATUS_OPTIONS = [
   { value: 'new', label: 'New' },
@@ -190,7 +191,6 @@ function toDateTimeLocalInputValue(value) {
 
 export default function AdminValuationsPage() {
   const router = useRouter();
-  const basePath = router?.basePath ?? '';
   const { isReady: routerReady, query: routerQuery, replace: routerReplace } = router;
   const routeQueryId = routerQuery?.id;
   const { user, loading: sessionLoading } = useSession();
@@ -226,7 +226,7 @@ export default function AdminValuationsPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${basePath}/api/admin/valuations`, { signal });
+      const response = await fetch(withBasePath('/api/admin/valuations'), { signal });
       if (!response.ok) {
         throw new Error('Failed to fetch valuations');
       }
@@ -268,7 +268,7 @@ export default function AdminValuationsPage() {
         setLoading(false);
       }
     }
-  }, [basePath, isAdmin]);
+  }, [isAdmin]);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -584,7 +584,7 @@ export default function AdminValuationsPage() {
       setSuccessMessage('');
 
       try {
-        const response = await fetch(`${basePath}/api/admin/valuations`, {
+        const response = await fetch(withBasePath('/api/admin/valuations'), {
           method: 'PATCH',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify(payload),
@@ -606,7 +606,7 @@ export default function AdminValuationsPage() {
         setSaving(false);
       }
     },
-    [basePath, formState, selectedValuation, statusOptions],
+    [formState, selectedValuation, statusOptions],
   );
 
   if (sessionLoading) {

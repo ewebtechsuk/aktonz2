@@ -7,6 +7,7 @@ import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/Admi
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminLettingsArchive.module.css';
 import { formatAdminDate } from '../../../lib/admin/formatters';
+import { withBasePath } from '../../../lib/base-path';
 
 const VIEW_OPTIONS = [
   { value: 'available', label: 'Live instructions' },
@@ -168,9 +169,8 @@ export default function AdminLettingsArchivePage() {
         }
       });
 
-      const basePath = router?.basePath ?? '';
       const query = params.toString();
-      const url = `${basePath}/api/admin/listings${query ? `?${query}` : ''}`;
+      const url = withBasePath(`/api/admin/listings${query ? `?${query}` : ''}`);
       const response = await fetch(url, { signal });
       if (!response.ok) {
         throw new Error('Failed to fetch lettings archive');
@@ -196,7 +196,7 @@ export default function AdminLettingsArchivePage() {
         setLoading(false);
       }
     }
-  }, [router.basePath]);
+  }, []);
 
   useEffect(() => {
     if (!isAdmin || !initialized) {

@@ -17,6 +17,7 @@ import {
   parseAdminDate,
   resolveLatestAdminTimestamp,
 } from '../../../lib/admin/formatters';
+import { withBasePath } from '../../../lib/base-path';
 
 const resolveTimestamp = resolveLatestAdminTimestamp;
 
@@ -116,7 +117,6 @@ const STATUS_OPTIONS = getOfferStatusOptions();
 
 export default function AdminOffersPage() {
   const router = useRouter();
-  const basePath = router?.basePath ?? '';
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
   const pageTitle = 'Aktonz Admin — Offers workspace';
@@ -151,7 +151,7 @@ export default function AdminOffersPage() {
     setError(null);
 
     try {
-      const response = await fetch(`${basePath}/api/admin/offers`, { signal });
+      const response = await fetch(withBasePath('/api/admin/offers'), { signal });
       if (!response.ok) {
         throw new Error('Failed to fetch offers');
       }
@@ -181,7 +181,7 @@ export default function AdminOffersPage() {
         setLoading(false);
       }
     }
-  }, [basePath, isAdmin]);
+  }, [isAdmin]);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -332,15 +332,18 @@ export default function AdminOffersPage() {
           additionalConditions: statusForm.additionalConditions || '',
         };
 
-        const response = await fetch(`${basePath}/api/admin/offers/${selectedOffer.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            status: statusForm.status || selectedOffer.status || undefined,
-            note: statusForm.note,
-            compliance: compliancePayload,
-          }),
-        });
+        const response = await fetch(
+          withBasePath(`/api/admin/offers/${selectedOffer.id}`),
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              status: statusForm.status || selectedOffer.status || undefined,
+              note: statusForm.note,
+              compliance: compliancePayload,
+            }),
+          },
+        );
 
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) {
@@ -388,7 +391,7 @@ export default function AdminOffersPage() {
         setUpdating(false);
       }
     },
-    [basePath, selectedOffer, statusForm],
+    [selectedOffer, statusForm],
   );
 
   if (sessionLoading) {

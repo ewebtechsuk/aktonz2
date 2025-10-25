@@ -8,6 +8,7 @@ import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminListingDetails.module.css';
 import { formatOfferStatusLabel } from '../../../lib/offer-statuses.js';
 import { formatAdminCurrency, formatAdminDate, formatAdminNumber } from '../../../lib/admin/formatters';
+import { withBasePath } from '../../../lib/base-path';
 import {
   FaAlignLeft,
   FaBalanceScale,
@@ -791,8 +792,9 @@ export default function AdminListingDetailsPage() {
     setError('');
 
     try {
-      const basePath = router?.basePath ?? '';
-      const response = await fetch(`${basePath}/api/admin/listings/${encodeURIComponent(listingId)}`);
+      const response = await fetch(
+        withBasePath(`/api/admin/listings/${encodeURIComponent(listingId)}`),
+      );
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error('Listing not found');
@@ -808,7 +810,7 @@ export default function AdminListingDetailsPage() {
     } finally {
       setLoading(false);
     }
-  }, [listingId, router.basePath]);
+  }, [listingId]);
 
   useEffect(() => {
     if (!isAdmin || !listingId) {
@@ -1363,12 +1365,14 @@ export default function AdminListingDetailsPage() {
 
       try {
         const payload = buildUpdatePayload(formValues);
-        const basePath = router?.basePath ?? '';
-        const response = await fetch(`${basePath}/api/admin/listings/${encodeURIComponent(listingId)}`, {
-          method: 'PATCH',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+        const response = await fetch(
+          withBasePath(`/api/admin/listings/${encodeURIComponent(listingId)}`),
+          {
+            method: 'PATCH',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(payload),
+          },
+        );
 
         if (!response.ok) {
           const errorPayload = await response.json().catch(() => null);
@@ -1389,7 +1393,7 @@ export default function AdminListingDetailsPage() {
         setSaving(false);
       }
     },
-    [formValues, listingId, router.basePath],
+    [formValues, listingId],
   );
 
   const handleReset = useCallback(() => {
