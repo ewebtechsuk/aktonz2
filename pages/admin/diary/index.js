@@ -564,21 +564,40 @@ export default function AdminDiaryWorkspacePage() {
   }, []);
 
   const loadDiary = useCallback(
-    async (startDate) => {
+    async (startDate, options = {}) => {
+      const signal =
+        options && typeof options === 'object' && 'signal' in options ? options.signal : undefined;
+
       setLoading(true);
       setError(null);
+
       try {
-        const response = await fetch(buildDiaryUrl(startDate));
+        const response = await fetch(buildDiaryUrl(startDate), { signal });
         if (!response.ok) {
           throw new Error('Failed to load diary events');
         }
+
         const json = await response.json();
+
+        if (signal?.aborted) {
+          return;
+        }
+
         applyCalendarData(json);
       } catch (err) {
+        if (
+          signal?.aborted ||
+          (err && typeof err === 'object' && 'name' in err && err.name === 'AbortError')
+        ) {
+          return;
+        }
+
         console.error(err);
         setError('Unable to load the diary workspace. Please try again.');
       } finally {
-        setLoading(false);
+        if (!signal?.aborted) {
+          setLoading(false);
+        }
       }
     },
     [applyCalendarData],
@@ -595,7 +614,12 @@ export default function AdminDiaryWorkspacePage() {
       return;
     }
 
-    loadDiary();
+    const controller = new AbortController();
+    loadDiary(undefined, { signal: controller.signal });
+
+    return () => {
+      controller.abort();
+    };
   }, [sessionLoading, isAdmin, loadDiary]);
 
   useEffect(() => {
