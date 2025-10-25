@@ -30,7 +30,16 @@ import {
   formatPropertyTypeLabel,
 } from '../../lib/property-type.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
-import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
+import {
+  FaBath,
+  FaBed,
+  FaBalanceScale,
+  FaCouch,
+  FaFileContract,
+  FaLeaf,
+  FaRulerCombined,
+  FaSeedling,
+} from 'react-icons/fa';
 import {
   formatPriceGBP,
   formatPricePrefix,
@@ -72,6 +81,14 @@ const DEFAULT_AGENT_PROFILE = (() => {
     photo: primary?.photo || AGENT_PLACEHOLDER_IMAGE,
   };
 })();
+
+const DESCRIPTION_HIGHLIGHT_ICONS = {
+  epc: FaLeaf,
+  councilTax: FaBalanceScale,
+  tenure: FaFileContract,
+  floorArea: FaRulerCombined,
+  plotSize: FaSeedling,
+};
 
 function normalizeAgentString(value) {
   if (value == null) return null;
@@ -582,6 +599,299 @@ function formatCouncilTaxHighlight(value) {
   return `Council tax ${normalized}`;
 }
 
+function getValueByPath(source, path) {
+  let current = source;
+  for (const segment of path) {
+    if (!current || typeof current !== 'object') {
+      return null;
+    }
+    current = current[segment];
+  }
+  return current ?? null;
+}
+
+function pickFirstValueByPaths(source, candidatePaths) {
+  if (!source || typeof source !== 'object') {
+    return null;
+  }
+
+  for (const path of candidatePaths) {
+    const normalizedPath = Array.isArray(path) ? path : [path];
+    const value = getValueByPath(source, normalizedPath);
+    if (value != null) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+function normalizeAreaUnit(unit) {
+  if (unit == null) {
+    return null;
+  }
+
+  if (Array.isArray(unit)) {
+    for (const entry of unit) {
+      const normalized = normalizeAreaUnit(entry);
+      if (normalized) {
+        return normalized;
+      }
+    }
+    return null;
+  }
+
+  if (typeof unit === 'object') {
+    const nestedCandidates = [
+      unit.unit,
+      unit.units,
+      unit.text,
+      unit.label,
+      unit.value,
+    ];
+    for (const candidate of nestedCandidates) {
+      const normalized = normalizeAreaUnit(candidate);
+      if (normalized) {
+        return normalized;
+      }
+    }
+    return null;
+  }
+
+  if (typeof unit !== 'string') {
+    return null;
+  }
+
+  const trimmed = unit.replace(/_/g, ' ').trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const normalizedWhitespace = trimmed.replace(/\s+/g, ' ');
+  const lower = normalizedWhitespace.toLowerCase();
+
+  const mappings = [
+    { match: ['sq ft', 'sqft', 'square feet', 'square foot', 'ft2', 'ft²'], label: 'sq ft' },
+    { match: ['sq m', 'sqm', 'square metres', 'square meters', 'square metre', 'square meter', 'm2', 'm²'], label: 'sq m' },
+    { match: ['sq yd', 'sqyd', 'square yards', 'square yard', 'yd2', 'yd²'], label: 'sq yd' },
+    { match: ['acre', 'acres'], label: lower === 'acre' ? 'acre' : 'acres' },
+    { match: ['hectare', 'hectares'], label: lower === 'hectare' ? 'hectare' : 'hectares' },
+  ];
+
+  for (const { match, label } of mappings) {
+    if (match.includes(lower)) {
+      return label;
+    }
+  }
+
+  return normalizedWhitespace;
+}
+
+function coerceMeasurementLabel(value, unitCandidates = [], seen = new Set()) {
+  if (value == null) {
+    return null;
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.replace(/_/g, ' ').trim();
+    if (!normalized) {
+      return null;
+    }
+
+    const condensed = normalized.replace(/\s+/g, ' ');
+    const numericOnly = condensed.match(/^-?\d+(?:\.\d+)?$/);
+    if (numericOnly) {
+      const parsed = Number(numericOnly[0]);
+      if (Number.isFinite(parsed)) {
+        return coerceMeasurementLabel(parsed, unitCandidates, seen);
+      }
+    }
+
+    if (/sq[_\s]?[a-z]/i.test(condensed)) {
+      return condensed.replace(/\s+/g, ' ');
+    }
+
+    if (condensed && unitCandidates.length > 0 && Number.isFinite(Number(condensed))) {
+      return coerceMeasurementLabel(Number(condensed), unitCandidates, seen);
+    }
+
+    return condensed;
+  }
+
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) {
+      return null;
+    }
+
+    const formatter = new Intl.NumberFormat('en-GB', {
+      maximumFractionDigits: Math.abs(value) >= 100 ? 0 : 1,
+    });
+    const formattedValue = formatter.format(value);
+    const unit = unitCandidates.find(Boolean);
+    return unit ? `${formattedValue} ${unit}` : formattedValue;
+  }
+
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      const label = coerceMeasurementLabel(entry, unitCandidates, seen);
+      if (label) {
+        return label;
+      }
+    }
+    return null;
+  }
+
+  if (typeof value === 'object') {
+    if (seen.has(value)) {
+      return null;
+    }
+    seen.add(value);
+
+    const nestedUnitCandidates = [...unitCandidates];
+    const unitKeys = [
+      'unit',
+      'units',
+      'measurementUnit',
+      'measurementUnits',
+      'areaUnit',
+      'areaUnits',
+      'unitOfMeasure',
+      'unitOfMeasurement',
+    ];
+
+    for (const key of unitKeys) {
+      if (key in value) {
+        const normalizedUnit = normalizeAreaUnit(value[key]);
+        if (normalizedUnit) {
+          nestedUnitCandidates.unshift(normalizedUnit);
+        }
+      }
+    }
+
+    const valueKeys = [
+      'label',
+      'text',
+      'description',
+      'display',
+      'formatted',
+      'value',
+      'amount',
+      'size',
+      'area',
+      'measurementValue',
+      'measurement',
+      'quantity',
+      'number',
+    ];
+
+    for (const key of valueKeys) {
+      if (key in value) {
+        const label = coerceMeasurementLabel(value[key], nestedUnitCandidates, seen);
+        if (label) {
+          return label;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  return null;
+}
+
+function deriveAreaLabel(rawProperty, valuePaths, unitPaths = []) {
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return null;
+  }
+
+  const value = pickFirstValueByPaths(rawProperty, valuePaths);
+  if (value == null) {
+    return null;
+  }
+
+  const unitCandidates = [];
+  const unitValue = pickFirstValueByPaths(rawProperty, unitPaths);
+  const normalizedUnit = normalizeAreaUnit(unitValue);
+  if (normalizedUnit) {
+    unitCandidates.push(normalizedUnit);
+  }
+
+  const label = coerceMeasurementLabel(value, unitCandidates);
+  if (!label) {
+    return null;
+  }
+
+  return label;
+}
+
+function deriveFloorArea(rawProperty) {
+  const valuePaths = [
+    ['floorArea'],
+    ['floor_area'],
+    ['internalArea'],
+    ['internal_area'],
+    ['grossInternalArea'],
+    ['gross_internal_area'],
+    ['size'],
+    ['measurements', 'floorArea'],
+    ['dimensions', 'floorArea'],
+    ['details', 'floorArea'],
+  ];
+
+  const unitPaths = [
+    ['floorAreaUnit'],
+    ['floor_area_unit'],
+    ['internalAreaUnit'],
+    ['internal_area_unit'],
+    ['grossInternalAreaUnit'],
+    ['gross_internal_area_unit'],
+    ['sizeUnit'],
+    ['measurements', 'floorAreaUnit'],
+    ['dimensions', 'floorAreaUnit'],
+    ['details', 'floorAreaUnit'],
+  ];
+
+  return deriveAreaLabel(rawProperty, valuePaths, unitPaths);
+}
+
+function derivePlotSize(rawProperty) {
+  const valuePaths = [
+    ['plotSize'],
+    ['plot_size'],
+    ['plotArea'],
+    ['plot_area'],
+    ['externalArea'],
+    ['external_area'],
+    ['landArea'],
+    ['land_area'],
+    ['siteArea'],
+    ['site_area'],
+    ['gardenSize'],
+    ['measurements', 'plotSize'],
+    ['dimensions', 'plotSize'],
+    ['details', 'plotSize'],
+  ];
+
+  const unitPaths = [
+    ['plotSizeUnit'],
+    ['plot_size_unit'],
+    ['plotAreaUnit'],
+    ['plot_area_unit'],
+    ['externalAreaUnit'],
+    ['external_area_unit'],
+    ['landAreaUnit'],
+    ['land_area_unit'],
+    ['siteAreaUnit'],
+    ['site_area_unit'],
+    ['gardenSizeUnit'],
+    ['measurements', 'plotSizeUnit'],
+    ['dimensions', 'plotSizeUnit'],
+    ['details', 'plotSizeUnit'],
+  ];
+
+  return deriveAreaLabel(rawProperty, valuePaths, unitPaths);
+}
+
 function normalizeBooleanFlag(value) {
   if (value === true || value === false) {
     return value;
@@ -829,6 +1139,51 @@ export default function Property({ property, recommendations }) {
 
     return highlights;
   }, [property?.councilTaxBand, property?.epcScore, property?.tenure]);
+  const descriptionHighlights = useMemo(() => {
+    const mapped = [];
+    const seenKeys = new Set();
+
+    for (const highlight of complianceHighlights) {
+      if (!highlight || !highlight.key || !highlight.label) {
+        continue;
+      }
+      if (seenKeys.has(highlight.key)) {
+        continue;
+      }
+      seenKeys.add(highlight.key);
+      mapped.push({
+        key: highlight.key,
+        label: highlight.label,
+        icon: DESCRIPTION_HIGHLIGHT_ICONS[highlight.key] || FaLeaf,
+      });
+    }
+
+    const floorAreaLabel =
+      typeof property?.floorArea === 'string'
+        ? property.floorArea.trim()
+        : property?.floorArea;
+    if (floorAreaLabel) {
+      mapped.push({
+        key: 'floorArea',
+        label: floorAreaLabel,
+        icon: DESCRIPTION_HIGHLIGHT_ICONS.floorArea,
+      });
+    }
+
+    const plotSizeLabel =
+      typeof property?.plotSize === 'string'
+        ? property.plotSize.trim()
+        : property?.plotSize;
+    if (plotSizeLabel) {
+      mapped.push({
+        key: 'plotSize',
+        label: plotSizeLabel,
+        icon: DESCRIPTION_HIGHLIGHT_ICONS.plotSize,
+      });
+    }
+
+    return mapped;
+  }, [complianceHighlights, property?.floorArea, property?.plotSize]);
   const headlinePrice = formattedPrimaryPrice || priceLabel || '';
   const numericPriceValue = useMemo(() => {
     if (property?.priceValue != null && Number.isFinite(Number(property.priceValue))) {
@@ -1101,6 +1456,27 @@ export default function Property({ property, recommendations }) {
           </div>
         </section>
 
+      {descriptionParagraphs.length > 0 && (
+        <section className={`${styles.contentRail} ${styles.description}`}>
+          <h2>Description</h2>
+          {descriptionHighlights.length > 0 && (
+            <ul className={styles.descriptionHighlights}>
+              {descriptionHighlights.map((highlight) => (
+                <li key={highlight.key} className={styles.descriptionHighlightItem}>
+                  <span className={styles.descriptionHighlightIcon} aria-hidden="true">
+                    <highlight.icon />
+                  </span>
+                  <span>{highlight.label}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {descriptionParagraphs.map((paragraph, index) => (
+            <p key={index}>{paragraph}</p>
+          ))}
+        </section>
+      )}
+
       {hasLocation && (
         <section className={`${styles.contentRail} ${styles.mapSection}`}>
           <h2>Location</h2>
@@ -1329,6 +1705,8 @@ export async function getStaticProps({ params }) {
       agentProfile: resolveAgentProfile(rawProperty),
       media: extractMedia(rawProperty),
       tenure: derivedTenure,
+      floorArea: deriveFloorArea(rawProperty),
+      plotSize: derivePlotSize(rawProperty),
       features: (() => {
         const rawFeatures =
           rawProperty.mainFeatures ||
