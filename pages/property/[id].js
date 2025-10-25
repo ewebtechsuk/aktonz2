@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import PropertyList from '../../components/PropertyList';
 import MediaGallery from '../../components/MediaGallery';
 import OfferDrawer from '../../components/OfferDrawer';
 import ViewingForm from '../../components/ViewingForm';
+import ViewingTimeline from '../../components/ViewingTimeline';
 import NeighborhoodInfo from '../../components/NeighborhoodInfo';
 import FavoriteButton from '../../components/FavoriteButton';
 import PropertySustainabilityPanel from '../../components/PropertySustainabilityPanel';
@@ -22,6 +23,7 @@ import {
   resolveSecurityDepositSource,
   resolveHoldingDepositSource,
 } from '../../lib/apex27.mjs';
+import { listDiaryEvents } from '../../lib/apex27-diary.mjs';
 import {
   resolvePropertyIdentifier,
   propertyMatchesIdentifier,
@@ -67,6 +69,144 @@ import {
   resolveAvailabilityDate,
 } from '../../lib/deposits.mjs';
 import agentsData from '../../data/agents.json';
+
+const VIEWING_TIMELINE_TIMEZONE = 'Europe/London';
+
+function parseDate(value) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed;
+}
+
+function formatDateInputValue(date) {
+  if (!(date instanceof Date)) {
+    return '';
+  }
+
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: VIEWING_TIMELINE_TIMEZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(date);
+  } catch {
+    return '';
+  }
+}
+
+function formatTimeInputValue(date) {
+  if (!(date instanceof Date)) {
+    return '';
+  }
+
+  try {
+    return new Intl.DateTimeFormat('en-GB', {
+      timeZone: VIEWING_TIMELINE_TIMEZONE,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(date);
+  } catch {
+    return '';
+  }
+}
+
+function viewingEventMatchesProperty(event, propertyId) {
+  if (!event || !propertyId) {
+    return false;
+  }
+
+  const normalizedPropertyId = String(propertyId).trim().toLowerCase();
+  if (!normalizedPropertyId) {
+    return false;
+  }
+
+  const eventPropertyId = event?.property?.id
+    ? String(event.property.id).trim().toLowerCase()
+    : null;
+  if (eventPropertyId && eventPropertyId === normalizedPropertyId) {
+    return true;
+  }
+
+  const eventHref = event?.property?.href
+    ? String(event.property.href).trim().toLowerCase()
+    : '';
+  if (eventHref && eventHref.includes(normalizedPropertyId)) {
+    return true;
+  }
+
+  return false;
+}
+
+function normalizeViewingSlot(event) {
+  if (!event || !event.start) {
+    return null;
+  }
+
+  const startDate = parseDate(event.start);
+  if (!startDate) {
+    return null;
+  }
+
+  const endDate = parseDate(event.end) || new Date(startDate.getTime() + 30 * 60000);
+  const startIso = startDate.toISOString();
+  const endIso = endDate.toISOString();
+  const durationMinutes = Math.max(
+    15,
+    Math.round((endDate.getTime() - startDate.getTime()) / 60000)
+  );
+
+  return {
+    id: event.id,
+    start: startIso,
+    end: endIso,
+    dayKey: event.dayKey || (startIso ? startIso.slice(0, 10) : null),
+    location: event.location || null,
+    negotiator: event.negotiator || null,
+    status: event.status || null,
+    slotKey: `${event.id}-${startIso}`,
+    dateValue: formatDateInputValue(startDate),
+    timeValue: formatTimeInputValue(startDate),
+    durationMinutes,
+  };
+}
+
+async function resolveUpcomingViewingSlots(propertyId) {
+  if (!propertyId) {
+    return [];
+  }
+
+  try {
+    const nowIso = new Date().toISOString();
+    const { events } = await listDiaryEvents({ from: nowIso });
+    const relevant = events
+      .filter((event) =>
+        event?.type ? String(event.type).toLowerCase() === 'viewing' : false
+      )
+      .filter((event) => viewingEventMatchesProperty(event, propertyId))
+      .map(normalizeViewingSlot)
+      .filter(Boolean);
+
+    relevant.sort((a, b) => {
+      const aTime = a.start ? new Date(a.start).getTime() : 0;
+      const bTime = b.start ? new Date(b.start).getTime() : 0;
+      return aTime - bTime;
+    });
+
+    return relevant;
+  } catch (error) {
+    console.warn('Unable to load upcoming viewing slots', error);
+    return [];
+  }
+}
 
 const AGENT_ENTRIES = Array.isArray(agentsData) ? agentsData : [];
 const AGENT_MAP = new Map(
@@ -1362,6 +1502,39 @@ export default function Property({ property, recommendations }) {
       .filter(Boolean);
   }, [property?.locationInsights]);
   const agentProfile = property?.agentProfile;
+  const viewingSlots = Array.isArray(property?.viewingSlots)
+    ? property.viewingSlots
+    : [];
+  const [selectedViewingSlot, setSelectedViewingSlot] = useState(null);
+  useEffect(() => {
+    setSelectedViewingSlot(null);
+  }, [property?.id]);
+  const handleViewingSlotSelect = useCallback((slot) => {
+    if (!slot) {
+      return;
+    }
+
+    const slotKey = slot.slotKey || slot.key || `${slot.id || slot.start}`;
+    setSelectedViewingSlot({
+      slotKey,
+      triggerKey: `slot-${Date.now()}`,
+      date: slot.dateValue ?? '',
+      time: slot.timeValue ?? '',
+      label: slot.fullRangeLabel || slot.rangeLabel || '',
+    });
+  }, []);
+  const handleViewingSlotRequest = useCallback(() => {
+    setSelectedViewingSlot({
+      slotKey: 'custom',
+      triggerKey: `custom-${Date.now()}`,
+      date: '',
+      time: '',
+      label: '',
+    });
+  }, []);
+  const handleViewingFormClose = useCallback(() => {
+    setSelectedViewingSlot(null);
+  }, []);
   const priceLabel = formatPropertyPriceLabel(property);
   const rentFrequencyLabel = useMemo(() => {
     if (!property?.rentFrequency) {
@@ -1773,9 +1946,21 @@ export default function Property({ property, recommendations }) {
                     )}
                     <div className={styles.priceActions}>
                       <OfferDrawer property={property} />
-                      <ViewingForm property={property} />
+                      <ViewingForm
+                        property={property}
+                        selectedSlot={selectedViewingSlot}
+                        onClose={handleViewingFormClose}
+                      />
                     </div>
                   </div>
+                  {viewingSlots.length > 0 && (
+                    <ViewingTimeline
+                      slots={viewingSlots}
+                      onSelectSlot={handleViewingSlotSelect}
+                      onOpenForm={handleViewingSlotRequest}
+                      selectedSlotKey={selectedViewingSlot?.slotKey ?? null}
+                    />
+                  )}
                 </div>
               </aside>
             )}
@@ -2098,6 +2283,12 @@ export async function getStaticProps({ params }) {
       includedUtilities: deriveIncludedUtilities(rawProperty),
       locationInsights: computeLocationInsights(rawProperty),
     };
+
+    if (formatted.id) {
+      formatted.viewingSlots = await resolveUpcomingViewingSlots(formatted.id);
+    } else {
+      formatted.viewingSlots = [];
+    }
   }
 
   const allRent = await fetchPropertiesByTypeCachedFirst('rent');
