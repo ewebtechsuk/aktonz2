@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import PropertyList from '../../components/PropertyList';
 import MediaGallery from '../../components/MediaGallery';
 import OfferDrawer from '../../components/OfferDrawer';
@@ -6,6 +6,8 @@ import ViewingForm from '../../components/ViewingForm';
 import NeighborhoodInfo from '../../components/NeighborhoodInfo';
 import FavoriteButton from '../../components/FavoriteButton';
 import PropertySustainabilityPanel from '../../components/PropertySustainabilityPanel';
+import AgentCard from '../../components/AgentCard';
+import SectionNav from '../../components/SectionNav';
 
 import MortgageCalculator from '../../components/MortgageCalculator';
 import RentAffordability from '../../components/RentAffordability';
@@ -29,7 +31,23 @@ import {
   formatPropertyTypeLabel,
 } from '../../lib/property-type.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
-import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
+import {
+  FaBed,
+  FaBath,
+  FaCouch,
+  FaTrain,
+  FaSchool,
+  FaWalking,
+  FaMapMarkerAlt,
+} from 'react-icons/fa';
+import {
+  FiDroplet,
+  FiHome,
+  FiLayers,
+  FiShield,
+  FiStar,
+  FiSun,
+} from 'react-icons/fi';
 import {
   formatPriceGBP,
   formatPricePrefix,
@@ -47,6 +65,696 @@ import {
   formatAvailabilityDate,
   resolveAvailabilityDate,
 } from '../../lib/deposits.mjs';
+import agentsData from '../../data/agents.json';
+
+const AGENT_ENTRIES = Array.isArray(agentsData) ? agentsData : [];
+const AGENT_MAP = new Map(
+  AGENT_ENTRIES.filter((agent) => agent && agent.id != null).map((agent) => [
+    String(agent.id),
+    agent,
+  ])
+);
+const AGENT_PLACEHOLDER_IMAGE = '/images/agent-placeholder.svg';
+const DEFAULT_AGENT_PROFILE = (() => {
+  const primary = AGENT_ENTRIES.find((entry) => entry && entry.name) || null;
+  return {
+    id: primary?.id ? String(primary.id) : 'aktonz-default',
+    name: primary?.name || 'Aktonz advisor',
+    title: 'Your Aktonz property expert',
+    jobTitle: primary?.jobTitle || 'Local lettings specialist',
+    responseSla: 'Replies within 15 minutes during business hours.',
+    reviewSnippet:
+      '“Exceptional communication and proactive updates throughout the letting process.”',
+    reviewAttribution: 'Landlord review, March 2024',
+    photo: primary?.photo || AGENT_PLACEHOLDER_IMAGE,
+  };
+})();
+
+const LOCATION_INSIGHT_ICON_MAP = {
+  transport: FaTrain,
+  schools: FaSchool,
+  walkability: FaWalking,
+};
+
+const MAJOR_CITY_REFERENCES = [
+  {
+    key: 'london',
+    name: 'London',
+    lat: 51.509865,
+    lon: -0.118092,
+    aliases: ['london', 'city of london'],
+    metropolitan: true,
+  },
+  {
+    key: 'birmingham',
+    name: 'Birmingham',
+    lat: 52.486244,
+    lon: -1.890401,
+    aliases: ['birmingham'],
+    metropolitan: true,
+  },
+  {
+    key: 'manchester',
+    name: 'Manchester',
+    lat: 53.480759,
+    lon: -2.242631,
+    aliases: ['manchester', 'greater manchester'],
+    metropolitan: true,
+  },
+  {
+    key: 'leeds',
+    name: 'Leeds',
+    lat: 53.800755,
+    lon: -1.549077,
+    aliases: ['leeds'],
+    metropolitan: true,
+  },
+  {
+    key: 'bristol',
+    name: 'Bristol',
+    lat: 51.454514,
+    lon: -2.58791,
+    aliases: ['bristol'],
+    metropolitan: false,
+  },
+  {
+    key: 'edinburgh',
+    name: 'Edinburgh',
+    lat: 55.953251,
+    lon: -3.188267,
+    aliases: ['edinburgh'],
+    metropolitan: false,
+  },
+  {
+    key: 'glasgow',
+    name: 'Glasgow',
+    lat: 55.864237,
+    lon: -4.251806,
+    aliases: ['glasgow'],
+    metropolitan: true,
+  },
+  {
+    key: 'liverpool',
+    name: 'Liverpool',
+    lat: 53.408371,
+    lon: -2.991573,
+    aliases: ['liverpool'],
+    metropolitan: false,
+  },
+];
+
+function parseCoordinate(value) {
+  if (value == null) return null;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+function haversineDistanceKm(lat1, lon1, lat2, lon2) {
+  const toRadians = (value) => (value * Math.PI) / 180;
+  const earthRadiusKm = 6371;
+
+  const dLat = toRadians(lat2 - lat1);
+  const dLon = toRadians(lon2 - lon1);
+  const startLat = toRadians(lat1);
+  const endLat = toRadians(lat2);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(startLat) * Math.cos(endLat);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadiusKm * c;
+}
+
+function resolveCityReference(normalizedCity) {
+  if (!normalizedCity) {
+    return null;
+  }
+
+  const lower = normalizedCity.toLowerCase();
+  return (
+    MAJOR_CITY_REFERENCES.find((entry) =>
+      entry.aliases.some((alias) => alias.toLowerCase() === lower)
+    ) || null
+  );
+}
+
+function resolveNearestCity({ lat, lon, normalizedCity }) {
+  const matchedCity = resolveCityReference(normalizedCity);
+  if (lat == null || lon == null) {
+    if (matchedCity) {
+      return { city: matchedCity, distanceKm: 0, matched: true };
+    }
+    return null;
+  }
+
+  let closest = null;
+  for (const city of MAJOR_CITY_REFERENCES) {
+    const distanceKm = haversineDistanceKm(lat, lon, city.lat, city.lon);
+    if (!closest || distanceKm < closest.distanceKm) {
+      closest = { city, distanceKm, matched: false };
+    }
+  }
+
+  if (!matchedCity) {
+    return closest;
+  }
+
+  const matchedDistanceKm = haversineDistanceKm(
+    lat,
+    lon,
+    matchedCity.lat,
+    matchedCity.lon
+  );
+
+  if (!closest || matchedDistanceKm < closest.distanceKm) {
+    return { city: matchedCity, distanceKm: matchedDistanceKm, matched: true };
+  }
+
+  return closest;
+}
+
+function resolveTransportInsight({ distanceKm, isUrban, isDenseUrban }) {
+  if (distanceKm != null) {
+    if (distanceKm <= 5) {
+      return {
+        grade: 'Excellent',
+        description: 'Fast tube and rail connections within minutes.',
+      };
+    }
+    if (distanceKm <= 15) {
+      return {
+        grade: 'Great',
+        description: 'Frequent rail and bus services into the city centre.',
+      };
+    }
+    if (distanceKm <= 35) {
+      return {
+        grade: 'Good',
+        description: 'Regional transport links reachable with a short drive.',
+      };
+    }
+    return {
+      grade: 'Car-friendly',
+      description: 'Driving offers the most convenient travel for this area.',
+    };
+  }
+
+  if (isDenseUrban) {
+    return {
+      grade: 'Excellent',
+      description: 'Extensive transport network at your doorstep.',
+    };
+  }
+
+  if (isUrban) {
+    return {
+      grade: 'Great',
+      description: 'Well-connected public transport covering daily routes.',
+    };
+  }
+
+  return {
+    grade: 'Car-friendly',
+    description: 'Driving offers the most convenient travel for this area.',
+  };
+}
+
+function resolveSchoolsInsight({ isUrban, isDenseUrban, isFamilySized }) {
+  if (isDenseUrban) {
+    return {
+      grade: 'Top rated',
+      description: 'Choice of highly rated schools within a mile.',
+    };
+  }
+
+  if (isUrban) {
+    return {
+      grade: 'Diverse options',
+      description: 'Multiple primary and secondary schools close by.',
+    };
+  }
+
+  if (isFamilySized) {
+    return {
+      grade: 'Family-friendly',
+      description: 'Well-regarded schools reachable in under 15 minutes.',
+    };
+  }
+
+  return {
+    grade: 'Local network',
+    description: 'Community schools served by nearby towns and villages.',
+  };
+}
+
+function resolveWalkabilityInsight({ distanceKm, isUrban, isDenseUrban }) {
+  if (isDenseUrban) {
+    return {
+      grade: 'Highly walkable',
+      description: 'Daily errands doable on foot with amenities moments away.',
+    };
+  }
+
+  if (isUrban) {
+    return {
+      grade: 'Neighbourhood living',
+      description: 'Cafés, gyms and essentials within a short stroll or cycle.',
+    };
+  }
+
+  if (distanceKm != null && distanceKm <= 35) {
+    return {
+      grade: 'Village convenience',
+      description: 'Local high streets reachable by bike or a relaxed walk.',
+    };
+  }
+
+  return {
+    grade: 'Leafy escape',
+    description: 'Quiet lanes and open spaces ideal for weekend walks.',
+  };
+}
+
+function computeLocationInsights(rawProperty) {
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return [];
+  }
+
+  const lat =
+    parseCoordinate(rawProperty.latitude) ??
+    parseCoordinate(rawProperty.lat) ??
+    parseCoordinate(rawProperty.latd);
+  const lon =
+    parseCoordinate(rawProperty.longitude) ??
+    parseCoordinate(rawProperty.lon) ??
+    parseCoordinate(rawProperty.lng) ??
+    parseCoordinate(rawProperty.long);
+
+  const cityCandidates = [
+    rawProperty.city,
+    rawProperty.town,
+    rawProperty.locality,
+    rawProperty.area,
+    rawProperty.address?.city,
+    rawProperty.address?.town,
+    rawProperty.address?.village,
+    rawProperty._scraye?.placeName,
+  ];
+
+  const resolvedCityName = cityCandidates.find(
+    (value) => typeof value === 'string' && value.trim()
+  );
+  const normalizedCity = resolvedCityName?.trim().toLowerCase() ?? null;
+
+  const nearestCity = resolveNearestCity({ lat, lon, normalizedCity });
+  const distanceKm = nearestCity?.distanceKm ?? null;
+  const isUrban = Boolean(nearestCity?.matched) || (distanceKm != null && distanceKm <= 25);
+  const isDenseUrban =
+    (nearestCity?.matched && Boolean(nearestCity?.city?.metropolitan)) ||
+    (distanceKm != null && distanceKm <= 8);
+
+  const bedrooms = parseCoordinate(
+    rawProperty.bedrooms ?? rawProperty.beds ?? rawProperty.bedroomsCount
+  );
+  const isFamilySized = Number.isFinite(bedrooms) ? bedrooms >= 3 : false;
+
+  const transport = resolveTransportInsight({ distanceKm, isUrban, isDenseUrban });
+  const schools = resolveSchoolsInsight({ isUrban, isDenseUrban, isFamilySized });
+  const walkability = resolveWalkabilityInsight({ distanceKm, isUrban, isDenseUrban });
+
+  return [
+    { key: 'transport', title: 'Transport', ...transport },
+    { key: 'schools', title: 'Schools', ...schools },
+    { key: 'walkability', title: 'Walkability', ...walkability },
+  ];
+}
+
+function normalizeAgentString(value) {
+  if (value == null) return null;
+  const normalized = String(value).trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function pickFirstAgentString(...values) {
+  for (const value of values) {
+    const normalized = normalizeAgentString(value);
+    if (normalized) {
+      return normalized;
+    }
+  }
+  return null;
+}
+
+function collectAgentCandidates(rawProperty) {
+  const candidates = [];
+  const pushCandidate = (candidate) => {
+    if (candidate && typeof candidate === 'object') {
+      candidates.push(candidate);
+    }
+  };
+
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return candidates;
+  }
+
+  pushCandidate(rawProperty.agent);
+  pushCandidate(rawProperty.negotiator);
+  pushCandidate(rawProperty.user);
+  pushCandidate(rawProperty.assignedAgent);
+  pushCandidate(rawProperty.owner);
+  pushCandidate(rawProperty.primaryContact);
+  pushCandidate(rawProperty.marketing?.agent);
+
+  return candidates;
+}
+
+const FEATURE_GROUP_DEFINITIONS = [
+  {
+    id: 'interior',
+    label: 'Interior highlights',
+    icon: FiHome,
+    matchers: [
+      'open-plan',
+      'open plan',
+      'kitchen',
+      'kitchenette',
+      'living area',
+      'reception',
+      'bedroom',
+      'bathroom',
+      'ensuite',
+      'en-suite',
+      'storage',
+      'wardrobe',
+      'cupboard',
+      'high ceilings',
+      'big windows',
+      'natural light',
+      'wood floors',
+      'herringbone',
+      'furnished',
+      'unfurnished',
+      'modern finishes',
+      'finish',
+    ],
+  },
+  {
+    id: 'utilities',
+    label: 'Appliances & utilities',
+    icon: FiDroplet,
+    matchers: [
+      'dishwasher',
+      'washer',
+      'dryer',
+      'laundry',
+      'washer/dryer',
+      'washer dryer',
+      'washing machine',
+      'freezer',
+      'fridge',
+      'refrigerator',
+      'wifi',
+      'wi-fi',
+      'internet',
+      'broadband',
+      'air conditioning',
+      'heating',
+      'underfloor',
+      'utility',
+      'appliance',
+    ],
+  },
+  {
+    id: 'amenities',
+    label: 'Building amenities',
+    icon: FiLayers,
+    matchers: [
+      'concierge',
+      'front desk',
+      'reception team',
+      'lift',
+      'elevator',
+      'gym',
+      'spa',
+      'pool',
+      'co-working',
+      'coworking',
+      'lounge',
+      'meeting room',
+      'media room',
+      'cinema',
+      'games room',
+      'communal',
+      'resident',
+      'club',
+      'studio',
+      'amenities',
+    ],
+  },
+  {
+    id: 'outdoor',
+    label: 'Outdoor & parking',
+    icon: FiSun,
+    matchers: [
+      'balcony',
+      'terrace',
+      'garden',
+      'patio',
+      'courtyard',
+      'roof',
+      'rooftop',
+      'wraparound',
+      'parking',
+      'garage',
+      'cycle',
+      'bicycle',
+      'bike',
+      'outdoor',
+    ],
+  },
+  {
+    id: 'security',
+    label: 'Security & services',
+    icon: FiShield,
+    matchers: [
+      'security',
+      'secure',
+      'cctv',
+      '24-hour',
+      '24hr',
+      '24 hour',
+      '24/7',
+      'team 24/7',
+      'on-site team',
+      'guard',
+      'monitor',
+      'access',
+      'entry system',
+      'porter',
+      'doorman',
+    ],
+  },
+];
+
+function groupPropertyFeatures(featureList) {
+  if (!Array.isArray(featureList)) {
+    return [];
+  }
+
+  const normalizedFeatures = featureList
+    .map((feature) => {
+      if (feature == null) return null;
+      const text = String(feature).replace(/\s+/g, ' ').trim();
+      return text.length > 0 ? text : null;
+    })
+    .filter(Boolean);
+
+  if (normalizedFeatures.length === 0) {
+    return [];
+  }
+
+  const groups = FEATURE_GROUP_DEFINITIONS.map((definition) => ({
+    id: definition.id,
+    label: definition.label,
+    icon: definition.icon,
+    matchers: definition.matchers,
+    items: [],
+  }));
+
+  const fallbackGroup = {
+    id: 'additional',
+    label: 'Additional highlights',
+    icon: FiStar,
+    items: [],
+  };
+
+  normalizedFeatures.forEach((feature) => {
+    const normalizedLower = feature.toLowerCase();
+    const matchedGroup = groups.find((group) =>
+      group.matchers.some((matcher) => {
+        if (typeof matcher === 'string') {
+          return normalizedLower.includes(matcher);
+        }
+        if (matcher instanceof RegExp) {
+          return matcher.test(normalizedLower);
+        }
+        return false;
+      })
+    );
+
+    if (matchedGroup) {
+      matchedGroup.items.push(feature);
+    } else {
+      fallbackGroup.items.push(feature);
+    }
+  });
+
+  const resolvedGroups = groups
+    .filter((group) => group.items.length > 0)
+    .map(({ matchers, ...group }) => group);
+
+  if (fallbackGroup.items.length > 0) {
+    resolvedGroups.push(fallbackGroup);
+  }
+
+  return resolvedGroups;
+}
+
+function resolveAgentProfile(rawProperty) {
+  const baseProfile = { ...DEFAULT_AGENT_PROFILE };
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return baseProfile;
+  }
+
+  const candidateObjects = collectAgentCandidates(rawProperty);
+  const idCandidates = [
+    rawProperty.agentId,
+    rawProperty.assignedAgentId,
+    rawProperty.negotiatorId,
+    rawProperty.userId,
+    rawProperty.agent?.id,
+    rawProperty.negotiator?.id,
+    rawProperty.user?.id,
+    rawProperty.assignedAgent?.id,
+    rawProperty.owner?.id,
+    rawProperty.marketing?.agent?.id,
+  ]
+    .map((value) => normalizeAgentString(value))
+    .filter(Boolean);
+
+  const resolvedAgentId =
+    idCandidates.find((candidate) => AGENT_MAP.has(candidate)) ||
+    idCandidates[0] ||
+    baseProfile.id;
+
+  const mappedAgent = AGENT_MAP.get(resolvedAgentId) || null;
+  const namedCandidate =
+    candidateObjects.find((candidate) =>
+      Boolean(
+        pickFirstAgentString(
+          candidate.name,
+          candidate.fullName,
+          candidate.displayName,
+          candidate.title
+        )
+      )
+    ) || null;
+
+  const resolvedName =
+    pickFirstAgentString(
+      rawProperty.agentName,
+      rawProperty.assignedAgentName,
+      rawProperty.agent?.name,
+      rawProperty.agent?.fullName,
+      rawProperty.agent?.displayName,
+      namedCandidate?.name,
+      namedCandidate?.fullName,
+      namedCandidate?.displayName,
+      mappedAgent?.name
+    ) || baseProfile.name;
+
+  const resolvedTitle =
+    pickFirstAgentString(
+      rawProperty.agentTitle,
+      rawProperty.agentHeading,
+      rawProperty.marketing?.agent?.title,
+      namedCandidate?.title,
+      namedCandidate?.tagline,
+      mappedAgent?.title
+    ) || baseProfile.title;
+
+  const resolvedJobTitle =
+    pickFirstAgentString(
+      rawProperty.agentJobTitle,
+      rawProperty.agent?.jobTitle,
+      rawProperty.agent?.role,
+      namedCandidate?.jobTitle,
+      namedCandidate?.role,
+      namedCandidate?.position,
+      mappedAgent?.jobTitle,
+      mappedAgent?.role
+    ) || baseProfile.jobTitle;
+
+  const resolvedResponseSla =
+    pickFirstAgentString(
+      rawProperty.agentResponseSla,
+      rawProperty.agentResponseSLA,
+      rawProperty.agent?.responseSla,
+      rawProperty.agent?.responseSLA,
+      namedCandidate?.responseSla,
+      namedCandidate?.responseSLA,
+      mappedAgent?.responseSla
+    ) || baseProfile.responseSla;
+
+  const resolvedReviewSnippet =
+    pickFirstAgentString(
+      rawProperty.agentReviewSnippet,
+      rawProperty.agentReviewQuote,
+      rawProperty.agent?.reviewSnippet,
+      rawProperty.agent?.reviewQuote,
+      namedCandidate?.reviewSnippet,
+      namedCandidate?.reviewQuote,
+      mappedAgent?.reviewSnippet
+    ) || baseProfile.reviewSnippet;
+
+  const resolvedReviewAttribution =
+    pickFirstAgentString(
+      rawProperty.agentReviewAttribution,
+      rawProperty.agentReviewSource,
+      rawProperty.agent?.reviewAttribution,
+      rawProperty.agent?.reviewSource,
+      namedCandidate?.reviewAttribution,
+      namedCandidate?.reviewSource,
+      mappedAgent?.reviewAttribution
+    ) || baseProfile.reviewAttribution;
+
+  const resolvedPhoto =
+    pickFirstAgentString(
+      rawProperty.agent?.photo,
+      rawProperty.agent?.image,
+      rawProperty.agent?.avatar,
+      rawProperty.agent?.avatarUrl,
+      namedCandidate?.photo,
+      namedCandidate?.image,
+      namedCandidate?.avatar,
+      namedCandidate?.avatarUrl,
+      namedCandidate?.profilePhoto,
+      mappedAgent?.photo,
+      baseProfile.photo,
+      AGENT_PLACEHOLDER_IMAGE
+    ) || AGENT_PLACEHOLDER_IMAGE;
+
+  return {
+    id: resolvedAgentId,
+    name: resolvedName,
+    title: resolvedTitle,
+    jobTitle: resolvedJobTitle,
+    responseSla: resolvedResponseSla,
+    reviewSnippet: resolvedReviewSnippet,
+    reviewAttribution: resolvedReviewAttribution,
+    photo: resolvedPhoto,
+  };
+}
 
 function normalizeScrayeReference(value) {
   if (value == null) {
@@ -215,6 +923,173 @@ function deriveCouncilTaxBand(rawProperty) {
   return null;
 }
 
+function normalizeTenureValue(value) {
+  if (value == null) {
+    return null;
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const normalized = trimmed.toLowerCase();
+    const collapsed = normalized.replace(/[\s_-]+/g, '');
+
+    if (['fh', 'freehold', 'freeholder'].includes(collapsed)) {
+      return 'Freehold';
+    }
+
+    if (['lh', 'leasehold', 'leaseholder', 'lease'].includes(collapsed)) {
+      return 'Leasehold';
+    }
+
+    if (collapsed.includes('shareoffreehold') || collapsed.includes('sharefreehold')) {
+      return 'Share of freehold';
+    }
+
+    if (normalized.includes('commonhold')) {
+      return 'Commonhold';
+    }
+
+    if (normalized.includes('feuhold')) {
+      return 'Feuhold';
+    }
+
+    return trimmed
+      .split(/[\s_]+/)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(' ');
+  }
+
+  return null;
+}
+
+function deriveTenure(rawProperty) {
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return null;
+  }
+
+  const candidates = [
+    rawProperty.tenure,
+    rawProperty.tenureType,
+    rawProperty.tenure_type,
+    rawProperty.tenureStatus,
+    rawProperty.tenureLabel,
+    rawProperty.sales?.tenure,
+    rawProperty.sales?.tenureType,
+    rawProperty.details?.tenure,
+    rawProperty.details?.tenureType,
+    rawProperty._scraye?.tenure,
+    rawProperty._scraye?.tenureType,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) {
+      for (const entry of candidate) {
+        const normalizedEntry = normalizeTenureValue(entry);
+        if (normalizedEntry) {
+          return normalizedEntry;
+        }
+      }
+      continue;
+    }
+
+    if (candidate && typeof candidate === 'object') {
+      const nested = [
+        candidate.value,
+        candidate.type,
+        candidate.label,
+        candidate.name,
+        candidate.description,
+      ];
+      for (const nestedCandidate of nested) {
+        const normalizedNested = normalizeTenureValue(nestedCandidate);
+        if (normalizedNested) {
+          return normalizedNested;
+        }
+      }
+    }
+
+    const normalized = normalizeTenureValue(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return null;
+}
+
+function formatTenureHighlight(value) {
+  if (value == null) {
+    return null;
+  }
+
+  const normalized = normalizeTenureValue(value) ?? (typeof value === 'string' ? value.trim() : '');
+  if (!normalized) {
+    return null;
+  }
+
+  const lower = normalized.toLowerCase();
+  if (lower.includes('tenure')) {
+    return normalized;
+  }
+
+  return `${normalized} tenure`;
+}
+
+function formatEpcHighlight(value) {
+  if (value == null) {
+    return null;
+  }
+
+  const normalized = String(value).trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const lower = normalized.toLowerCase();
+  if (lower.startsWith('epc')) {
+    return normalized;
+  }
+
+  if (/^[A-G]$/i.test(normalized)) {
+    return `EPC ${normalized.toUpperCase()}`;
+  }
+
+  return `EPC ${normalized}`;
+}
+
+function formatCouncilTaxHighlight(value) {
+  if (value == null) {
+    return null;
+  }
+
+  const normalized = String(value).trim();
+  if (!normalized) {
+    return null;
+  }
+
+  if (/^[A-H]$/i.test(normalized)) {
+    return `Council tax band ${normalized.toUpperCase()}`;
+  }
+
+  const bandMatch = /band\s*([A-H])\b/i.exec(normalized);
+  if (bandMatch) {
+    const suffix = normalized.slice(bandMatch.index + bandMatch[0].length).trim();
+    const label = `Council tax band ${bandMatch[1].toUpperCase()}`;
+    return suffix ? `${label} ${suffix}` : label;
+  }
+
+  const lower = normalized.toLowerCase();
+  if (lower.startsWith('council tax')) {
+    return normalized;
+  }
+
+  return `Council tax ${normalized}`;
+}
+
 function normalizeBooleanFlag(value) {
   if (value === true || value === false) {
     return value;
@@ -356,7 +1231,47 @@ async function loadPrebuildPropertyIds(limit = null) {
 }
 
 export default function Property({ property, recommendations }) {
+  const [isSummaryExpanded, setSummaryExpanded] = useState(false);
+  useEffect(() => {
+    setSummaryExpanded(false);
+  }, [property?.id]);
   const hasLocation = property?.latitude != null && property?.longitude != null;
+  const locationInsights = useMemo(() => {
+    if (!Array.isArray(property?.locationInsights)) {
+      return [];
+    }
+
+    return property.locationInsights
+      .map((insight) => {
+        if (!insight || typeof insight !== 'object') {
+          return null;
+        }
+
+        const key = typeof insight.key === 'string' ? insight.key : null;
+        const title = typeof insight.title === 'string' ? insight.title.trim() : '';
+        if (!key || !title) {
+          return null;
+        }
+
+        const grade =
+          typeof insight.grade === 'string' && insight.grade.trim()
+            ? insight.grade.trim()
+            : null;
+        const description =
+          typeof insight.description === 'string' && insight.description.trim()
+            ? insight.description.trim()
+            : null;
+
+        return {
+          key,
+          title,
+          grade,
+          description,
+        };
+      })
+      .filter(Boolean);
+  }, [property?.locationInsights]);
+  const agentProfile = property?.agentProfile;
   const priceLabel = formatPropertyPriceLabel(property);
   const rentFrequencyLabel = useMemo(() => {
     if (!property?.rentFrequency) {
@@ -409,6 +1324,12 @@ export default function Property({ property, recommendations }) {
       .map((paragraph) => paragraph.trim())
       .filter(Boolean);
   }, [property?.description]);
+  const shouldShowSummaryToggle =
+    descriptionParagraphs.length > 1 || (property?.description?.length ?? 0) > 320;
+  const summaryDescriptionId = useMemo(
+    () => `summary-description-${property?.id ?? 'default'}`,
+    [property?.id]
+  );
   const summaryStats = useMemo(() => {
     const stats = [];
 
@@ -441,6 +1362,26 @@ export default function Property({ property, recommendations }) {
 
     return stats;
   }, [property?.bathrooms, property?.bedrooms, property?.receptions]);
+  const complianceHighlights = useMemo(() => {
+    const highlights = [];
+
+    const epcLabel = formatEpcHighlight(property?.epcScore);
+    if (epcLabel) {
+      highlights.push({ key: 'epc', label: epcLabel });
+    }
+
+    const councilTaxLabel = formatCouncilTaxHighlight(property?.councilTaxBand);
+    if (councilTaxLabel) {
+      highlights.push({ key: 'councilTax', label: councilTaxLabel });
+    }
+
+    const tenureLabel = formatTenureHighlight(property?.tenure);
+    if (tenureLabel) {
+      highlights.push({ key: 'tenure', label: tenureLabel });
+    }
+
+    return highlights;
+  }, [property?.councilTaxBand, property?.epcScore, property?.tenure]);
   const headlinePrice = formattedPrimaryPrice || priceLabel || '';
   const numericPriceValue = useMemo(() => {
     if (property?.priceValue != null && Number.isFinite(Number(property.priceValue))) {
@@ -567,6 +1508,10 @@ export default function Property({ property, recommendations }) {
     );
   }
   const features = Array.isArray(property.features) ? property.features : [];
+  const groupedFeatures = useMemo(
+    () => groupPropertyFeatures(features),
+    [features]
+  );
   const displayType =
     property.typeLabel ??
     property.propertyTypeLabel ??
@@ -588,6 +1533,33 @@ export default function Property({ property, recommendations }) {
     !property.rentFrequency && property.pricePrefix
       ? formatPricePrefix(property.pricePrefix)
       : '';
+
+  const showMortgageCalculator = Boolean(!property.rentFrequency && property.price);
+  const showRentCalculator = Boolean(property.rentFrequency && property.price);
+  const hasRecommendations = Array.isArray(recommendations) && recommendations.length > 0;
+
+  const navSections = useMemo(() => {
+    const sectionsList = [];
+    if (hasLocation) {
+      sectionsList.push({ id: 'property-location', label: 'Location' });
+    }
+    if (groupedFeatures.length > 0) {
+      sectionsList.push({ id: 'property-features', label: 'Key features' });
+    }
+    if (showMortgageCalculator || showRentCalculator) {
+      sectionsList.push({ id: 'property-calculators', label: 'Calculators' });
+    }
+    if (hasRecommendations) {
+      sectionsList.push({ id: 'property-recommendations', label: 'Recommendations' });
+    }
+    return sectionsList;
+  }, [
+    groupedFeatures.length,
+    hasLocation,
+    hasRecommendations,
+    showMortgageCalculator,
+    showRentCalculator,
+  ]);
 
   return (
     <>
@@ -621,7 +1593,41 @@ export default function Property({ property, recommendations }) {
                       ))}
                     </ul>
                   )}
+                  {complianceHighlights.length > 0 && (
+                    <ul className={styles.complianceHighlights}>
+                      {complianceHighlights.map((highlight) => (
+                        <li key={highlight.key}>{highlight.label}</li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
+                {descriptionParagraphs.length > 0 && (
+                  <div
+                    className={`${styles.summaryDescription} ${
+                      isSummaryExpanded ? styles.summaryDescriptionExpanded : ''
+                    }`}
+                  >
+                    <div
+                      className={styles.summaryDescriptionText}
+                      id={summaryDescriptionId}
+                    >
+                      {descriptionParagraphs.map((paragraph, index) => (
+                        <p key={index}>{paragraph}</p>
+                      ))}
+                    </div>
+                    {shouldShowSummaryToggle && (
+                      <button
+                        type="button"
+                        className={styles.summaryDescriptionToggle}
+                        onClick={() => setSummaryExpanded((previous) => !previous)}
+                        aria-expanded={isSummaryExpanded}
+                        aria-controls={summaryDescriptionId}
+                      >
+                        {isSummaryExpanded ? 'Read less' : 'Read more'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             {(pricePrefixLabel || headlinePrice) && (
@@ -682,60 +1688,162 @@ export default function Property({ property, recommendations }) {
       {hasLocation && (
         <section className={`${styles.contentRail} ${styles.mapSection}`}>
           <h2>Location</h2>
-          <div className={styles.mapContainer}>
-            <PropertyMap
-              mapId="property-details-map"
-              center={[property.latitude, property.longitude]}
-              zoom={16}
-              properties={mapProperties}
-            />
+          <div className={styles.mapSectionContent}>
+            <div className={styles.mapContainer}>
+              <PropertyMap
+                mapId="property-details-map"
+                center={[property.latitude, property.longitude]}
+                zoom={16}
+                properties={mapProperties}
+              />
+            </div>
+            {locationInsights.length > 0 && (
+              <ul className={styles.locationInsights}>
+                {locationInsights.map((insight) => {
+                  const Icon =
+                    LOCATION_INSIGHT_ICON_MAP[insight.key] ?? FaMapMarkerAlt;
+                  return (
+                    <li
+                      key={insight.key}
+                      className={styles.locationInsightPill}
+                    >
+                      <Icon aria-hidden="true" />
+                      <div className={styles.locationInsightCopy}>
+                        <span className={styles.locationInsightTitle}>
+                          {insight.title}
+                        </span>
+                        {(insight.grade || insight.description) && (
+                          <div className={styles.locationInsightDetails}>
+                            {insight.grade && (
+                              <span className={styles.locationInsightGrade}>
+                                {insight.grade}
+                              </span>
+                            )}
+                            {insight.description && (
+                              <span className={styles.locationInsightDescription}>
+                                {insight.description}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </section>
       )}
 
-      {features.length > 0 && (
-        <section className={`${styles.contentRail} ${styles.features}`}>
-          <h2>Key features</h2>
-          <ul>
-            {features.map((f, i) => (
-              <li key={i}>{f}</li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <section className={`${styles.contentRail} ${styles.modules}`}>
+        {agentProfile && (
+          <AgentCard className={styles.agentCard} agent={agentProfile} />
+        )}
 
-      <div className={`${styles.contentRail} ${styles.modules}`}>
         <PropertySustainabilityPanel property={property} />
 
         <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
-        {!property.rentFrequency && property.price && (
-          <section className={styles.calculatorSection}>
-            <h2>Mortgage Calculator</h2>
-            <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+
+        {groupedFeatures.length > 0 && (
+          <section
+            id="property-features"
+            className={`${styles.features} ${styles.sectionAnchor}`}
+          >
+            <h2>Key features</h2>
+            <div className={styles.featuresGrid}>
+              {groupedFeatures.map((group) => {
+                const Icon = group.icon;
+                return (
+                  <article key={group.id} className={styles.featureGroup}>
+                    <div className={styles.featureGroupHeader}>
+                      {Icon ? (
+                        <span className={styles.featureGroupIcon}>
+                          <Icon aria-hidden="true" />
+                        </span>
+                      ) : null}
+                      <h3>{group.label}</h3>
+                    </div>
+                    <ul className={styles.featureItems}>
+                      {group.items.map((feature, index) => (
+                        <li key={index}>{feature}</li>
+                      ))}
+                    </ul>
+                  </article>
+                );
+              })}
+            </div>
           </section>
         )}
 
-        {property.rentFrequency && property.price && (
-          <section className={styles.calculatorSection}>
-            <h2>Rent Affordability</h2>
-            <RentAffordability
-              defaultRent={rentToMonthly(property.price, property.rentFrequency)}
-            />
+        {(showMortgageCalculator || showRentCalculator) && (
+          <section
+            id="property-calculators"
+            className={styles.sectionAnchor}
+          >
+            <div className={styles.calculatorGroup}>
+              {showMortgageCalculator && (
+                <div className={styles.calculatorSection}>
+                  <h2>Mortgage Calculator</h2>
+                  <MortgageCalculator
+                    defaultPrice={parsePriceNumber(property.price)}
+                  />
+                </div>
+              )}
+
+              {showRentCalculator && (
+                <div className={styles.calculatorSection}>
+                  <h2>Rent Affordability</h2>
+                  <RentAffordability
+                    defaultRent={rentToMonthly(
+                      property.price,
+                      property.rentFrequency
+                    )}
+                  />
+                </div>
+              )}
+            </div>
           </section>
         )}
-      </div>
-
-      <section className={`${styles.contentRail} ${styles.contact}`}>
-        <p>Interested in this property?</p>
-        <a href="tel:+441234567890">Call our team</a>
       </section>
 
-      {recommendations && recommendations.length > 0 && (
-        <section className={`${styles.contentRail} ${styles.related}`}>
-          <h2>You might also be interested in</h2>
-          <PropertyList properties={recommendations} />
+        {(showMortgageCalculator || showRentCalculator) && (
+          <section
+            id="property-calculators"
+            className={`${styles.contentRail} ${styles.modules} ${styles.sectionAnchor}`}
+          >
+            {showMortgageCalculator && (
+              <section className={styles.calculatorSection}>
+                <h2>Mortgage Calculator</h2>
+                <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+              </section>
+            )}
+
+            {showRentCalculator && (
+              <section className={styles.calculatorSection}>
+                <h2>Rent Affordability</h2>
+                <RentAffordability
+                  defaultRent={rentToMonthly(property.price, property.rentFrequency)}
+                />
+              </section>
+            )}
+          </section>
+        )}
+
+        <section className={`${styles.contentRail} ${styles.contact}`}>
+          <p>Interested in this property?</p>
+          <a href="tel:+441234567890">Call our team</a>
         </section>
-      )}
+
+        {hasRecommendations && (
+          <section
+            id="property-recommendations"
+            className={`${styles.contentRail} ${styles.related} ${styles.sectionAnchor}`}
+          >
+            <h2>You might also be interested in</h2>
+            <PropertyList properties={recommendations} />
+          </section>
+        )}
       </main>
     </>
   );
@@ -842,6 +1950,10 @@ export async function getStaticProps({ params }) {
       rawProperty.rentFrequency
     );
 
+    const derivedEpcScore = deriveEpcScore(rawProperty);
+    const derivedCouncilTaxBand = deriveCouncilTaxBand(rawProperty);
+    const derivedTenure = deriveTenure(rawProperty);
+
     formatted = {
       id: resolvePropertyIdentifier(rawProperty) ?? String(params.id),
       title:
@@ -862,8 +1974,9 @@ export async function getStaticProps({ params }) {
       rentFrequency: rawProperty.rentFrequency ?? null,
       image: imgList[0] || null,
       images: imgList,
+      agentProfile: resolveAgentProfile(rawProperty),
       media: extractMedia(rawProperty),
-      tenure: rawProperty.tenure ?? null,
+      tenure: derivedTenure,
       features: (() => {
         const rawFeatures =
           rawProperty.mainFeatures ||
@@ -899,9 +2012,10 @@ export async function getStaticProps({ params }) {
       holdingDeposit,
       availableAt: normalizedAvailability,
       scrayeReference: deriveScrayeReference(rawProperty),
-      epcScore: deriveEpcScore(rawProperty),
-      councilTaxBand: deriveCouncilTaxBand(rawProperty),
+      epcScore: derivedEpcScore,
+      councilTaxBand: derivedCouncilTaxBand,
       includedUtilities: deriveIncludedUtilities(rawProperty),
+      locationInsights: computeLocationInsights(rawProperty),
     };
   }
 
