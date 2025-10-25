@@ -24,6 +24,32 @@ function SectionNav({ sections }) {
       return undefined;
     }
 
+    const updateFromHash = () => {
+      const hashId = window.location.hash ? window.location.hash.slice(1) : '';
+      if (!hashId) {
+        return;
+      }
+
+      const normalizedId = validSections.find((section) => section.id === hashId)?.id;
+      if (normalizedId) {
+        setActiveId((previous) => (previous === normalizedId ? previous : normalizedId));
+      }
+    };
+
+    updateFromHash();
+
+    window.addEventListener('hashchange', updateFromHash);
+
+    return () => {
+      window.removeEventListener('hashchange', updateFromHash);
+    };
+  }, [validSections]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || validSections.length === 0) {
+      return undefined;
+    }
+
     const observedElements = validSections
       .map((section) => document.getElementById(section.id))
       .filter((element) => Boolean(element));
