@@ -98,6 +98,26 @@ export default async function handler(req, res) {
         safeListMaintenanceTasks(listingId),
       ]);
 
+      if (offersResult.status === 'rejected') {
+        console.error(
+          'Failed to load admin offers for listing',
+          listingId,
+          offersResult.reason,
+        );
+      }
+
+      if (maintenanceResult.status === 'rejected') {
+        console.error(
+          'Failed to load admin maintenance tasks for listing',
+          listingId,
+          maintenanceResult.reason,
+        );
+      }
+
+      const offers = offersResult.status === 'fulfilled' ? offersResult.value : [];
+      const maintenance =
+        maintenanceResult.status === 'fulfilled' ? maintenanceResult.value : [];
+
       const matchesListing = (candidates = []) => {
         for (const candidate of candidates) {
           const normalized = normalizePropertyIdentifierForComparison(candidate);
