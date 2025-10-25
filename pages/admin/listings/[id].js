@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -7,8 +7,14 @@ import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/Admi
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminListingDetails.module.css';
 import { formatOfferStatusLabel } from '../../../lib/offer-statuses.js';
-import { formatAdminCurrency, formatAdminDate, formatAdminNumber } from '../../../lib/admin/formatters';
 import { withBasePath } from '../../../lib/base-path';
+import {
+  DATE_ONLY as DATE_ONLY_FORMAT,
+  DATE_TIME_WITH_HOURS as DATE_TIME_WITH_HOURS_FORMAT,
+  formatAdminCurrency,
+  formatAdminDate,
+  formatAdminNumber,
+} from '../../../lib/admin/formatters';
 import {
   FaAlignLeft,
   FaBalanceScale,
@@ -56,6 +62,21 @@ const MARKETING_TYPE_OPTIONS = [
   { value: 'source', label: 'Source' },
   { value: 'link', label: 'Link' },
 ];
+
+let uniqueIdCounter = 0;
+
+function generateFormItemId(prefix) {
+  const safePrefix = prefix ? String(prefix).trim() : 'item';
+  const globalCrypto = typeof globalThis !== 'undefined' ? globalThis.crypto : undefined;
+
+  if (globalCrypto && typeof globalCrypto.randomUUID === 'function') {
+    return `${safePrefix}-${globalCrypto.randomUUID()}`;
+  }
+
+  uniqueIdCounter += 1;
+  const timestamp = typeof Date.now === 'function' ? Date.now() : 0;
+  return `${safePrefix}-${timestamp}-${uniqueIdCounter}`;
+}
 
 function normalizeRentFrequency(value) {
   if (!value) {
@@ -120,19 +141,14 @@ function formatHeroRent(amount, frequency, currency) {
   const normalisedFrequency = normalizeRentFrequency(frequency);
   const rentCurrency = currency && String(currency).trim() ? String(currency).trim().toUpperCase() : 'GBP';
 
-  let formattedAmount = formatAdminCurrency(numeric, {
-    currency: rentCurrency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
+  const formattedAmount =
+    formatAdminCurrency(numeric, rentCurrency, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }) || null;
 
   if (!formattedAmount) {
-    const fallback = formatAdminNumber(numeric, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-    formattedAmount = fallback
-      ? rentCurrency === 'GBP'
-        ? `£${fallback}`
-        : `${rentCurrency} ${fallback}`
-      : String(numeric);
+    return 'Rent not set';
   }
 
   const frequencyLabel = RENT_FREQUENCY_OPTIONS.find((option) => option.value === normalisedFrequency)?.label;
@@ -144,28 +160,12 @@ function formatCurrencyValue(amount, currency = 'GBP') {
     return '';
   }
 
-  const numeric = Number(String(amount).replace(/[^0-9.-]/g, ''));
-  if (!Number.isFinite(numeric)) {
-    return '';
-  }
-
-  const targetCurrency = currency && String(currency).trim() ? String(currency).trim().toUpperCase() : 'GBP';
-  const formatted = formatAdminCurrency(numeric, {
-    currency: targetCurrency,
+  const formatted = formatAdminCurrency(amount, currency, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
 
-  if (formatted) {
-    return formatted;
-  }
-
-  const fallback = formatAdminNumber(numeric, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-  if (!fallback) {
-    return '';
-  }
-
-  return targetCurrency === 'GBP' ? `£${fallback}` : `${targetCurrency} ${fallback}`;
+  return formatted || '';
 }
 
 function cloneFormValues(values) {
@@ -179,6 +179,7 @@ function createFormStateFromListing(listing) {
 
   const marketingLinks = Array.isArray(listing.marketing?.links)
     ? listing.marketing.links.map((link) => ({
+        id: link?.id ? String(link.id) : generateFormItemId('marketing'),
         label: link?.label || '',
         type: link?.type || 'link',
         url: link?.url || '',
@@ -187,17 +188,24 @@ function createFormStateFromListing(listing) {
 
   const metadata = Array.isArray(listing.metadata)
     ? listing.metadata.map((entry) => ({
+        id: entry?.id ? String(entry.id) : generateFormItemId('metadata'),
         label: entry?.label || '',
         value: entry?.value || '',
       }))
     : [];
 
   const images = Array.isArray(listing.images)
-    ? listing.images.map((url) => ({ url: typeof url === 'string' ? url : '' }))
+    ? listing.images.map((url) => ({
+        id: generateFormItemId('image'),
+        url: typeof url === 'string' ? url : '',
+      }))
     : [];
 
   const media = Array.isArray(listing.media)
-    ? listing.media.map((url) => ({ url: typeof url === 'string' ? url : '' }))
+    ? listing.media.map((url) => ({
+        id: generateFormItemId('media'),
+        url: typeof url === 'string' ? url : '',
+      }))
     : [];
 
   return {
@@ -318,153 +326,146 @@ const DATE_ONLY = {
 };
 
 function formatDateTime(value) {
-  if (!value) {
-    return '—';
-  }
-
-  const formatted = formatAdminDate(value, DATE_TIME_WITH_HOURS);
+  const formatted = formatAdminDate(value, DATE_TIME_WITH_HOURS_FORMAT);
   return formatted || '—';
 }
 
-  function formatDateDisplay(value) {
-    if (!value) {
+function formatDateDisplay(value) {
+  const formatted = formatAdminDate(value, DATE_ONLY_FORMAT);
+  return formatted || '—';
+}
+
+function formatFlattenedKey(path) {
+  if (!path) {
+    return '';
+  }
+
+  return path
+    .replace(/\[(\d+)\]/g, '.$1')
+    .split('.')
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .map((segment) => {
+      if (/^\d+$/.test(segment)) {
+        return `#${Number(segment) + 1}`;
+      }
+
+      return segment
+        .replace(/[_-]+/g, ' ')
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+    })
+    .join(' • ');
+}
+
+function formatFlattenedValue(value) {
+  if (value == null) {
+    return '—';
+  }
+
+  if (value instanceof Date) {
+    return formatDateDisplay(value);
+  }
+
+  if (Array.isArray(value)) {
+    if (!value.length) {
       return '—';
     }
 
-    const formatted = formatAdminDate(value, DATE_ONLY);
-    return formatted || '—';
+    const formatted = value
+      .map((item) => formatFlattenedValue(item))
+      .filter((entry) => entry && entry !== '—');
+
+    return formatted.length ? formatted.join(', ') : '—';
   }
 
-  function formatFlattenedKey(path) {
-    if (!path) {
-      return '';
-    }
-
-    return path
-      .replace(/\[(\d+)\]/g, '.$1')
-      .split('.')
-      .map((segment) => segment.trim())
-      .filter(Boolean)
-      .map((segment) => {
-        if (/^\d+$/.test(segment)) {
-          return `#${Number(segment) + 1}`;
-        }
-
-        return segment
-          .replace(/[_-]+/g, ' ')
-          .replace(/\b\w/g, (char) => char.toUpperCase());
-      })
-      .join(' • ');
+  const type = typeof value;
+  if (type === 'boolean') {
+    return value ? 'Yes' : 'No';
   }
 
-  function formatFlattenedValue(value) {
-    if (value == null) {
+  if (type === 'number') {
+    const formattedNumber = formatAdminNumber(value);
+    return formattedNumber || String(value);
+  }
+
+  if (type === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
       return '—';
     }
 
+    const parsedTimestamp = Date.parse(trimmed);
+    if (Number.isFinite(parsedTimestamp) && trimmed.length >= 8) {
+      return formatDateDisplay(trimmed) || trimmed;
+    }
+
+    return trimmed;
+  }
+
+  if (type === 'object') {
+    const entries = Object.entries(value);
+    if (!entries.length) {
+      return '—';
+    }
+
+    return entries
+      .map(([key, entryValue]) => `${formatFlattenedKey(key)}: ${formatFlattenedValue(entryValue)}`)
+      .join('; ');
+  }
+
+  return String(value);
+}
+
+function flattenRecord(record, { maxDepth = 3, skipNull = false, prefix = '' } = {}) {
+  if (!record || typeof record !== 'object' || record instanceof Date) {
+    return [];
+  }
+
+  const pairs = [];
+
+  const traverse = (value, currentPath, depth) => {
     if (value instanceof Date) {
-      return formatDateDisplay(value);
+      pairs.push({ key: currentPath, value });
+      return;
     }
 
-    if (Array.isArray(value)) {
-      if (!value.length) {
-        return '—';
-      }
-
-      const formatted = value
-        .map((item) => formatFlattenedValue(item))
-        .filter((entry) => entry && entry !== '—');
-
-      return formatted.length ? formatted.join(', ') : '—';
-    }
-
-    const type = typeof value;
-    if (type === 'boolean') {
-      return value ? 'Yes' : 'No';
-    }
-
-    if (type === 'number') {
-      return Number.isFinite(value) ? formatAdminNumber(value) : String(value);
-    }
-
-    if (type === 'string') {
-      const trimmed = value.trim();
-      if (!trimmed) {
-        return '—';
-      }
-
-      const parsedTimestamp = Date.parse(trimmed);
-      if (Number.isFinite(parsedTimestamp) && trimmed.length >= 8) {
-        return formatDateDisplay(trimmed) || trimmed;
-      }
-
-      return trimmed;
-    }
-
-    if (type === 'object') {
-      const entries = Object.entries(value);
-      if (!entries.length) {
-        return '—';
-      }
-
-      return entries
-        .map(([key, entryValue]) => `${formatFlattenedKey(key)}: ${formatFlattenedValue(entryValue)}`)
-        .join('; ');
-    }
-
-    return String(value);
-  }
-
-  function flattenRecord(record, { maxDepth = 3, skipNull = false, prefix = '' } = {}) {
-    if (!record || typeof record !== 'object' || record instanceof Date) {
-      return [];
-    }
-
-    const pairs = [];
-
-    const traverse = (value, currentPath, depth) => {
-      if (value instanceof Date) {
-        pairs.push({ key: currentPath, value });
+    if (typeof value !== 'object' || value === null) {
+      if (skipNull && (value == null || value === '')) {
         return;
       }
+      pairs.push({ key: currentPath, value });
+      return;
+    }
 
-      if (typeof value !== 'object' || value === null) {
-        if (skipNull && (value == null || value === '')) {
-          return;
-        }
-        pairs.push({ key: currentPath, value });
+    if (depth >= maxDepth) {
+      if (skipNull && (value == null || value === '')) {
         return;
       }
+      pairs.push({ key: currentPath, value });
+      return;
+    }
 
-      if (depth >= maxDepth) {
-        if (skipNull && (value == null || value === '')) {
-          return;
-        }
-        pairs.push({ key: currentPath, value });
-        return;
-      }
+    const entries = Array.isArray(value)
+      ? value.map((entry, index) => [String(index), entry])
+      : Object.entries(value);
 
-      const entries = Array.isArray(value)
-        ? value.map((entry, index) => [String(index), entry])
-        : Object.entries(value);
+    for (const [key, entryValue] of entries) {
+      const nextPath = currentPath
+        ? Array.isArray(value)
+          ? `${currentPath}[${key}]`
+          : `${currentPath}.${key}`
+        : Array.isArray(value)
+          ? `[${key}]`
+          : key;
 
-      for (const [key, entryValue] of entries) {
-        const nextPath = currentPath
-          ? Array.isArray(value)
-            ? `${currentPath}[${key}]`
-            : `${currentPath}.${key}`
-          : Array.isArray(value)
-            ? `[${key}]`
-            : key;
+      traverse(entryValue, nextPath, depth + 1);
+    }
+  };
 
-        traverse(entryValue, nextPath, depth + 1);
-      }
-    };
+  traverse(record, prefix, 0);
 
-    traverse(record, prefix, 0);
-
-    return pairs;
-  }
+  return pairs;
+}
 
 function formatRelativeTime(value) {
   if (!value) {
@@ -774,6 +775,7 @@ export default function AdminListingDetailsPage() {
   const [saveSuccess, setSaveSuccess] = useState('');
   const [validationErrors, setValidationErrors] = useState([]);
   const [activeTab, setActiveTab] = useState('main-details');
+  const fetchControllerRef = useRef(null);
 
   const listingId = useMemo(() => {
     if (!router.isReady) {
@@ -788,12 +790,23 @@ export default function AdminListingDetailsPage() {
       return;
     }
 
+    if (fetchControllerRef.current) {
+      fetchControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    fetchControllerRef.current = controller;
+
     setLoading(true);
     setError('');
 
     try {
       const response = await fetch(
         withBasePath(`/api/admin/listings/${encodeURIComponent(listingId)}`),
+        {
+          credentials: 'include',
+          signal: controller.signal,
+        },
       );
       if (!response.ok) {
         if (response.status === 404) {
@@ -802,13 +815,23 @@ export default function AdminListingDetailsPage() {
         throw new Error('Failed to fetch listing');
       }
       const payload = await response.json();
-      setListing(payload.listing || null);
+      if (!controller.signal.aborted) {
+        setListing(payload.listing || null);
+      }
     } catch (err) {
+      if (controller.signal.aborted) {
+        return;
+      }
       console.error(err);
       setError(err.message || 'Unable to load listing');
       setListing(null);
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
+      if (fetchControllerRef.current === controller) {
+        fetchControllerRef.current = null;
+      }
     }
   }, [listingId]);
 
@@ -822,6 +845,16 @@ export default function AdminListingDetailsPage() {
 
     fetchListing();
   }, [fetchListing, isAdmin, listingId, sessionLoading]);
+
+  useEffect(
+    () => () => {
+      if (fetchControllerRef.current) {
+        fetchControllerRef.current.abort();
+        fetchControllerRef.current = null;
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!listing) {
@@ -1365,14 +1398,12 @@ export default function AdminListingDetailsPage() {
 
       try {
         const payload = buildUpdatePayload(formValues);
-        const response = await fetch(
-          withBasePath(`/api/admin/listings/${encodeURIComponent(listingId)}`),
-          {
-            method: 'PATCH',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify(payload),
-          },
-        );
+        const response = await fetch(withBasePath(`/api/admin/listings/${encodeURIComponent(listingId)}`), {
+          method: 'PATCH',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload),
+          credentials: 'include',
+        });
 
         if (!response.ok) {
           const errorPayload = await response.json().catch(() => null);
@@ -1409,7 +1440,10 @@ export default function AdminListingDetailsPage() {
   const addMarketingLink = useCallback(() => {
     updateForm((prev) => ({
       ...prev,
-      marketingLinks: [...(prev.marketingLinks || []), { label: '', type: 'link', url: '' }],
+      marketingLinks: [
+        ...(prev.marketingLinks || []),
+        { id: generateFormItemId('marketing'), label: '', type: 'link', url: '' },
+      ],
     }));
   }, [updateForm]);
 
@@ -1439,7 +1473,7 @@ export default function AdminListingDetailsPage() {
   const addImage = useCallback(() => {
     updateForm((prev) => ({
       ...prev,
-      images: [...(prev.images || []), { url: '' }],
+      images: [...(prev.images || []), { id: generateFormItemId('image'), url: '' }],
     }));
   }, [updateForm]);
 
@@ -1487,7 +1521,7 @@ export default function AdminListingDetailsPage() {
   const addMediaItem = useCallback(() => {
     updateForm((prev) => ({
       ...prev,
-      media: [...(prev.media || []), { url: '' }],
+      media: [...(prev.media || []), { id: generateFormItemId('media'), url: '' }],
     }));
   }, [updateForm]);
 
@@ -1535,7 +1569,10 @@ export default function AdminListingDetailsPage() {
   const addMetadataEntry = useCallback(() => {
     updateForm((prev) => ({
       ...prev,
-      metadata: [...(prev.metadata || []), { label: '', value: '' }],
+      metadata: [
+        ...(prev.metadata || []),
+        { id: generateFormItemId('metadata'), label: '', value: '' },
+      ],
     }));
   }, [updateForm]);
 
@@ -2039,11 +2076,14 @@ export default function AdminListingDetailsPage() {
                 <p className={styles.mediaHint}>Displayed on the listing gallery.</p>
               </div>
               <div className={styles.repeatableList}>
-                {(formValues.images || []).map((image, index) => (
-                  <div key={`image-${index}`} className={`${styles.repeatableItem} ${styles.mediaItem}`}>
-                    <div className={styles.repeatableHeader}>
-                      <h4 className={styles.repeatableTitle}>Image {index + 1}</h4>
-                      <div className={styles.mediaActions}>
+                {(formValues.images || []).map((image, index) => {
+                  const imageKey = image?.id || `image-${index}`;
+                  const imageFieldId = `image-url-${imageKey}`;
+                  return (
+                    <div key={imageKey} className={`${styles.repeatableItem} ${styles.mediaItem}`}>
+                      <div className={styles.repeatableHeader}>
+                        <h4 className={styles.repeatableTitle}>Image {index + 1}</h4>
+                        <div className={styles.mediaActions}>
                         <button
                           type="button"
                           className={styles.mediaMoveButton}
@@ -2073,11 +2113,11 @@ export default function AdminListingDetailsPage() {
                       )}
                     </div>
                     <div className={styles.formRow}>
-                      <label className={styles.formLabel} htmlFor={`image-url-${index}`}>
+                      <label className={styles.formLabel} htmlFor={imageFieldId}>
                         Image URL
                       </label>
                       <input
-                        id={`image-url-${index}`}
+                        id={imageFieldId}
                         className={styles.input}
                         value={image.url}
                         onChange={(event) => updateImage(index, event.target.value)}
@@ -2085,7 +2125,8 @@ export default function AdminListingDetailsPage() {
                       />
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
               <button type="button" className={styles.secondaryButton} onClick={addImage}>
                 Add image
@@ -2101,8 +2142,11 @@ export default function AdminListingDetailsPage() {
                 <p className={styles.mediaHint}>Video tours, Matterport, hosted walkthrough links.</p>
               </div>
               <div className={styles.repeatableList}>
-                {(formValues.media || []).map((item, index) => (
-                  <div key={`media-${index}`} className={styles.repeatableItem}>
+                {(formValues.media || []).map((item, index) => {
+                  const mediaKey = item?.id || `media-${index}`;
+                  const mediaFieldId = `media-url-${mediaKey}`;
+                  return (
+                    <div key={mediaKey} className={styles.repeatableItem}>
                     <div className={styles.repeatableHeader}>
                       <h4 className={styles.repeatableTitle}>Media item {index + 1}</h4>
                       <div className={styles.mediaActions}>
@@ -2128,11 +2172,11 @@ export default function AdminListingDetailsPage() {
                       </div>
                     </div>
                     <div className={styles.formRow}>
-                      <label className={styles.formLabel} htmlFor={`media-url-${index}`}>
+                      <label className={styles.formLabel} htmlFor={mediaFieldId}>
                         Media URL
                       </label>
                       <input
-                        id={`media-url-${index}`}
+                        id={mediaFieldId}
                         className={styles.input}
                         value={item.url}
                         onChange={(event) => updateMediaItem(index, event.target.value)}
@@ -2146,8 +2190,9 @@ export default function AdminListingDetailsPage() {
                     ) : (
                       <span className={styles.mediaEmpty}>Add a media URL to preview.</span>
                     )}
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
               <button type="button" className={styles.secondaryButton} onClick={addMediaItem}>
                 Add media link
@@ -2175,8 +2220,13 @@ export default function AdminListingDetailsPage() {
             </header>
             <div className={styles.panelBody}>
               <div className={styles.repeatableList}>
-                {(formValues.marketingLinks || []).map((link, index) => (
-                  <div key={`marketing-${index}`} className={styles.repeatableItem}>
+                {(formValues.marketingLinks || []).map((link, index) => {
+                  const linkKey = link?.id || `marketing-${index}`;
+                  const labelFieldId = `marketing-label-${linkKey}`;
+                  const typeFieldId = `marketing-type-${linkKey}`;
+                  const urlFieldId = `marketing-url-${linkKey}`;
+                  return (
+                  <div key={linkKey} className={styles.repeatableItem}>
                     <div className={styles.repeatableHeader}>
                       <h3 className={styles.repeatableTitle}>Link {index + 1}</h3>
                       <button
@@ -2189,22 +2239,22 @@ export default function AdminListingDetailsPage() {
                     </div>
                     <div className={styles.formGrid}>
                       <div className={styles.formRow}>
-                        <label className={styles.formLabel} htmlFor={`marketing-label-${index}`}>
+                        <label className={styles.formLabel} htmlFor={labelFieldId}>
                           Label
                         </label>
                         <input
-                          id={`marketing-label-${index}`}
+                          id={labelFieldId}
                           className={styles.input}
                           value={link.label}
                           onChange={(event) => updateMarketingLink(index, 'label', event.target.value)}
                         />
                       </div>
                       <div className={styles.formRow}>
-                        <label className={styles.formLabel} htmlFor={`marketing-type-${index}`}>
+                        <label className={styles.formLabel} htmlFor={typeFieldId}>
                           Type
                         </label>
                         <select
-                          id={`marketing-type-${index}`}
+                          id={typeFieldId}
                           className={styles.select}
                           value={link.type}
                           onChange={(event) => updateMarketingLink(index, 'type', event.target.value)}
@@ -2218,11 +2268,11 @@ export default function AdminListingDetailsPage() {
                       </div>
                     </div>
                     <div className={styles.formRow}>
-                      <label className={styles.formLabel} htmlFor={`marketing-url-${index}`}>
+                      <label className={styles.formLabel} htmlFor={urlFieldId}>
                         URL
                       </label>
                       <input
-                        id={`marketing-url-${index}`}
+                        id={urlFieldId}
                         className={styles.input}
                         value={link.url}
                         onChange={(event) => updateMarketingLink(index, 'url', event.target.value)}
@@ -2230,7 +2280,8 @@ export default function AdminListingDetailsPage() {
                       />
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
               <button type="button" className={styles.secondaryButton} onClick={addMarketingLink}>
                 Add marketing link
@@ -2287,8 +2338,8 @@ export default function AdminListingDetailsPage() {
                     <div key={group.label} className={styles.featureGroup}>
                       <h4 className={styles.featureGroupTitle}>{group.label}</h4>
                       <ul className={styles.featureList}>
-                        {group.items.map((item) => (
-                          <li key={`${group.label}-${item}`} className={styles.featureListItem}>
+                        {group.items.map((item, itemIndex) => (
+                          <li key={`${group.label}-${itemIndex}`} className={styles.featureListItem}>
                             {item}
                           </li>
                         ))}
@@ -2305,46 +2356,51 @@ export default function AdminListingDetailsPage() {
             <h3 className={styles.metadataSubheading}>Additional metadata</h3>
 
             <div className={styles.repeatableList}>
-              {(formValues.metadata || []).map((entry, index) => (
-                <div key={`metadata-${index}`} className={styles.repeatableItem}>
-                  <div className={styles.repeatableHeader}>
-                    <h3 className={styles.repeatableTitle}>Entry {index + 1}</h3>
-                    <button
-                      type="button"
-                      className={styles.removeButton}
-                      onClick={() => removeMetadataEntry(index)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                  <div className={styles.formGrid}>
-                    <div className={styles.formRow}>
-                      <label className={styles.formLabel} htmlFor={`metadata-label-${index}`}>
-                        Label
-                      </label>
-                      <input
-                        id={`metadata-label-${index}`}
-                        className={styles.input}
-                        value={entry.label}
-                        onChange={(event) => updateMetadataEntry(index, 'label', event.target.value)}
-                        placeholder="e.g. EPC rating"
-                      />
+              {(formValues.metadata || []).map((entry, index) => {
+                const metadataKey = entry?.id || `metadata-${index}`;
+                const labelFieldId = `metadata-label-${metadataKey}`;
+                const valueFieldId = `metadata-value-${metadataKey}`;
+                return (
+                  <div key={metadataKey} className={styles.repeatableItem}>
+                    <div className={styles.repeatableHeader}>
+                      <h3 className={styles.repeatableTitle}>Entry {index + 1}</h3>
+                      <button
+                        type="button"
+                        className={styles.removeButton}
+                        onClick={() => removeMetadataEntry(index)}
+                      >
+                        Remove
+                      </button>
                     </div>
-                    <div className={styles.formRow}>
-                      <label className={styles.formLabel} htmlFor={`metadata-value-${index}`}>
-                        Value
-                      </label>
-                      <input
-                        id={`metadata-value-${index}`}
-                        className={styles.input}
-                        value={entry.value}
-                        onChange={(event) => updateMetadataEntry(index, 'value', event.target.value)}
-                        placeholder="e.g. B"
-                      />
+                    <div className={styles.formGrid}>
+                      <div className={styles.formRow}>
+                        <label className={styles.formLabel} htmlFor={labelFieldId}>
+                          Label
+                        </label>
+                        <input
+                          id={labelFieldId}
+                          className={styles.input}
+                          value={entry.label}
+                          onChange={(event) => updateMetadataEntry(index, 'label', event.target.value)}
+                          placeholder="e.g. EPC rating"
+                        />
+                      </div>
+                      <div className={styles.formRow}>
+                        <label className={styles.formLabel} htmlFor={valueFieldId}>
+                          Value
+                        </label>
+                        <input
+                          id={valueFieldId}
+                          className={styles.input}
+                          value={entry.value}
+                          onChange={(event) => updateMetadataEntry(index, 'value', event.target.value)}
+                          placeholder="e.g. B"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <button type="button" className={styles.secondaryButton} onClick={addMetadataEntry}>
               Add metadata entry
@@ -2418,7 +2474,16 @@ export default function AdminListingDetailsPage() {
             </header>
               {listingOffers.length ? (
                 <ul className={styles.activityList}>
-                  {listingOffers.map((offer) => {
+                  {listingOffers.map((offer, index) => {
+                    const offerKeyBase =
+                      offer?.id ||
+                      offer?.contact?.email ||
+                      offer?.contact?.phone ||
+                      offer?.email ||
+                      offer?.propertyId ||
+                      `offer-${index}`;
+                    const offerKey =
+                      offer?.id && offerKeyBase ? String(offerKeyBase) : `${offerKeyBase}-${index}`;
                     const offerDetails = flattenRecord(
                       {
                         id: offer.id,
@@ -2446,8 +2511,12 @@ export default function AdminListingDetailsPage() {
                       }))
                       .filter((detail) => detail.value && detail.value !== '—');
 
+                    const offerLinkTarget = offer?.id
+                      ? `/admin/offers?id=${encodeURIComponent(offer.id)}`
+                      : '/admin/offers';
+
                     return (
-                      <li key={offer.id} className={styles.activityListItem}>
+                      <li key={offerKey} className={styles.activityListItem}>
                         <div className={styles.activityItemHeader}>
                           <span className={styles.activityPrimary}>
                             {offer.contact?.name || offer.email || 'Applicant'}
@@ -2474,9 +2543,9 @@ export default function AdminListingDetailsPage() {
                           <details className={styles.activityDetails}>
                             <summary className={styles.activityDetailsSummary}>View record details</summary>
                             <dl className={styles.activityDetailsList}>
-                              {offerDetails.map((detail, index) => (
+                              {offerDetails.map((detail, detailIndex) => (
                                 <div
-                                  key={`${offer.id}-${detail.label}-${index}`}
+                                  key={`${offerKey}-${detail.label}-${detailIndex}`}
                                   className={styles.activityDetailsRow}
                                 >
                                   <dt>{detail.label}</dt>
@@ -2486,10 +2555,7 @@ export default function AdminListingDetailsPage() {
                             </dl>
                           </details>
                         ) : null}
-                        <Link
-                          href={`/admin/offers?id=${encodeURIComponent(offer.id)}`}
-                          className={styles.activityLink}
-                        >
+                        <Link href={offerLinkTarget} className={styles.activityLink}>
                           Open offer workspace
                         </Link>
                       </li>
@@ -2511,7 +2577,15 @@ export default function AdminListingDetailsPage() {
             </header>
               {listingMaintenance.length ? (
                 <ul className={styles.activityList}>
-                  {listingMaintenance.map((task) => {
+                  {listingMaintenance.map((task, index) => {
+                    const taskKeyBase =
+                      task?.id ||
+                      task?.reference ||
+                      task?.externalId ||
+                      task?.title ||
+                      `maintenance-${index}`;
+                    const taskKey =
+                      task?.id && taskKeyBase ? String(taskKeyBase) : `${taskKeyBase}-${index}`;
                     const maintenanceDetails = flattenRecord(
                       {
                         id: task.id,
@@ -2541,7 +2615,7 @@ export default function AdminListingDetailsPage() {
                       .filter((detail) => detail.value && detail.value !== '—');
 
                     return (
-                      <li key={task.id} className={styles.activityListItem}>
+                      <li key={taskKey} className={styles.activityListItem}>
                         <div className={styles.activityItemHeader}>
                           <span className={styles.activityPrimary}>{task.title}</span>
                           <span className={styles.activityStatusBadge} data-tone={task.statusTone}>
@@ -2565,9 +2639,9 @@ export default function AdminListingDetailsPage() {
                           <details className={styles.activityDetails}>
                             <summary className={styles.activityDetailsSummary}>View task details</summary>
                             <dl className={styles.activityDetailsList}>
-                              {maintenanceDetails.map((detail, index) => (
+                              {maintenanceDetails.map((detail, detailIndex) => (
                                 <div
-                                  key={`${task.id}-${detail.label}-${index}`}
+                                  key={`${taskKey}-${detail.label}-${detailIndex}`}
                                   className={styles.activityDetailsRow}
                                 >
                                   <dt>{detail.label}</dt>
