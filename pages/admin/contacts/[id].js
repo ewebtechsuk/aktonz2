@@ -397,6 +397,7 @@ function normaliseManagementOptions(options) {
 
 export default function AdminContactDetailsPage() {
   const router = useRouter();
+  const basePath = router?.basePath ?? '';
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
 
@@ -435,7 +436,7 @@ export default function AdminContactDetailsPage() {
       setError('');
 
       try {
-        const response = await fetch(`/api/admin/contacts/${encodeURIComponent(contactId)}`, {
+        const response = await fetch(`${basePath}/api/admin/contacts/${encodeURIComponent(contactId)}`, {
           signal: controller.signal,
         });
 
@@ -478,7 +479,7 @@ export default function AdminContactDetailsPage() {
     loadContact();
 
     return () => controller.abort();
-  }, [router.isReady, sessionLoading, isAdmin, contactId]);
+  }, [basePath, router.isReady, sessionLoading, isAdmin, contactId]);
 
   const pageTitle = contact
     ? `${contact.name} • Admin contacts`
@@ -572,7 +573,7 @@ export default function AdminContactDetailsPage() {
 
       try {
         const payload = buildManagementPayloadFromState(formState);
-        const response = await fetch(`/api/admin/contacts/${encodeURIComponent(contactId)}`, {
+        const response = await fetch(`${basePath}/api/admin/contacts/${encodeURIComponent(contactId)}`, {
           method: 'PATCH',
           headers: {
             'content-type': 'application/json',
@@ -620,7 +621,7 @@ export default function AdminContactDetailsPage() {
         setSaving(false);
       }
     },
-    [contactId, formState],
+    [basePath, contactId, formState]
   );
 
   const mainDetails = contact

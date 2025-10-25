@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -7,6 +7,14 @@ import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/Admi
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminListingDetails.module.css';
 import { formatOfferStatusLabel } from '../../../lib/offer-statuses.js';
+import { withBasePath } from '../../../lib/base-path';
+import {
+  DATE_ONLY,
+  DATE_TIME_WITH_HOURS as DATE_TIME_WITH_HOURS_FORMAT,
+  formatAdminCurrency,
+  formatAdminDate,
+  formatAdminNumber,
+} from '../../../lib/admin/formatters';
 import {
   FaAlignLeft,
   FaBalanceScale,
@@ -118,17 +126,14 @@ function formatHeroRent(amount, frequency, currency) {
   const normalisedFrequency = normalizeRentFrequency(frequency);
   const rentCurrency = currency && String(currency).trim() ? String(currency).trim().toUpperCase() : 'GBP';
 
-  let formattedAmount;
-  try {
-    const formatter = new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: rentCurrency,
+  const formattedAmount =
+    formatAdminCurrency(numeric, rentCurrency, {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    });
-    formattedAmount = formatter.format(numeric);
-  } catch (error) {
-    formattedAmount = `£${numeric.toLocaleString('en-GB')}`;
+    }) || null;
+
+  if (!formattedAmount) {
+    return 'Rent not set';
   }
 
   const frequencyLabel = RENT_FREQUENCY_OPTIONS.find((option) => option.value === normalisedFrequency)?.label;
@@ -140,22 +145,12 @@ function formatCurrencyValue(amount, currency = 'GBP') {
     return '';
   }
 
-  const numeric = Number(String(amount).replace(/[^0-9.-]/g, ''));
-  if (!Number.isFinite(numeric)) {
-    return '';
-  }
+  const formatted = formatAdminCurrency(amount, currency, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
 
-  try {
-    const formatter = new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: currency && String(currency).trim() ? String(currency).trim().toUpperCase() : 'GBP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
-    return formatter.format(numeric);
-  } catch (error) {
-    return `£${numeric.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
-  }
+  return formatted || '';
 }
 
 function cloneFormValues(values) {
@@ -294,179 +289,146 @@ function buildUpdatePayload(values) {
 }
 
 function formatDateTime(value) {
-  if (!value) {
-    return '—';
-  }
-
-  try {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-      return '—';
-    }
-
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
-  } catch (error) {
-    return '—';
-  }
+  const formatted = formatAdminDate(value, DATE_TIME_WITH_HOURS_FORMAT);
+  return formatted || '—';
 }
 
-  function formatDateDisplay(value) {
-    if (!value) {
-      return '—';
-    }
+function formatDateDisplay(value) {
+  const formatted = formatAdminDate(value, DATE_ONLY);
+  return formatted || '—';
+}
 
-    try {
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) {
-        return '—';
+function formatFlattenedKey(path) {
+  if (!path) {
+    return '';
+  }
+
+  return path
+    .replace(/\[(\d+)\]/g, '.$1')
+    .split('.')
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .map((segment) => {
+      if (/^\d+$/.test(segment)) {
+        return `#${Number(segment) + 1}`;
       }
 
-      return new Intl.DateTimeFormat('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      }).format(date);
-    } catch (error) {
-      return '—';
-    }
+      return segment
+        .replace(/[_-]+/g, ' ')
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+    })
+    .join(' • ');
+}
+
+function formatFlattenedValue(value) {
+  if (value == null) {
+    return '—';
   }
 
-  function formatFlattenedKey(path) {
-    if (!path) {
-      return '';
-    }
-
-    return path
-      .replace(/\[(\d+)\]/g, '.$1')
-      .split('.')
-      .map((segment) => segment.trim())
-      .filter(Boolean)
-      .map((segment) => {
-        if (/^\d+$/.test(segment)) {
-          return `#${Number(segment) + 1}`;
-        }
-
-        return segment
-          .replace(/[_-]+/g, ' ')
-          .replace(/\b\w/g, (char) => char.toUpperCase());
-      })
-      .join(' • ');
+  if (value instanceof Date) {
+    return formatDateDisplay(value);
   }
 
-  function formatFlattenedValue(value) {
-    if (value == null) {
+  if (Array.isArray(value)) {
+    if (!value.length) {
       return '—';
     }
 
+    const formatted = value
+      .map((item) => formatFlattenedValue(item))
+      .filter((entry) => entry && entry !== '—');
+
+    return formatted.length ? formatted.join(', ') : '—';
+  }
+
+  const type = typeof value;
+  if (type === 'boolean') {
+    return value ? 'Yes' : 'No';
+  }
+
+  if (type === 'number') {
+    const formattedNumber = formatAdminNumber(value);
+    return formattedNumber || String(value);
+  }
+
+  if (type === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return '—';
+    }
+
+    const parsedTimestamp = Date.parse(trimmed);
+    if (Number.isFinite(parsedTimestamp) && trimmed.length >= 8) {
+      return formatDateDisplay(trimmed) || trimmed;
+    }
+
+    return trimmed;
+  }
+
+  if (type === 'object') {
+    const entries = Object.entries(value);
+    if (!entries.length) {
+      return '—';
+    }
+
+    return entries
+      .map(([key, entryValue]) => `${formatFlattenedKey(key)}: ${formatFlattenedValue(entryValue)}`)
+      .join('; ');
+  }
+
+  return String(value);
+}
+
+function flattenRecord(record, { maxDepth = 3, skipNull = false, prefix = '' } = {}) {
+  if (!record || typeof record !== 'object' || record instanceof Date) {
+    return [];
+  }
+
+  const pairs = [];
+
+  const traverse = (value, currentPath, depth) => {
     if (value instanceof Date) {
-      return formatDateDisplay(value);
+      pairs.push({ key: currentPath, value });
+      return;
     }
 
-    if (Array.isArray(value)) {
-      if (!value.length) {
-        return '—';
-      }
-
-      const formatted = value
-        .map((item) => formatFlattenedValue(item))
-        .filter((entry) => entry && entry !== '—');
-
-      return formatted.length ? formatted.join(', ') : '—';
-    }
-
-    const type = typeof value;
-    if (type === 'boolean') {
-      return value ? 'Yes' : 'No';
-    }
-
-    if (type === 'number') {
-      return Number.isFinite(value) ? value.toLocaleString('en-GB') : String(value);
-    }
-
-    if (type === 'string') {
-      const trimmed = value.trim();
-      if (!trimmed) {
-        return '—';
-      }
-
-      const parsedTimestamp = Date.parse(trimmed);
-      if (Number.isFinite(parsedTimestamp) && trimmed.length >= 8) {
-        return formatDateDisplay(trimmed) || trimmed;
-      }
-
-      return trimmed;
-    }
-
-    if (type === 'object') {
-      const entries = Object.entries(value);
-      if (!entries.length) {
-        return '—';
-      }
-
-      return entries
-        .map(([key, entryValue]) => `${formatFlattenedKey(key)}: ${formatFlattenedValue(entryValue)}`)
-        .join('; ');
-    }
-
-    return String(value);
-  }
-
-  function flattenRecord(record, { maxDepth = 3, skipNull = false, prefix = '' } = {}) {
-    if (!record || typeof record !== 'object' || record instanceof Date) {
-      return [];
-    }
-
-    const pairs = [];
-
-    const traverse = (value, currentPath, depth) => {
-      if (value instanceof Date) {
-        pairs.push({ key: currentPath, value });
+    if (typeof value !== 'object' || value === null) {
+      if (skipNull && (value == null || value === '')) {
         return;
       }
+      pairs.push({ key: currentPath, value });
+      return;
+    }
 
-      if (typeof value !== 'object' || value === null) {
-        if (skipNull && (value == null || value === '')) {
-          return;
-        }
-        pairs.push({ key: currentPath, value });
+    if (depth >= maxDepth) {
+      if (skipNull && (value == null || value === '')) {
         return;
       }
+      pairs.push({ key: currentPath, value });
+      return;
+    }
 
-      if (depth >= maxDepth) {
-        if (skipNull && (value == null || value === '')) {
-          return;
-        }
-        pairs.push({ key: currentPath, value });
-        return;
-      }
+    const entries = Array.isArray(value)
+      ? value.map((entry, index) => [String(index), entry])
+      : Object.entries(value);
 
-      const entries = Array.isArray(value)
-        ? value.map((entry, index) => [String(index), entry])
-        : Object.entries(value);
+    for (const [key, entryValue] of entries) {
+      const nextPath = currentPath
+        ? Array.isArray(value)
+          ? `${currentPath}[${key}]`
+          : `${currentPath}.${key}`
+        : Array.isArray(value)
+          ? `[${key}]`
+          : key;
 
-      for (const [key, entryValue] of entries) {
-        const nextPath = currentPath
-          ? Array.isArray(value)
-            ? `${currentPath}[${key}]`
-            : `${currentPath}.${key}`
-          : Array.isArray(value)
-            ? `[${key}]`
-            : key;
+      traverse(entryValue, nextPath, depth + 1);
+    }
+  };
 
-        traverse(entryValue, nextPath, depth + 1);
-      }
-    };
+  traverse(record, prefix, 0);
 
-    traverse(record, prefix, 0);
-
-    return pairs;
-  }
+  return pairs;
+}
 
 function formatRelativeTime(value) {
   if (!value) {
@@ -776,6 +738,7 @@ export default function AdminListingDetailsPage() {
   const [saveSuccess, setSaveSuccess] = useState('');
   const [validationErrors, setValidationErrors] = useState([]);
   const [activeTab, setActiveTab] = useState('main-details');
+  const fetchControllerRef = useRef(null);
 
   const listingId = useMemo(() => {
     if (!router.isReady) {
@@ -790,12 +753,24 @@ export default function AdminListingDetailsPage() {
       return;
     }
 
+    if (fetchControllerRef.current) {
+      fetchControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    fetchControllerRef.current = controller;
+
     setLoading(true);
     setError('');
 
     try {
-      const basePath = router?.basePath ?? '';
-      const response = await fetch(`${basePath}/api/admin/listings/${encodeURIComponent(listingId)}`);
+      const response = await fetch(
+        withBasePath(`/api/admin/listings/${encodeURIComponent(listingId)}`),
+        {
+          credentials: 'include',
+          signal: controller.signal,
+        },
+      );
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error('Listing not found');
@@ -803,15 +778,25 @@ export default function AdminListingDetailsPage() {
         throw new Error('Failed to fetch listing');
       }
       const payload = await response.json();
-      setListing(payload.listing || null);
+      if (!controller.signal.aborted) {
+        setListing(payload.listing || null);
+      }
     } catch (err) {
+      if (controller.signal.aborted) {
+        return;
+      }
       console.error(err);
       setError(err.message || 'Unable to load listing');
       setListing(null);
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
+      if (fetchControllerRef.current === controller) {
+        fetchControllerRef.current = null;
+      }
     }
-  }, [listingId, router.basePath]);
+  }, [listingId]);
 
   useEffect(() => {
     if (!isAdmin || !listingId) {
@@ -823,6 +808,16 @@ export default function AdminListingDetailsPage() {
 
     fetchListing();
   }, [fetchListing, isAdmin, listingId, sessionLoading]);
+
+  useEffect(
+    () => () => {
+      if (fetchControllerRef.current) {
+        fetchControllerRef.current.abort();
+        fetchControllerRef.current = null;
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!listing) {
@@ -1366,11 +1361,11 @@ export default function AdminListingDetailsPage() {
 
       try {
         const payload = buildUpdatePayload(formValues);
-        const basePath = router?.basePath ?? '';
-        const response = await fetch(`${basePath}/api/admin/listings/${encodeURIComponent(listingId)}`, {
+        const response = await fetch(withBasePath(`/api/admin/listings/${encodeURIComponent(listingId)}`), {
           method: 'PATCH',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify(payload),
+          credentials: 'include',
         });
 
         if (!response.ok) {
@@ -1392,7 +1387,7 @@ export default function AdminListingDetailsPage() {
         setSaving(false);
       }
     },
-    [formValues, listingId, router.basePath],
+    [formValues, listingId],
   );
 
   const handleReset = useCallback(() => {

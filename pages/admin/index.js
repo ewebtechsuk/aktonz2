@@ -67,6 +67,7 @@ export default function AdminDashboard() {
   const [connectRedirecting, setConnectRedirecting] = useState(false);
   const [microsoftStatus, setMicrosoftStatus] = useState(INITIAL_MICROSOFT_STATUS_STATE);
   const router = useRouter();
+  const basePath = router?.basePath ?? '';
   const { user, loading: sessionLoading, clearSession, refresh } = useSession();
   const isAdmin = user?.role === 'admin';
 
@@ -109,7 +110,7 @@ export default function AdminDashboard() {
 
     (async () => {
       try {
-        const response = await fetch('/api/microsoft/status', {
+        const response = await fetch(`${basePath}/api/microsoft/status`, {
           method: 'GET',
           headers: { accept: 'application/json' },
           signal: controller.signal,
@@ -142,7 +143,7 @@ export default function AdminDashboard() {
     })();
 
     return controller;
-  }, [isAdmin]);
+  }, [basePath, isAdmin]);
 
   useEffect(() => {
     if (sessionLoading) {
@@ -250,9 +251,9 @@ export default function AdminDashboard() {
 
     try {
       const [offersRes, valuationsRes, maintenanceRes] = await Promise.all([
-        fetch('/api/admin/offers', { signal }),
-        fetch('/api/admin/valuations', { signal }),
-        fetch('/api/admin/maintenance', { signal }),
+        fetch(`${basePath}/api/admin/offers`, { signal }),
+        fetch(`${basePath}/api/admin/valuations`, { signal }),
+        fetch(`${basePath}/api/admin/maintenance`, { signal }),
       ]);
 
       if (!offersRes.ok) {
@@ -316,7 +317,7 @@ export default function AdminDashboard() {
         setLoading(false);
       }
     }
-  }, [isAdmin]);
+  }, [basePath, isAdmin]);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -345,7 +346,7 @@ export default function AdminDashboard() {
       setError(null);
 
       try {
-        const response = await fetch('/api/admin/valuations', {
+        const response = await fetch(`${basePath}/api/admin/valuations`, {
           method: 'PATCH',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ id: valuation.id, status: nextStatus }),
@@ -366,7 +367,7 @@ export default function AdminDashboard() {
         setUpdatingId(null);
       }
     },
-    [],
+    [basePath],
   );
 
   const openValuations = useMemo(
@@ -450,15 +451,15 @@ export default function AdminDashboard() {
   const handleConnectClick = useCallback(() => {
     setMicrosoftStatus((prev) => ({ ...prev, error: null }));
     setConnectRedirecting(true);
-    window.location.href = '/api/microsoft/connect';
-  }, []);
+    window.location.href = `${basePath}/api/microsoft/connect`;
+  }, [basePath]);
 
   const handleLogout = useCallback(async () => {
     setLogoutError(null);
     setLogoutLoading(true);
 
     try {
-      const response = await fetch('/api/logout', {
+      const response = await fetch(`${basePath}/api/logout`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -484,7 +485,7 @@ export default function AdminDashboard() {
     } finally {
       setLogoutLoading(false);
     }
-  }, [clearSession, refresh, router]);
+  }, [basePath, clearSession, refresh, router]);
 
   const renderLayout = (title, content, showNavigation = false) => (
     <>

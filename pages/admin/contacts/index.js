@@ -578,6 +578,8 @@ function formatGeneratedAt(value) {
 }
 
 export default function AdminContactsPage() {
+  const router = useRouter();
+  const basePath = router?.basePath ?? '';
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
   const pageTitle = 'Contacts • Aktonz Admin';
@@ -612,7 +614,7 @@ export default function AdminContactsPage() {
     setError(null);
 
     try {
-      const response = await fetch('/api/admin/contacts', { signal });
+      const response = await fetch(`${basePath}/api/admin/contacts`, { signal });
       if (!response.ok) {
         throw new Error('Failed to fetch contacts');
       }
@@ -640,7 +642,7 @@ export default function AdminContactsPage() {
         setLoading(false);
       }
     }
-  }, [isAdmin]);
+  }, [basePath, isAdmin]);
 
   useEffect(() => {
     if (!isAdmin) {
