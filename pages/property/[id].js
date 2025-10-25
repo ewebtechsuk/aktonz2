@@ -595,7 +595,7 @@ export default function Property({ property, recommendations }) {
         <title>{property.title ? `${property.title} | Aktonz` : 'Property details'}</title>
       </Head>
       <main className={styles.main}>
-        <section className={`${styles.contentRail} ${styles.hero}`}>
+        <section className={`${styles.contentRail} ${styles.hero} ${styles.heroGrid}`}>
           {(property.images?.length > 0 || property.media?.length > 0) && (
             <div className={styles.sliderWrapper}>
               <MediaGallery images={property.images} media={property.media} />
