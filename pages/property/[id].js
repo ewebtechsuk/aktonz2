@@ -7,7 +7,7 @@ import NeighborhoodInfo from '../../components/NeighborhoodInfo';
 import FavoriteButton from '../../components/FavoriteButton';
 import PropertySustainabilityPanel from '../../components/PropertySustainabilityPanel';
 import AgentCard from '../../components/AgentCard';
-import SectionNav from '../../components/SectionNav';
+import MediaHighlights from '../../components/MediaHighlights';
 
 import MortgageCalculator from '../../components/MortgageCalculator';
 import RentAffordability from '../../components/RentAffordability';
@@ -428,196 +428,285 @@ function collectAgentCandidates(rawProperty) {
   return candidates;
 }
 
-const FEATURE_GROUP_DEFINITIONS = [
-  {
-    id: 'interior',
-    label: 'Interior highlights',
-    icon: FiHome,
-    matchers: [
-      'open-plan',
-      'open plan',
-      'kitchen',
-      'kitchenette',
-      'living area',
-      'reception',
-      'bedroom',
-      'bathroom',
-      'ensuite',
-      'en-suite',
-      'storage',
-      'wardrobe',
-      'cupboard',
-      'high ceilings',
-      'big windows',
-      'natural light',
-      'wood floors',
-      'herringbone',
-      'furnished',
-      'unfurnished',
-      'modern finishes',
-      'finish',
-    ],
-  },
-  {
-    id: 'utilities',
-    label: 'Appliances & utilities',
-    icon: FiDroplet,
-    matchers: [
-      'dishwasher',
-      'washer',
-      'dryer',
-      'laundry',
-      'washer/dryer',
-      'washer dryer',
-      'washing machine',
-      'freezer',
-      'fridge',
-      'refrigerator',
-      'wifi',
-      'wi-fi',
-      'internet',
-      'broadband',
-      'air conditioning',
-      'heating',
-      'underfloor',
-      'utility',
-      'appliance',
-    ],
-  },
-  {
-    id: 'amenities',
-    label: 'Building amenities',
-    icon: FiLayers,
-    matchers: [
-      'concierge',
-      'front desk',
-      'reception team',
-      'lift',
-      'elevator',
-      'gym',
-      'spa',
-      'pool',
-      'co-working',
-      'coworking',
-      'lounge',
-      'meeting room',
-      'media room',
-      'cinema',
-      'games room',
-      'communal',
-      'resident',
-      'club',
-      'studio',
-      'amenities',
-    ],
-  },
-  {
-    id: 'outdoor',
-    label: 'Outdoor & parking',
-    icon: FiSun,
-    matchers: [
-      'balcony',
-      'terrace',
-      'garden',
-      'patio',
-      'courtyard',
-      'roof',
-      'rooftop',
-      'wraparound',
-      'parking',
-      'garage',
-      'cycle',
-      'bicycle',
-      'bike',
-      'outdoor',
-    ],
-  },
-  {
-    id: 'security',
-    label: 'Security & services',
-    icon: FiShield,
-    matchers: [
-      'security',
-      'secure',
-      'cctv',
-      '24-hour',
-      '24hr',
-      '24 hour',
-      '24/7',
-      'team 24/7',
-      'on-site team',
-      'guard',
-      'monitor',
-      'access',
-      'entry system',
-      'porter',
-      'doorman',
-    ],
-  },
-];
+function isLikelyAssetUrl(value) {
+  if (typeof value !== 'string') {
+    return false;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return false;
+  }
+  if (/^https?:\/\//i.test(trimmed)) {
+    return true;
+  }
+  return trimmed.startsWith('/');
+}
 
-function groupPropertyFeatures(featureList) {
-  if (!Array.isArray(featureList)) {
+function extractSupplementaryLinks(source, keywords) {
+  if (!source || typeof source !== 'object') {
     return [];
   }
 
-  const normalizedFeatures = featureList
-    .map((feature) => {
-      if (feature == null) return null;
-      const text = String(feature).replace(/\s+/g, ' ').trim();
-      return text.length > 0 ? text : null;
-    })
-    .filter(Boolean);
+  const normalizedKeywords = Array.isArray(keywords)
+    ? keywords
+        .map((keyword) =>
+          typeof keyword === 'string' ? keyword.toLowerCase().trim() : null
+        )
+        .filter(Boolean)
+    : [];
 
-  if (normalizedFeatures.length === 0) {
+  if (normalizedKeywords.length === 0) {
     return [];
   }
 
-  const groups = FEATURE_GROUP_DEFINITIONS.map((definition) => ({
-    id: definition.id,
-    label: definition.label,
-    icon: definition.icon,
-    matchers: definition.matchers,
-    items: [],
-  }));
-
-  const fallbackGroup = {
-    id: 'additional',
-    label: 'Additional highlights',
-    icon: FiStar,
-    items: [],
+  const matchesKeyword = (value) => {
+    if (!value) {
+      return false;
+    }
+    const text = String(value).toLowerCase();
+    return normalizedKeywords.some((keyword) => text.includes(keyword));
   };
 
-  normalizedFeatures.forEach((feature) => {
-    const normalizedLower = feature.toLowerCase();
-    const matchedGroup = groups.find((group) =>
-      group.matchers.some((matcher) => {
-        if (typeof matcher === 'string') {
-          return normalizedLower.includes(matcher);
-        }
-        if (matcher instanceof RegExp) {
-          return matcher.test(normalizedLower);
-        }
-        return false;
-      })
-    );
+  const results = new Map();
+  const seen = new Set();
 
-    if (matchedGroup) {
-      matchedGroup.items.push(feature);
-    } else {
-      fallbackGroup.items.push(feature);
+  const addResult = (url, label = null) => {
+    if (!isLikelyAssetUrl(url)) {
+      return;
+    }
+    const trimmed = url.trim();
+    if (!trimmed) {
+      return;
+    }
+    const normalizedLabel = label && typeof label === 'string' ? label.trim() : null;
+    const existing = results.get(trimmed);
+    if (existing) {
+      if (!existing.label && normalizedLabel) {
+        existing.label = normalizedLabel;
+      }
+      return;
+    }
+    results.set(trimmed, {
+      url: trimmed,
+      label: normalizedLabel || null,
+    });
+  };
+
+  const traverse = (value, key = '', depth = 0) => {
+    if (value == null) {
+      return;
+    }
+
+    if (depth > 5) {
+      return;
+    }
+
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!isLikelyAssetUrl(trimmed)) {
+        return;
+      }
+      if (matchesKeyword(trimmed) || matchesKeyword(key)) {
+        addResult(trimmed, matchesKeyword(trimmed) ? trimmed : key);
+      }
+      return;
+    }
+
+    if (typeof value !== 'object') {
+      return;
+    }
+
+    if (seen.has(value)) {
+      return;
+    }
+    seen.add(value);
+
+    if (Array.isArray(value)) {
+      value.forEach((entry) => traverse(entry, key, depth + 1));
+      return;
+    }
+
+    const labelFields = [
+      'label',
+      'name',
+      'title',
+      'description',
+      'tag',
+      'type',
+      'category',
+      'filename',
+      'fileName',
+      'displayName',
+      'heading',
+      'text',
+    ];
+    let matchedLabel = null;
+    for (const field of labelFields) {
+      const candidate = value[field];
+      if (typeof candidate === 'string' && matchesKeyword(candidate)) {
+        matchedLabel = candidate.trim();
+        break;
+      }
+    }
+
+    const urlFields = [
+      'url',
+      'href',
+      'link',
+      'value',
+      'downloadUrl',
+      'fileUrl',
+      'assetUrl',
+      'path',
+      'src',
+      'file',
+    ];
+    for (const field of urlFields) {
+      const candidate = value[field];
+      if (typeof candidate !== 'string') {
+        continue;
+      }
+      const trimmed = candidate.trim();
+      if (!isLikelyAssetUrl(trimmed)) {
+        continue;
+      }
+      if (
+        matchedLabel ||
+        matchesKeyword(field) ||
+        matchesKeyword(key) ||
+        matchesKeyword(trimmed)
+      ) {
+        addResult(trimmed, matchedLabel || field || key);
+      }
+    }
+
+    for (const [childKey, childValue] of Object.entries(value)) {
+      traverse(childValue, childKey, depth + 1);
+    }
+  };
+
+  const prioritizedKeys = [
+    'floorplan',
+    'floorPlan',
+    'floorplans',
+    'floorPlans',
+    'floorplanUrl',
+    'floorPlanUrl',
+    'floorplanUrls',
+    'floorPlanUrls',
+    'brochure',
+    'brochures',
+    'brochureUrl',
+    'brochureUrls',
+    'documents',
+    'files',
+    'attachments',
+    'downloads',
+    'resources',
+    'metadata',
+    'links',
+    'gallery',
+    'images',
+    'media',
+    'sale',
+    'lettings',
+    'marketing',
+    '_scraye',
+  ];
+
+  prioritizedKeys.forEach((key) => {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      traverse(source[key], key, 0);
     }
   });
 
-  const resolvedGroups = groups
-    .filter((group) => group.items.length > 0)
-    .map(({ matchers, ...group }) => group);
+  traverse(source, '', 0);
 
-  if (fallbackGroup.items.length > 0) {
-    resolvedGroups.push(fallbackGroup);
-  }
+  return Array.from(results.values());
+}
 
-  return resolvedGroups;
+function deriveTourEntries(mediaUrls, metadataEntries) {
+  const results = [];
+  const seen = new Set();
+
+  const metadata = Array.isArray(metadataEntries) ? metadataEntries : [];
+  const metadataByUrl = new Map();
+
+  metadata.forEach((entry) => {
+    if (!entry || typeof entry !== 'object') {
+      return;
+    }
+    const rawValue = entry.value;
+    if (typeof rawValue !== 'string') {
+      return;
+    }
+    const url = rawValue.trim();
+    if (!isLikelyAssetUrl(url)) {
+      return;
+    }
+
+    const descriptorFields = [entry.label, entry.name, entry.title, entry.description];
+    const descriptor = descriptorFields.find(
+      (field) => typeof field === 'string' && field.trim()
+    );
+    const descriptorLower = descriptor ? descriptor.toLowerCase() : '';
+    const typeLower = typeof entry.type === 'string' ? entry.type.toLowerCase() : '';
+    const urlLower = url.toLowerCase();
+
+    const isTour =
+      descriptorLower.includes('tour') ||
+      descriptorLower.includes('video') ||
+      typeLower.includes('tour') ||
+      typeLower.includes('video') ||
+      /matterport|youtube|youtu\.be|vimeo|virtual|walkthrough|360/.test(urlLower) ||
+      /\.(mp4|webm|ogg)$/i.test(urlLower);
+
+    if (!isTour) {
+      return;
+    }
+
+    let subtype = null;
+    if (typeLower.includes('video') || descriptorLower.includes('video')) {
+      subtype = 'video';
+    } else if (
+      typeLower.includes('virtual') ||
+      typeLower.includes('360') ||
+      descriptorLower.includes('virtual') ||
+      descriptorLower.includes('360') ||
+      urlLower.includes('matterport') ||
+      urlLower.includes('360')
+    ) {
+      subtype = 'virtual';
+    }
+
+    metadataByUrl.set(url, {
+      label: descriptor || null,
+      subtype,
+    });
+  });
+
+  const append = (candidateUrl) => {
+    if (typeof candidateUrl !== 'string') {
+      return;
+    }
+    const url = candidateUrl.trim();
+    if (!isLikelyAssetUrl(url) || seen.has(url)) {
+      return;
+    }
+    seen.add(url);
+    const metadataInfo = metadataByUrl.get(url) || {};
+    results.push({
+      url,
+      label: metadataInfo.label || null,
+      subtype: metadataInfo.subtype || null,
+    });
+  };
+
+  const mediaList = Array.isArray(mediaUrls) ? mediaUrls : [];
+  mediaList.forEach((url) => append(url));
+  metadataByUrl.forEach((_, url) => append(url));
+
+  return results;
 }
 
 function resolveAgentProfile(rawProperty) {
@@ -1382,6 +1471,14 @@ export default function Property({ property, recommendations }) {
 
     return highlights;
   }, [property?.councilTaxBand, property?.epcScore, property?.tenure]);
+  const floorplanLinks = Array.isArray(property?.floorplans) ? property.floorplans : [];
+  const brochureLinks = Array.isArray(property?.brochures) ? property.brochures : [];
+  const tourEntries = useMemo(
+    () => deriveTourEntries(property?.media, property?.metadata),
+    [property?.media, property?.metadata]
+  );
+  const hasMediaHighlights =
+    floorplanLinks.length > 0 || brochureLinks.length > 0 || tourEntries.length > 0;
   const headlinePrice = formattedPrimaryPrice || priceLabel || '';
   const numericPriceValue = useMemo(() => {
     if (property?.priceValue != null && Number.isFinite(Number(property.priceValue))) {
@@ -1685,6 +1782,14 @@ export default function Property({ property, recommendations }) {
           </div>
         </section>
 
+        {hasMediaHighlights && (
+          <MediaHighlights
+            floorplans={floorplanLinks}
+            brochures={brochureLinks}
+            tours={tourEntries}
+          />
+        )}
+
       {hasLocation && (
         <section className={`${styles.contentRail} ${styles.mapSection}`}>
           <h2>Location</h2>
@@ -1976,6 +2081,18 @@ export async function getStaticProps({ params }) {
       images: imgList,
       agentProfile: resolveAgentProfile(rawProperty),
       media: extractMedia(rawProperty),
+      floorplans: extractSupplementaryLinks(rawProperty, [
+        'floorplan',
+        'floor plan',
+        'floor_plan',
+      ]),
+      brochures: extractSupplementaryLinks(rawProperty, [
+        'brochure',
+        'particulars',
+        'specification',
+        'spec sheet',
+      ]),
+      metadata: Array.isArray(rawProperty.metadata) ? rawProperty.metadata : [],
       tenure: derivedTenure,
       features: (() => {
         const rawFeatures =

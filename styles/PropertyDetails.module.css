@@ -17,6 +17,103 @@
   margin-bottom: var(--spacing-xl);
 }
 
+.mediaHighlights {
+  margin-bottom: var(--spacing-xl);
+}
+
+.mediaHighlightsTitle {
+  margin: 0 0 var(--spacing-md);
+  font-size: clamp(1.35rem, 2.2vw, 1.65rem);
+}
+
+.mediaHighlightsTrack {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--spacing-md);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(220px, 1fr);
+  overflow-x: auto;
+  padding-bottom: var(--spacing-sm);
+  scroll-snap-type: x mandatory;
+  scroll-padding: var(--spacing-md);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.mediaHighlightsTrack::-webkit-scrollbar {
+  display: none;
+}
+
+.mediaHighlightItem {
+  scroll-snap-align: start;
+  min-width: 0;
+}
+
+.mediaHighlightCard {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border-radius: 18px;
+  background: var(--color-background);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mediaHighlightCard:hover,
+.mediaHighlightCard:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+}
+
+.mediaHighlightIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.mediaHighlightText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mediaHighlightLabel {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.mediaHighlightCta {
+  font-size: 0.875rem;
+  color: var(--color-muted-text);
+}
+
+@media (min-width: 720px) {
+  .mediaHighlightsTrack {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    overflow-x: visible;
+    padding-bottom: 0;
+  }
+}
+
+@media (min-width: 960px) {
+  .mediaHighlightCard {
+    padding: calc(var(--spacing-lg) * 1.1) calc(var(--spacing-xl) * 0.9);
+  }
+}
+
 .sectionNav {
   position: sticky;
   top: calc(50px + var(--spacing-md) * 2);
