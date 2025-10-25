@@ -186,6 +186,8 @@ function toDateTimeLocalInputValue(value) {
 
 export default function AdminValuationsPage() {
   const router = useRouter();
+  const { isReady: routerReady, query: routerQuery, replace: routerReplace } = router;
+  const routeQueryId = routerQuery?.id;
   const { user, loading: sessionLoading } = useSession();
   const isAdmin = user?.role === 'admin';
   const pageTitle = 'Aktonz Admin — Valuation requests';
@@ -260,23 +262,26 @@ export default function AdminValuationsPage() {
     loadValuations();
   }, [isAdmin, loadValuations]);
 
+  const routeId = useMemo(
+    () => (routerReady ? normalizeRouteId(routeQueryId) : null),
+    [routerReady, routeQueryId],
+  );
+
   useEffect(() => {
-    if (!router.isReady) {
+    if (!routerReady) {
       return;
     }
 
-    const routeId = normalizeRouteId(router.query.id);
     if (routeId) {
       setSelectedId(routeId);
     }
-  }, [router.isReady, router.query.id]);
+  }, [routerReady, routeId]);
 
   useEffect(() => {
     if (!valuations.length) {
       return;
     }
 
-    const routeId = router.isReady ? normalizeRouteId(router.query.id) : null;
     if (routeId && valuations.some((entry) => entry.id === routeId)) {
       return;
     }
@@ -287,15 +292,15 @@ export default function AdminValuationsPage() {
 
     if (activeId && activeId !== routeId) {
       setSelectedId(activeId);
-      if (router.isReady) {
-        router.replace(
+      if (routerReady) {
+        routerReplace(
           { pathname: '/admin/valuations/[id]', query: { id: activeId } },
           `/admin/valuations/${activeId}`,
           { shallow: true },
         );
       }
     }
-  }, [valuations, router, selectedId]);
+  }, [valuations, routerReady, routerReplace, routeId, selectedId]);
 
   const selectedValuation = useMemo(
     () => valuations.find((entry) => entry.id === selectedId) || null,
