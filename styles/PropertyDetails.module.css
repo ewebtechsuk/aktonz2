@@ -499,11 +499,33 @@
   display: grid;
   gap: var(--section-gap);
   margin-bottom: var(--section-gap);
+  position: relative;
+  isolation: isolate;
+}
+
+.modules::before {
+  content: '';
+  position: absolute;
+  top: calc(-1 * var(--spacing-lg));
+  left: var(--spacing-md);
+  right: var(--spacing-md);
+  height: clamp(72px, 18vw, 112px);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 229, 0, 0.28) 0%,
+    rgba(255, 229, 0, 0.08) 100%
+  );
+  border-radius: 999px;
+  box-shadow: 0 32px 60px rgba(255, 229, 0, 0.22);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .modules > * {
   width: 100%;
   max-width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .modules .features,
@@ -526,6 +548,9 @@
   border: 1px solid rgba(15, 23, 42, 0.08);
   box-shadow: 0 24px 52px rgba(15, 23, 42, 0.12);
   align-items: center;
+  position: relative;
+  overflow: visible;
+  z-index: 1;
 }
 
 .agentCard :global(.agent-card__media) {
@@ -547,10 +572,20 @@
 }
 
 .agentCard :global(.agent-card__eyebrow) {
-  color: var(--color-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.45rem 1.2rem;
+  border-radius: 999px;
+  background: linear-gradient(120deg, rgba(255, 229, 0, 0.95), rgba(255, 214, 0, 0.75));
+  box-shadow: 0 18px 40px rgba(255, 229, 0, 0.38);
+  position: relative;
+  margin-bottom: var(--spacing-sm);
 }
 
 .agentCard :global(.agent-card__name) {
@@ -588,6 +623,42 @@
   color: var(--color-text);
 }
 
+.agentCard :global(.agent-card__reviewRole) {
+  font-weight: 500;
+  color: var(--color-muted-text);
+}
+
+.agentCard :global(.agent-card__testimonialNav) {
+  margin-top: var(--spacing-md);
+  display: inline-flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.agentCard :global(.agent-card__testimonialButton) {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--color-text);
+  font-size: 1.5rem;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+}
+
+.agentCard :global(.agent-card__testimonialButton:hover),
+.agentCard :global(.agent-card__testimonialButton:focus-visible) {
+  background: var(--color-secondary);
+  color: var(--color-primary);
+  box-shadow: 0 18px 40px rgba(255, 229, 0, 0.4);
+}
+
+.agentCard :global(.agent-card__testimonialCounter) {
+  font-weight: 600;
+  color: var(--color-muted-text);
+  min-width: 4rem;
+  text-align: center;
+}
+
 @media (max-width: 900px) {
   .agentCard {
     grid-template-columns: 1fr;
@@ -606,6 +677,27 @@
 
   .agentCard :global(.agent-card__sla) {
     margin-top: var(--spacing-sm);
+  }
+
+  .agentCard :global(.agent-card__testimonialNav) {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 720px) {
+  .modules::before {
+    top: calc(-1 * var(--spacing-md) * 1.6);
+    left: var(--spacing-sm);
+    right: var(--spacing-sm);
+    height: 84px;
+  }
+
+  .agentCard {
+    padding: var(--spacing-lg);
+  }
+
+  .agentCard :global(.agent-card__eyebrow) {
+    margin-bottom: var(--spacing-xs);
   }
 }
 

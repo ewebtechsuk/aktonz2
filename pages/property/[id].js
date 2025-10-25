@@ -86,6 +86,20 @@ const DEFAULT_AGENT_PROFILE = (() => {
     reviewSnippet:
       '“Exceptional communication and proactive updates throughout the letting process.”',
     reviewAttribution: 'Landlord review, March 2024',
+    testimonials: [
+      {
+        quote:
+          '“Exceptional communication and proactive updates throughout the letting process.”',
+        attribution: 'Landlord review, March 2024',
+        role: 'Verified Aktonz landlord',
+      },
+      {
+        quote:
+          '“They paired us with high-quality tenants within days and handled everything professionally.”',
+        attribution: 'Tenant placement feedback, January 2024',
+        role: 'Managed services client',
+      },
+    ],
     photo: primary?.photo || AGENT_PLACEHOLDER_IMAGE,
   };
 })();
@@ -744,6 +758,37 @@ function resolveAgentProfile(rawProperty) {
       AGENT_PLACEHOLDER_IMAGE
     ) || AGENT_PLACEHOLDER_IMAGE;
 
+  const resolvedTestimonials = [];
+  appendAgentTestimonials(resolvedTestimonials, rawProperty.agentTestimonials);
+  appendAgentTestimonials(resolvedTestimonials, rawProperty.agentTestimonialsList);
+  appendAgentTestimonials(resolvedTestimonials, rawProperty.agentTestimonial);
+  appendAgentTestimonials(resolvedTestimonials, rawProperty.agentReviews);
+  appendAgentTestimonials(resolvedTestimonials, rawProperty.agentQuotes);
+  appendAgentTestimonials(resolvedTestimonials, rawProperty.agent?.testimonials);
+  appendAgentTestimonials(resolvedTestimonials, rawProperty.agent?.reviews);
+  appendAgentTestimonials(resolvedTestimonials, rawProperty.agent?.quotes);
+  appendAgentTestimonials(
+    resolvedTestimonials,
+    rawProperty.marketing?.agent?.testimonials
+  );
+  appendAgentTestimonials(resolvedTestimonials, namedCandidate?.testimonials);
+  appendAgentTestimonials(resolvedTestimonials, namedCandidate?.reviews);
+  appendAgentTestimonials(resolvedTestimonials, namedCandidate?.quotes);
+  appendAgentTestimonials(resolvedTestimonials, mappedAgent?.testimonials);
+  appendAgentTestimonials(resolvedTestimonials, mappedAgent?.reviews);
+  appendAgentTestimonials(resolvedTestimonials, mappedAgent?.quotes);
+
+  if (resolvedTestimonials.length === 0) {
+    appendAgentTestimonials(resolvedTestimonials, {
+      quote: resolvedReviewSnippet,
+      attribution: resolvedReviewAttribution,
+    });
+  }
+
+  if (resolvedTestimonials.length === 0) {
+    appendAgentTestimonials(resolvedTestimonials, baseProfile.testimonials);
+  }
+
   return {
     id: resolvedAgentId,
     name: resolvedName,
@@ -753,6 +798,10 @@ function resolveAgentProfile(rawProperty) {
     reviewSnippet: resolvedReviewSnippet,
     reviewAttribution: resolvedReviewAttribution,
     photo: resolvedPhoto,
+    testimonials:
+      resolvedTestimonials.length > 0
+        ? resolvedTestimonials
+        : baseProfile.testimonials,
   };
 }
 
@@ -1738,7 +1787,11 @@ export default function Property({ property, recommendations }) {
 
       <section className={`${styles.contentRail} ${styles.modules}`}>
         {agentProfile && (
-          <AgentCard className={styles.agentCard} agent={agentProfile} />
+          <AgentCard
+            className={styles.agentCard}
+            agent={agentProfile}
+            testimonials={agentProfile?.testimonials}
+          />
         )}
 
         <PropertySustainabilityPanel property={property} />
