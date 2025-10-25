@@ -6,6 +6,7 @@ import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/Admi
 import { useSession } from '../../../components/SessionProvider';
 import adminStyles from '../../../styles/Admin.module.css';
 import styles from '../../../styles/AdminLettingsProperty.module.css';
+import { formatAdminCurrency } from '../../../lib/admin/formatters';
 
 const INITIAL_FORM_STATE = {
   reference: '',
@@ -378,7 +379,12 @@ export default function AdminLettingsPropertyPage() {
                           {result.postcode ? <span>{result.postcode}</span> : null}
                           {result.price ? (
                             <span>
-                              £{Number(result.price).toLocaleString('en-GB')} {result.rentFrequency ? `/ ${result.rentFrequency}` : ''}
+                              {`${
+                                formatAdminCurrency(result.price, {
+                                  currency: 'GBP',
+                                  minimumFractionDigits: 0,
+                                }) || '£0'
+                              }${result.rentFrequency ? ` / ${result.rentFrequency}` : ''}`}
                             </span>
                           ) : null}
                         </div>
