@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 
@@ -537,6 +537,8 @@ export default function AdminDiaryWorkspacePage() {
   const [composerValues, setComposerValues] = useState(DEFAULT_COMPOSER_VALUES);
   const [composerError, setComposerError] = useState(null);
 
+  const importAbortControllerRef = useRef(null);
+
   const calendarForDisplay = calendar ?? FALLBACK_CALENDAR;
   const calendarTotals = calendar?.totals ?? FALLBACK_CALENDAR.totals;
   const calendarRangeLabel = calendar?.range?.label ?? FALLBACK_CALENDAR.range?.label ?? '';
@@ -631,29 +633,57 @@ export default function AdminDiaryWorkspacePage() {
   }, [calendar, loadDiary]);
 
   const handleImport = useCallback(async () => {
-    if (importing) {
-      return;
+    if (importAbortControllerRef.current) {
+      importAbortControllerRef.current.abort();
+      importAbortControllerRef.current = null;
     }
+
+    const controller = new AbortController();
+    importAbortControllerRef.current = controller;
 
     setImporting(true);
     setToast(null);
+
     try {
       const response = await fetch(buildDiaryUrl(calendar?.range?.start), {
         method: 'POST',
+        signal: controller.signal,
       });
       if (!response.ok) {
         throw new Error('Failed to import diary events');
       }
       const json = await response.json();
+      if (controller.signal.aborted) {
+        return;
+      }
       applyCalendarData(json);
       setToast({ type: 'success', message: 'Imported the latest Apex27 diary events.' });
     } catch (err) {
+      if (
+        controller.signal.aborted ||
+        (err && typeof err === 'object' && 'name' in err && err.name === 'AbortError')
+      ) {
+        return;
+      }
       console.error(err);
       setToast({ type: 'error', message: 'Unable to import diary events. Please try again.' });
     } finally {
-      setImporting(false);
+      if (importAbortControllerRef.current === controller) {
+        setImporting(false);
+        importAbortControllerRef.current = null;
+      }
     }
-  }, [applyCalendarData, calendar?.range?.start, importing]);
+  }, [applyCalendarData, calendar?.range?.start]);
+
+  useEffect(
+    () => () => {
+      if (importAbortControllerRef.current) {
+        importAbortControllerRef.current.abort();
+        importAbortControllerRef.current = null;
+      }
+    },
+    [],
+  );
 
   const openComposer = useCallback(
     (type = 'Viewing', preset = {}) => {
