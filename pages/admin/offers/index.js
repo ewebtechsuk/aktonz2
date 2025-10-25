@@ -10,6 +10,7 @@ import {
   formatOfferStatusLabel,
   getOfferStatusOptions,
 } from '../../../lib/offer-statuses.js';
+import { resolveTimestamp } from '../../../lib/timestamps.js';
 
 function formatDate(value) {
   if (!value) {
@@ -97,6 +98,14 @@ function parseHouseholdSize(value) {
   return null;
 }
 
+function getOfferSortTimestamp(offer) {
+  if (!offer) {
+    return 0;
+  }
+
+  return resolveTimestamp(offer.updatedAt, offer.date);
+}
+
 const STATUS_OPTIONS = getOfferStatusOptions();
 
 export default function AdminOffersPage() {
@@ -145,11 +154,7 @@ export default function AdminOffersPage() {
         return;
       }
       const entries = Array.isArray(payload.offers) ? payload.offers.slice() : [];
-      entries.sort(
-        (a, b) =>
-          new Date(b.updatedAt || b.date || 0).getTime() -
-          new Date(a.updatedAt || a.date || 0).getTime(),
-      );
+      entries.sort((a, b) => getOfferSortTimestamp(b) - getOfferSortTimestamp(a));
       setOffers(entries);
     } catch (err) {
       if (
@@ -351,11 +356,7 @@ export default function AdminOffersPage() {
             return merged;
           });
 
-          next.sort(
-            (a, b) =>
-              new Date(b.updatedAt || b.date || 0) -
-              new Date(a.updatedAt || a.date || 0),
-          );
+          next.sort((a, b) => getOfferSortTimestamp(b) - getOfferSortTimestamp(a));
           return next;
         });
 

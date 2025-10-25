@@ -7,6 +7,7 @@ import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../components/admin/AdminNa
 import styles from '../../styles/Admin.module.css';
 import { useSession } from '../../components/SessionProvider';
 import { describeMicrosoftConnection } from '../../lib/microsoft-connection-status.js';
+import { parseTimestamp, resolveTimestamp } from '../../lib/timestamps.js';
 
 const DEFAULT_STATUS_OPTIONS = [
   { value: 'new', label: 'New' },
@@ -387,18 +388,7 @@ export default function AdminDashboard() {
   const valuationsThisWeek = useMemo(() => {
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
-    return valuations.filter((valuation) => {
-      if (!valuation.createdAt) {
-        return false;
-      }
-
-      const createdAt = new Date(valuation.createdAt).getTime();
-      if (Number.isNaN(createdAt)) {
-        return false;
-      }
-
-      return createdAt >= weekAgo;
-    }).length;
+    return valuations.filter((valuation) => parseTimestamp(valuation.createdAt) >= weekAgo).length;
   }, [valuations]);
 
   const salesOffers = useMemo(

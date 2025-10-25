@@ -121,6 +121,7 @@ function openInNewTab(url) {
 function ContactActionsCell({ contact }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
+  const [copyHelper, setCopyHelper] = useState(null);
   const menuRef = useRef(null);
   const toggleRef = useRef(null);
   const router = useRouter();
@@ -170,25 +171,50 @@ function ContactActionsCell({ contact }) {
   }, [statusMessage]);
 
   const copyToClipboard = useCallback(
-    async (value, label) => {
+    async ({ value, successLabel, fallbackTitle }) => {
       if (!value) {
         return;
       }
 
+      const labelText = successLabel ?? 'Copied to clipboard';
+      const helperTitle = fallbackTitle ?? labelText;
+
+      let clipboardSupported = false;
+
       try {
         if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+          clipboardSupported = true;
           await navigator.clipboard.writeText(value);
-          setStatusMessage(label);
+          setCopyHelper(null);
+          setStatusMessage(labelText);
           return;
         }
       } catch (error) {
         console.error('Failed to copy to clipboard', error);
+
+        const errorMessage = error?.message ? String(error.message) : null;
+
+        setCopyHelper({
+          title: helperTitle,
+          value: String(value),
+          message: errorMessage
+            ? `We couldn't copy this automatically (${errorMessage}). Copy the value manually.`
+            : "We couldn't copy this automatically. Copy the value manually.",
+        });
+        setStatusMessage('Clipboard copy failed. Copy the value manually.');
+        return;
       }
 
-      if (typeof window !== 'undefined') {
-        window.prompt('Copy to clipboard: Ctrl+C, Enter', value);
-        setStatusMessage(label);
-      }
+      const manualMessage = clipboardSupported
+        ? "We couldn't copy this automatically. Copy the value manually."
+        : 'Clipboard access is not available in this browser. Copy the value manually.';
+
+      setCopyHelper({
+        title: helperTitle,
+        value: String(value),
+        message: manualMessage,
+      });
+      setStatusMessage('Clipboard copy is unavailable. Copy the value manually.');
     },
     [],
   );
@@ -282,7 +308,12 @@ function ContactActionsCell({ contact }) {
       items.push({
         key: 'copyEmail',
         label: 'Copy email address',
-        onSelect: () => copyToClipboard(contact.email, 'Email address copied to clipboard'),
+        onSelect: () =>
+          copyToClipboard({
+            value: contact.email,
+            successLabel: 'Email address copied to clipboard',
+            fallbackTitle: 'Email address',
+          }),
       });
     }
 
@@ -299,7 +330,12 @@ function ContactActionsCell({ contact }) {
       items.push({
         key: 'copyPhone',
         label: 'Copy phone number',
-        onSelect: () => copyToClipboard(contact.phone, 'Phone number copied to clipboard'),
+        onSelect: () =>
+          copyToClipboard({
+            value: contact.phone,
+            successLabel: 'Phone number copied to clipboard',
+            fallbackTitle: 'Phone number',
+          }),
       });
     }
 
@@ -307,7 +343,12 @@ function ContactActionsCell({ contact }) {
       items.push({
         key: 'copyId',
         label: 'Copy contact ID',
-        onSelect: () => copyToClipboard(contactId, 'Contact ID copied to clipboard'),
+        onSelect: () =>
+          copyToClipboard({
+            value: contactId,
+            successLabel: 'Contact ID copied to clipboard',
+            fallbackTitle: 'Contact ID',
+          }),
       });
     }
 
@@ -360,6 +401,25 @@ function ContactActionsCell({ contact }) {
               </li>
             ))}
           </ul>
+        </div>
+      ) : null}
+      {copyHelper ? (
+        <div className={styles.copyHelper} role="alert">
+          <div className={styles.copyHelperHeader}>
+            <p className={styles.copyHelperTitle}>{copyHelper.title}</p>
+            <button
+              type="button"
+              className={styles.copyHelperClose}
+              onClick={() => setCopyHelper(null)}
+              aria-label="Dismiss manual copy message"
+            >
+              ×
+            </button>
+          </div>
+          <p className={styles.copyHelperMessage}>{copyHelper.message}</p>
+          <code className={styles.copyHelperValue} tabIndex={0}>
+            {copyHelper.value}
+          </code>
         </div>
       ) : null}
       <span className={styles.srOnly} role="status" aria-live="polite">
