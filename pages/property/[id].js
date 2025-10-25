@@ -621,12 +621,19 @@ export default function Property({ property, recommendations }) {
                       ))}
                     </ul>
                   )}
-                  {scrayeReference && (
-                    <p className={styles.reference}>
-                      Scraye reference: <span>{scrayeReference}</span>
-                    </p>
-                  )}
                 </div>
+                {descriptionParagraphs.length > 0 && (
+                  <div className={styles.summaryDescription}>
+                    {descriptionParagraphs.map((paragraph, index) => (
+                      <p key={index}>{paragraph}</p>
+                    ))}
+                  </div>
+                )}
+                {scrayeReference && (
+                  <p className={styles.reference}>
+                    Scraye reference: <span>{scrayeReference}</span>
+                  </p>
+                )}
                 {(pricePrefixLabel || headlinePrice) && (
                   <aside className={styles.summarySidebar}>
                     <div className={styles.summarySidebarInner}>
