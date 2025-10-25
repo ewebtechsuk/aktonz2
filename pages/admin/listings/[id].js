@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -7,8 +7,14 @@ import AdminNavigation, { ADMIN_NAV_ITEMS } from '../../../components/admin/Admi
 import { useSession } from '../../../components/SessionProvider';
 import styles from '../../../styles/AdminListingDetails.module.css';
 import { formatOfferStatusLabel } from '../../../lib/offer-statuses.js';
-import { formatAdminCurrency, formatAdminDate, formatAdminNumber } from '../../../lib/admin/formatters';
 import { withBasePath } from '../../../lib/base-path';
+import {
+  DATE_ONLY,
+  DATE_TIME_WITH_HOURS,
+  formatAdminCurrency,
+  formatAdminDate,
+  formatAdminNumber,
+} from '../../../lib/admin/formatters';
 import {
   FaAlignLeft,
   FaBalanceScale,
@@ -120,19 +126,14 @@ function formatHeroRent(amount, frequency, currency) {
   const normalisedFrequency = normalizeRentFrequency(frequency);
   const rentCurrency = currency && String(currency).trim() ? String(currency).trim().toUpperCase() : 'GBP';
 
-  let formattedAmount = formatAdminCurrency(numeric, {
-    currency: rentCurrency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
+  const formattedAmount =
+    formatAdminCurrency(numeric, rentCurrency, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }) || null;
 
   if (!formattedAmount) {
-    const fallback = formatAdminNumber(numeric, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-    formattedAmount = fallback
-      ? rentCurrency === 'GBP'
-        ? `£${fallback}`
-        : `${rentCurrency} ${fallback}`
-      : String(numeric);
+    return 'Rent not set';
   }
 
   const frequencyLabel = RENT_FREQUENCY_OPTIONS.find((option) => option.value === normalisedFrequency)?.label;
@@ -144,29 +145,13 @@ function formatCurrencyValue(amount, currency = 'GBP') {
     return '';
   }
 
-  const numeric = Number(String(amount).replace(/[^0-9.-]/g, ''));
-  if (!Number.isFinite(numeric)) {
-    return '';
-  }
-
-  const targetCurrency = currency && String(currency).trim() ? String(currency).trim().toUpperCase() : 'GBP';
-  const formatted = formatAdminCurrency(numeric, {
-    currency: targetCurrency,
+  const formatted = formatAdminCurrency(amount, currency, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
 
-  if (formatted) {
-    return formatted;
+  return formatted || '';
   }
-
-  const fallback = formatAdminNumber(numeric, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-  if (!fallback) {
-    return '';
-  }
-
-  return targetCurrency === 'GBP' ? `£${fallback}` : `${targetCurrency} ${fallback}`;
-}
 
 function cloneFormValues(values) {
   return JSON.parse(JSON.stringify(values));
@@ -318,153 +303,146 @@ const DATE_ONLY = {
 };
 
 function formatDateTime(value) {
-  if (!value) {
-    return '—';
-  }
-
   const formatted = formatAdminDate(value, DATE_TIME_WITH_HOURS);
   return formatted || '—';
 }
 
-  function formatDateDisplay(value) {
-    if (!value) {
+function formatDateDisplay(value) {
+  const formatted = formatAdminDate(value, DATE_ONLY);
+  return formatted || '—';
+}
+
+function formatFlattenedKey(path) {
+  if (!path) {
+    return '';
+  }
+
+  return path
+    .replace(/\[(\d+)\]/g, '.$1')
+    .split('.')
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+    .map((segment) => {
+      if (/^\d+$/.test(segment)) {
+        return `#${Number(segment) + 1}`;
+      }
+
+      return segment
+        .replace(/[_-]+/g, ' ')
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+    })
+    .join(' • ');
+}
+
+function formatFlattenedValue(value) {
+  if (value == null) {
+    return '—';
+  }
+
+  if (value instanceof Date) {
+    return formatDateDisplay(value);
+  }
+
+  if (Array.isArray(value)) {
+    if (!value.length) {
       return '—';
     }
 
-    const formatted = formatAdminDate(value, DATE_ONLY);
-    return formatted || '—';
+    const formatted = value
+      .map((item) => formatFlattenedValue(item))
+      .filter((entry) => entry && entry !== '—');
+
+    return formatted.length ? formatted.join(', ') : '—';
   }
 
-  function formatFlattenedKey(path) {
-    if (!path) {
-      return '';
-    }
-
-    return path
-      .replace(/\[(\d+)\]/g, '.$1')
-      .split('.')
-      .map((segment) => segment.trim())
-      .filter(Boolean)
-      .map((segment) => {
-        if (/^\d+$/.test(segment)) {
-          return `#${Number(segment) + 1}`;
-        }
-
-        return segment
-          .replace(/[_-]+/g, ' ')
-          .replace(/\b\w/g, (char) => char.toUpperCase());
-      })
-      .join(' • ');
+  const type = typeof value;
+  if (type === 'boolean') {
+    return value ? 'Yes' : 'No';
   }
 
-  function formatFlattenedValue(value) {
-    if (value == null) {
+  if (type === 'number') {
+    const formattedNumber = formatAdminNumber(value);
+    return formattedNumber || String(value);
+  }
+
+  if (type === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
       return '—';
     }
 
+    const parsedTimestamp = Date.parse(trimmed);
+    if (Number.isFinite(parsedTimestamp) && trimmed.length >= 8) {
+      return formatDateDisplay(trimmed) || trimmed;
+    }
+
+    return trimmed;
+  }
+
+  if (type === 'object') {
+    const entries = Object.entries(value);
+    if (!entries.length) {
+      return '—';
+    }
+
+    return entries
+      .map(([key, entryValue]) => `${formatFlattenedKey(key)}: ${formatFlattenedValue(entryValue)}`)
+      .join('; ');
+  }
+
+  return String(value);
+}
+
+function flattenRecord(record, { maxDepth = 3, skipNull = false, prefix = '' } = {}) {
+  if (!record || typeof record !== 'object' || record instanceof Date) {
+    return [];
+  }
+
+  const pairs = [];
+
+  const traverse = (value, currentPath, depth) => {
     if (value instanceof Date) {
-      return formatDateDisplay(value);
+      pairs.push({ key: currentPath, value });
+      return;
     }
 
-    if (Array.isArray(value)) {
-      if (!value.length) {
-        return '—';
-      }
-
-      const formatted = value
-        .map((item) => formatFlattenedValue(item))
-        .filter((entry) => entry && entry !== '—');
-
-      return formatted.length ? formatted.join(', ') : '—';
-    }
-
-    const type = typeof value;
-    if (type === 'boolean') {
-      return value ? 'Yes' : 'No';
-    }
-
-    if (type === 'number') {
-      return Number.isFinite(value) ? formatAdminNumber(value) : String(value);
-    }
-
-    if (type === 'string') {
-      const trimmed = value.trim();
-      if (!trimmed) {
-        return '—';
-      }
-
-      const parsedTimestamp = Date.parse(trimmed);
-      if (Number.isFinite(parsedTimestamp) && trimmed.length >= 8) {
-        return formatDateDisplay(trimmed) || trimmed;
-      }
-
-      return trimmed;
-    }
-
-    if (type === 'object') {
-      const entries = Object.entries(value);
-      if (!entries.length) {
-        return '—';
-      }
-
-      return entries
-        .map(([key, entryValue]) => `${formatFlattenedKey(key)}: ${formatFlattenedValue(entryValue)}`)
-        .join('; ');
-    }
-
-    return String(value);
-  }
-
-  function flattenRecord(record, { maxDepth = 3, skipNull = false, prefix = '' } = {}) {
-    if (!record || typeof record !== 'object' || record instanceof Date) {
-      return [];
-    }
-
-    const pairs = [];
-
-    const traverse = (value, currentPath, depth) => {
-      if (value instanceof Date) {
-        pairs.push({ key: currentPath, value });
+    if (typeof value !== 'object' || value === null) {
+      if (skipNull && (value == null || value === '')) {
         return;
       }
+      pairs.push({ key: currentPath, value });
+      return;
+    }
 
-      if (typeof value !== 'object' || value === null) {
-        if (skipNull && (value == null || value === '')) {
-          return;
-        }
-        pairs.push({ key: currentPath, value });
+    if (depth >= maxDepth) {
+      if (skipNull && (value == null || value === '')) {
         return;
       }
+      pairs.push({ key: currentPath, value });
+      return;
+    }
 
-      if (depth >= maxDepth) {
-        if (skipNull && (value == null || value === '')) {
-          return;
-        }
-        pairs.push({ key: currentPath, value });
-        return;
-      }
+    const entries = Array.isArray(value)
+      ? value.map((entry, index) => [String(index), entry])
+      : Object.entries(value);
 
-      const entries = Array.isArray(value)
-        ? value.map((entry, index) => [String(index), entry])
-        : Object.entries(value);
+    for (const [key, entryValue] of entries) {
+      const nextPath = currentPath
+        ? Array.isArray(value)
+          ? `${currentPath}[${key}]`
+          : `${currentPath}.${key}`
+        : Array.isArray(value)
+          ? `[${key}]`
+          : key;
 
-      for (const [key, entryValue] of entries) {
-        const nextPath = currentPath
-          ? Array.isArray(value)
-            ? `${currentPath}[${key}]`
-            : `${currentPath}.${key}`
-          : Array.isArray(value)
-            ? `[${key}]`
-            : key;
+      traverse(entryValue, nextPath, depth + 1);
+    }
+  };
 
-        traverse(entryValue, nextPath, depth + 1);
-      }
-    };
+  traverse(record, prefix, 0);
 
-    traverse(record, prefix, 0);
-
-    return pairs;
-  }
+  return pairs;
+}
 
 function formatRelativeTime(value) {
   if (!value) {
@@ -774,6 +752,7 @@ export default function AdminListingDetailsPage() {
   const [saveSuccess, setSaveSuccess] = useState('');
   const [validationErrors, setValidationErrors] = useState([]);
   const [activeTab, setActiveTab] = useState('main-details');
+  const fetchControllerRef = useRef(null);
 
   const listingId = useMemo(() => {
     if (!router.isReady) {
@@ -788,12 +767,23 @@ export default function AdminListingDetailsPage() {
       return;
     }
 
+    if (fetchControllerRef.current) {
+      fetchControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    fetchControllerRef.current = controller;
+
     setLoading(true);
     setError('');
 
     try {
       const response = await fetch(
         withBasePath(`/api/admin/listings/${encodeURIComponent(listingId)}`),
+        {
+          credentials: 'include',
+          signal: controller.signal,
+        },
       );
       if (!response.ok) {
         if (response.status === 404) {
@@ -802,13 +792,23 @@ export default function AdminListingDetailsPage() {
         throw new Error('Failed to fetch listing');
       }
       const payload = await response.json();
-      setListing(payload.listing || null);
+      if (!controller.signal.aborted) {
+        setListing(payload.listing || null);
+      }
     } catch (err) {
+      if (controller.signal.aborted) {
+        return;
+      }
       console.error(err);
       setError(err.message || 'Unable to load listing');
       setListing(null);
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
+      if (fetchControllerRef.current === controller) {
+        fetchControllerRef.current = null;
+      }
     }
   }, [listingId]);
 
@@ -822,6 +822,16 @@ export default function AdminListingDetailsPage() {
 
     fetchListing();
   }, [fetchListing, isAdmin, listingId, sessionLoading]);
+
+  useEffect(
+    () => () => {
+      if (fetchControllerRef.current) {
+        fetchControllerRef.current.abort();
+        fetchControllerRef.current = null;
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!listing) {
@@ -1365,14 +1375,12 @@ export default function AdminListingDetailsPage() {
 
       try {
         const payload = buildUpdatePayload(formValues);
-        const response = await fetch(
-          withBasePath(`/api/admin/listings/${encodeURIComponent(listingId)}`),
-          {
-            method: 'PATCH',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify(payload),
-          },
-        );
+        const response = await fetch(withBasePath(`/api/admin/listings/${encodeURIComponent(listingId)}`), {
+          method: 'PATCH',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload),
+          credentials: 'include',
+        });
 
         if (!response.ok) {
           const errorPayload = await response.json().catch(() => null);
