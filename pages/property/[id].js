@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import PropertyList from '../../components/PropertyList';
 import MediaGallery from '../../components/MediaGallery';
 import OfferDrawer from '../../components/OfferDrawer';
@@ -32,6 +32,14 @@ import {
 } from '../../lib/property-type.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
 import { FaBed, FaBath, FaCouch } from 'react-icons/fa';
+import {
+  FiDroplet,
+  FiHome,
+  FiLayers,
+  FiShield,
+  FiStar,
+  FiSun,
+} from 'react-icons/fi';
 import {
   formatPriceGBP,
   formatPricePrefix,
@@ -111,6 +119,198 @@ function collectAgentCandidates(rawProperty) {
   pushCandidate(rawProperty.marketing?.agent);
 
   return candidates;
+}
+
+const FEATURE_GROUP_DEFINITIONS = [
+  {
+    id: 'interior',
+    label: 'Interior highlights',
+    icon: FiHome,
+    matchers: [
+      'open-plan',
+      'open plan',
+      'kitchen',
+      'kitchenette',
+      'living area',
+      'reception',
+      'bedroom',
+      'bathroom',
+      'ensuite',
+      'en-suite',
+      'storage',
+      'wardrobe',
+      'cupboard',
+      'high ceilings',
+      'big windows',
+      'natural light',
+      'wood floors',
+      'herringbone',
+      'furnished',
+      'unfurnished',
+      'modern finishes',
+      'finish',
+    ],
+  },
+  {
+    id: 'utilities',
+    label: 'Appliances & utilities',
+    icon: FiDroplet,
+    matchers: [
+      'dishwasher',
+      'washer',
+      'dryer',
+      'laundry',
+      'washer/dryer',
+      'washer dryer',
+      'washing machine',
+      'freezer',
+      'fridge',
+      'refrigerator',
+      'wifi',
+      'wi-fi',
+      'internet',
+      'broadband',
+      'air conditioning',
+      'heating',
+      'underfloor',
+      'utility',
+      'appliance',
+    ],
+  },
+  {
+    id: 'amenities',
+    label: 'Building amenities',
+    icon: FiLayers,
+    matchers: [
+      'concierge',
+      'front desk',
+      'reception team',
+      'lift',
+      'elevator',
+      'gym',
+      'spa',
+      'pool',
+      'co-working',
+      'coworking',
+      'lounge',
+      'meeting room',
+      'media room',
+      'cinema',
+      'games room',
+      'communal',
+      'resident',
+      'club',
+      'studio',
+      'amenities',
+    ],
+  },
+  {
+    id: 'outdoor',
+    label: 'Outdoor & parking',
+    icon: FiSun,
+    matchers: [
+      'balcony',
+      'terrace',
+      'garden',
+      'patio',
+      'courtyard',
+      'roof',
+      'rooftop',
+      'wraparound',
+      'parking',
+      'garage',
+      'cycle',
+      'bicycle',
+      'bike',
+      'outdoor',
+    ],
+  },
+  {
+    id: 'security',
+    label: 'Security & services',
+    icon: FiShield,
+    matchers: [
+      'security',
+      'secure',
+      'cctv',
+      '24-hour',
+      '24hr',
+      '24 hour',
+      '24/7',
+      'team 24/7',
+      'on-site team',
+      'guard',
+      'monitor',
+      'access',
+      'entry system',
+      'porter',
+      'doorman',
+    ],
+  },
+];
+
+function groupPropertyFeatures(featureList) {
+  if (!Array.isArray(featureList)) {
+    return [];
+  }
+
+  const normalizedFeatures = featureList
+    .map((feature) => {
+      if (feature == null) return null;
+      const text = String(feature).replace(/\s+/g, ' ').trim();
+      return text.length > 0 ? text : null;
+    })
+    .filter(Boolean);
+
+  if (normalizedFeatures.length === 0) {
+    return [];
+  }
+
+  const groups = FEATURE_GROUP_DEFINITIONS.map((definition) => ({
+    id: definition.id,
+    label: definition.label,
+    icon: definition.icon,
+    matchers: definition.matchers,
+    items: [],
+  }));
+
+  const fallbackGroup = {
+    id: 'additional',
+    label: 'Additional highlights',
+    icon: FiStar,
+    items: [],
+  };
+
+  normalizedFeatures.forEach((feature) => {
+    const normalizedLower = feature.toLowerCase();
+    const matchedGroup = groups.find((group) =>
+      group.matchers.some((matcher) => {
+        if (typeof matcher === 'string') {
+          return normalizedLower.includes(matcher);
+        }
+        if (matcher instanceof RegExp) {
+          return matcher.test(normalizedLower);
+        }
+        return false;
+      })
+    );
+
+    if (matchedGroup) {
+      matchedGroup.items.push(feature);
+    } else {
+      fallbackGroup.items.push(feature);
+    }
+  });
+
+  const resolvedGroups = groups
+    .filter((group) => group.items.length > 0)
+    .map(({ matchers, ...group }) => group);
+
+  if (fallbackGroup.items.length > 0) {
+    resolvedGroups.push(fallbackGroup);
+  }
+
+  return resolvedGroups;
 }
 
 function resolveAgentProfile(rawProperty) {
@@ -724,6 +924,10 @@ async function loadPrebuildPropertyIds(limit = null) {
 }
 
 export default function Property({ property, recommendations }) {
+  const [isSummaryExpanded, setSummaryExpanded] = useState(false);
+  useEffect(() => {
+    setSummaryExpanded(false);
+  }, [property?.id]);
   const hasLocation = property?.latitude != null && property?.longitude != null;
   const agentProfile = property?.agentProfile;
   const priceLabel = formatPropertyPriceLabel(property);
@@ -778,6 +982,12 @@ export default function Property({ property, recommendations }) {
       .map((paragraph) => paragraph.trim())
       .filter(Boolean);
   }, [property?.description]);
+  const shouldShowSummaryToggle =
+    descriptionParagraphs.length > 1 || (property?.description?.length ?? 0) > 320;
+  const summaryDescriptionId = useMemo(
+    () => `summary-description-${property?.id ?? 'default'}`,
+    [property?.id]
+  );
   const summaryStats = useMemo(() => {
     const stats = [];
 
@@ -956,6 +1166,10 @@ export default function Property({ property, recommendations }) {
     );
   }
   const features = Array.isArray(property.features) ? property.features : [];
+  const groupedFeatures = useMemo(
+    () => groupPropertyFeatures(features),
+    [features]
+  );
   const displayType =
     property.typeLabel ??
     property.propertyTypeLabel ??
@@ -987,7 +1201,7 @@ export default function Property({ property, recommendations }) {
     if (hasLocation) {
       sectionsList.push({ id: 'property-location', label: 'Location' });
     }
-    if (features.length > 0) {
+    if (groupedFeatures.length > 0) {
       sectionsList.push({ id: 'property-features', label: 'Key features' });
     }
     if (showMortgageCalculator || showRentCalculator) {
@@ -998,7 +1212,7 @@ export default function Property({ property, recommendations }) {
     }
     return sectionsList;
   }, [
-    features.length,
+    groupedFeatures.length,
     hasLocation,
     hasRecommendations,
     showMortgageCalculator,
@@ -1045,6 +1259,33 @@ export default function Property({ property, recommendations }) {
                     </ul>
                   )}
                 </div>
+                {descriptionParagraphs.length > 0 && (
+                  <div
+                    className={`${styles.summaryDescription} ${
+                      isSummaryExpanded ? styles.summaryDescriptionExpanded : ''
+                    }`}
+                  >
+                    <div
+                      className={styles.summaryDescriptionText}
+                      id={summaryDescriptionId}
+                    >
+                      {descriptionParagraphs.map((paragraph, index) => (
+                        <p key={index}>{paragraph}</p>
+                      ))}
+                    </div>
+                    {shouldShowSummaryToggle && (
+                      <button
+                        type="button"
+                        className={styles.summaryDescriptionToggle}
+                        onClick={() => setSummaryExpanded((previous) => !previous)}
+                        aria-expanded={isSummaryExpanded}
+                        aria-controls={summaryDescriptionId}
+                      >
+                        {isSummaryExpanded ? 'Read less' : 'Read more'}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             {(pricePrefixLabel || headlinePrice) && (
@@ -1102,46 +1343,90 @@ export default function Property({ property, recommendations }) {
           </div>
         </section>
 
-        <SectionNav sections={navSections} />
+      {hasLocation && (
+        <section className={`${styles.contentRail} ${styles.mapSection}`}>
+          <h2>Location</h2>
+          <div className={styles.mapContainer}>
+            <PropertyMap
+              mapId="property-details-map"
+              center={[property.latitude, property.longitude]}
+              zoom={16}
+              properties={mapProperties}
+            />
+          </div>
+        </section>
+      )}
 
-        {hasLocation && (
+      <section className={`${styles.contentRail} ${styles.modules}`}>
+        {agentProfile && (
+          <AgentCard className={styles.agentCard} agent={agentProfile} />
+        )}
+
+        <PropertySustainabilityPanel property={property} />
+
+        <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
+
+        {groupedFeatures.length > 0 && (
           <section
-            id="property-location"
-            className={`${styles.contentRail} ${styles.mapSection} ${styles.sectionAnchor}`}
+            id="property-features"
+            className={`${styles.features} ${styles.sectionAnchor}`}
           >
-            <h2>Location</h2>
-            <div className={styles.mapContainer}>
-              <PropertyMap
-                mapId="property-details-map"
-                center={[property.latitude, property.longitude]}
-                zoom={16}
-                properties={mapProperties}
-              />
+            <h2>Key features</h2>
+            <div className={styles.featuresGrid}>
+              {groupedFeatures.map((group) => {
+                const Icon = group.icon;
+                return (
+                  <article key={group.id} className={styles.featureGroup}>
+                    <div className={styles.featureGroupHeader}>
+                      {Icon ? (
+                        <span className={styles.featureGroupIcon}>
+                          <Icon aria-hidden="true" />
+                        </span>
+                      ) : null}
+                      <h3>{group.label}</h3>
+                    </div>
+                    <ul className={styles.featureItems}>
+                      {group.items.map((feature, index) => (
+                        <li key={index}>{feature}</li>
+                      ))}
+                    </ul>
+                  </article>
+                );
+              })}
             </div>
           </section>
         )}
 
-        {features.length > 0 && (
+        {(showMortgageCalculator || showRentCalculator) && (
           <section
-            id="property-features"
-            className={`${styles.contentRail} ${styles.features} ${styles.sectionAnchor}`}
+            id="property-calculators"
+            className={styles.sectionAnchor}
           >
-            <h2>Key features</h2>
-            <ul>
-              {features.map((f, i) => (
-                <li key={i}>{f}</li>
-              ))}
-            </ul>
+            <div className={styles.calculatorGroup}>
+              {showMortgageCalculator && (
+                <div className={styles.calculatorSection}>
+                  <h2>Mortgage Calculator</h2>
+                  <MortgageCalculator
+                    defaultPrice={parsePriceNumber(property.price)}
+                  />
+                </div>
+              )}
+
+              {showRentCalculator && (
+                <div className={styles.calculatorSection}>
+                  <h2>Rent Affordability</h2>
+                  <RentAffordability
+                    defaultRent={rentToMonthly(
+                      property.price,
+                      property.rentFrequency
+                    )}
+                  />
+                </div>
+              )}
+            </div>
           </section>
         )}
-
-        <div className={`${styles.contentRail} ${styles.modules}`}>
-          {agentProfile && (
-            <AgentCard className={styles.agentCard} agent={agentProfile} />
-          )}
-          <PropertySustainabilityPanel property={property} />
-          <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
-        </div>
+      </section>
 
         {(showMortgageCalculator || showRentCalculator) && (
           <section
