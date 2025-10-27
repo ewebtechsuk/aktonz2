@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import PropertyList from '../../components/PropertyList';
 import MediaGallery from '../../components/MediaGallery';
 import OfferDrawer from '../../components/OfferDrawer';
 import ViewingForm from '../../components/ViewingForm';
+import ViewingTimeline from '../../components/ViewingTimeline';
 import NeighborhoodInfo from '../../components/NeighborhoodInfo';
 import FavoriteButton from '../../components/FavoriteButton';
 import PropertySustainabilityPanel from '../../components/PropertySustainabilityPanel';
@@ -22,6 +23,7 @@ import {
   resolveSecurityDepositSource,
   resolveHoldingDepositSource,
 } from '../../lib/apex27.mjs';
+import { listDiaryEvents } from '../../lib/apex27-diary.mjs';
 import {
   resolvePropertyIdentifier,
   propertyMatchesIdentifier,
@@ -30,7 +32,11 @@ import {
   resolvePropertyTypeLabel,
   formatPropertyTypeLabel,
 } from '../../lib/property-type.mjs';
-import { groupPropertyFeatures } from '../../lib/property-features.mjs';
+import {
+  normalizeAgentString,
+  pickFirstAgentString,
+  collectAgentTestimonials,
+} from '../../lib/agent-profile.mjs';
 import styles from '../../styles/PropertyDetails.module.css';
 import {
   FaBed,
@@ -66,7 +72,152 @@ import {
   formatAvailabilityDate,
   resolveAvailabilityDate,
 } from '../../lib/deposits.mjs';
+import {
+  deriveTourEntries,
+  groupPropertyFeatures,
+  LOCATION_INSIGHT_ICON_MAP,
+  extractSupplementaryLinks,
+  computeLocationInsights,
+} from '../../lib/property-content.mjs';
 import agentsData from '../../data/agents.json';
+
+const VIEWING_TIMELINE_TIMEZONE = 'Europe/London';
+
+function parseDate(value) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed;
+}
+
+function formatDateInputValue(date) {
+  if (!(date instanceof Date)) {
+    return '';
+  }
+
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: VIEWING_TIMELINE_TIMEZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(date);
+  } catch {
+    return '';
+  }
+}
+
+function formatTimeInputValue(date) {
+  if (!(date instanceof Date)) {
+    return '';
+  }
+
+  try {
+    return new Intl.DateTimeFormat('en-GB', {
+      timeZone: VIEWING_TIMELINE_TIMEZONE,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(date);
+  } catch {
+    return '';
+  }
+}
+
+function viewingEventMatchesProperty(event, propertyId) {
+  if (!event || !propertyId) {
+    return false;
+  }
+
+  const normalizedPropertyId = String(propertyId).trim().toLowerCase();
+  if (!normalizedPropertyId) {
+    return false;
+  }
+
+  const eventPropertyId = event?.property?.id
+    ? String(event.property.id).trim().toLowerCase()
+    : null;
+  if (eventPropertyId && eventPropertyId === normalizedPropertyId) {
+    return true;
+  }
+
+  const eventHref = event?.property?.href
+    ? String(event.property.href).trim().toLowerCase()
+    : '';
+  if (eventHref && eventHref.includes(normalizedPropertyId)) {
+    return true;
+  }
+
+  return false;
+}
+
+function normalizeViewingSlot(event) {
+  if (!event || !event.start) {
+    return null;
+  }
+
+  const startDate = parseDate(event.start);
+  if (!startDate) {
+    return null;
+  }
+
+  const endDate = parseDate(event.end) || new Date(startDate.getTime() + 30 * 60000);
+  const startIso = startDate.toISOString();
+  const endIso = endDate.toISOString();
+  const durationMinutes = Math.max(
+    15,
+    Math.round((endDate.getTime() - startDate.getTime()) / 60000)
+  );
+
+  return {
+    id: event.id,
+    start: startIso,
+    end: endIso,
+    dayKey: event.dayKey || (startIso ? startIso.slice(0, 10) : null),
+    location: event.location || null,
+    negotiator: event.negotiator || null,
+    status: event.status || null,
+    slotKey: `${event.id}-${startIso}`,
+    dateValue: formatDateInputValue(startDate),
+    timeValue: formatTimeInputValue(startDate),
+    durationMinutes,
+  };
+}
+
+async function resolveUpcomingViewingSlots(propertyId) {
+  if (!propertyId) {
+    return [];
+  }
+
+  try {
+    const nowIso = new Date().toISOString();
+    const { events } = await listDiaryEvents({ from: nowIso });
+    const relevant = events
+      .filter((event) =>
+        event?.type ? String(event.type).toLowerCase() === 'viewing' : false
+      )
+      .filter((event) => viewingEventMatchesProperty(event, propertyId))
+      .map(normalizeViewingSlot)
+      .filter(Boolean);
+
+    relevant.sort((a, b) => {
+      const aTime = a.start ? new Date(a.start).getTime() : 0;
+      const bTime = b.start ? new Date(b.start).getTime() : 0;
+      return aTime - bTime;
+    });
+
+    return relevant;
+  } catch (error) {
+    console.warn('Unable to load upcoming viewing slots', error);
+    return [];
+  }
+}
 
 const AGENT_ENTRIES = Array.isArray(agentsData) ? agentsData : [];
 const AGENT_MAP = new Map(
@@ -87,324 +238,23 @@ const DEFAULT_AGENT_PROFILE = (() => {
     reviewSnippet:
       '“Exceptional communication and proactive updates throughout the letting process.”',
     reviewAttribution: 'Landlord review, March 2024',
+    testimonials: [
+      {
+        quote:
+          '“Exceptional communication and proactive updates throughout the letting process.”',
+        attribution: 'Landlord review, March 2024',
+        role: 'Verified Aktonz landlord',
+      },
+      {
+        quote:
+          '“They paired us with high-quality tenants within days and handled everything professionally.”',
+        attribution: 'Tenant placement feedback, January 2024',
+        role: 'Managed services client',
+      },
+    ],
     photo: primary?.photo || AGENT_PLACEHOLDER_IMAGE,
   };
 })();
-
-const LOCATION_INSIGHT_ICON_MAP = {
-  transport: FaTrain,
-  schools: FaSchool,
-  walkability: FaWalking,
-};
-
-const MAJOR_CITY_REFERENCES = [
-  {
-    key: 'london',
-    name: 'London',
-    lat: 51.509865,
-    lon: -0.118092,
-    aliases: ['london', 'city of london'],
-    metropolitan: true,
-  },
-  {
-    key: 'birmingham',
-    name: 'Birmingham',
-    lat: 52.486244,
-    lon: -1.890401,
-    aliases: ['birmingham'],
-    metropolitan: true,
-  },
-  {
-    key: 'manchester',
-    name: 'Manchester',
-    lat: 53.480759,
-    lon: -2.242631,
-    aliases: ['manchester', 'greater manchester'],
-    metropolitan: true,
-  },
-  {
-    key: 'leeds',
-    name: 'Leeds',
-    lat: 53.800755,
-    lon: -1.549077,
-    aliases: ['leeds'],
-    metropolitan: true,
-  },
-  {
-    key: 'bristol',
-    name: 'Bristol',
-    lat: 51.454514,
-    lon: -2.58791,
-    aliases: ['bristol'],
-    metropolitan: false,
-  },
-  {
-    key: 'edinburgh',
-    name: 'Edinburgh',
-    lat: 55.953251,
-    lon: -3.188267,
-    aliases: ['edinburgh'],
-    metropolitan: false,
-  },
-  {
-    key: 'glasgow',
-    name: 'Glasgow',
-    lat: 55.864237,
-    lon: -4.251806,
-    aliases: ['glasgow'],
-    metropolitan: true,
-  },
-  {
-    key: 'liverpool',
-    name: 'Liverpool',
-    lat: 53.408371,
-    lon: -2.991573,
-    aliases: ['liverpool'],
-    metropolitan: false,
-  },
-];
-
-function parseCoordinate(value) {
-  if (value == null) return null;
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : null;
-}
-
-function haversineDistanceKm(lat1, lon1, lat2, lon2) {
-  const toRadians = (value) => (value * Math.PI) / 180;
-  const earthRadiusKm = 6371;
-
-  const dLat = toRadians(lat2 - lat1);
-  const dLon = toRadians(lon2 - lon1);
-  const startLat = toRadians(lat1);
-  const endLat = toRadians(lat2);
-
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(startLat) * Math.cos(endLat);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return earthRadiusKm * c;
-}
-
-function resolveCityReference(normalizedCity) {
-  if (!normalizedCity) {
-    return null;
-  }
-
-  const lower = normalizedCity.toLowerCase();
-  return (
-    MAJOR_CITY_REFERENCES.find((entry) =>
-      entry.aliases.some((alias) => alias.toLowerCase() === lower)
-    ) || null
-  );
-}
-
-function resolveNearestCity({ lat, lon, normalizedCity }) {
-  const matchedCity = resolveCityReference(normalizedCity);
-  if (lat == null || lon == null) {
-    if (matchedCity) {
-      return { city: matchedCity, distanceKm: 0, matched: true };
-    }
-    return null;
-  }
-
-  let closest = null;
-  for (const city of MAJOR_CITY_REFERENCES) {
-    const distanceKm = haversineDistanceKm(lat, lon, city.lat, city.lon);
-    if (!closest || distanceKm < closest.distanceKm) {
-      closest = { city, distanceKm, matched: false };
-    }
-  }
-
-  if (!matchedCity) {
-    return closest;
-  }
-
-  const matchedDistanceKm = haversineDistanceKm(
-    lat,
-    lon,
-    matchedCity.lat,
-    matchedCity.lon
-  );
-
-  if (!closest || matchedDistanceKm < closest.distanceKm) {
-    return { city: matchedCity, distanceKm: matchedDistanceKm, matched: true };
-  }
-
-  return closest;
-}
-
-function resolveTransportInsight({ distanceKm, isUrban, isDenseUrban }) {
-  if (distanceKm != null) {
-    if (distanceKm <= 5) {
-      return {
-        grade: 'Excellent',
-        description: 'Fast tube and rail connections within minutes.',
-      };
-    }
-    if (distanceKm <= 15) {
-      return {
-        grade: 'Great',
-        description: 'Frequent rail and bus services into the city centre.',
-      };
-    }
-    if (distanceKm <= 35) {
-      return {
-        grade: 'Good',
-        description: 'Regional transport links reachable with a short drive.',
-      };
-    }
-    return {
-      grade: 'Car-friendly',
-      description: 'Driving offers the most convenient travel for this area.',
-    };
-  }
-
-  if (isDenseUrban) {
-    return {
-      grade: 'Excellent',
-      description: 'Extensive transport network at your doorstep.',
-    };
-  }
-
-  if (isUrban) {
-    return {
-      grade: 'Great',
-      description: 'Well-connected public transport covering daily routes.',
-    };
-  }
-
-  return {
-    grade: 'Car-friendly',
-    description: 'Driving offers the most convenient travel for this area.',
-  };
-}
-
-function resolveSchoolsInsight({ isUrban, isDenseUrban, isFamilySized }) {
-  if (isDenseUrban) {
-    return {
-      grade: 'Top rated',
-      description: 'Choice of highly rated schools within a mile.',
-    };
-  }
-
-  if (isUrban) {
-    return {
-      grade: 'Diverse options',
-      description: 'Multiple primary and secondary schools close by.',
-    };
-  }
-
-  if (isFamilySized) {
-    return {
-      grade: 'Family-friendly',
-      description: 'Well-regarded schools reachable in under 15 minutes.',
-    };
-  }
-
-  return {
-    grade: 'Local network',
-    description: 'Community schools served by nearby towns and villages.',
-  };
-}
-
-function resolveWalkabilityInsight({ distanceKm, isUrban, isDenseUrban }) {
-  if (isDenseUrban) {
-    return {
-      grade: 'Highly walkable',
-      description: 'Daily errands doable on foot with amenities moments away.',
-    };
-  }
-
-  if (isUrban) {
-    return {
-      grade: 'Neighbourhood living',
-      description: 'Cafés, gyms and essentials within a short stroll or cycle.',
-    };
-  }
-
-  if (distanceKm != null && distanceKm <= 35) {
-    return {
-      grade: 'Village convenience',
-      description: 'Local high streets reachable by bike or a relaxed walk.',
-    };
-  }
-
-  return {
-    grade: 'Leafy escape',
-    description: 'Quiet lanes and open spaces ideal for weekend walks.',
-  };
-}
-
-function computeLocationInsights(rawProperty) {
-  if (!rawProperty || typeof rawProperty !== 'object') {
-    return [];
-  }
-
-  const lat =
-    parseCoordinate(rawProperty.latitude) ??
-    parseCoordinate(rawProperty.lat) ??
-    parseCoordinate(rawProperty.latd);
-  const lon =
-    parseCoordinate(rawProperty.longitude) ??
-    parseCoordinate(rawProperty.lon) ??
-    parseCoordinate(rawProperty.lng) ??
-    parseCoordinate(rawProperty.long);
-
-  const cityCandidates = [
-    rawProperty.city,
-    rawProperty.town,
-    rawProperty.locality,
-    rawProperty.area,
-    rawProperty.address?.city,
-    rawProperty.address?.town,
-    rawProperty.address?.village,
-    rawProperty._scraye?.placeName,
-  ];
-
-  const resolvedCityName = cityCandidates.find(
-    (value) => typeof value === 'string' && value.trim()
-  );
-  const normalizedCity = resolvedCityName?.trim().toLowerCase() ?? null;
-
-  const nearestCity = resolveNearestCity({ lat, lon, normalizedCity });
-  const distanceKm = nearestCity?.distanceKm ?? null;
-  const isUrban = Boolean(nearestCity?.matched) || (distanceKm != null && distanceKm <= 25);
-  const isDenseUrban =
-    (nearestCity?.matched && Boolean(nearestCity?.city?.metropolitan)) ||
-    (distanceKm != null && distanceKm <= 8);
-
-  const bedrooms = parseCoordinate(
-    rawProperty.bedrooms ?? rawProperty.beds ?? rawProperty.bedroomsCount
-  );
-  const isFamilySized = Number.isFinite(bedrooms) ? bedrooms >= 3 : false;
-
-  const transport = resolveTransportInsight({ distanceKm, isUrban, isDenseUrban });
-  const schools = resolveSchoolsInsight({ isUrban, isDenseUrban, isFamilySized });
-  const walkability = resolveWalkabilityInsight({ distanceKm, isUrban, isDenseUrban });
-
-  return [
-    { key: 'transport', title: 'Transport', ...transport },
-    { key: 'schools', title: 'Schools', ...schools },
-    { key: 'walkability', title: 'Walkability', ...walkability },
-  ];
-}
-
-function normalizeAgentString(value) {
-  if (value == null) return null;
-  const normalized = String(value).trim();
-  return normalized.length > 0 ? normalized : null;
-}
-
-function pickFirstAgentString(...values) {
-  for (const value of values) {
-    const normalized = normalizeAgentString(value);
-    if (normalized) {
-      return normalized;
-    }
-  }
-  return null;
-}
 
 function collectAgentCandidates(rawProperty) {
   const candidates = [];
@@ -429,288 +279,7 @@ function collectAgentCandidates(rawProperty) {
   return candidates;
 }
 
-function isLikelyAssetUrl(value) {
-  if (typeof value !== 'string') {
-    return false;
-  }
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return false;
-  }
-  if (/^https?:\/\//i.test(trimmed)) {
-    return true;
-  }
-  return trimmed.startsWith('/');
-}
-
-function extractSupplementaryLinks(source, keywords) {
-  if (!source || typeof source !== 'object') {
-    return [];
-  }
-
-  const normalizedKeywords = Array.isArray(keywords)
-    ? keywords
-        .map((keyword) =>
-          typeof keyword === 'string' ? keyword.toLowerCase().trim() : null
-        )
-        .filter(Boolean)
-    : [];
-
-  if (normalizedKeywords.length === 0) {
-    return [];
-  }
-
-  const matchesKeyword = (value) => {
-    if (!value) {
-      return false;
-    }
-    const text = String(value).toLowerCase();
-    return normalizedKeywords.some((keyword) => text.includes(keyword));
-  };
-
-  const results = new Map();
-  const seen = new Set();
-
-  const addResult = (url, label = null) => {
-    if (!isLikelyAssetUrl(url)) {
-      return;
-    }
-    const trimmed = url.trim();
-    if (!trimmed) {
-      return;
-    }
-    const normalizedLabel = label && typeof label === 'string' ? label.trim() : null;
-    const existing = results.get(trimmed);
-    if (existing) {
-      if (!existing.label && normalizedLabel) {
-        existing.label = normalizedLabel;
-      }
-      return;
-    }
-    results.set(trimmed, {
-      url: trimmed,
-      label: normalizedLabel || null,
-    });
-  };
-
-  const traverse = (value, key = '', depth = 0) => {
-    if (value == null) {
-      return;
-    }
-
-    if (depth > 5) {
-      return;
-    }
-
-    if (typeof value === 'string') {
-      const trimmed = value.trim();
-      if (!isLikelyAssetUrl(trimmed)) {
-        return;
-      }
-      if (matchesKeyword(trimmed) || matchesKeyword(key)) {
-        addResult(trimmed, matchesKeyword(trimmed) ? trimmed : key);
-      }
-      return;
-    }
-
-    if (typeof value !== 'object') {
-      return;
-    }
-
-    if (seen.has(value)) {
-      return;
-    }
-    seen.add(value);
-
-    if (Array.isArray(value)) {
-      value.forEach((entry) => traverse(entry, key, depth + 1));
-      return;
-    }
-
-    const labelFields = [
-      'label',
-      'name',
-      'title',
-      'description',
-      'tag',
-      'type',
-      'category',
-      'filename',
-      'fileName',
-      'displayName',
-      'heading',
-      'text',
-    ];
-    let matchedLabel = null;
-    for (const field of labelFields) {
-      const candidate = value[field];
-      if (typeof candidate === 'string' && matchesKeyword(candidate)) {
-        matchedLabel = candidate.trim();
-        break;
-      }
-    }
-
-    const urlFields = [
-      'url',
-      'href',
-      'link',
-      'value',
-      'downloadUrl',
-      'fileUrl',
-      'assetUrl',
-      'path',
-      'src',
-      'file',
-    ];
-    for (const field of urlFields) {
-      const candidate = value[field];
-      if (typeof candidate !== 'string') {
-        continue;
-      }
-      const trimmed = candidate.trim();
-      if (!isLikelyAssetUrl(trimmed)) {
-        continue;
-      }
-      if (
-        matchedLabel ||
-        matchesKeyword(field) ||
-        matchesKeyword(key) ||
-        matchesKeyword(trimmed)
-      ) {
-        addResult(trimmed, matchedLabel || field || key);
-      }
-    }
-
-    for (const [childKey, childValue] of Object.entries(value)) {
-      traverse(childValue, childKey, depth + 1);
-    }
-  };
-
-  const prioritizedKeys = [
-    'floorplan',
-    'floorPlan',
-    'floorplans',
-    'floorPlans',
-    'floorplanUrl',
-    'floorPlanUrl',
-    'floorplanUrls',
-    'floorPlanUrls',
-    'brochure',
-    'brochures',
-    'brochureUrl',
-    'brochureUrls',
-    'documents',
-    'files',
-    'attachments',
-    'downloads',
-    'resources',
-    'metadata',
-    'links',
-    'gallery',
-    'images',
-    'media',
-    'sale',
-    'lettings',
-    'marketing',
-    '_scraye',
-  ];
-
-  prioritizedKeys.forEach((key) => {
-    if (Object.prototype.hasOwnProperty.call(source, key)) {
-      traverse(source[key], key, 0);
-    }
-  });
-
-  traverse(source, '', 0);
-
-  return Array.from(results.values());
-}
-
-function deriveTourEntries(mediaUrls, metadataEntries) {
-  const results = [];
-  const seen = new Set();
-
-  const metadata = Array.isArray(metadataEntries) ? metadataEntries : [];
-  const metadataByUrl = new Map();
-
-  metadata.forEach((entry) => {
-    if (!entry || typeof entry !== 'object') {
-      return;
-    }
-    const rawValue = entry.value;
-    if (typeof rawValue !== 'string') {
-      return;
-    }
-    const url = rawValue.trim();
-    if (!isLikelyAssetUrl(url)) {
-      return;
-    }
-
-    const descriptorFields = [entry.label, entry.name, entry.title, entry.description];
-    const descriptor = descriptorFields.find(
-      (field) => typeof field === 'string' && field.trim()
-    );
-    const descriptorLower = descriptor ? descriptor.toLowerCase() : '';
-    const typeLower = typeof entry.type === 'string' ? entry.type.toLowerCase() : '';
-    const urlLower = url.toLowerCase();
-
-    const isTour =
-      descriptorLower.includes('tour') ||
-      descriptorLower.includes('video') ||
-      typeLower.includes('tour') ||
-      typeLower.includes('video') ||
-      /matterport|youtube|youtu\.be|vimeo|virtual|walkthrough|360/.test(urlLower) ||
-      /\.(mp4|webm|ogg)$/i.test(urlLower);
-
-    if (!isTour) {
-      return;
-    }
-
-    let subtype = null;
-    if (typeLower.includes('video') || descriptorLower.includes('video')) {
-      subtype = 'video';
-    } else if (
-      typeLower.includes('virtual') ||
-      typeLower.includes('360') ||
-      descriptorLower.includes('virtual') ||
-      descriptorLower.includes('360') ||
-      urlLower.includes('matterport') ||
-      urlLower.includes('360')
-    ) {
-      subtype = 'virtual';
-    }
-
-    metadataByUrl.set(url, {
-      label: descriptor || null,
-      subtype,
-    });
-  });
-
-  const append = (candidateUrl) => {
-    if (typeof candidateUrl !== 'string') {
-      return;
-    }
-    const url = candidateUrl.trim();
-    if (!isLikelyAssetUrl(url) || seen.has(url)) {
-      return;
-    }
-    seen.add(url);
-    const metadataInfo = metadataByUrl.get(url) || {};
-    results.push({
-      url,
-      label: metadataInfo.label || null,
-      subtype: metadataInfo.subtype || null,
-    });
-  };
-
-  const mediaList = Array.isArray(mediaUrls) ? mediaUrls : [];
-  mediaList.forEach((url) => append(url));
-  metadataByUrl.forEach((_, url) => append(url));
-
-  return results;
-}
-
-function resolveAgentProfile(rawProperty) {
+  function resolveAgentProfile(rawProperty) {
   const baseProfile = { ...DEFAULT_AGENT_PROFILE };
   if (!rawProperty || typeof rawProperty !== 'object') {
     return baseProfile;
@@ -834,6 +403,37 @@ function resolveAgentProfile(rawProperty) {
       AGENT_PLACEHOLDER_IMAGE
     ) || AGENT_PLACEHOLDER_IMAGE;
 
+    const resolvedTestimonials = collectAgentTestimonials(
+      rawProperty.agentTestimonials,
+      rawProperty.agentTestimonialsList,
+      rawProperty.agentTestimonial,
+      rawProperty.agentReviews,
+      rawProperty.agentQuotes,
+      rawProperty.agent?.testimonials,
+      rawProperty.agent?.reviews,
+      rawProperty.agent?.quotes,
+      rawProperty.marketing?.agent?.testimonials,
+      namedCandidate?.testimonials,
+      namedCandidate?.reviews,
+      namedCandidate?.quotes,
+      mappedAgent?.testimonials,
+      mappedAgent?.reviews,
+      mappedAgent?.quotes
+    );
+
+    if (resolvedTestimonials.length === 0) {
+      resolvedTestimonials.push(
+        ...collectAgentTestimonials({
+          quote: resolvedReviewSnippet,
+          attribution: resolvedReviewAttribution,
+        })
+      );
+    }
+
+    if (resolvedTestimonials.length === 0) {
+      resolvedTestimonials.push(...collectAgentTestimonials(baseProfile.testimonials));
+    }
+
   return {
     id: resolvedAgentId,
     name: resolvedName,
@@ -843,6 +443,10 @@ function resolveAgentProfile(rawProperty) {
     reviewSnippet: resolvedReviewSnippet,
     reviewAttribution: resolvedReviewAttribution,
     photo: resolvedPhoto,
+    testimonials:
+      resolvedTestimonials.length > 0
+        ? resolvedTestimonials
+        : baseProfile.testimonials,
   };
 }
 
@@ -1180,6 +784,299 @@ function formatCouncilTaxHighlight(value) {
   return `Council tax ${normalized}`;
 }
 
+function getValueByPath(source, path) {
+  let current = source;
+  for (const segment of path) {
+    if (!current || typeof current !== 'object') {
+      return null;
+    }
+    current = current[segment];
+  }
+  return current ?? null;
+}
+
+function pickFirstValueByPaths(source, candidatePaths) {
+  if (!source || typeof source !== 'object') {
+    return null;
+  }
+
+  for (const path of candidatePaths) {
+    const normalizedPath = Array.isArray(path) ? path : [path];
+    const value = getValueByPath(source, normalizedPath);
+    if (value != null) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+function normalizeAreaUnit(unit) {
+  if (unit == null) {
+    return null;
+  }
+
+  if (Array.isArray(unit)) {
+    for (const entry of unit) {
+      const normalized = normalizeAreaUnit(entry);
+      if (normalized) {
+        return normalized;
+      }
+    }
+    return null;
+  }
+
+  if (typeof unit === 'object') {
+    const nestedCandidates = [
+      unit.unit,
+      unit.units,
+      unit.text,
+      unit.label,
+      unit.value,
+    ];
+    for (const candidate of nestedCandidates) {
+      const normalized = normalizeAreaUnit(candidate);
+      if (normalized) {
+        return normalized;
+      }
+    }
+    return null;
+  }
+
+  if (typeof unit !== 'string') {
+    return null;
+  }
+
+  const trimmed = unit.replace(/_/g, ' ').trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const normalizedWhitespace = trimmed.replace(/\s+/g, ' ');
+  const lower = normalizedWhitespace.toLowerCase();
+
+  const mappings = [
+    { match: ['sq ft', 'sqft', 'square feet', 'square foot', 'ft2', 'ft²'], label: 'sq ft' },
+    { match: ['sq m', 'sqm', 'square metres', 'square meters', 'square metre', 'square meter', 'm2', 'm²'], label: 'sq m' },
+    { match: ['sq yd', 'sqyd', 'square yards', 'square yard', 'yd2', 'yd²'], label: 'sq yd' },
+    { match: ['acre', 'acres'], label: lower === 'acre' ? 'acre' : 'acres' },
+    { match: ['hectare', 'hectares'], label: lower === 'hectare' ? 'hectare' : 'hectares' },
+  ];
+
+  for (const { match, label } of mappings) {
+    if (match.includes(lower)) {
+      return label;
+    }
+  }
+
+  return normalizedWhitespace;
+}
+
+function coerceMeasurementLabel(value, unitCandidates = [], seen = new Set()) {
+  if (value == null) {
+    return null;
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.replace(/_/g, ' ').trim();
+    if (!normalized) {
+      return null;
+    }
+
+    const condensed = normalized.replace(/\s+/g, ' ');
+    const numericOnly = condensed.match(/^-?\d+(?:\.\d+)?$/);
+    if (numericOnly) {
+      const parsed = Number(numericOnly[0]);
+      if (Number.isFinite(parsed)) {
+        return coerceMeasurementLabel(parsed, unitCandidates, seen);
+      }
+    }
+
+    if (/sq[_\s]?[a-z]/i.test(condensed)) {
+      return condensed.replace(/\s+/g, ' ');
+    }
+
+    if (condensed && unitCandidates.length > 0 && Number.isFinite(Number(condensed))) {
+      return coerceMeasurementLabel(Number(condensed), unitCandidates, seen);
+    }
+
+    return condensed;
+  }
+
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) {
+      return null;
+    }
+
+    const formatter = new Intl.NumberFormat('en-GB', {
+      maximumFractionDigits: Math.abs(value) >= 100 ? 0 : 1,
+    });
+    const formattedValue = formatter.format(value);
+    const unit = unitCandidates.find(Boolean);
+    return unit ? `${formattedValue} ${unit}` : formattedValue;
+  }
+
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      const label = coerceMeasurementLabel(entry, unitCandidates, seen);
+      if (label) {
+        return label;
+      }
+    }
+    return null;
+  }
+
+  if (typeof value === 'object') {
+    if (seen.has(value)) {
+      return null;
+    }
+    seen.add(value);
+
+    const nestedUnitCandidates = [...unitCandidates];
+    const unitKeys = [
+      'unit',
+      'units',
+      'measurementUnit',
+      'measurementUnits',
+      'areaUnit',
+      'areaUnits',
+      'unitOfMeasure',
+      'unitOfMeasurement',
+    ];
+
+    for (const key of unitKeys) {
+      if (key in value) {
+        const normalizedUnit = normalizeAreaUnit(value[key]);
+        if (normalizedUnit) {
+          nestedUnitCandidates.unshift(normalizedUnit);
+        }
+      }
+    }
+
+    const valueKeys = [
+      'label',
+      'text',
+      'description',
+      'display',
+      'formatted',
+      'value',
+      'amount',
+      'size',
+      'area',
+      'measurementValue',
+      'measurement',
+      'quantity',
+      'number',
+    ];
+
+    for (const key of valueKeys) {
+      if (key in value) {
+        const label = coerceMeasurementLabel(value[key], nestedUnitCandidates, seen);
+        if (label) {
+          return label;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  return null;
+}
+
+function deriveAreaLabel(rawProperty, valuePaths, unitPaths = []) {
+  if (!rawProperty || typeof rawProperty !== 'object') {
+    return null;
+  }
+
+  const value = pickFirstValueByPaths(rawProperty, valuePaths);
+  if (value == null) {
+    return null;
+  }
+
+  const unitCandidates = [];
+  const unitValue = pickFirstValueByPaths(rawProperty, unitPaths);
+  const normalizedUnit = normalizeAreaUnit(unitValue);
+  if (normalizedUnit) {
+    unitCandidates.push(normalizedUnit);
+  }
+
+  const label = coerceMeasurementLabel(value, unitCandidates);
+  if (!label) {
+    return null;
+  }
+
+  return label;
+}
+
+function deriveFloorArea(rawProperty) {
+  const valuePaths = [
+    ['floorArea'],
+    ['floor_area'],
+    ['internalArea'],
+    ['internal_area'],
+    ['grossInternalArea'],
+    ['gross_internal_area'],
+    ['size'],
+    ['measurements', 'floorArea'],
+    ['dimensions', 'floorArea'],
+    ['details', 'floorArea'],
+  ];
+
+  const unitPaths = [
+    ['floorAreaUnit'],
+    ['floor_area_unit'],
+    ['internalAreaUnit'],
+    ['internal_area_unit'],
+    ['grossInternalAreaUnit'],
+    ['gross_internal_area_unit'],
+    ['sizeUnit'],
+    ['measurements', 'floorAreaUnit'],
+    ['dimensions', 'floorAreaUnit'],
+    ['details', 'floorAreaUnit'],
+  ];
+
+  return deriveAreaLabel(rawProperty, valuePaths, unitPaths);
+}
+
+function derivePlotSize(rawProperty) {
+  const valuePaths = [
+    ['plotSize'],
+    ['plot_size'],
+    ['plotArea'],
+    ['plot_area'],
+    ['externalArea'],
+    ['external_area'],
+    ['landArea'],
+    ['land_area'],
+    ['siteArea'],
+    ['site_area'],
+    ['gardenSize'],
+    ['measurements', 'plotSize'],
+    ['dimensions', 'plotSize'],
+    ['details', 'plotSize'],
+  ];
+
+  const unitPaths = [
+    ['plotSizeUnit'],
+    ['plot_size_unit'],
+    ['plotAreaUnit'],
+    ['plot_area_unit'],
+    ['externalAreaUnit'],
+    ['external_area_unit'],
+    ['landAreaUnit'],
+    ['land_area_unit'],
+    ['siteAreaUnit'],
+    ['site_area_unit'],
+    ['gardenSizeUnit'],
+    ['measurements', 'plotSizeUnit'],
+    ['dimensions', 'plotSizeUnit'],
+    ['details', 'plotSizeUnit'],
+  ];
+
+  return deriveAreaLabel(rawProperty, valuePaths, unitPaths);
+}
+
 function normalizeBooleanFlag(value) {
   if (value === true || value === false) {
     return value;
@@ -1362,6 +1259,39 @@ export default function Property({ property, recommendations }) {
       .filter(Boolean);
   }, [property?.locationInsights]);
   const agentProfile = property?.agentProfile;
+  const viewingSlots = Array.isArray(property?.viewingSlots)
+    ? property.viewingSlots
+    : [];
+  const [selectedViewingSlot, setSelectedViewingSlot] = useState(null);
+  useEffect(() => {
+    setSelectedViewingSlot(null);
+  }, [property?.id]);
+  const handleViewingSlotSelect = useCallback((slot) => {
+    if (!slot) {
+      return;
+    }
+
+    const slotKey = slot.slotKey || slot.key || `${slot.id || slot.start}`;
+    setSelectedViewingSlot({
+      slotKey,
+      triggerKey: `slot-${Date.now()}`,
+      date: slot.dateValue ?? '',
+      time: slot.timeValue ?? '',
+      label: slot.fullRangeLabel || slot.rangeLabel || '',
+    });
+  }, []);
+  const handleViewingSlotRequest = useCallback(() => {
+    setSelectedViewingSlot({
+      slotKey: 'custom',
+      triggerKey: `custom-${Date.now()}`,
+      date: '',
+      time: '',
+      label: '',
+    });
+  }, []);
+  const handleViewingFormClose = useCallback(() => {
+    setSelectedViewingSlot(null);
+  }, []);
   const priceLabel = formatPropertyPriceLabel(property);
   const rentFrequencyLabel = useMemo(() => {
     if (!property?.rentFrequency) {
@@ -1773,9 +1703,21 @@ export default function Property({ property, recommendations }) {
                     )}
                     <div className={styles.priceActions}>
                       <OfferDrawer property={property} />
-                      <ViewingForm property={property} />
+                      <ViewingForm
+                        property={property}
+                        selectedSlot={selectedViewingSlot}
+                        onClose={handleViewingFormClose}
+                      />
                     </div>
                   </div>
+                  {viewingSlots.length > 0 && (
+                    <ViewingTimeline
+                      slots={viewingSlots}
+                      onSelectSlot={handleViewingSlotSelect}
+                      onOpenForm={handleViewingSlotRequest}
+                      selectedSlotKey={selectedViewingSlot?.slotKey ?? null}
+                    />
+                  )}
                 </div>
               </aside>
             )}
@@ -1854,7 +1796,11 @@ export default function Property({ property, recommendations }) {
 
       <section className={`${styles.contentRail} ${styles.modules}`}>
         {agentProfile && (
-          <AgentCard className={styles.agentCard} agent={agentProfile} />
+          <AgentCard
+            className={styles.agentCard}
+            agent={agentProfile}
+            testimonials={agentProfile?.testimonials}
+          />
         )}
 
         <PropertySustainabilityPanel property={property} />
@@ -2058,6 +2004,8 @@ export async function getStaticProps({ params }) {
       ]),
       metadata: Array.isArray(rawProperty.metadata) ? rawProperty.metadata : [],
       tenure: derivedTenure,
+      floorArea: deriveFloorArea(rawProperty),
+      plotSize: derivePlotSize(rawProperty),
       features: (() => {
         const rawFeatures =
           rawProperty.mainFeatures ||
@@ -2098,6 +2046,12 @@ export async function getStaticProps({ params }) {
       includedUtilities: deriveIncludedUtilities(rawProperty),
       locationInsights: computeLocationInsights(rawProperty),
     };
+
+    if (formatted.id) {
+      formatted.viewingSlots = await resolveUpcomingViewingSlots(formatted.id);
+    } else {
+      formatted.viewingSlots = [];
+    }
   }
 
   const allRent = await fetchPropertiesByTypeCachedFirst('rent');
