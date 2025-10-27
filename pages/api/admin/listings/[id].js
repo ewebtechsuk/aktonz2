@@ -65,40 +65,62 @@ function sanitizeForJson(value) {
   }
 }
 
+let inflightCompanionRecordsPromise = null;
+let inflightCompanionRecordsListingId = null;
+
 async function loadCompanionRecords(listingId) {
-  const [offersResult, maintenanceResult] = await Promise.allSettled([
+  if (
+    inflightCompanionRecordsPromise &&
+    inflightCompanionRecordsListingId === listingId
+  ) {
+    return inflightCompanionRecordsPromise;
+  }
+
+  const loadPromise = Promise.allSettled([
     listOffersForAdmin(),
     listMaintenanceTasksForAdmin(),
-  ]);
+  ]).then(([offersResult, maintenanceResult]) => {
+    const offers =
+      offersResult.status === 'fulfilled' && Array.isArray(offersResult.value)
+        ? offersResult.value
+        : [];
 
-  const offers =
-    offersResult.status === 'fulfilled' && Array.isArray(offersResult.value)
-      ? offersResult.value
-      : [];
+    if (offersResult.status === 'rejected') {
+      console.error(
+        'Failed to load admin offers for listing',
+        listingId,
+        offersResult.reason,
+      );
+    }
 
-  if (offersResult.status === 'rejected') {
-    console.error(
-      'Failed to load admin offers for listing',
-      listingId,
-      offersResult.reason,
-    );
+    const maintenanceTasks =
+      maintenanceResult.status === 'fulfilled' &&
+      Array.isArray(maintenanceResult.value)
+        ? maintenanceResult.value
+        : [];
+
+    if (maintenanceResult.status === 'rejected') {
+      console.error(
+        'Failed to load admin maintenance tasks for listing',
+        listingId,
+        maintenanceResult.reason,
+      );
+    }
+
+    return { offers, maintenanceTasks };
+  });
+
+  inflightCompanionRecordsListingId = listingId;
+  inflightCompanionRecordsPromise = loadPromise;
+
+  try {
+    return await loadPromise;
+  } finally {
+    if (inflightCompanionRecordsPromise === loadPromise) {
+      inflightCompanionRecordsPromise = null;
+      inflightCompanionRecordsListingId = null;
+    }
   }
-
-  const maintenanceTasks =
-    maintenanceResult.status === 'fulfilled' &&
-    Array.isArray(maintenanceResult.value)
-      ? maintenanceResult.value
-      : [];
-
-  if (maintenanceResult.status === 'rejected') {
-    console.error(
-      'Failed to load admin maintenance tasks for listing',
-      listingId,
-      maintenanceResult.reason,
-    );
-  }
-
-  return { offers, maintenanceTasks };
 }
 
 function requireAdmin(req, res) {
@@ -181,10 +203,6 @@ export default async function handler(req, res) {
 
       const { offers: offersList, maintenanceTasks: maintenanceList } =
         await loadCompanionRecords(listingId);
-      const [offersResult, maintenanceResult] = await Promise.allSettled([
-        listOffersForAdmin(),
-        listMaintenanceTasksForAdmin(),
-      ]);
 
       if (offersResult.status === 'rejected') {
         console.error(
