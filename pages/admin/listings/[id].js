@@ -63,6 +63,21 @@ const MARKETING_TYPE_OPTIONS = [
   { value: 'link', label: 'Link' },
 ];
 
+let uniqueIdCounter = 0;
+
+function generateFormItemId(prefix) {
+  const safePrefix = prefix ? String(prefix).trim() : 'item';
+  const globalCrypto = typeof globalThis !== 'undefined' ? globalThis.crypto : undefined;
+
+  if (globalCrypto && typeof globalCrypto.randomUUID === 'function') {
+    return `${safePrefix}-${globalCrypto.randomUUID()}`;
+  }
+
+  uniqueIdCounter += 1;
+  const timestamp = typeof Date.now === 'function' ? Date.now() : 0;
+  return `${safePrefix}-${timestamp}-${uniqueIdCounter}`;
+}
+
 function normalizeRentFrequency(value) {
   if (!value) {
     return '';
@@ -164,6 +179,7 @@ function createFormStateFromListing(listing) {
 
   const marketingLinks = Array.isArray(listing.marketing?.links)
     ? listing.marketing.links.map((link) => ({
+        id: link?.id ? String(link.id) : generateFormItemId('marketing'),
         label: link?.label || '',
         type: link?.type || 'link',
         url: link?.url || '',
@@ -172,17 +188,24 @@ function createFormStateFromListing(listing) {
 
   const metadata = Array.isArray(listing.metadata)
     ? listing.metadata.map((entry) => ({
+        id: entry?.id ? String(entry.id) : generateFormItemId('metadata'),
         label: entry?.label || '',
         value: entry?.value || '',
       }))
     : [];
 
   const images = Array.isArray(listing.images)
-    ? listing.images.map((url) => ({ url: typeof url === 'string' ? url : '' }))
+    ? listing.images.map((url) => ({
+        id: generateFormItemId('image'),
+        url: typeof url === 'string' ? url : '',
+      }))
     : [];
 
   const media = Array.isArray(listing.media)
-    ? listing.media.map((url) => ({ url: typeof url === 'string' ? url : '' }))
+    ? listing.media.map((url) => ({
+        id: generateFormItemId('media'),
+        url: typeof url === 'string' ? url : '',
+      }))
     : [];
 
   return {
@@ -1417,7 +1440,10 @@ export default function AdminListingDetailsPage() {
   const addMarketingLink = useCallback(() => {
     updateForm((prev) => ({
       ...prev,
-      marketingLinks: [...(prev.marketingLinks || []), { label: '', type: 'link', url: '' }],
+      marketingLinks: [
+        ...(prev.marketingLinks || []),
+        { id: generateFormItemId('marketing'), label: '', type: 'link', url: '' },
+      ],
     }));
   }, [updateForm]);
 
@@ -1447,7 +1473,7 @@ export default function AdminListingDetailsPage() {
   const addImage = useCallback(() => {
     updateForm((prev) => ({
       ...prev,
-      images: [...(prev.images || []), { url: '' }],
+      images: [...(prev.images || []), { id: generateFormItemId('image'), url: '' }],
     }));
   }, [updateForm]);
 
@@ -1495,7 +1521,7 @@ export default function AdminListingDetailsPage() {
   const addMediaItem = useCallback(() => {
     updateForm((prev) => ({
       ...prev,
-      media: [...(prev.media || []), { url: '' }],
+      media: [...(prev.media || []), { id: generateFormItemId('media'), url: '' }],
     }));
   }, [updateForm]);
 
@@ -1543,7 +1569,10 @@ export default function AdminListingDetailsPage() {
   const addMetadataEntry = useCallback(() => {
     updateForm((prev) => ({
       ...prev,
-      metadata: [...(prev.metadata || []), { label: '', value: '' }],
+      metadata: [
+        ...(prev.metadata || []),
+        { id: generateFormItemId('metadata'), label: '', value: '' },
+      ],
     }));
   }, [updateForm]);
 
@@ -2047,11 +2076,14 @@ export default function AdminListingDetailsPage() {
                 <p className={styles.mediaHint}>Displayed on the listing gallery.</p>
               </div>
               <div className={styles.repeatableList}>
-                {(formValues.images || []).map((image, index) => (
-                  <div key={`image-${index}`} className={`${styles.repeatableItem} ${styles.mediaItem}`}>
-                    <div className={styles.repeatableHeader}>
-                      <h4 className={styles.repeatableTitle}>Image {index + 1}</h4>
-                      <div className={styles.mediaActions}>
+                {(formValues.images || []).map((image, index) => {
+                  const imageKey = image?.id || `image-${index}`;
+                  const imageFieldId = `image-url-${imageKey}`;
+                  return (
+                    <div key={imageKey} className={`${styles.repeatableItem} ${styles.mediaItem}`}>
+                      <div className={styles.repeatableHeader}>
+                        <h4 className={styles.repeatableTitle}>Image {index + 1}</h4>
+                        <div className={styles.mediaActions}>
                         <button
                           type="button"
                           className={styles.mediaMoveButton}
@@ -2081,11 +2113,11 @@ export default function AdminListingDetailsPage() {
                       )}
                     </div>
                     <div className={styles.formRow}>
-                      <label className={styles.formLabel} htmlFor={`image-url-${index}`}>
+                      <label className={styles.formLabel} htmlFor={imageFieldId}>
                         Image URL
                       </label>
                       <input
-                        id={`image-url-${index}`}
+                        id={imageFieldId}
                         className={styles.input}
                         value={image.url}
                         onChange={(event) => updateImage(index, event.target.value)}
@@ -2093,7 +2125,8 @@ export default function AdminListingDetailsPage() {
                       />
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
               <button type="button" className={styles.secondaryButton} onClick={addImage}>
                 Add image
@@ -2109,8 +2142,11 @@ export default function AdminListingDetailsPage() {
                 <p className={styles.mediaHint}>Video tours, Matterport, hosted walkthrough links.</p>
               </div>
               <div className={styles.repeatableList}>
-                {(formValues.media || []).map((item, index) => (
-                  <div key={`media-${index}`} className={styles.repeatableItem}>
+                {(formValues.media || []).map((item, index) => {
+                  const mediaKey = item?.id || `media-${index}`;
+                  const mediaFieldId = `media-url-${mediaKey}`;
+                  return (
+                    <div key={mediaKey} className={styles.repeatableItem}>
                     <div className={styles.repeatableHeader}>
                       <h4 className={styles.repeatableTitle}>Media item {index + 1}</h4>
                       <div className={styles.mediaActions}>
@@ -2136,11 +2172,11 @@ export default function AdminListingDetailsPage() {
                       </div>
                     </div>
                     <div className={styles.formRow}>
-                      <label className={styles.formLabel} htmlFor={`media-url-${index}`}>
+                      <label className={styles.formLabel} htmlFor={mediaFieldId}>
                         Media URL
                       </label>
                       <input
-                        id={`media-url-${index}`}
+                        id={mediaFieldId}
                         className={styles.input}
                         value={item.url}
                         onChange={(event) => updateMediaItem(index, event.target.value)}
@@ -2154,8 +2190,9 @@ export default function AdminListingDetailsPage() {
                     ) : (
                       <span className={styles.mediaEmpty}>Add a media URL to preview.</span>
                     )}
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
               <button type="button" className={styles.secondaryButton} onClick={addMediaItem}>
                 Add media link
@@ -2183,8 +2220,13 @@ export default function AdminListingDetailsPage() {
             </header>
             <div className={styles.panelBody}>
               <div className={styles.repeatableList}>
-                {(formValues.marketingLinks || []).map((link, index) => (
-                  <div key={`marketing-${index}`} className={styles.repeatableItem}>
+                {(formValues.marketingLinks || []).map((link, index) => {
+                  const linkKey = link?.id || `marketing-${index}`;
+                  const labelFieldId = `marketing-label-${linkKey}`;
+                  const typeFieldId = `marketing-type-${linkKey}`;
+                  const urlFieldId = `marketing-url-${linkKey}`;
+                  return (
+                  <div key={linkKey} className={styles.repeatableItem}>
                     <div className={styles.repeatableHeader}>
                       <h3 className={styles.repeatableTitle}>Link {index + 1}</h3>
                       <button
@@ -2197,22 +2239,22 @@ export default function AdminListingDetailsPage() {
                     </div>
                     <div className={styles.formGrid}>
                       <div className={styles.formRow}>
-                        <label className={styles.formLabel} htmlFor={`marketing-label-${index}`}>
+                        <label className={styles.formLabel} htmlFor={labelFieldId}>
                           Label
                         </label>
                         <input
-                          id={`marketing-label-${index}`}
+                          id={labelFieldId}
                           className={styles.input}
                           value={link.label}
                           onChange={(event) => updateMarketingLink(index, 'label', event.target.value)}
                         />
                       </div>
                       <div className={styles.formRow}>
-                        <label className={styles.formLabel} htmlFor={`marketing-type-${index}`}>
+                        <label className={styles.formLabel} htmlFor={typeFieldId}>
                           Type
                         </label>
                         <select
-                          id={`marketing-type-${index}`}
+                          id={typeFieldId}
                           className={styles.select}
                           value={link.type}
                           onChange={(event) => updateMarketingLink(index, 'type', event.target.value)}
@@ -2226,11 +2268,11 @@ export default function AdminListingDetailsPage() {
                       </div>
                     </div>
                     <div className={styles.formRow}>
-                      <label className={styles.formLabel} htmlFor={`marketing-url-${index}`}>
+                      <label className={styles.formLabel} htmlFor={urlFieldId}>
                         URL
                       </label>
                       <input
-                        id={`marketing-url-${index}`}
+                        id={urlFieldId}
                         className={styles.input}
                         value={link.url}
                         onChange={(event) => updateMarketingLink(index, 'url', event.target.value)}
@@ -2238,7 +2280,8 @@ export default function AdminListingDetailsPage() {
                       />
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
               <button type="button" className={styles.secondaryButton} onClick={addMarketingLink}>
                 Add marketing link
@@ -2295,8 +2338,8 @@ export default function AdminListingDetailsPage() {
                     <div key={group.label} className={styles.featureGroup}>
                       <h4 className={styles.featureGroupTitle}>{group.label}</h4>
                       <ul className={styles.featureList}>
-                        {group.items.map((item) => (
-                          <li key={`${group.label}-${item}`} className={styles.featureListItem}>
+                        {group.items.map((item, itemIndex) => (
+                          <li key={`${group.label}-${itemIndex}`} className={styles.featureListItem}>
                             {item}
                           </li>
                         ))}
@@ -2313,46 +2356,51 @@ export default function AdminListingDetailsPage() {
             <h3 className={styles.metadataSubheading}>Additional metadata</h3>
 
             <div className={styles.repeatableList}>
-              {(formValues.metadata || []).map((entry, index) => (
-                <div key={`metadata-${index}`} className={styles.repeatableItem}>
-                  <div className={styles.repeatableHeader}>
-                    <h3 className={styles.repeatableTitle}>Entry {index + 1}</h3>
-                    <button
-                      type="button"
-                      className={styles.removeButton}
-                      onClick={() => removeMetadataEntry(index)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                  <div className={styles.formGrid}>
-                    <div className={styles.formRow}>
-                      <label className={styles.formLabel} htmlFor={`metadata-label-${index}`}>
-                        Label
-                      </label>
-                      <input
-                        id={`metadata-label-${index}`}
-                        className={styles.input}
-                        value={entry.label}
-                        onChange={(event) => updateMetadataEntry(index, 'label', event.target.value)}
-                        placeholder="e.g. EPC rating"
-                      />
+              {(formValues.metadata || []).map((entry, index) => {
+                const metadataKey = entry?.id || `metadata-${index}`;
+                const labelFieldId = `metadata-label-${metadataKey}`;
+                const valueFieldId = `metadata-value-${metadataKey}`;
+                return (
+                  <div key={metadataKey} className={styles.repeatableItem}>
+                    <div className={styles.repeatableHeader}>
+                      <h3 className={styles.repeatableTitle}>Entry {index + 1}</h3>
+                      <button
+                        type="button"
+                        className={styles.removeButton}
+                        onClick={() => removeMetadataEntry(index)}
+                      >
+                        Remove
+                      </button>
                     </div>
-                    <div className={styles.formRow}>
-                      <label className={styles.formLabel} htmlFor={`metadata-value-${index}`}>
-                        Value
-                      </label>
-                      <input
-                        id={`metadata-value-${index}`}
-                        className={styles.input}
-                        value={entry.value}
-                        onChange={(event) => updateMetadataEntry(index, 'value', event.target.value)}
-                        placeholder="e.g. B"
-                      />
+                    <div className={styles.formGrid}>
+                      <div className={styles.formRow}>
+                        <label className={styles.formLabel} htmlFor={labelFieldId}>
+                          Label
+                        </label>
+                        <input
+                          id={labelFieldId}
+                          className={styles.input}
+                          value={entry.label}
+                          onChange={(event) => updateMetadataEntry(index, 'label', event.target.value)}
+                          placeholder="e.g. EPC rating"
+                        />
+                      </div>
+                      <div className={styles.formRow}>
+                        <label className={styles.formLabel} htmlFor={valueFieldId}>
+                          Value
+                        </label>
+                        <input
+                          id={valueFieldId}
+                          className={styles.input}
+                          value={entry.value}
+                          onChange={(event) => updateMetadataEntry(index, 'value', event.target.value)}
+                          placeholder="e.g. B"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <button type="button" className={styles.secondaryButton} onClick={addMetadataEntry}>
               Add metadata entry
@@ -2426,7 +2474,16 @@ export default function AdminListingDetailsPage() {
             </header>
               {listingOffers.length ? (
                 <ul className={styles.activityList}>
-                  {listingOffers.map((offer) => {
+                  {listingOffers.map((offer, index) => {
+                    const offerKeyBase =
+                      offer?.id ||
+                      offer?.contact?.email ||
+                      offer?.contact?.phone ||
+                      offer?.email ||
+                      offer?.propertyId ||
+                      `offer-${index}`;
+                    const offerKey =
+                      offer?.id && offerKeyBase ? String(offerKeyBase) : `${offerKeyBase}-${index}`;
                     const offerDetails = flattenRecord(
                       {
                         id: offer.id,
@@ -2454,8 +2511,12 @@ export default function AdminListingDetailsPage() {
                       }))
                       .filter((detail) => detail.value && detail.value !== '—');
 
+                    const offerLinkTarget = offer?.id
+                      ? `/admin/offers?id=${encodeURIComponent(offer.id)}`
+                      : '/admin/offers';
+
                     return (
-                      <li key={offer.id} className={styles.activityListItem}>
+                      <li key={offerKey} className={styles.activityListItem}>
                         <div className={styles.activityItemHeader}>
                           <span className={styles.activityPrimary}>
                             {offer.contact?.name || offer.email || 'Applicant'}
@@ -2482,9 +2543,9 @@ export default function AdminListingDetailsPage() {
                           <details className={styles.activityDetails}>
                             <summary className={styles.activityDetailsSummary}>View record details</summary>
                             <dl className={styles.activityDetailsList}>
-                              {offerDetails.map((detail, index) => (
+                              {offerDetails.map((detail, detailIndex) => (
                                 <div
-                                  key={`${offer.id}-${detail.label}-${index}`}
+                                  key={`${offerKey}-${detail.label}-${detailIndex}`}
                                   className={styles.activityDetailsRow}
                                 >
                                   <dt>{detail.label}</dt>
@@ -2494,10 +2555,7 @@ export default function AdminListingDetailsPage() {
                             </dl>
                           </details>
                         ) : null}
-                        <Link
-                          href={`/admin/offers?id=${encodeURIComponent(offer.id)}`}
-                          className={styles.activityLink}
-                        >
+                        <Link href={offerLinkTarget} className={styles.activityLink}>
                           Open offer workspace
                         </Link>
                       </li>
@@ -2519,7 +2577,15 @@ export default function AdminListingDetailsPage() {
             </header>
               {listingMaintenance.length ? (
                 <ul className={styles.activityList}>
-                  {listingMaintenance.map((task) => {
+                  {listingMaintenance.map((task, index) => {
+                    const taskKeyBase =
+                      task?.id ||
+                      task?.reference ||
+                      task?.externalId ||
+                      task?.title ||
+                      `maintenance-${index}`;
+                    const taskKey =
+                      task?.id && taskKeyBase ? String(taskKeyBase) : `${taskKeyBase}-${index}`;
                     const maintenanceDetails = flattenRecord(
                       {
                         id: task.id,
@@ -2549,7 +2615,7 @@ export default function AdminListingDetailsPage() {
                       .filter((detail) => detail.value && detail.value !== '—');
 
                     return (
-                      <li key={task.id} className={styles.activityListItem}>
+                      <li key={taskKey} className={styles.activityListItem}>
                         <div className={styles.activityItemHeader}>
                           <span className={styles.activityPrimary}>{task.title}</span>
                           <span className={styles.activityStatusBadge} data-tone={task.statusTone}>
@@ -2573,9 +2639,9 @@ export default function AdminListingDetailsPage() {
                           <details className={styles.activityDetails}>
                             <summary className={styles.activityDetailsSummary}>View task details</summary>
                             <dl className={styles.activityDetailsList}>
-                              {maintenanceDetails.map((detail, index) => (
+                              {maintenanceDetails.map((detail, detailIndex) => (
                                 <div
-                                  key={`${task.id}-${detail.label}-${index}`}
+                                  key={`${taskKey}-${detail.label}-${detailIndex}`}
                                   className={styles.activityDetailsRow}
                                 >
                                   <dt>{detail.label}</dt>
