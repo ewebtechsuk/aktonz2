@@ -223,7 +223,7 @@ export default function BlogIndexPage({ posts, categories, canonicalUrl, tags, p
   );
 }
 
-export async function getServerSideProps() {
+export async function getStaticProps() {
   const posts = await listPublishedBlogPosts();
   const canonicalUrl = buildBlogIndexCanonical();
   const categories = BLOG_CATEGORIES;
