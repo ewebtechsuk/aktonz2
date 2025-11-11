@@ -24,21 +24,15 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": "18.x"
+  },
   "dependencies": {
-    "ioredis": "^5.8.0",
-    "leaflet": "^1.9.4",
-    "next": "^15.5.2",
-    "nodemailer": "^6.9.11",
-    "playwright": "^1.49.0",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "react-icons": "^4.12.0",
-    "react-responsive-carousel": "^3.2.23",
-    "react-slick": "^0.31.0",
-    "redis": "^4.7.1",
-    "slick-carousel": "^1.8.1",
-    "stripe": "^17.3.0",
-    "undici": "^6.19.5"
+    "next": "14.2.15",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "next-auth": "4.24.13",
+    "nodemailer": "^7.0.7"
   },
   "devDependencies": {
     "@babel/core": "^7.28.4",
