@@ -33,6 +33,7 @@ export const ADMIN_NAV_ITEMS: NavigationItem[] = [
   { label: 'Offers', href: '/admin/offers' },
   { label: 'Lettings property', href: '/admin/properties/lettings' },
   { label: 'Email', href: '/admin/email' },
+  { label: 'Blog posts', href: '/admin/blog-posts' },
   { label: 'Settings', href: '/admin/settings' },
 ];
 
