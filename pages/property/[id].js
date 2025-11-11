@@ -1,4 +1,6 @@
 import { useMemo, useState, useCallback, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import Head from 'next/head';
 import PropertyList from '../../components/PropertyList';
 import MediaGallery from '../../components/MediaGallery';
 import OfferDrawer from '../../components/OfferDrawer';
@@ -9,11 +11,22 @@ import FavoriteButton from '../../components/FavoriteButton';
 import PropertySustainabilityPanel from '../../components/PropertySustainabilityPanel';
 import AgentCard from '../../components/AgentCard';
 import MediaHighlights from '../../components/MediaHighlights';
+import FeaturesList from '../../components/FeaturesList';
 
-import MortgageCalculator from '../../components/MortgageCalculator';
-import RentAffordability from '../../components/RentAffordability';
-import PropertyMap from '../../components/PropertyMap';
-import Head from 'next/head';
+const MortgageCalculator = dynamic(() => import('../../components/MortgageCalculator'), {
+  ssr: false,
+  loading: () => <div className={styles.modulePlaceholder}>Loading mortgage tools…</div>,
+});
+
+const RentAffordability = dynamic(() => import('../../components/RentAffordability'), {
+  ssr: false,
+  loading: () => <div className={styles.modulePlaceholder}>Loading rent guidance…</div>,
+});
+
+const PropertyMap = dynamic(() => import('../../components/PropertyMap'), {
+  ssr: false,
+  loading: () => <div className={styles.mapSkeleton}>Loading map…</div>,
+});
 import {
   fetchPropertyById,
   fetchPropertiesByTypeCachedFirst,
@@ -1263,6 +1276,7 @@ export default function Property({ property, recommendations }) {
     ? property.viewingSlots
     : [];
   const [selectedViewingSlot, setSelectedViewingSlot] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     setSelectedViewingSlot(null);
   }, [property?.id]);
@@ -1291,6 +1305,24 @@ export default function Property({ property, recommendations }) {
   }, []);
   const handleViewingFormClose = useCallback(() => {
     setSelectedViewingSlot(null);
+  }, []);
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const updateMatch = (event) => setIsMobile(event.matches);
+
+    setIsMobile(mediaQuery.matches);
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', updateMatch);
+      return () => mediaQuery.removeEventListener('change', updateMatch);
+    }
+
+    mediaQuery.addListener(updateMatch);
+    return () => mediaQuery.removeListener(updateMatch);
   }, []);
   const priceLabel = formatPropertyPriceLabel(property);
   const rentFrequencyLabel = useMemo(() => {
@@ -1564,29 +1596,26 @@ export default function Property({ property, recommendations }) {
   const showMortgageCalculator = Boolean(!property.rentFrequency && property.price);
   const showRentCalculator = Boolean(property.rentFrequency && property.price);
   const hasRecommendations = Array.isArray(recommendations) && recommendations.length > 0;
+  const featuresSection = useMemo(() => {
+    if (groupedFeatures.length === 0) {
+      return null;
+    }
 
-  const navSections = useMemo(() => {
-    const sectionsList = [];
-    if (hasLocation) {
-      sectionsList.push({ id: 'property-location', label: 'Location' });
-    }
-    if (groupedFeatures.length > 0) {
-      sectionsList.push({ id: 'property-features', label: 'Key features' });
-    }
-    if (showMortgageCalculator || showRentCalculator) {
-      sectionsList.push({ id: 'property-calculators', label: 'Calculators' });
-    }
-    if (hasRecommendations) {
-      sectionsList.push({ id: 'property-recommendations', label: 'Recommendations' });
-    }
-    return sectionsList;
-  }, [
-    groupedFeatures.length,
-    hasLocation,
-    hasRecommendations,
-    showMortgageCalculator,
-    showRentCalculator,
-  ]);
+    return (
+      <FeaturesList features={groupedFeatures} className={styles.featuresPivot} />
+    );
+  }, [groupedFeatures]);
+  const agentPhoneNumber =
+    agentProfile?.phone ||
+    agentProfile?.phoneNumber ||
+    agentProfile?.mobile ||
+    '+441234567890';
+  const sanitizedAgentEmail =
+    typeof agentProfile?.email === 'string' && agentProfile.email.trim()
+      ? agentProfile.email.trim()
+      : 'hello@aktonz.co.uk';
+  const agentPhoneHref = `tel:${String(agentPhoneNumber).replace(/[^0-9+]/g, '') || '+441234567890'}`;
+  const agentEmailHref = `mailto:${sanitizedAgentEmail}`;
 
   return (
     <>
@@ -1594,20 +1623,34 @@ export default function Property({ property, recommendations }) {
         <title>{property.title ? `${property.title} | Aktonz` : 'Property details'}</title>
       </Head>
       <main className={styles.main}>
-        <section className={`${styles.contentRail} ${styles.hero} ${styles.heroGrid}`}>
-          {(property.images?.length > 0 || property.media?.length > 0) && (
-            <div className={styles.sliderWrapper}>
-              <MediaGallery images={property.images} media={property.media} />
+        <div className={styles.pageShell}>
+          <section className={styles.heroSection}>
+            <div className={styles.mediaColumn}>
+              {(property.images?.length > 0 || property.media?.length > 0) && (
+                <div className={styles.mediaPanel}>
+                  <MediaGallery images={property.images} media={property.media} />
+                </div>
+              )}
             </div>
-          )}
-          <div className={styles.heroGrid}>
-            <div className={styles.summary}>
-              <div className={styles.summaryMain}>
-                <div className={styles.summaryIntro}>
-                  {displayType && <span className={styles.typeBadge}>{displayType}</span>}
-                  {locationLabel && (
-                    <span className={styles.locationLabel}>{locationLabel}</span>
-                  )}
+            <aside
+              className={styles.sidebarColumn}
+              aria-labelledby="property-summary-heading"
+            >
+              <div className={styles.summarySidebar}>
+                <div className={styles.summaryMain}>
+                  <div className={styles.summaryHeadingRow}>
+                    <div id="property-summary-heading" className={styles.summaryIntro}>
+                      {displayType && <span className={styles.typeBadge}>{displayType}</span>}
+                      {locationLabel && (
+                        <span className={styles.locationLabel}>{locationLabel}</span>
+                      )}
+                    </div>
+                    <FavoriteButton
+                      propertyId={property.id}
+                      iconOnly
+                      className={styles.favoriteButton}
+                    />
+                  </div>
                   {summaryStats.length > 0 && (
                     <ul className={styles.statsList}>
                       {summaryStats.map((stat) => (
@@ -1628,87 +1671,70 @@ export default function Property({ property, recommendations }) {
                     </ul>
                   )}
                 </div>
-                {descriptionParagraphs.length > 0 && (
-                  <div
-                    className={`${styles.summaryDescription} ${
-                      isSummaryExpanded ? styles.summaryDescriptionExpanded : ''
-                    }`}
-                  >
-                    <div
-                      className={styles.summaryDescriptionText}
-                      id={summaryDescriptionId}
-                    >
-                      {descriptionParagraphs.map((paragraph, index) => (
-                        <p key={index}>{paragraph}</p>
-                      ))}
-                    </div>
-                    {shouldShowSummaryToggle && (
-                      <button
-                        type="button"
-                        className={styles.summaryDescriptionToggle}
-                        onClick={() => setSummaryExpanded((previous) => !previous)}
-                        aria-expanded={isSummaryExpanded}
-                        aria-controls={summaryDescriptionId}
-                      >
-                        {isSummaryExpanded ? 'Read less' : 'Read more'}
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-            {(pricePrefixLabel || headlinePrice) && (
-              <aside className={styles.summarySidebar}>
                 <div className={styles.summarySidebarInner}>
-                  <div className={styles.priceCard}>
-                    <div className={styles.priceHeader}>
-                      {pricePrefixLabel && (
-                        <span className={styles.pricePrefixBadge}>{pricePrefixLabel}</span>
-                      )}
-                      {headlinePrice && (
-                        <div className={styles.priceHeadline}>
-                          <span className={styles.pricePrimaryValue}>{headlinePrice}</span>
-                          {rentFrequencyLabel && (
-                            <span className={styles.priceFrequency}>{rentFrequencyLabel}</span>
+                  {(pricePrefixLabel || headlinePrice) && (
+                    <div className={styles.priceCard}>
+                      <div className={styles.priceHeader}>
+                        {pricePrefixLabel && (
+                          <span className={styles.pricePrefixBadge}>{pricePrefixLabel}</span>
+                        )}
+                        {headlinePrice && (
+                          <div className={styles.priceHeadline}>
+                            <span className={styles.pricePrimaryValue}>{headlinePrice}</span>
+                            {rentFrequencyLabel && (
+                              <span className={styles.priceFrequency}>{rentFrequencyLabel}</span>
+                            )}
+                          </div>
+                        )}
+                        {secondaryRentLabel && (
+                          <p className={styles.priceSecondary}>{secondaryRentLabel}</p>
+                        )}
+                      </div>
+                      {(shouldShowSecurityDeposit ||
+                        shouldShowHoldingDeposit ||
+                        shouldShowAvailability) && (
+                        <dl className={styles.rentMeta}>
+                          {shouldShowSecurityDeposit && (
+                            <>
+                              <dt>Security deposit</dt>
+                              <dd>{securityDepositLabel}</dd>
+                            </>
                           )}
-                        </div>
+                          {shouldShowHoldingDeposit && (
+                            <>
+                              <dt>Holding deposit</dt>
+                              <dd>{holdingDepositLabel}</dd>
+                            </>
+                          )}
+                          {shouldShowAvailability && (
+                            <>
+                              <dt>Available from</dt>
+                              <dd>{availabilityLabel}</dd>
+                            </>
+                          )}
+                        </dl>
                       )}
-                      {secondaryRentLabel && (
-                        <p className={styles.priceSecondary}>{secondaryRentLabel}</p>
-                      )}
+                      <div className={styles.priceActions}>
+                        <OfferDrawer property={property} />
+                        <ViewingForm
+                          property={property}
+                          selectedSlot={selectedViewingSlot}
+                          onClose={handleViewingFormClose}
+                        />
+                      </div>
                     </div>
-                    {(shouldShowSecurityDeposit ||
-                      shouldShowHoldingDeposit ||
-                      shouldShowAvailability) && (
-                      <dl className={styles.rentMeta}>
-                        {shouldShowSecurityDeposit && (
-                          <>
-                            <dt>Security deposit</dt>
-                            <dd>{securityDepositLabel}</dd>
-                          </>
-                        )}
-                        {shouldShowHoldingDeposit && (
-                          <>
-                            <dt>Holding deposit</dt>
-                            <dd>{holdingDepositLabel}</dd>
-                          </>
-                        )}
-                        {shouldShowAvailability && (
-                          <>
-                            <dt>Available from</dt>
-                            <dd>{availabilityLabel}</dd>
-                          </>
-                        )}
-                      </dl>
-                    )}
-                    <div className={styles.priceActions}>
-                      <OfferDrawer property={property} />
-                      <ViewingForm
-                        property={property}
-                        selectedSlot={selectedViewingSlot}
-                        onClose={handleViewingFormClose}
-                      />
-                    </div>
+                  )}
+                  <div className={styles.secondaryContacts}>
+                    <a className={styles.secondaryAction} href={agentEmailHref}>
+                      Send a message
+                    </a>
+                    <button
+                      type="button"
+                      className={styles.secondaryAction}
+                      onClick={handleViewingSlotRequest}
+                    >
+                      Book a virtual viewing
+                    </button>
                   </div>
                   {viewingSlots.length > 0 && (
                     <ViewingTimeline
@@ -1719,146 +1745,183 @@ export default function Property({ property, recommendations }) {
                     />
                   )}
                 </div>
-              </aside>
-            )}
-          </div>
-        </section>
+              </div>
+            </aside>
+          </section>
 
-        {hasMediaHighlights && (
-          <MediaHighlights
-            floorplans={floorplanLinks}
-            brochures={brochureLinks}
-            tours={tourEntries}
-          />
-        )}
+          {hasMediaHighlights && (
+            <MediaHighlights
+              floorplans={floorplanLinks}
+              brochures={brochureLinks}
+              tours={tourEntries}
+            />
+          )}
 
-      {hasLocation && (
-        <section className={`${styles.contentRail} ${styles.mapSection}`}>
-          <h2>Location</h2>
-          <div className={styles.mapSectionContent}>
-            <div className={styles.mapContainer}>
-              <PropertyMap
-                mapId="property-details-map"
-                center={[property.latitude, property.longitude]}
-                zoom={16}
-                properties={mapProperties}
-              />
-            </div>
-            {locationInsights.length > 0 && (
-              <ul className={styles.locationInsights}>
-                {locationInsights.map((insight) => {
-                  const Icon =
-                    LOCATION_INSIGHT_ICON_MAP[insight.key] ?? FaMapMarkerAlt;
-                  return (
-                    <li
-                      key={insight.key}
-                      className={styles.locationInsightPill}
+          <div className={styles.detailGrid}>
+            {isMobile ? featuresSection : null}
+            {descriptionParagraphs.length > 0 && (
+              <section
+                id="property-description"
+                className={`${styles.descriptionSection} ${styles.sectionStack}`}
+              >
+                <h2>About this property</h2>
+                <div
+                  className={`${styles.summaryDescription} ${
+                    isSummaryExpanded ? styles.summaryDescriptionExpanded : ''
+                  }`}
+                >
+                  <div className={styles.summaryDescriptionText} id={summaryDescriptionId}>
+                    {descriptionParagraphs.map((paragraph, index) => (
+                      <p key={index}>{paragraph}</p>
+                    ))}
+                  </div>
+                  {shouldShowSummaryToggle && (
+                    <button
+                      type="button"
+                      className={styles.summaryDescriptionToggle}
+                      onClick={() => setSummaryExpanded((previous) => !previous)}
+                      aria-expanded={isSummaryExpanded}
+                      aria-controls={summaryDescriptionId}
                     >
-                      <Icon aria-hidden="true" />
-                      <div className={styles.locationInsightCopy}>
-                        <span className={styles.locationInsightTitle}>
-                          {insight.title}
-                        </span>
-                        {(insight.grade || insight.description) && (
-                          <div className={styles.locationInsightDetails}>
-                            {insight.grade && (
-                              <span className={styles.locationInsightGrade}>
-                                {insight.grade}
-                              </span>
-                            )}
-                            {insight.description && (
-                              <span className={styles.locationInsightDescription}>
-                                {insight.description}
-                              </span>
+                      {isSummaryExpanded ? 'Read less' : 'Read more'}
+                    </button>
+                  )}
+                </div>
+              </section>
+            )}
+            {!isMobile ? featuresSection : null}
+          </div>
+
+          <section className={`${styles.modules} ${styles.sectionStack}`}>
+            {agentProfile && (
+              <AgentCard
+                className={styles.agentCard}
+                agent={agentProfile}
+                testimonials={agentProfile?.testimonials}
+              />
+            )}
+
+            <PropertySustainabilityPanel property={property} />
+
+            <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
+          </section>
+
+          {hasLocation && (
+            <section
+              id="property-location"
+              className={`${styles.mapSection} ${styles.sectionStack}`}
+            >
+              <h2>Location</h2>
+              <div className={styles.mapSectionContent}>
+                <div className={styles.mapContainer}>
+                  <PropertyMap
+                    mapId="property-details-map"
+                    center={[property.latitude, property.longitude]}
+                    zoom={16}
+                    properties={mapProperties}
+                  />
+                </div>
+                {locationInsights.length > 0 && (
+                  <ul className={styles.locationInsights}>
+                    {locationInsights.map((insight) => {
+                      const Icon =
+                        LOCATION_INSIGHT_ICON_MAP[insight.key] ?? FaMapMarkerAlt;
+                      return (
+                        <li
+                          key={insight.key}
+                          className={styles.locationInsightPill}
+                        >
+                          <Icon aria-hidden="true" />
+                          <div className={styles.locationInsightCopy}>
+                            <span className={styles.locationInsightTitle}>
+                              {insight.title}
+                            </span>
+                            {(insight.grade || insight.description) && (
+                              <div className={styles.locationInsightDetails}>
+                                {insight.grade && (
+                                  <span className={styles.locationInsightGrade}>
+                                    {insight.grade}
+                                  </span>
+                                )}
+                                {insight.description && (
+                                  <span className={styles.locationInsightDescription}>
+                                    {insight.description}
+                                  </span>
+                                )}
+                              </div>
                             )}
                           </div>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-        </section>
-      )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            </section>
+          )}
 
-      {groupedFeatures.length > 0 && (
-        <section className={`${styles.contentRail} ${styles.features}`}>
-          <h2>Key features</h2>
-          <ul>
-            {groupedFeatures.map((f, i) => (
-              <li key={i}>{f}</li>
-            ))}
-          </ul>
-        </section>
-      )}
+          {(showMortgageCalculator || showRentCalculator) && (
+            <section
+              id="property-calculators"
+              className={`${styles.modules} ${styles.sectionStack}`}
+            >
+              {showMortgageCalculator && (
+                <section className={styles.calculatorSection}>
+                  <h2>Mortgage Calculator</h2>
+                  <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
+                </section>
+              )}
 
-      <section className={`${styles.contentRail} ${styles.modules}`}>
-        {agentProfile && (
-          <AgentCard
-            className={styles.agentCard}
-            agent={agentProfile}
-            testimonials={agentProfile?.testimonials}
-          />
-        )}
+              {showRentCalculator && (
+                <section className={styles.calculatorSection}>
+                  <h2>Rent Affordability</h2>
+                  <RentAffordability
+                    defaultRent={rentToMonthly(property.price, property.rentFrequency)}
+                  />
+                </section>
+              )}
+            </section>
+          )}
 
-        <PropertySustainabilityPanel property={property} />
-
-        <NeighborhoodInfo lat={property.latitude} lng={property.longitude} />
-
-        {groupedFeatures.length > 0 && (
-          <section
-            id="property-features"
-            className={`${styles.features} ${styles.sectionAnchor}`}
-          >
-            <h2>Key features</h2>
-            <ul>
-              {groupedFeatures.map((f, i) => (
-                <li key={i}>{f}</li>
-              ))}
-            </ul>
+          <section className={`${styles.contact} ${styles.sectionStack}`} id="contact-options">
+            <h2>Talk to our team</h2>
+            <p>Prefer a different contact method? We&apos;re ready to help.</p>
+            <div className={styles.contactActions}>
+              <a className={styles.contactLink} href={agentPhoneHref}>
+                Call {agentProfile?.name ? agentProfile.name : 'the agent'}
+              </a>
+              <a className={styles.contactLink} href={agentEmailHref}>
+                Email us
+              </a>
+            </div>
           </section>
-        )}
-      </section>
 
-        {(showMortgageCalculator || showRentCalculator) && (
-          <section
-            id="property-calculators"
-            className={`${styles.contentRail} ${styles.modules} ${styles.sectionAnchor}`}
+          {hasRecommendations && (
+            <section
+              id="property-recommendations"
+              className={`${styles.related} ${styles.sectionStack}`}
+            >
+              <h2>You might also be interested in</h2>
+              <PropertyList properties={recommendations} enableSlider />
+            </section>
+          )}
+        </div>
+        <div
+          className={styles.mobileCtaBar}
+          role="group"
+          aria-label="Property contact actions"
+        >
+          <button
+            type="button"
+            className={styles.mobilePrimaryCta}
+            onClick={handleViewingSlotRequest}
           >
-            {showMortgageCalculator && (
-              <section className={styles.calculatorSection}>
-                <h2>Mortgage Calculator</h2>
-                <MortgageCalculator defaultPrice={parsePriceNumber(property.price)} />
-              </section>
-            )}
-
-            {showRentCalculator && (
-              <section className={styles.calculatorSection}>
-                <h2>Rent Affordability</h2>
-                <RentAffordability
-                  defaultRent={rentToMonthly(property.price, property.rentFrequency)}
-                />
-              </section>
-            )}
-          </section>
-        )}
-
-        <section className={`${styles.contentRail} ${styles.contact}`}>
-          <p>Interested in this property?</p>
-          <a href="tel:+441234567890">Call our team</a>
-        </section>
-
-        {hasRecommendations && (
-          <section
-            id="property-recommendations"
-            className={`${styles.contentRail} ${styles.related} ${styles.sectionAnchor}`}
-          >
-            <h2>You might also be interested in</h2>
-            <PropertyList properties={recommendations} />
-          </section>
-        )}
+            Schedule viewing
+          </button>
+          <a className={styles.mobileSecondaryCta} href={agentPhoneHref}>
+            Call agent
+          </a>
+        </div>
       </main>
     </>
   );
