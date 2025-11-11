@@ -1,3 +1,6 @@
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
 const repo = process.env.GITHUB_REPOSITORY?.split('/')[1] || '';
 const isProd = process.env.NODE_ENV === 'production';
 // Default to a serverful build so API routes like /api/register work.
@@ -165,6 +168,18 @@ const nextConfig = {
   assetPrefix: computedBasePath ? `${computedBasePath}/` : undefined,
   env: {
     NEXT_PUBLIC_BASE_PATH: publicBasePath,
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'react-icons/fa': require.resolve('react-icons/fa/index.js'),
+      'react-icons/fi': require.resolve('react-icons/fi/index.js'),
+      'react-responsive-carousel': require.resolve(
+        'react-responsive-carousel/lib/js/index.js',
+      ),
+    };
+
+    return config;
   },
 };
 
