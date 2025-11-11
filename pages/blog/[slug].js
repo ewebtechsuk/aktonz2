@@ -1,7 +1,12 @@
 import Head from 'next/head';
 import Link from 'next/link';
 
-import { buildCanonicalUrl, findRelatedPosts, getBlogPostBySlug } from '../../lib/blog-posts.mjs';
+import {
+  buildCanonicalUrl,
+  findRelatedPosts,
+  getBlogPostBySlug,
+  listPublishedBlogPosts,
+} from '../../lib/blog-posts.mjs';
 import styles from '../../styles/BlogPost.module.css';
 
 function formatDate(value) {
@@ -113,7 +118,20 @@ export default function BlogPostPage({ post, related = [] }) {
   );
 }
 
-export async function getServerSideProps({ params }) {
+export async function getStaticPaths() {
+  const posts = await listPublishedBlogPosts();
+  const paths = posts
+    .map((post) => post.slug)
+    .filter(Boolean)
+    .map((slug) => ({ params: { slug } }));
+
+  return {
+    paths,
+    fallback: false,
+  };
+}
+
+export async function getStaticProps({ params }) {
   const slug = params?.slug;
   const post = await getBlogPostBySlug(slug);
 
