@@ -18,7 +18,8 @@
     "check-ms-connector": "node scripts/check-ms-connector.mjs",
     "monitor": "node scripts/monitor-prices.js",
     "ping-redis": "node scripts/ping-redis.mjs",
-    "sync:scraye": "node scripts/syncScraye.mjs"
+    "sync:scraye": "node scripts/syncScraye.mjs",
+    "seed:blog": "node scripts/seedBlogPosts.mjs"
   },
   "keywords": [],
   "author": "",

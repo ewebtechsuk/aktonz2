@@ -1,0 +1,289 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.titleRow h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.primaryButton,
+.secondaryButton,
+.dangerButton {
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.6rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.primaryButton {
+  background: #1f3c88;
+  color: #fff;
+}
+
+.primaryButton:hover,
+.primaryButton:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(31, 60, 136, 0.2);
+}
+
+.secondaryButton {
+  background: #f0f4ff;
+  color: #1f3c88;
+}
+
+.secondaryButton:hover,
+.secondaryButton:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(31, 60, 136, 0.15);
+}
+
+.dangerButton {
+  background: #ffe8e6;
+  color: #b1180a;
+}
+
+.dangerButton:hover,
+.dangerButton:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(177, 24, 10, 0.15);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid #e4e8f5;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.table thead {
+  background: #f7f9ff;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 0.95rem 1.2rem;
+  border-bottom: 1px solid #eef1fb;
+  vertical-align: top;
+}
+
+.table th {
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #4a5ca7;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 6rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: #e9f2ff;
+  color: #1f3c88;
+}
+
+.statusDraft {
+  background: #fff3d6;
+  color: #7a4b00;
+}
+
+.formPanel {
+  border: 1px solid #dbe3ff;
+  border-radius: 1rem;
+  background: #fff;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formField label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #2b3a67;
+}
+
+.formField input,
+.formField select,
+.formField textarea {
+  border: 1px solid #c9d4ff;
+  border-radius: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.95rem;
+  transition: border 0.15s ease, box-shadow 0.15s ease;
+}
+
+.formField textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.formField input:focus,
+.formField select:focus,
+.formField textarea:focus {
+  outline: none;
+  border-color: #1f3c88;
+  box-shadow: 0 0 0 3px rgba(31, 60, 136, 0.15);
+}
+
+.richTextWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.richTextToolbar {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.toolbarButton {
+  border: 1px solid #c9d4ff;
+  background: #f7f9ff;
+  color: #1f3c88;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toolbarButton:hover,
+.toolbarButton:focus-visible {
+  background: #e0e7ff;
+}
+
+.richTextEditor {
+  border: 1px solid #c9d4ff;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  min-height: 220px;
+  background: #fff;
+  font-size: 1rem;
+  line-height: 1.6;
+  overflow-y: auto;
+}
+
+.richTextEditor:focus {
+  outline: none;
+  border-color: #1f3c88;
+  box-shadow: 0 0 0 3px rgba(31, 60, 136, 0.15);
+}
+
+.formFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.formMeta {
+  font-size: 0.85rem;
+  color: #5c6ba8;
+}
+
+.emptyState {
+  padding: 2rem;
+  text-align: center;
+  font-size: 1rem;
+  color: #5c6ba8;
+}
+
+.errorMessage {
+  color: #b1180a;
+  background: #ffeceb;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.successMessage {
+  color: #135b2c;
+  background: #e7f8ed;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.tableActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tableActions button {
+  border-radius: 0.75rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 1.5rem 1rem;
+  }
+
+  .table {
+    min-width: 100%;
+  }
+
+  .formPanel {
+    padding: 1.25rem;
+  }
+
+  .titleRow h1 {
+    font-size: 1.7rem;
+  }
+}

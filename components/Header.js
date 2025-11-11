@@ -20,6 +20,7 @@ export default function Header() {
     router.pathname === href || router.pathname.startsWith(`${href}/`);
   const isSellActive = isSectionActive('/sell');
   const isLandlordsActive = isSectionActive('/landlords');
+  const isBlogActive = isSectionActive('/blog');
 
   const toggleMenu = () => setMenuOpen((prev) => !prev);
   const closeMenu = () => {
@@ -161,6 +162,14 @@ export default function Header() {
         aria-current={isPathActive('/jobs') ? 'page' : undefined}
       >
         Careers
+      </Link>
+      <Link
+        href="/blog"
+        className={`${styles.navLink} ${isBlogActive ? styles.active : ''}`}
+        onClick={closeMenu}
+        aria-current={isBlogActive ? 'page' : undefined}
+      >
+        Insights
       </Link>
       <Link
         href="/contact"
