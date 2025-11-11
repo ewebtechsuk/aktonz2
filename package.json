@@ -25,7 +25,7 @@
   "author": "",
   "license": "ISC",
   "engines": {
-    "node": "18.x"
+    "node": "22.x"
   },
   "dependencies": {
     "next": "14.2.15",
