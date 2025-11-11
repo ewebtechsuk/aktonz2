@@ -1,4 +1,5 @@
-import { FaFilePdf, FaPlayCircle, FaRulerCombined, FaVrCardboard } from 'react-icons/fa';
+import { useId, useRef } from 'react';
+import { FaChevronLeft, FaChevronRight, FaFilePdf, FaPlayCircle, FaRulerCombined, FaVrCardboard } from 'react-icons/fa';
 import styles from '../styles/PropertyDetails.module.css';
 
 function isLikelyAssetUrl(value) {
@@ -205,30 +206,72 @@ export default function MediaHighlights({ floorplans = [], brochures = [], tours
     return null;
   }
 
+  const trackRef = useRef(null);
+  const listId = useId();
+
+  const handleScroll = (direction) => {
+    const track = trackRef.current;
+    if (!track) {
+      return;
+    }
+
+    const firstCard = track.querySelector('li');
+    if (!firstCard) {
+      return;
+    }
+
+    const { width } = firstCard.getBoundingClientRect();
+    const gap = parseFloat(getComputedStyle(track).columnGap || getComputedStyle(track).gap || '0');
+    track.scrollBy({
+      left: (width + gap) * direction,
+      behavior: 'smooth',
+    });
+  };
+
   return (
     <section className={`${styles.contentRail} ${styles.mediaHighlights}`} aria-label="Supplementary media">
       <h2 className={styles.mediaHighlightsTitle}>Explore more media</h2>
-      <ul className={styles.mediaHighlightsTrack}>
-        {cards.map(({ key, url, title, cta, Icon }) => (
-          <li key={key} className={styles.mediaHighlightItem}>
-            <a
-              href={url}
-              className={styles.mediaHighlightCard}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`${title} — ${cta}`}
-            >
-              <span className={styles.mediaHighlightIcon} aria-hidden="true">
-                <Icon />
-              </span>
-              <span className={styles.mediaHighlightText}>
-                <span className={styles.mediaHighlightLabel}>{title}</span>
-                <span className={styles.mediaHighlightCta}>{cta}</span>
-              </span>
-            </a>
-          </li>
-        ))}
-      </ul>
+      <div className={styles.mediaHighlightsViewport}>
+        <button
+          type="button"
+          className={`${styles.carouselControl} ${styles.carouselControlPrev}`}
+          aria-label="Scroll media left"
+          onClick={() => handleScroll(-1)}
+          aria-controls={listId}
+        >
+          <FaChevronLeft aria-hidden="true" />
+        </button>
+        <ul ref={trackRef} className={styles.mediaHighlightsTrack} id={listId}>
+          {cards.map(({ key, url, title, cta, Icon }) => (
+            <li key={key} className={styles.mediaHighlightItem}>
+              <a
+                href={url}
+                className={styles.mediaHighlightCard}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${title} — ${cta}`}
+              >
+                <span className={styles.mediaHighlightIcon} aria-hidden="true">
+                  <Icon />
+                </span>
+                <span className={styles.mediaHighlightText}>
+                  <span className={styles.mediaHighlightLabel}>{title}</span>
+                  <span className={styles.mediaHighlightCta}>{cta}</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <button
+          type="button"
+          className={`${styles.carouselControl} ${styles.carouselControlNext}`}
+          aria-label="Scroll media right"
+          onClick={() => handleScroll(1)}
+          aria-controls={listId}
+        >
+          <FaChevronRight aria-hidden="true" />
+        </button>
+      </div>
     </section>
   );
 }

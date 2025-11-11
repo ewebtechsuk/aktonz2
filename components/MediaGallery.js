@@ -1,4 +1,5 @@
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import styles from '../styles/MediaGallery.module.css';
 
 const Carousel = dynamic(
@@ -67,11 +68,16 @@ function renderMedia(url, index) {
   }
   return (
     <div key={index} className={styles.slide}>
-      <img
-        src={url}
-        alt={`Property media item ${index + 1}`}
-        referrerPolicy="no-referrer"
-      />
+      <div className={styles.imageFrame}>
+        <Image
+          src={url}
+          alt={`Property media item ${index + 1}`}
+          fill
+          sizes="(max-width: 767px) 100vw, (max-width: 959px) 90vw, 780px"
+          className={styles.image}
+          priority={index === 0}
+        />
+      </div>
     </div>
   );
 }
@@ -80,7 +86,7 @@ export default function MediaGallery({ images = [], media = [] }) {
   const items = [...media, ...images];
   if (items.length === 0) return null;
   return (
-    <div className={styles.slider}>
+    <div className={styles.slider} aria-label="Property media gallery">
       <Carousel
         showThumbs={false}
         showArrows

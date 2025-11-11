@@ -4,6 +4,7 @@ body {
   font-family: var(--font-sans);
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
 
   background-color: var(--color-background);
   color: var(--color-text);
@@ -43,6 +44,7 @@ body {
   scroll-snap-type: x mandatory;
   align-items: stretch;
   padding-block: var(--spacing-sm);
+  padding-inline-end: calc(var(--spacing-lg) * 1.5);
 }
 
 .property-list--scrollable .property-card-wrapper {
