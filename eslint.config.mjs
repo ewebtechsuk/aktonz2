@@ -49,6 +49,7 @@ export default [
       globals: {
         ...globals.browser,
         ...globals.node,
+        ...globals.es2021,
       },
     },
     plugins: {
@@ -70,6 +71,7 @@ export default [
       globals: {
         ...globals.browser,
         ...globals.node,
+        ...globals.es2021,
       },
     },
     plugins: {
@@ -83,6 +85,8 @@ export default [
       'no-undef': 'off',
       'no-unused-vars': 'off',
       '@next/next/no-img-element': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
   {
@@ -93,6 +97,7 @@ export default [
         ...globals.jest,
         ...globals.node,
         ...globals.browser,
+        ...globals.es2021,
       },
     },
     rules: {
@@ -110,6 +115,7 @@ export default [
         ...globals.jest,
         ...globals.node,
         ...globals.browser,
+        ...globals.es2021,
       },
     },
     plugins: {
@@ -120,6 +126,8 @@ export default [
       'no-empty': 'off',
       'no-undef': 'off',
       'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
 ];

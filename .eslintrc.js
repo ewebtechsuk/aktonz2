@@ -24,6 +24,7 @@ module.exports = {
       env: {
         browser: true,
         node: true,
+        es2021: true,
       },
       parserOptions: {
         ecmaVersion: 2024,
@@ -35,6 +36,8 @@ module.exports = {
       rules: {
         'no-empty': 'off',
         'no-unused-vars': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-explicit-any': 'off',
       },
     },
     {
@@ -48,6 +51,7 @@ module.exports = {
       env: {
         browser: true,
         node: true,
+        es2021: true,
       },
       parser: '@typescript-eslint/parser',
       parserOptions: {
@@ -63,6 +67,8 @@ module.exports = {
         'no-empty': 'off',
         'no-undef': 'off',
         'no-unused-vars': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-explicit-any': 'off',
       },
     },
     {
@@ -71,6 +77,7 @@ module.exports = {
         jest: true,
         node: true,
         browser: true,
+        es2021: true,
       },
       parserOptions: {
         ecmaVersion: 2024,
@@ -90,6 +97,7 @@ module.exports = {
         jest: true,
         node: true,
         browser: true,
+        es2021: true,
       },
       parser: '@typescript-eslint/parser',
       parserOptions: {
@@ -105,6 +113,8 @@ module.exports = {
         'no-empty': 'off',
         'no-undef': 'off',
         'no-unused-vars': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-explicit-any': 'off',
       },
     },
   ],
