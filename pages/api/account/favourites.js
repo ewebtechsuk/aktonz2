@@ -1,5 +1,7 @@
-const { readContactEntries, updateContactEntries } = require('../../../lib/account-storage.js');
-const { readSession } = require('../../../lib/session.js');
+import accountStorage from '../../../lib/account-storage.js';
+import { readSession } from '../../../lib/session.js';
+
+const { readContactEntries, updateContactEntries } = accountStorage;
 
 const STORE_NAME = 'favourites.json';
 
@@ -25,7 +27,7 @@ function normalisePropertyId(value) {
   return '';
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method === 'GET') {
     const contactId = requireContact(req, res);
     if (!contactId) {
@@ -103,4 +105,4 @@ module.exports = async function handler(req, res) {
 
   res.setHeader('Allow', ['GET', 'POST', 'DELETE']);
   res.status(405).end('Method Not Allowed');
-};
+}

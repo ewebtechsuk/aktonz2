@@ -28,6 +28,7 @@
     "ioredis": "^5.8.0",
     "leaflet": "^1.9.4",
     "next": "^15.5.2",
+    "next-auth": "^4.24.10",
     "nodemailer": "^6.9.11",
     "playwright": "^1.49.0",
     "react": "^19.1.1",
