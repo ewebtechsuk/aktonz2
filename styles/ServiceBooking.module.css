@@ -1,0 +1,110 @@
+.bookingSection {
+  padding: 4rem 1.5rem 5rem;
+  background: #fff;
+}
+
+.bookingContainer {
+  max-width: 960px;
+  margin: 0 auto;
+  background: #f7f8ff;
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: 0 25px 65px rgba(20, 20, 43, 0.08);
+}
+
+.bookingHeader {
+  margin-bottom: 2rem;
+}
+
+.bookingHeader h1 {
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  margin-bottom: 0.5rem;
+}
+
+.bookingHeader p {
+  color: #5b5e71;
+}
+
+.bookingForm {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.fieldGroup label {
+  font-weight: 600;
+  color: #272848;
+}
+
+.fieldGroup input,
+.fieldGroup select,
+.fieldGroup textarea {
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  background: #fff;
+}
+
+.fieldGroup textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.formActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.submitButton {
+  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  padding: 0.95rem 2.5rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.submitButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.statusMessage {
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.photoPreview {
+  width: 160px;
+  height: 110px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px dashed rgba(99, 102, 241, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.photoPreview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 640px) {
+  .bookingContainer {
+    padding: 1.75rem;
+  }
+}
