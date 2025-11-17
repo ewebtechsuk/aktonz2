@@ -1,0 +1,13 @@
+<svg width="480" height="320" viewBox="0 0 480 320" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="pat" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fef9c3" />
+      <stop offset="100%" stop-color="#a3e635" />
+    </linearGradient>
+  </defs>
+  <rect width="480" height="320" rx="32" fill="#f7fee7" />
+  <rect x="150" y="90" width="180" height="160" rx="24" fill="url(#pat)" stroke="#4d7c0f" stroke-width="6" />
+  <circle cx="240" cy="170" r="40" fill="none" stroke="#3f6212" stroke-width="12" />
+  <line x1="240" y1="130" x2="240" y2="210" stroke="#3f6212" stroke-width="12" stroke-linecap="round" />
+  <text x="50%" y="265" font-family="'Helvetica Neue', Arial" font-weight="600" font-size="32" text-anchor="middle" fill="#3f6212">PAT</text>
+</svg>
